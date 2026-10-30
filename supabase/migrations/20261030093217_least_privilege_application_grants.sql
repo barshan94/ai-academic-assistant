@@ -1,4 +1,4 @@
-alter default privileges in schema public
+alter default privileges for role postgres in schema public
   revoke all on tables from anon, authenticated;
 
 revoke all privileges on table

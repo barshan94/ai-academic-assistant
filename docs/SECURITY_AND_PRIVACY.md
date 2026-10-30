@@ -16,7 +16,7 @@ Use .env.local for local secrets and keep it ignored by Git. Commit only placeho
 - Derive owner identity from the verified server-side session; never trust a user_id supplied by the browser.
 - Keep service-role credentials server-only and use least privilege.
 - Revoke broad default table grants from anon and authenticated. Authenticated receives only SELECT/INSERT/UPDATE on profiles and SELECT/INSERT/UPDATE/DELETE on owner-scoped application tables. TRUNCATE, REFERENCES and TRIGGER are not granted.
-- Revoke the same broad table privileges from future public tables by default; each migration must explicitly grant only what its feature requires.
+- Revoke broad default table privileges for future tables created by the postgres migration role; each migration must explicitly grant only what its feature requires. Supabase's provider-managed supabase_admin default ACL remains unchanged, so do not create application tables under that role without separately auditing and revoking grants.
 - Use composite foreign keys so document pages, processing jobs and questions cannot reference a parent document owned by another user.
 - Validate uploads by content type, file signature, size and page limits.
 - Store files in the owner's Drive and keep only necessary metadata in the database.
