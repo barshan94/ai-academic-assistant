@@ -87,6 +87,14 @@ export async function updateQuestionClassification(formData: FormData) {
     if (values.chapterId || values.topicId) redirect("/dashboard/questions/" + values.questionId + "?classification=reference_mismatch");
   }
 
+  if (values.classificationStatus === "confirmed" && catalogId && chapterId) {
+    let evidenceQuery = supabase.from("syllabus_reference_evidence").select("id")
+      .eq("owner_id", user.id).eq("catalog_id", catalogId).eq("chapter_id", chapterId);
+    evidenceQuery = topicId ? evidenceQuery.eq("topic_id", topicId) : evidenceQuery.is("topic_id", null);
+    const { data: evidence } = await evidenceQuery.limit(1).maybeSingle();
+    if (!evidence) redirect("/dashboard/questions/" + values.questionId + "?classification=evidence_required");
+  }
+
   const { data, error } = await supabase.from("questions").update({
     board,
     qualification,
