@@ -57,6 +57,7 @@ Implemented on feature/m3-ai-solver:
 - Restrict catalogue INSERT/UPDATE privileges to the minimum required columns; chapter/topic structure is append-only until dedicated edit workflows exist.
 - Prevent a question mapping from being marked confirmed against a draft or retired catalogue.
 - Add a dedicated owner-only review queue for unreviewed and uncertain mappings, prioritizing missing/lowest confidence first.
+- Make classification chapter/topic selectors dependent on the selected syllabus version and chapter; clear stale child selections when parents change.
 
 M5 exit criteria still outstanding:
 - Build and maintain a shared, centrally curated reference dataset with official-board provenance; the current JSON importer is a personal catalogue import foundation, not a shared dataset.
