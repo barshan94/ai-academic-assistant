@@ -8,6 +8,7 @@
 - [ ] Authenticated owner can sign in and sign out in a live browser test.
 - [x] Database migrations are applied and mirrored in timestamped migration files.
 - [x] RLS is enabled on all current public application tables; owner policies and anonymous grants have been inspected.
+- [x] Authenticated table grants exclude TRUNCATE, REFERENCES and TRIGGER; profiles do not grant DELETE.
 - [ ] Full two-owner integration test proves cross-account row isolation.
 - [ ] No secrets are committed to Git.
 

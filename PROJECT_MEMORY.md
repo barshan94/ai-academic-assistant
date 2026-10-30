@@ -43,9 +43,13 @@ M1 10% foundation; M2 25% document intelligence; M3 45% solver; M4 58% verificat
   - 20261030091102 fix_question_page_owner_fk
   - 20261030091123 index_document_foreign_keys
   - 20261030091243 google_drive_connections
+  - 20261030091909 enforce_document_owner_relationships
+  - 20261030093217 least_privilege_application_grants
 - RLS is enabled on profiles, documents, document_pages, processing_jobs, questions and drive_connections.
-- Supabase security advisors returned no security lint findings after the document schema was applied. Performance advisor identified four missing foreign-key indexes; those were added in migration 20261030091123. Re-run advisors after the latest migration.
-- Database grants verified: anon cannot SELECT profiles; authenticated can SELECT/INSERT/UPDATE profiles.
+- Supabase security advisors returned no security lint findings. Performance advisor reports only unused indexes on empty tables; no missing foreign-key indexes remain.
+- RLS is enabled on all six public application tables. Composite foreign keys enforce same-owner document relationships.
+- Authenticated table grants are least-privilege: profiles SELECT/INSERT/UPDATE only; other app tables SELECT/INSERT/UPDATE/DELETE. anon has no table privileges; TRUNCATE, REFERENCES and TRIGGER are not granted. Future public table defaults revoke broad grants.
+- Database grants verified across all six tables: anon has no table privileges; authenticated has only required row-level operations.
 - Profile policies use auth.uid() owner checks; document, page, job, question and Drive connection tables have owner-scoped RLS policies.
 - Supabase stores document metadata and extracted text; original PDFs are archived in the user's Google Drive.
 - Email/password sign-in, protected dashboard, server-side user checks and sign-out are implemented.
@@ -55,7 +59,9 @@ M1 10% foundation; M2 25% document intelligence; M3 45% solver; M4 58% verificat
 - Document processing has a three-attempt limit and a 100-page cap; it is manually started from the library (no automatic background worker yet).
 - Unit tests cover PDF preservation, image conversion and extracted-text page splitting.
 - Live Supabase sign-in, Google OAuth, Drive upload and OCR are NOT yet smoke-tested because owner environment credentials and a live authenticated test session have not been configured.
-- Google Drive disconnect/revoke UI, resumable large-file uploads, automatic background workers, question segmentation, AI solving and syllabus classification remain unfinished.
+- Google Drive disconnect/revoke action is implemented. Resumable large-file uploads, automatic background workers, question segmentation, AI solving and syllabus classification remain unfinished.
+- Supabase SSR package is 0.12.7; middleware validates JWT claims with getClaims and forwards auth cache headers.
+- npm audit found vulnerable Vitest/PostCSS versions; a patch upgrade to Vitest 4.1.12 and PostCSS 8.5.32 is in progress and must be verified before claiming clean dependencies.
 
 ## Environment requirements (never commit values)
 - NEXT_PUBLIC_SUPABASE_URL

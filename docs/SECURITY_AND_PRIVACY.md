@@ -15,9 +15,12 @@ Use .env.local for local secrets and keep it ignored by Git. Commit only placeho
 - Enforce Row Level Security on every user-owned table.
 - Derive owner identity from the verified server-side session; never trust a user_id supplied by the browser.
 - Keep service-role credentials server-only and use least privilege.
+- Revoke broad default table grants from anon and authenticated. Authenticated receives only SELECT/INSERT/UPDATE on profiles and SELECT/INSERT/UPDATE/DELETE on owner-scoped application tables. TRUNCATE, REFERENCES and TRIGGER are not granted.
+- Revoke the same broad table privileges from future public tables by default; each migration must explicitly grant only what its feature requires.
+- Use composite foreign keys so document pages, processing jobs and questions cannot reference a parent document owned by another user.
 - Validate uploads by content type, file signature, size and page limits.
 - Store files in the owner's Drive and keep only necessary metadata in the database.
-- Encrypt Google Drive OAuth refresh tokens with AES-256-GCM at rest and restrict OAuth scopes to `drive.file`.
+- Encrypt Google Drive OAuth refresh tokens with AES-256-GCM at rest and restrict OAuth scopes to drive.file.
 - Bind OAuth state to the signed-in owner, use a short-lived HTTP-only SameSite cookie, and never return access tokens to the browser.
 - Validate PDF/JPEG/PNG file signatures, cap the current upload route at 4 MB, and use owner-derived IDs for database writes.
 - Treat OCR output as unverified until the owner reviews and approves it.

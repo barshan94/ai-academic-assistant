@@ -23,7 +23,7 @@ A personal, web-based AI academic workspace for a tutor working across Edexcel O
 | Internet | Hybrid: own library/source documents first; web research only when needed |
 | Database | Supabase PostgreSQL Free initially |
 | File archive | User-authorized Google Drive account |
-| Image archive | Convert JPEG/PNG batches into one PDF, in selected order; source files are not stored separately |
+| Image archive | Convert JPEG/PNG batches into one PDF in selected order; source images are not archived separately |
 | Uploaded PDFs | Preserve original PDF; do not reconvert needlessly |
 | Architecture | Modular monolith + durable background workers |
 
@@ -37,7 +37,7 @@ A personal, web-based AI academic workspace for a tutor working across Edexcel O
 - Architecture, data model, roadmap, security, authentication, Drive setup, PDF processing and operations documentation.
 
 ## Development
-1. Install dependencies with `npm install`.
+1. Install the exact dependency tree with `npm ci`.
 2. Copy `.env.example` to `.env.local` and add the Supabase project URL and publishable key.
 3. Run `npm run dev`.
 4. Run `npm run lint`, `npm run typecheck`, `npm test` and `npm run build` before proposing a milestone as complete.
