@@ -3,7 +3,12 @@ import { PDFDocument } from "pdf-lib";
 export const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
 
 export function safeFileName(value: string) {
-  return value.replaceAll("/", "_").replaceAll("\\\\", "_").replace(/[\\u0000-\\u001f]/g, "_").trim().slice(0, 180) || "academic-document";
+  return value
+    .replaceAll("/", "_")
+    .replaceAll("\\", "_")
+    .replace(/[\x00-\x1f]/g, "_")
+    .trim()
+    .slice(0, 180) || "academic-document";
 }
 
 export async function normalizeToPdf(file: File) {
@@ -13,7 +18,7 @@ export async function normalizeToPdf(file: File) {
   }
 
   if (file.type === "application/pdf" && Buffer.from(bytes).subarray(0, 5).toString() === "%PDF-") {
-    const name = file.name.toLowerCase().endsWith(".pdf") ? file.name : `${file.name}.pdf`;
+    const name = file.name.toLowerCase().endsWith(".pdf") ? file.name : \`${file.name}.pdf\`;
     return { bytes, fileName: safeFileName(name), converted: false };
   }
 
@@ -26,10 +31,10 @@ export async function normalizeToPdf(file: File) {
   const page = pdf.addPage([image.width, image.height]);
   page.drawImage(image, { x: 0, y: 0, width: image.width, height: image.height });
   const output = await pdf.save();
-  const baseName = file.name.replace(/\\.[^.]+$/, "");
+  const baseName = file.name.replace(/\.[^.]+$/, "");
   return {
     bytes: new Uint8Array(output),
-    fileName: safeFileName(`${baseName}.pdf`),
+    fileName: safeFileName(\`${baseName}.pdf\`),
     converted: true,
   };
 }
