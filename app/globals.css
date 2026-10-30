@@ -174,3 +174,13 @@ h2 { font-size: 24px; letter-spacing: -.04em; margin: 0; font-weight: 600; }
   .question-search { grid-template-columns: 1fr; }
   .question-card-footer { align-items: flex-start; flex-direction: column; }
 }
+
+
+/* AI answer workspace */
+.solution-panel { padding: 24px; border: 1px solid var(--line); border-radius: 12px; background: linear-gradient(145deg, #16212b, #101821); }
+.solution-panel h3 { margin: 26px 0 10px; font-size: 15px; }
+.solution-prose { white-space: pre-wrap; color: #d8e2e9; font-size: 13px; line-height: 1.9; }
+.solution-steps { padding-left: 22px; color: #d8e2e9; }
+.solution-steps li { padding: 6px 0 12px 4px; line-height: 1.7; }
+.solution-steps p { margin: 5px 0 0; color: var(--muted); font-size: 12px; }
+.solution-panel ul { color: #c5d0d9; font-size: 12px; line-height: 1.8; }

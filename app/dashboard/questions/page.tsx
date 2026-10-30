@@ -74,7 +74,7 @@ export default async function QuestionsPage({ searchParams }: QuestionsPageProps
                 <p className="question-card-text">{question.question_number ? question.question_number + ". " : ""}{question.question_text}</p>
                 <p className="question-card-meta">{[question.board, question.qualification, question.chapter, question.topic].filter(Boolean).join(" · ") || "Syllabus metadata not set"}</p>
                 <div className="question-card-footer">
-                  <Link className="document-open" href={"/dashboard/documents/" + question.document_id}>Source: {documentNames.get(question.document_id) ?? "Open document"} ↗</Link>
+                  <Link className="document-open" href={"/dashboard/questions/" + question.id}>Open solver ↗</Link><Link className="document-open" href={"/dashboard/documents/" + question.document_id}>Source: {documentNames.get(question.document_id) ?? "Open document"} ↗</Link>
                   {question.review_status === "needs_review" ? (
                     <div className="question-review-actions">
                       <form action={setQuestionReviewStatus}><input type="hidden" name="questionId" value={question.id} /><input type="hidden" name="status" value="approved" /><button className="document-action" type="submit">Approve</button></form>
