@@ -179,3 +179,58 @@ export async function retireSyllabusCatalog(formData: FormData) {
   revalidatePath("/dashboard/questions");
   redirect("/dashboard/syllabus?catalog=retired");
 }
+
+
+export async function addSyllabusReferenceEvidence(formData: FormData) {
+  const schema = z.object({
+    catalogId: z.string().uuid(),
+    chapterId: z.string().uuid(),
+    topicId: z.string().uuid().or(z.literal("")),
+    sourceUrl: z.string().trim().url().max(2048).refine((value) => {
+      try { return new URL(value).protocol === "https:"; }
+      catch { return false; }
+    }),
+    sourceTitle: z.string().trim().min(1).max(200),
+    sourceLocator: z.string().trim().max(200),
+    evidenceExcerpt: z.string().trim().max(600),
+  });
+  const parsed = schema.safeParse({
+    catalogId: String(formData.get("catalogId") ?? ""),
+    chapterId: String(formData.get("chapterId") ?? ""),
+    topicId: String(formData.get("topicId") ?? ""),
+    sourceUrl: String(formData.get("sourceUrl") ?? ""),
+    sourceTitle: String(formData.get("sourceTitle") ?? ""),
+    sourceLocator: String(formData.get("sourceLocator") ?? ""),
+    evidenceExcerpt: String(formData.get("evidenceExcerpt") ?? ""),
+  });
+  if (!parsed.success) redirect("/dashboard/syllabus?evidence=invalid");
+
+  const { supabase, user } = await requireOwner();
+  const value = parsed.data;
+  const { data: chapter } = await supabase.from("syllabus_chapters")
+    .select("id,catalog_id").eq("id", value.chapterId)
+    .eq("catalog_id", value.catalogId).eq("owner_id", user.id).maybeSingle();
+  if (!chapter) redirect("/dashboard/syllabus?evidence=not_found");
+
+  if (value.topicId) {
+    const { data: topic } = await supabase.from("syllabus_topics")
+      .select("id").eq("id", value.topicId).eq("chapter_id", chapter.id)
+      .eq("owner_id", user.id).maybeSingle();
+    if (!topic) redirect("/dashboard/syllabus?evidence=not_found");
+  }
+
+  const { error } = await supabase.from("syllabus_reference_evidence").insert({
+    catalog_id: value.catalogId,
+    chapter_id: value.chapterId,
+    topic_id: value.topicId || null,
+    source_url: value.sourceUrl,
+    source_title: value.sourceTitle,
+    source_locator: value.sourceLocator || null,
+    evidence_excerpt: value.evidenceExcerpt || null,
+  });
+  if (error) redirect("/dashboard/syllabus?evidence=save_failed");
+
+  revalidatePath("/dashboard/syllabus");
+  revalidatePath("/dashboard/questions");
+  redirect("/dashboard/syllabus?evidence=added");
+}
