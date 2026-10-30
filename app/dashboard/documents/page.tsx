@@ -4,7 +4,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { signOut } from "../actions";
 
 type DocumentsPageProps = {
-  searchParams: Promise<{ drive?: string; upload?: string }>;
+  searchParams: Promise<{ drive?: string; upload?: string; process?: string }>;
 };
 
 const notices: Record<string, { text: string; tone: "success" | "error" | "info" }> = {
@@ -18,7 +18,13 @@ const notices: Record<string, { text: string; tone: "success" | "error" | "info"
   duplicate: { text: "This exact PDF is already in your library.", tone: "info" },
   drive_not_connected: { text: "Connect Google Drive before uploading.", tone: "error" },
   missing_file: { text: "Choose a PDF, JPEG or PNG file first.", tone: "error" },
-  failed: { text: "Upload failed. Check file format, size and Google Drive permissions.", tone: "error" },\n  complete: { text: "Text extraction finished. Review every page before approving it.", tone: "success" },\n  already_processed: { text: "This document has already been processed.", tone: "info" },\n  not_found: { text: "Document not found or you do not have access to it.", tone: "error" },\n  job_missing: { text: "No processing job was found for this document.", tone: "error" },\n  retry_limit: { text: "The automatic retry limit has been reached. Review the file manually.", tone: "error" },\n  failed: { text: "Processing failed. You can inspect the document and retry if attempts remain.", tone: "error" },
+  failed: { text: "Upload failed. Check file format, size and Google Drive permissions.", tone: "error" },
+  processing_failed: { text: "Text extraction failed. Check the source PDF and try again if attempts remain.", tone: "error" },
+  complete: { text: "Text extraction finished. Review every page before approving it.", tone: "success" },
+  already_processed: { text: "This document has already been processed.", tone: "info" },
+  not_found: { text: "Document not found or you do not have access to it.", tone: "error" },
+  job_missing: { text: "No processing job was found for this document.", tone: "error" },
+  retry_limit: { text: "The automatic retry limit has been reached. Review the file manually.", tone: "error" },
   queue_failed: { text: "The processing job could not be queued. The uploaded file was rolled back.", tone: "error" },
 };
 
@@ -49,7 +55,7 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
         <p className="hero-copy">Archive source PDFs in your own Google Drive. Images are converted into PDFs before archiving; original PDFs are preserved without re-encoding.</p>
       </section>
 
-      {notice ? <p className={`notice notice-${notice.tone}`} role="status">{notice.text}</p> : null}
+      {notice ? <p className={"notice notice-" + notice.tone} role="status">{notice.text}</p> : null}
 
       <section className="section">
         <div className="section-heading"><div><p className="eyebrow">CLOUD ARCHIVE</p><h2>Google Drive</h2></div><span className="section-count">{connection ? "Connected" : "Not connected"}</span></div>
@@ -78,8 +84,11 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
               <article className="document-row" key={document.id}>
                 <div className="document-icon">PDF</div>
                 <div className="document-details"><h3>{document.file_name}</h3><p>{(document.file_size_bytes / 1024 / 1024).toFixed(2)} MB · {new Date(document.created_at).toLocaleDateString("en-GB")}</p></div>
-                <span className={`document-status status-${document.status}`}>{document.status.replace("_", " ")}</span>
-                {document.drive_web_view_link ? <a className="document-open" href={document.drive_web_view_link} target="_blank" rel="noreferrer">Open ↗</a> : null}
+                <span className={"document-status status-" + document.status}>{document.status.replace("_", " ")}</span>
+                {document.status === "queued" || document.status === "failed" ? (
+                  <form action={"/api/documents/" + document.id + "/process"} method="post"><button className="document-action" type="submit">Extract text</button></form>
+                ) : <Link className="document-open" href={"/dashboard/documents/" + document.id}>Review ↗</Link>}
+                {document.drive_web_view_link ? <a className="document-open" href={document.drive_web_view_link} target="_blank" rel="noreferrer">Drive ↗</a> : null}
               </article>
             ))}
           </div>
