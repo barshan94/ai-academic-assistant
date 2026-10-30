@@ -57,6 +57,7 @@
 - [x] Only an owner can read and create catalogue data; RLS blocks cross-account access, anonymous grants and delete grants are absent, and catalogue updates are restricted to verification state/timestamp.
 - [x] A catalogue cannot be marked verified without an HTTPS source and verification timestamp.
 - [x] A question cannot be confirmed against a draft or retired structured catalogue.
+- [x] Retired catalogues reject new chapter/topic inserts at the RLS policy layer.
 - [ ] Automated database tests prove cross-account catalogue/chapter/topic isolation and reject mismatched reference IDs.
 - [x] Dedicated owner-only queue for unreviewed and uncertain mappings, sorted by missing/lowest confidence first.
 - [ ] Batch review actions with per-question validation and an auditable change history.
