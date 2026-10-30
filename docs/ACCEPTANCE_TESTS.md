@@ -14,15 +14,16 @@
 ## Document intake (M2)
 - [x] Reject unsupported file signatures and files over the current 4 MB request limit.
 - [x] Preserve existing PDF bytes unchanged in the normalization helper.
-- [x] Convert one JPEG or PNG image into a single-page PDF in the normalization helper.
+- [x] Convert one JPEG/PNG image into a single-page PDF.
+- [x] Combine multiple JPEG/PNG images into a PDF with stable selection order.
 - [x] Archive PDFs to the connected owner's Google Drive using the drive.file scope.
 - [x] Store document metadata, page text, processing jobs and Drive connection state in owner-scoped Supabase tables.
-- [x] Use AES-256-GCM encryption for stored Drive refresh tokens.
+- [x] Use AES-256-GCM encryption for stored Drive refresh tokens; unit tests cover round-trip and tamper rejection.
 - [x] Use owner-bound OAuth state and same-origin checks for document POST routes.
 - [x] Provide editable page-level extracted text and an explicit teacher-review action.
+- [x] Provide a Drive disconnect action that attempts token revocation.
 - [x] Enforce a three-attempt processing limit and a 100-page text cap.
 - [ ] Live Google OAuth, PDF upload, image upload, Drive OCR and review workflow tested with the owner's Google account.
-- [ ] Multi-image batch upload with stable ordering.
 - [ ] Resumable uploads for files larger than 4 MB.
 - [ ] Durable background processing worker and automatic retries.
 - [ ] Verify mathematical symbols, tables and diagrams against the original before approval.

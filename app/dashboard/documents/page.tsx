@@ -18,11 +18,11 @@ const notices: Record<string, { text: string; tone: "success" | "error" | "info"
   disconnected: { text: "Google Drive was disconnected and the stored refresh token was revoked.", tone: "success" },
   revocation_warning: { text: "The local Drive token was removed, but Google did not confirm revocation. Remove app access in your Google Account settings too.", tone: "error" },
   disconnect_failed: { text: "Could not remove the Drive connection. Try again.", tone: "error" },
-  success: { text: "Your file was archived in Google Drive and queued for processing.", tone: "success" },
+  success: { text: "Your PDF was archived in Google Drive and queued for processing.", tone: "success" },
   duplicate: { text: "This exact PDF is already in your library.", tone: "info" },
   drive_not_connected: { text: "Connect Google Drive before uploading.", tone: "error" },
-  missing_file: { text: "Choose a PDF, JPEG or PNG file first.", tone: "error" },
-  failed: { text: "Upload failed. Check file format, size and Google Drive permissions.", tone: "error" },
+  missing_file: { text: "Choose one PDF or at least one JPEG/PNG image.", tone: "error" },
+  failed: { text: "Upload failed. Check file format, combined size and Google Drive permissions.", tone: "error" },
   processing_failed: { text: "Text extraction failed. Check the source PDF and try again if attempts remain.", tone: "error" },
   complete: { text: "Text extraction finished. Review every page before approving it.", tone: "success" },
   already_processed: { text: "This document has already been processed.", tone: "info" },
@@ -57,7 +57,7 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
       <section className="hero documents-hero">
         <p className="eyebrow">DOCUMENT INTELLIGENCE · MILESTONE 2</p>
         <h1>Your question <span>library.</span></h1>
-        <p className="hero-copy">Archive source PDFs in your own Google Drive. Images are converted into PDFs before archiving; original PDFs are preserved without re-encoding.</p>
+        <p className="hero-copy">Archive source PDFs in your own Google Drive. JPEG/PNG batches are combined into one PDF in the order selected; original PDFs are preserved without re-encoding.</p>
       </section>
 
       {notice ? <p className={"notice notice-" + notice.tone} role="status">{notice.text}</p> : null}
@@ -71,11 +71,11 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
       </section>
 
       <section className="section">
-        <div className="section-heading"><div><p className="eyebrow">NEW SOURCE</p><h2>Upload a question paper</h2></div><span className="section-count">4 MB max</span></div>
+        <div className="section-heading"><div><p className="eyebrow">NEW SOURCE</p><h2>Upload a question paper</h2></div><span className="section-count">4 MB total</span></div>
         <form className="upload-panel" action="/api/documents/upload" method="post" encType="multipart/form-data">
-          <label htmlFor="document-file">Choose PDF, JPEG or PNG</label>
-          <input id="document-file" name="file" type="file" accept="application/pdf,image/jpeg,image/png" required disabled={!connection} />
-          <p>Images become single-page PDFs. Existing PDFs remain unchanged. Maximum upload size: 4 MB.</p>
+          <label htmlFor="document-files">Choose one PDF or multiple JPEG/PNG images</label>
+          <input id="document-files" name="files" type="file" accept="application/pdf,image/jpeg,image/png" multiple required disabled={!connection} />
+          <p>Multiple images become one multi-page PDF in selection order. Upload one PDF by itself. Combined upload limit: 4 MB and 50 images.</p>
           <button className="primary-action" type="submit" disabled={!connection}>Archive and queue for processing <span aria-hidden="true">→</span></button>
         </form>
       </section>

@@ -1,6 +1,7 @@
 import { PDFDocument } from "pdf-lib";
 
 export const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
+export const MAX_IMAGE_COUNT = 50;
 
 export function safeFileName(value: string) {
   return value
@@ -11,40 +12,73 @@ export function safeFileName(value: string) {
     .slice(0, 180) || "academic-document";
 }
 
-export async function normalizeToPdf(file: File) {
-  const bytes = new Uint8Array(await file.arrayBuffer());
-  if (bytes.byteLength === 0 || bytes.byteLength > MAX_UPLOAD_BYTES) {
-    throw new Error("Choose a file smaller than 4 MB.");
+function validatePngDimensions(bytes: Uint8Array) {
+  const header = Buffer.from(bytes);
+  if (header.byteLength < 24) throw new Error("Invalid PNG image.");
+  const width = header.readUInt32BE(16);
+  const height = header.readUInt32BE(20);
+  if (!width || !height || width > 10000 || height > 10000 || width * height > 25000000) {
+    throw new Error("Image dimensions exceed the safe conversion limit.");
+  }
+}
+
+export async function normalizeFilesToPdf(files: File[]) {
+  if (!files.length) throw new Error("Choose a PDF or one or more images.");
+  if (files.length > MAX_IMAGE_COUNT) throw new Error("Choose no more than 50 images at a time.");
+
+  const buffers = await Promise.all(files.map(async (file) => new Uint8Array(await file.arrayBuffer())));
+  const totalBytes = buffers.reduce((sum, bytes) => sum + bytes.byteLength, 0);
+  if (!totalBytes || totalBytes > MAX_UPLOAD_BYTES) {
+    throw new Error("The combined upload must be smaller than 4 MB.");
   }
 
-  if (file.type === "application/pdf" && Buffer.from(bytes).subarray(0, 5).toString() === "%PDF-") {
-    const name = file.name.toLowerCase().endsWith(".pdf") ? file.name : file.name + ".pdf";
-    return { bytes, fileName: safeFileName(name), converted: false };
-  }
-
-  const isJpeg = bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
-  const isPng = Buffer.from(bytes).subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]));
-  if (!isJpeg && !isPng) throw new Error("Only valid PDF, JPEG and PNG files are supported.");
-
-  if (isPng) {
-    const pngHeader = Buffer.from(bytes);
-    const width = pngHeader.readUInt32BE(16);
-    const height = pngHeader.readUInt32BE(20);
-    if (!width || !height || width > 10000 || height > 10000 || width * height > 25000000) {
-      throw new Error("Image dimensions exceed the safe conversion limit.");
+  if (files.length === 1 && files[0].type === "application/pdf") {
+    const bytes = buffers[0];
+    if (Buffer.from(bytes).subarray(0, 5).toString() !== "%PDF-") {
+      throw new Error("The selected PDF does not have a valid PDF signature.");
     }
+    const name = files[0].name.toLowerCase().endsWith(".pdf") ? files[0].name : files[0].name + ".pdf";
+    return { bytes, fileName: safeFileName(name), converted: false, pageCount: null as number | null };
+  }
+
+  if (files.some((file) => file.type === "application/pdf")) {
+    throw new Error("Upload one PDF by itself, or select multiple JPEG/PNG images. Do not mix PDFs and images.");
   }
 
   const pdf = await PDFDocument.create();
-  const image = isJpeg ? await pdf.embedJpg(bytes) : await pdf.embedPng(bytes);
-  const page = pdf.addPage([image.width, image.height]);
-  page.drawImage(image, { x: 0, y: 0, width: image.width, height: image.height });
+  for (let index = 0; index < files.length; index += 1) {
+    const file = files[index];
+    const bytes = buffers[index];
+    const isJpeg = bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+    const isPng = Buffer.from(bytes).subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]));
+
+    if (file.type === "image/jpeg" && !isJpeg) throw new Error("A JPEG file has an invalid image signature.");
+    if (file.type === "image/png" && !isPng) throw new Error("A PNG file has an invalid image signature.");
+    if (!["image/jpeg", "image/png"].includes(file.type) || (!isJpeg && !isPng)) {
+      throw new Error("Only valid PDF, JPEG and PNG files are supported.");
+    }
+
+    if (isPng) validatePngDimensions(bytes);
+    const image = isJpeg ? await pdf.embedJpg(bytes) : await pdf.embedPng(bytes);
+    const page = pdf.addPage([image.width, image.height]);
+    page.drawImage(image, { x: 0, y: 0, width: image.width, height: image.height });
+  }
+
   const output = await pdf.save();
-  if (output.byteLength > MAX_UPLOAD_BYTES) throw new Error("Converted PDF exceeds the 4 MB archive limit.");
-  const baseName = file.name.replace(/\.[^.]+$/, "");
+  if (output.byteLength > MAX_UPLOAD_BYTES) {
+    throw new Error("Converted PDF exceeds the 4 MB archive limit.");
+  }
+
+  const firstName = files[0].name.replace(/\.[^.]+$/, "");
+  const suffix = files.length > 1 ? "-combined" : "";
   return {
     bytes: new Uint8Array(output),
-    fileName: safeFileName(baseName + ".pdf"),
+    fileName: safeFileName(firstName + suffix + ".pdf"),
     converted: true,
+    pageCount: files.length,
   };
+}
+
+export async function normalizeToPdf(file: File) {
+  return normalizeFilesToPdf([file]);
 }

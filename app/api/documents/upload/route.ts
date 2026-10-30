@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { deleteDriveFile, getDriveAccessToken, uploadPdfToDrive } from "@/lib/drive/google";
-import { normalizeToPdf } from "@/lib/documents/normalize-to-pdf";
+import { normalizeFilesToPdf } from "@/lib/documents/normalize-to-pdf";
 
 export const runtime = "nodejs";
 
@@ -22,10 +22,10 @@ export async function POST(request: NextRequest) {
 
   try {
     const form = await request.formData();
-    const file = form.get("file");
-    if (!(file instanceof File)) return redirectWithStatus(request, "missing_file");
+    const files = form.getAll("files").filter((value): value is File => value instanceof File && value.size > 0);
+    if (!files.length) return redirectWithStatus(request, "missing_file");
 
-    const normalized = await normalizeToPdf(file);
+    const normalized = await normalizeFilesToPdf(files);
     const sha256 = createHash("sha256").update(normalized.bytes).digest("hex");
 
     const { data: duplicate, error: duplicateError } = await supabase
@@ -54,6 +54,7 @@ export async function POST(request: NextRequest) {
         sha256,
         drive_file_id: driveFile.id,
         drive_web_view_link: driveFile.webViewLink,
+        page_count: normalized.pageCount,
         status: "queued",
       })
       .select("id")
@@ -69,7 +70,7 @@ export async function POST(request: NextRequest) {
       document_id: document.id,
       stage: "validate",
       status: "queued",
-      idempotency_key: `${user.id}:${sha256}:validate`,
+      idempotency_key: user.id + ":" + sha256 + ":validate",
     });
 
     if (jobError) {
