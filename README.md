@@ -56,8 +56,8 @@ A personal academic workspace for Edexcel O/A Level, SSC and HSC tutoring. It ac
 Never commit .env.local, service-role keys, OAuth tokens, student personal data or private source documents. Applied Supabase migrations are mirrored in supabase/migrations/.
 
 ## Current status (30 October 2026)
-M1 foundation and core M2 document/question workflows are implemented in code. M3 answer generation, version history and question-scoped teacher review are implemented on the feature branch. Latest feature commit `0755f96` passed GitHub Actions: dependency audit, ESLint, TypeScript, unit tests, production build and four Chromium smoke tests. Its Vercel preview is marked READY. Supabase security advisor reports zero findings.
+M1 foundation and core M2 document/question workflows are implemented in code. M3 answer generation, version history and question-scoped teacher review are implemented on the feature branch. M5 has started: questions now store a syllabus version and a separate classification state (unreviewed, uncertain or confirmed), with owner-only editing and validation.
 
-Not production-ready yet: AI provider credentials are not configured, so live model inference has not been tested and no provider charges have been incurred. Google OAuth, real-account uploads, and teacher acceptance/revocation still need live end-to-end testing with two separate accounts. The Chromium tests currently verify the public landing/login pages and that protected routes redirect when auth is unconfigured; they do not simulate two authenticated users. Main and production remain unchanged while this work stays in the draft PR.
+The authenticated two-account browser test is intentionally postponed until final acceptance. Ordinary CI checks continue throughout development. Live AI provider configuration, Google OAuth/Drive workflows, golden-set answer grading, the full syllabus reference taxonomy and chapter intelligence remain outstanding. Main is unchanged; work remains in draft PR #1.
 
-Estimated implementation progress: approximately 40%. This is a planning estimate, not a release-readiness score.
+Estimated implementation progress: approximately 42%. This is a planning estimate, not a release-readiness score.
