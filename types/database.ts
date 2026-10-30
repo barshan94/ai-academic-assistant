@@ -485,6 +485,70 @@ export type Database = {
           },
         ]
       }
+      syllabus_reference_evidence: {
+        Row: {
+          id: string
+          owner_id: string
+          catalog_id: string
+          chapter_id: string
+          topic_id: string | null
+          source_url: string
+          source_title: string
+          source_locator: string | null
+          evidence_excerpt: string | null
+          created_by: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          owner_id?: string
+          catalog_id: string
+          chapter_id: string
+          topic_id?: string | null
+          source_url: string
+          source_title: string
+          source_locator?: string | null
+          evidence_excerpt?: string | null
+          created_by?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          owner_id?: string
+          catalog_id?: string
+          chapter_id?: string
+          topic_id?: string | null
+          source_url?: string
+          source_title?: string
+          source_locator?: string | null
+          evidence_excerpt?: string | null
+          created_by?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "syllabus_reference_evidence_catalog_owner_fk"
+            columns: ["catalog_id", "owner_id"]
+            isOneToOne: false
+            referencedRelation: "syllabus_catalogs"
+            referencedColumns: ["id", "owner_id"]
+          },
+          {
+            foreignKeyName: "syllabus_reference_evidence_chapter_catalog_fk"
+            columns: ["chapter_id", "catalog_id"]
+            isOneToOne: false
+            referencedRelation: "syllabus_chapters"
+            referencedColumns: ["id", "catalog_id"]
+          },
+          {
+            foreignKeyName: "syllabus_reference_evidence_topic_chapter_fk"
+            columns: ["topic_id", "chapter_id"]
+            isOneToOne: false
+            referencedRelation: "syllabus_topics"
+            referencedColumns: ["id", "chapter_id"]
+          },
+        ]
+      }
       syllabus_catalogs: {
         Row: {
           board: string
