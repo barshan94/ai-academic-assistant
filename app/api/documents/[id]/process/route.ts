@@ -106,6 +106,6 @@ export async function POST(request: NextRequest, context: RouteContext) {
       error_code: "DOCUMENT_PROCESSING_FAILED",
       error_message: message.slice(0, 500),
     }).eq("id", job.id).eq("owner_id", user.id);
-    return redirectToDocument(request, id, "failed");
+    return redirectToDocument(request, id, "processing_failed");
   }
 }
