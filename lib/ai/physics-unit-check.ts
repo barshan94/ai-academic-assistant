@@ -52,6 +52,7 @@ function parseUnit(source: string): Dimensions {
       sign = token === "*" ? 1 : -1;
       continue;
     }
+    if (token === "1") continue;
     const match = token.match(/^([A-Za-z]+)(?:\^(-?\d{1,2}))?$/);
     if (!match) throw new Error("Unsupported unit notation.");
     const dimensions = UNIT_DIMENSIONS[match[1]];
