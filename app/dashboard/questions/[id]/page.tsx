@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { generateQuestionSolution } from "./actions";
+import { generateQuestionSolution, reviewQuestionSolution } from "./actions";
 import { checkCalculations } from "@/lib/ai/math-check";
 import { checkChemicalEquations } from "@/lib/ai/chemistry-check";
 import { checkPhysicsUnits } from "@/lib/ai/physics-unit-check";
@@ -11,7 +11,7 @@ import { examAnswerSchema } from "@/lib/ai/answer-schema";
 
 type PageProps = {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ solve?: string; solution?: string }>;
+  searchParams: Promise<{ solve?: string; solution?: string; review?: string }>;
 };
 
 const messages: Record<string, string> = {
@@ -67,7 +67,20 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
   const chemistryPassed = chemistryResults.length > 0 && chemistryResults.every((item) => item.status === "balanced");
   const physicsResults = checkPhysicsUnits(physicsChecks);
   const physicsPassed = physicsResults.length > 0 && physicsResults.every((item) => item.status === "dimensionally_consistent");
-  const message = query.solve ? messages[query.solve] ?? "Answer generation failed (" + query.solve.slice(0, 80) + ")." : undefined;
+  const { data: reviews, error: reviewError } = selectedSolution
+    ? await typedSupabase.from("question_solution_reviews")
+        .select("id,reviewer_id,decision,correction_notes,created_at")
+        .eq("solution_id", selectedSolution.id)
+        .eq("owner_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(20)
+    : { data: [], error: null };
+  const message = query.solve
+    ? messages[query.solve] ?? "Answer generation failed (" + query.solve.slice(0, 80) + ")."
+    : query.review === "approved" ? "Your review was saved. This is an owner review, not independent verification."
+    : query.review === "needs_correction" ? "Correction feedback was saved in the review history."
+    : query.review === "save_failed" ? "The review could not be saved. Please retry."
+    : undefined;
 
   return (
     <main className="shell">
@@ -81,7 +94,7 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
         <p className="hero-copy">Generate an examination-style answer with Bengali and English teaching explanations. Generated answers are drafts, not verified mark-scheme solutions.</p>
       </section>
       {message ? <p className="notice notice-info" role="status">{message}</p> : null}
-      {solutionError ? <p className="notice notice-error">Could not load saved answers.</p> : null}
+      {solutionError ? <p className="notice notice-error">Could not load saved answers.</p> : null}\n      {reviewError ? <p className="notice notice-error">Could not load review history.</p> : null}
       {requestedSolutionMissing ? <p className="notice notice-info">That saved draft is not in the available history. Showing the latest saved draft instead.</p> : null}
       {storedAnswerInvalid ? <p className="notice notice-error">This saved response does not match the current answer format and cannot be displayed safely.</p> : null}
       <section className="section">
@@ -154,7 +167,35 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
             {answer.assumptions.length ? <><h3>Assumptions</h3><ul>{answer.assumptions.map((item, index) => <li key={index}>{item}</li>)}</ul></> : null}
             {answer.limitations.length ? <><h3>Limitations</h3><ul>{answer.limitations.map((item, index) => <li key={index}>{item}</li>)}</ul></> : null}
             <p className="question-card-meta">Provider: {selectedSolution?.provider} · Model: {selectedSolution?.model} · Prompt: {selectedSolution?.prompt_version}</p>
-            <p className="notice notice-info">Not independently verified. Check calculations, units, syllabus alignment and any official mark scheme before relying on this answer.</p>
+            <p className="notice notice-info">AI-generated draft. The review form below records your own review only; it does not certify independent teacher verification or replace an official mark scheme.</p>
+            <section className="section">
+              <p className="eyebrow">REVIEW & CORRECTION LOG</p>
+              <h3>Record your review</h3>
+              <form action={reviewQuestionSolution} className="review-form">
+                <input type="hidden" name="solutionId" value={selectedSolution?.id ?? ""} />
+                <label htmlFor="review-decision">Review decision</label>
+                <select id="review-decision" name="decision" defaultValue="approved">
+                  <option value="approved">Reviewed — acceptable as a draft</option>
+                  <option value="needs_correction">Needs correction</option>
+                </select>
+                <label htmlFor="review-notes">Correction notes (required when corrections are needed)</label>
+                <textarea id="review-notes" name="correctionNotes" rows={4} maxLength={5000} placeholder="Explain the error, corrected method, missing mark points, or syllabus issue." />
+                <button className="primary-action" type="submit">Save review record →</button>
+              </form>
+              <p className="question-card-meta">Reviews are append-only records tied to your signed-in account. They do not alter the original AI answer.</p>
+              <h3>Review history</h3>
+              {reviews && reviews.length ? (
+                <ul className="calculation-checks">
+                  {reviews.map((review) => (
+                    <li key={review.id}>
+                      <strong>{review.decision === "approved" ? "OWNER REVIEW: ACCEPTABLE DRAFT" : "CORRECTIONS REQUESTED"}</strong>
+                      <span>{new Date(review.created_at).toLocaleString()} · Reviewer account {review.reviewer_id.slice(0, 8)}</span>
+                      {review.correction_notes ? <small>{review.correction_notes}</small> : null}
+                    </li>
+                  ))}
+                </ul>
+              ) : <p className="question-card-meta">No review records yet.</p>}
+            </section>
           </article>
         </section>
       ) : null}

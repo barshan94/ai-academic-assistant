@@ -71,3 +71,55 @@ export async function generateQuestionSolution(formData: FormData) {
   revalidatePath("/dashboard/questions/" + question.id);
   redirect("/dashboard/questions/" + question.id + "?solve=generated");
 }
+
+const solutionReviewSchema = z.object({
+  solutionId: z.string().uuid(),
+  decision: z.enum(["approved", "needs_correction"]),
+  correctionNotes: z.string().trim().max(5000).optional(),
+});
+
+export async function reviewQuestionSolution(formData: FormData) {
+  const parsed = solutionReviewSchema.safeParse({
+    solutionId: String(formData.get("solutionId") ?? ""),
+    decision: String(formData.get("decision") ?? ""),
+    correctionNotes: String(formData.get("correctionNotes") ?? ""),
+  });
+  if (!parsed.success) redirect("/dashboard/questions?review=invalid");
+
+  if (parsed.data.decision === "needs_correction" && !parsed.data.correctionNotes) {
+    redirect("/dashboard/questions?review=notes_required");
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) redirect("/login");
+
+  const typedSupabase = supabase as unknown as SupabaseClient<DatabaseWithAISolutions>;
+  const { data: solution, error: solutionError } = await typedSupabase
+    .from("question_solutions")
+    .select("id,question_id")
+    .eq("id", parsed.data.solutionId)
+    .eq("owner_id", user.id)
+    .maybeSingle();
+
+  if (solutionError || !solution) redirect("/dashboard/questions?review=not_found");
+
+  const { error: insertError } = await typedSupabase
+    .from("question_solution_reviews")
+    .insert({
+      solution_id: solution.id,
+      owner_id: user.id,
+      reviewer_id: user.id,
+      decision: parsed.data.decision,
+      correction_notes: parsed.data.correctionNotes || null,
+    });
+
+  if (insertError) redirect("/dashboard/questions/" + solution.question_id + "?review=save_failed");
+
+  revalidatePath("/dashboard/questions/" + solution.question_id);
+  redirect(
+    "/dashboard/questions/" + solution.question_id +
+    "?solution=" + solution.id +
+    "&review=" + parsed.data.decision
+  );
+}
