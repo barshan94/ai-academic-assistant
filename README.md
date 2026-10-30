@@ -29,7 +29,7 @@ A personal academic workspace for Edexcel O/A Level, SSC and HSC tutoring. It ac
 - Google Drive OAuth code with encrypted refresh-token storage, PDF archiving, image-to-PDF conversion and OCR correction workflow.
 - Manual source-linked question library with board, qualification, subject, syllabus version, chapter and topic metadata, owner review states and classification filters.
 - Owner-scoped versioned syllabus catalogues with source provenance, hierarchical chapter/topic references and same-owner foreign-key constraints.
-- A private syllabus catalogue workspace, atomic versioned JSON import, dependent chapter/topic classification selectors, and prioritized review queue for uncertain/unreviewed question mappings.
+- A private syllabus catalogue workspace, atomic versioned JSON import, dependent chapter/topic classification selectors, transparent lexical suggestions with matched-term explanations, source provenance display, append-only before/after classification history, and a prioritized review queue.
 - Structured AI answer schema with English exam answer, Bengali/English explanations, working steps, concepts, assumptions and limitations.
 - OpenAI-compatible provider adapter with HTTPS enforcement, timeout, bounded question size and strict schema validation.
 - Deterministic arithmetic, supported neutral chemistry equation atom-count, and SI dimensional-consistency checks. These are narrow checks, not proof of a fully correct answer.
@@ -60,6 +60,6 @@ Never commit .env.local, service-role keys, OAuth tokens, student personal data 
 ## Current status (30 October 2026)
 M1 foundation and core M2 document/question workflows are implemented in code. M3 answer generation, version history and question-scoped teacher review are implemented on the feature branch. M5 now includes owner-scoped versioned syllabus catalogues, source provenance, hierarchical chapter/topic references, question foreign-key links, and owner-only classification review. Existing free-text question metadata remains supported for backward compatibility.
 
-The authenticated two-account browser test is intentionally postponed until final acceptance. Ordinary CI checks continue throughout development. Live AI provider configuration, Google OAuth/Drive workflows, golden-set answer grading, the shared centrally curated syllabus dataset, assisted classification, batch classification review, and chapter intelligence remain outstanding. The JSON import format is documented in docs/SYLLABUS_IMPORT.md; imports are owner-private drafts and do not certify official accuracy. Main is unchanged; work remains in draft PR #1.
+The authenticated two-account browser test is intentionally postponed until final acceptance. Ordinary CI checks continue throughout development. Live AI provider configuration, Google OAuth/Drive workflows, golden-set answer grading, the shared centrally curated syllabus dataset, official-evidence-backed classification assistance (lexical suggestions are only a navigation aid), batch classification review, and chapter intelligence remain outstanding. The JSON import format is documented in docs/SYLLABUS_IMPORT.md; imports are owner-private drafts and do not certify official accuracy. Main is unchanged; work remains in draft PR #1.
 
-Estimated implementation progress: approximately 47%. This is a planning estimate, not a release-readiness score.
+Estimated implementation progress: approximately 49%. This is a planning estimate, not a release-readiness score.
