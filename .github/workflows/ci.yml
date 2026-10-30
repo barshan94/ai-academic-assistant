@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: foundation-checks-${{ github.ref }}
@@ -28,41 +28,15 @@ jobs:
         with:
           node-version: 22
 
-      - name: Update npm CLI
+      - name: Set up pinned npm CLI
         run: npm install --global npm@11.21.1
 
-      - name: Install dependencies
-        run: npm install
+      - name: Install locked dependencies
+        run: npm ci
 
+      - name: Audit dependencies
+        run: npm audit
 
-      - name: Upload npm debug log on install failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: npm-install-debug
-          path: /home/runner/.npm/_logs/*.log
-          if-no-files-found: ignore
-          retention-days: 1
-      - name: Commit updated npm lockfile
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: |
-          git add package-lock.json
-          if ! git diff --cached --quiet; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git commit -m "build: update patched dependency lockfile"
-            git push origin HEAD:main
-          fi
-      - name: Audit dependency tree
-        run: npm audit --json > npm-audit.json || true
-
-      - name: Export dependency audit report
-        uses: actions/upload-artifact@v4
-        with:
-          name: npm-audit-report
-          path: npm-audit.json
-          if-no-files-found: error
-          retention-days: 1
       - name: Run ESLint
         run: npm run lint
 
