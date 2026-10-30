@@ -17,7 +17,7 @@ export default async function QuestionsPage({ searchParams }: QuestionsPageProps
   if (authError || !user) redirect("/login");
 
   let questionQuery = supabase.from("questions")
-    .select("id,document_id,document_page_id,question_number,question_text,board,qualification,subject,chapter,topic,review_status,created_at")
+    .select("id,document_id,document_page_id,question_number,question_text,board,qualification,subject,syllabus_version,chapter,topic,classification_status,review_status,created_at")
     .eq("owner_id", user.id);
 
   if (search) questionQuery = questionQuery.ilike("question_text", "%" + search + "%");
@@ -72,7 +72,7 @@ export default async function QuestionsPage({ searchParams }: QuestionsPageProps
                   <span className="question-subject">{question.subject ?? "Subject not set"}</span>
                 </div>
                 <p className="question-card-text">{question.question_number ? question.question_number + ". " : ""}{question.question_text}</p>
-                <p className="question-card-meta">{[question.board, question.qualification, question.chapter, question.topic].filter(Boolean).join(" · ") || "Syllabus metadata not set"}</p>
+                <p className="question-card-meta">{[question.board, question.qualification, question.syllabus_version, question.chapter, question.topic].filter(Boolean).join(" · ") || "Syllabus metadata not set"} · Mapping: {question.classification_status.replace("_", " ")}</p>
                 <div className="question-card-footer">
                   <Link className="document-open" href={"/dashboard/questions/" + question.id}>Open solver ↗</Link><Link className="document-open" href={"/dashboard/documents/" + question.document_id}>Source: {documentNames.get(question.document_id) ?? "Open document"} ↗</Link>
                   {question.review_status === "needs_review" ? (
