@@ -26,9 +26,9 @@ export type ExamAnswer = z.infer<typeof examAnswerSchema>;
 
 export function parseExamAnswer(raw: string): ExamAnswer {
   const cleaned = raw.trim()
-    .replace(/^\\uFEFF/, "")
-    .replace(/^\\x60{3}(?:json)?\\s*/i, "")
-    .replace(/\\s*\\x60{3}$/i, "");
+    .replace(/^\uFEFF/, "")
+    .replace(/^\x60{3}(?:json)?\s*/i, "")
+    .replace(/\s*\x60{3}$/i, "");
   const parsed: unknown = JSON.parse(cleaned);
   return examAnswerSchema.parse(parsed);
 }

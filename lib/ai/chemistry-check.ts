@@ -14,7 +14,7 @@ export type ChemistryEquationResult = {
 class FormulaParseError extends Error {}
 
 function parseFormula(formula: string): Record<string, number> {
-  if (!formula || formula.length > 120 || /[.+\\-]/.test(formula)) {
+  if (!formula || formula.length > 120 || /[.+-]/.test(formula)) {
     throw new FormulaParseError("Formula is empty, too long, or uses unsupported hydrate/ionic notation.");
   }
 
@@ -37,7 +37,6 @@ function parseFormula(formula: string): Record<string, number> {
 
     while (index < formula.length) {
       const char = formula[index];
-
       if (char === ")") {
         if (!nested) throw new FormulaParseError("Unexpected closing parenthesis.");
         index += 1;
@@ -79,8 +78,8 @@ function parseSide(side: string): Record<string, number> {
   }
 
   for (const rawTerm of terms) {
-    const term = rawTerm.replace(/\\((?:s|l|g|aq)\\)$/i, "").trim();
-    const match = term.match(/^(\\d{1,4})?\\s*([A-Z].*)$/);
+    const term = rawTerm.replace(/\((?:s|l|g|aq)\)$/i, "").trim();
+    const match = term.match(/^(\d{1,4})?\s*([A-Z].*)$/);
     if (!match) throw new FormulaParseError("Could not read a reaction term or its coefficient.");
     const coefficient = match[1] ? Number(match[1]) : 1;
     if (coefficient < 1 || coefficient > 10000) throw new FormulaParseError("Reaction coefficient is outside the supported range.");

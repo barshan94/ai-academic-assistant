@@ -46,7 +46,7 @@ describe("structured exam answer generation", () => {
   });
 
   it("accepts a JSON code fence but rejects incomplete answer fields", () => {
-    expect(parseExamAnswer("```json\\n" + JSON.stringify(validAnswer) + "\\n```")).toEqual(validAnswer);
+    expect(parseExamAnswer("```json\n" + JSON.stringify(validAnswer) + "\n```")).toEqual(validAnswer);
     expect(() => parseExamAnswer(JSON.stringify({ examAnswer: "Only an answer" }))).toThrow();
   });
 
