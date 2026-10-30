@@ -65,7 +65,7 @@ function EvidenceForm({ catalogId, chapterId, topicId = "" }: { catalogId: strin
 function Notice({ value, label }: { value?: string; label: string }) {
   if (!value) return null;
   const message = statusMessages[value];
-  return message ? <p className={value === "save_failed" || value === "import_save_failed" || value === "invalid" || value.endsWith("_invalid") || value.endsWith("_duplicate") ? "notice notice-error" : "notice notice-info"} role="status">{label}: {message}</p> : null;
+  return message ? <p className={value === "save_failed" || value === "import_save_failed" || value === "invalid" || value.startsWith("evidence_") && value !== "evidence_added" || value.endsWith("_invalid") || value.endsWith("_duplicate") ? "notice notice-error" : "notice notice-info"} role="status">{label}: {message}</p> : null;
 }
 
 export default async function SyllabusPage({ searchParams }: PageProps) {
