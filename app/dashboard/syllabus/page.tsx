@@ -30,8 +30,8 @@ const statusMessages: Record<string, string> = {
   not_found: "The selected parent entry was not found in your account.",
   source_required: "Add an official HTTPS source URL before marking a syllabus version verified.",
   imported: "The syllabus was imported atomically as a draft. Review its source and contents before marking it verified.",
-  duplicate: "A matching syllabus version or chapter/topic already exists. Nothing from this import was saved.",
-  invalid: "The JSON document is invalid or exceeds the import limits. Check its format and try again.",
+  import_duplicate: "A matching syllabus version or chapter/topic already exists. Nothing from this import was saved.",
+  import_invalid: "The JSON document is invalid or exceeds the import limits. Check its format and try again.",
   save_failed: "The import could not be saved. No partial chapter/topic import was committed.",
 };
 
