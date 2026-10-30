@@ -11,6 +11,7 @@ const validAnswer = {
   examAnswer: "The resultant moment is zero.",
   workingSteps: [{ step: "1", explanation: "Clockwise moment equals anticlockwise moment." }],
   calculationChecks: [{ expression: "5 * 2", claimedResult: 10, unit: "Nm" }],
+  chemistryChecks: [],
   bengaliExplanation: "ঘড়ির কাঁটার দিকে ও বিপরীত দিকের মোট মুহূর্ত সমান।",
   englishExplanation: "The turning effects balance.",
   keyConcepts: ["Principle of moments"],
@@ -45,7 +46,7 @@ describe("structured exam answer generation", () => {
   });
 
   it("accepts a JSON code fence but rejects incomplete answer fields", () => {
-    expect(parseExamAnswer("```json\n" + JSON.stringify(validAnswer) + "\n```")).toEqual(validAnswer);
+    expect(parseExamAnswer("```json\\n" + JSON.stringify(validAnswer) + "\\n```")).toEqual(validAnswer);
     expect(() => parseExamAnswer(JSON.stringify({ examAnswer: "Only an answer" }))).toThrow();
   });
 

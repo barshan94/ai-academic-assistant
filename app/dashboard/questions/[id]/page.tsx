@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { generateQuestionSolution } from "./actions";
 import { checkCalculations } from "@/lib/ai/math-check";
+import { checkChemicalEquations } from "@/lib/ai/chemistry-check";
 import type { DatabaseWithAISolutions } from "@/types/ai-database";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { ExamAnswer } from "@/lib/ai/answer-schema";
@@ -49,8 +50,11 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
   const latest = solutions?.[0];
   const answer = latest?.answer_json as unknown as ExamAnswer | undefined;
   const calculationChecks = Array.isArray(answer?.calculationChecks) ? answer.calculationChecks : [];
+  const chemistryChecks = Array.isArray(answer?.chemistryChecks) ? answer.chemistryChecks : [];
   const arithmeticResults = checkCalculations(calculationChecks);
   const arithmeticPassed = arithmeticResults.length > 0 && arithmeticResults.every((item) => item.status === "passed");
+  const chemistryResults = checkChemicalEquations(chemistryChecks);
+  const chemistryPassed = chemistryResults.length > 0 && chemistryResults.every((item) => item.status === "balanced");
   const message = query.solve ? messages[query.solve] ?? "Answer generation failed (" + query.solve.slice(0, 80) + ")." : undefined;
 
   return (
@@ -104,6 +108,19 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
                 </li>
               ))}</ul>
               {arithmeticPassed ? <p className="notice notice-info">All supplied arithmetic expressions passed. This is not an overall answer verification.</p> : <p className="notice notice-info">At least one arithmetic expression did not pass or could not be checked. Review the calculations manually.</p>}
+            </> : null}
+            {chemistryChecks.length ? <>
+              <h3>Chemical equation balance checks</h3>
+              <p className="question-card-meta">Checks atom counts for ordinary neutral formulae and simple reaction notation. Ionic charges, hydrates and advanced notation are deliberately marked unsupported rather than guessed.</p>
+              <ul className="calculation-checks">{chemistryResults.map((item, index) => (
+                <li key={index}>
+                  <strong>{item.status === "balanced" ? "BALANCED" : item.status === "unbalanced" ? "UNBALANCED" : item.status === "claim_mismatch" ? "CLAIM MISMATCH" : "NOT CHECKED"}</strong>
+                  <span><code>{item.equation}</code></span>
+                  {Object.keys(item.atomCounts).length ? <span>{Object.entries(item.atomCounts).map(([element, count]) => element + ": " + count.left + " → " + count.right).join(" · ")}</span> : null}
+                  <small>{item.message}</small>
+                </li>
+              ))}</ul>
+              {chemistryPassed ? <p className="notice notice-info">All submitted equations passed the supported atom-count check. This does not verify reaction conditions, products or chemical feasibility.</p> : <p className="notice notice-info">At least one equation was unbalanced, misreported or unsupported. Review it manually.</p>}
             </> : null}
             <h3>Bengali explanation</h3><div className="solution-prose" lang="bn">{answer.bengaliExplanation}</div>
             <h3>English explanation</h3><div className="solution-prose">{answer.englishExplanation}</div>

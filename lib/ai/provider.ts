@@ -34,7 +34,7 @@ export function getAIProviderConfig(env: Record<string, string | undefined> = pr
   const model = env.AI_MODEL?.trim();
   if (!apiKey || !model) throw new AIConfigurationError();
 
-  const baseUrl = (env.AI_API_BASE_URL?.trim() || "https://api.openai.com/v1").replace(/\/+$/, "");
+  const baseUrl = (env.AI_API_BASE_URL?.trim() || "https://api.openai.com/v1").replace(/\\/+$/, "");
   let parsedUrl: URL;
   try {
     parsedUrl = new URL(baseUrl);
@@ -87,12 +87,14 @@ export async function generateStructuredAnswer(
               "Adapt terminology, depth and notation to the supplied board, qualification, subject, chapter and topic. If context is absent, do not guess a syllabus or exam board.",
               "Produce an examination-ready answer in English, followed by clear Bengali and English teaching explanations.",
               "Show calculations and logical working step by step when relevant. Preserve units and significant figures when supplied.",
-              "For every arithmetic calculation you perform, include a calculationChecks item with a simple arithmetic expression, the numerical result and its unit. Use an empty array when there are no arithmetic calculations. Do not include an expression that cannot be evaluated using basic arithmetic.",
+              "For every arithmetic calculation you perform, include a calculationChecks item with a simple arithmetic expression, the numerical result and its unit. Use an empty array when there are no arithmetic calculations.",
+              "For chemistry reactions, include chemistryChecks entries with the full equation using ->, → or = and claimedBalanced true/false. Use an empty array when no chemical reaction is discussed. Do not use ionic equations, charges, hydrates or unsupported notation in this check field; explain those separately and state that they need manual review.",
+              "Never mark an equation balanced based only on appearance. Do not change coefficients to make the answer look balanced.",
               "Do not invent missing values, diagrams, mark schemes, syllabus facts or citations.",
               "If the question is ambiguous or missing information, state the assumption and limitation explicitly.",
               "Do not claim that an answer has been independently verified.",
-              "Return one valid JSON object only with keys: examAnswer, workingSteps, calculationChecks, bengaliExplanation, englishExplanation, keyConcepts, assumptions, limitations.",
-              "workingSteps must be an array of objects with step and explanation strings. calculationChecks must be an array of objects with expression, claimedResult (number), and unit (string). The other list fields must be arrays of strings.",
+              "Return one valid JSON object only with keys: examAnswer, workingSteps, calculationChecks, chemistryChecks, bengaliExplanation, englishExplanation, keyConcepts, assumptions, limitations.",
+              "workingSteps must be an array of objects with step and explanation strings. calculationChecks must be an array of objects with expression, claimedResult (number), and unit (string). chemistryChecks must be an array of objects with equation and claimedBalanced (boolean). The other list fields must be arrays of strings.",
             ].join(" "),
           },
           {
@@ -103,7 +105,7 @@ export async function generateStructuredAnswer(
               "",
               "Solve and explain this question:",
               question,
-            ].join("\n"),
+            ].join("\\n"),
           },
         ],
       }),
@@ -115,7 +117,7 @@ export async function generateStructuredAnswer(
 
   if (!response.ok) {
     const body = await response.text().catch(() => "");
-    const safeMessage = body.slice(0, 300).replace(/[\r\n\t]+/g, " ");
+    const safeMessage = body.slice(0, 300).replace(/[\\r\\n\\t]+/g, " ");
     throw new AIProviderError("AI_PROVIDER_HTTP_" + response.status + (safeMessage ? ": " + safeMessage : ""));
   }
 
