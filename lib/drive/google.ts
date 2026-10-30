@@ -95,3 +95,56 @@ export async function deleteDriveFile(accessToken: string, fileId: string) {
     throw new Error("Could not remove the orphaned Google Drive file.");
   }
 }
+
+
+export async function extractTextFromDrivePdf(input: {
+  accessToken: string;
+  driveFileId: string;
+}) {
+  const sourceResponse = await fetch(
+    "https://www.googleapis.com/drive/v3/files/" + encodeURIComponent(input.driveFileId) + "?alt=media",
+    { headers: { Authorization: "Bearer " + input.accessToken }, cache: "no-store" },
+  );
+  if (!sourceResponse.ok) throw new Error("Could not download the archived PDF from Google Drive.");
+  const sourceBytes = Buffer.from(await sourceResponse.arrayBuffer());
+
+  const boundary = "academic_ocr_" + crypto.randomUUID().replaceAll("-", "");
+  const metadata = JSON.stringify({
+    name: "Academic Assistant OCR temporary " + Date.now(),
+    mimeType: "application/vnd.google-apps.document",
+  });
+  const prefix = Buffer.from(
+    "--" + boundary + "\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n" +
+    metadata + "\r\n--" + boundary + "\r\nContent-Type: application/pdf\r\n\r\n",
+  );
+  const suffix = Buffer.from("\r\n--" + boundary + "--");
+  const body = Buffer.concat([prefix, sourceBytes, suffix]);
+
+  const convertResponse = await fetch(
+    "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&ocrLanguage=en&fields=id",
+    {
+      method: "POST",
+      headers: {
+        Authorization: "Bearer " + input.accessToken,
+        "Content-Type": "multipart/related; boundary=" + boundary,
+      },
+      body,
+      cache: "no-store",
+    },
+  );
+  const converted = await convertResponse.json() as { id?: string; error?: { message?: string } };
+  if (!convertResponse.ok || !converted.id) {
+    throw new Error(converted.error?.message || "Google Drive could not extract text from this PDF.");
+  }
+
+  try {
+    const exportResponse = await fetch(
+      "https://www.googleapis.com/drive/v3/files/" + encodeURIComponent(converted.id) + "/export?mimeType=text%2Fplain",
+      { headers: { Authorization: "Bearer " + input.accessToken }, cache: "no-store" },
+    );
+    if (!exportResponse.ok) throw new Error("Google Drive OCR export failed.");
+    return await exportResponse.text();
+  } finally {
+    await deleteDriveFile(input.accessToken, converted.id);
+  }
+}
