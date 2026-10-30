@@ -6,6 +6,7 @@ import { checkCalculations } from "@/lib/ai/math-check";
 import { checkChemicalEquations } from "@/lib/ai/chemistry-check";
 import { checkPhysicsUnits } from "@/lib/ai/physics-unit-check";
 import type { DatabaseWithAISolutions } from "@/types/ai-database";
+import type { Json } from "@/types/database";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { examAnswerSchema } from "@/lib/ai/answer-schema";
 import { ClassificationForm } from "./classification-form";
@@ -25,6 +26,23 @@ const messages: Record<string, string> = {
   AI_PROVIDER_INVALID_STRUCTURED_ANSWER: "The AI provider returned an answer that did not pass the required structure checks.",
   AI_PROVIDER_EMPTY_RESPONSE: "The AI provider returned an empty answer.",
 };
+
+
+function classificationSummary(state: Json | null): string {
+  if (!state || typeof state !== "object" || Array.isArray(state)) return "No earlier classification";
+  const values = state as { [key: string]: Json | undefined };
+  const parts = [
+    values.board,
+    values.qualification,
+    values.subject,
+    values.syllabus_version,
+    values.chapter,
+    values.topic,
+  ].filter((value): value is string => typeof value === "string" && value.trim().length > 0);
+  const status = values.classification_status;
+  if (typeof status === "string") parts.push("Status: " + status.replace("_", " "));
+  return parts.length ? parts.join(" · ") : "No syllabus labels recorded";
+}
 
 export default async function QuestionDetailPage({ params, searchParams }: PageProps) {
   const { id } = await params;
@@ -74,6 +92,14 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
         .limit(20)
     : { data: [], error: null };
   const isOwner = question.owner_id === user.id;
+  const { data: classificationHistory, error: classificationHistoryError } = isOwner
+    ? await typedSupabase.from("question_classification_history")
+        .select("id,event_type,previous_state,new_state,changed_at,changed_by")
+        .eq("question_id", question.id)
+        .eq("owner_id", user.id)
+        .order("changed_at", { ascending: false })
+        .limit(30)
+    : { data: [], error: null };
   const { data: syllabusCatalogs } = isOwner
     ? await supabase.from("syllabus_catalogs").select("id,board,qualification,subject,version,status,source_url,source_title,source_checked_at").eq("owner_id", user.id).order("created_at", { ascending: false })
     : { data: [] };
@@ -153,6 +179,23 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
               chapters={syllabusChapters ?? []}
               topics={syllabusTopics ?? []}
             />
+            <section className="classification-history">
+              <h3>Classification change history</h3>
+              <p className="question-card-meta">This append-only log records classification snapshots from the audit feature onward. Earlier changes cannot be reconstructed; existing records begin with a baseline snapshot.</p>
+              {classificationHistoryError ? <p className="notice notice-error">Could not load classification history.</p>
+                : classificationHistory?.length ? (
+                  <ol className="calculation-checks">
+                    {classificationHistory.map((entry) => (
+                      <li key={entry.id}>
+                        <strong>{entry.event_type === "baseline" ? "BASELINE SNAPSHOT" : entry.event_type === "created" ? "INITIAL CLASSIFICATION" : "CLASSIFICATION UPDATED"}</strong>
+                        <span>{new Date(entry.changed_at).toLocaleString()} · {entry.changed_by ? "Owner action" : "Existing-state snapshot"}</span>
+                        {entry.previous_state ? <small>Before: {classificationSummary(entry.previous_state)}</small> : null}
+                        <small>After: {classificationSummary(entry.new_state)}</small>
+                      </li>
+                    ))}
+                  </ol>
+                ) : <p className="question-card-meta">No classification changes recorded yet.</p>}
+            </section>
           </div>
         ) : (
           <p className="question-card-meta">Syllabus mapping: {question.classification_status.replace("_", " ")} · Version: {question.syllabus_version ?? "Not recorded"}</p>
