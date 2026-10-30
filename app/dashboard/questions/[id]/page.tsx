@@ -7,11 +7,11 @@ import { checkChemicalEquations } from "@/lib/ai/chemistry-check";
 import { checkPhysicsUnits } from "@/lib/ai/physics-unit-check";
 import type { DatabaseWithAISolutions } from "@/types/ai-database";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { ExamAnswer } from "@/lib/ai/answer-schema";
+import { examAnswerSchema } from "@/lib/ai/answer-schema";
 
 type PageProps = {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ solve?: string }>;
+  searchParams: Promise<{ solve?: string; solution?: string }>;
 };
 
 const messages: Record<string, string> = {
@@ -46,10 +46,18 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
     .eq("question_id", question.id)
     .eq("owner_id", user.id)
     .order("created_at", { ascending: false })
-    .limit(5);
+    .limit(20);
 
   const latest = solutions?.[0];
-  const answer = latest?.answer_json as unknown as ExamAnswer | undefined;
+  const selectedSolution = query.solution
+    ? solutions?.find((item) => item.id === query.solution)
+    : latest;
+  const parsedAnswer = selectedSolution
+    ? examAnswerSchema.safeParse(selectedSolution.answer_json)
+    : undefined;
+  const answer = parsedAnswer?.success ? parsedAnswer.data : undefined;
+  const storedAnswerInvalid = Boolean(selectedSolution && !parsedAnswer?.success);
+  const requestedSolutionMissing = Boolean(query.solution && !selectedSolution);
   const calculationChecks = Array.isArray(answer?.calculationChecks) ? answer.calculationChecks : [];
   const chemistryChecks = Array.isArray(answer?.chemistryChecks) ? answer.chemistryChecks : [];
   const physicsChecks = Array.isArray(answer?.physicsChecks) ? answer.physicsChecks : [];
@@ -74,6 +82,8 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
       </section>
       {message ? <p className="notice notice-info" role="status">{message}</p> : null}
       {solutionError ? <p className="notice notice-error">Could not load saved answers.</p> : null}
+      {requestedSolutionMissing ? <p className="notice notice-info">That saved draft is not in the available history. Showing the latest saved draft instead.</p> : null}
+      {storedAnswerInvalid ? <p className="notice notice-error">This saved response does not match the current answer format and cannot be displayed safely.</p> : null}
       <section className="section">
         <article className="question-card">
           <div className="question-card-heading">
@@ -93,7 +103,7 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
       </section>
       {answer ? (
         <section className="section">
-          <div className="section-heading"><div><p className="eyebrow">LATEST GENERATED RESPONSE</p><h2>Answer draft</h2></div><span className="document-status">{latest?.verification_status.replace("_", " ")}</span></div>
+          <div className="section-heading"><div><p className="eyebrow">SELECTED SAVED RESPONSE</p><h2>Answer draft</h2></div><span className="document-status">{selectedSolution?.verification_status.replace("_", " ")}</span></div>
           <article className="solution-panel">
             <p className="eyebrow">EXAM-READY ANSWER</p>
             <div className="solution-prose">{answer.examAnswer}</div>
@@ -143,13 +153,28 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
             {answer.keyConcepts.length ? <><h3>Key concepts</h3><ul>{answer.keyConcepts.map((item, index) => <li key={index}>{item}</li>)}</ul></> : null}
             {answer.assumptions.length ? <><h3>Assumptions</h3><ul>{answer.assumptions.map((item, index) => <li key={index}>{item}</li>)}</ul></> : null}
             {answer.limitations.length ? <><h3>Limitations</h3><ul>{answer.limitations.map((item, index) => <li key={index}>{item}</li>)}</ul></> : null}
-            <p className="question-card-meta">Provider: {latest?.provider} · Model: {latest?.model} · Prompt: {latest?.prompt_version}</p>
+            <p className="question-card-meta">Provider: {selectedSolution?.provider} · Model: {selectedSolution?.model} · Prompt: {selectedSolution?.prompt_version}</p>
             <p className="notice notice-info">Not independently verified. Check calculations, units, syllabus alignment and any official mark scheme before relying on this answer.</p>
           </article>
         </section>
       ) : null}
-      {solutions && solutions.length > 1 ? (
-        <section className="section"><h2>Previous generated drafts</h2>{solutions.slice(1).map((item) => <p className="question-card-meta" key={item.id}>{new Date(item.created_at).toLocaleString()} · {item.provider} / {item.model} · {item.verification_status}</p>)}</section>
+      {solutions && solutions.length > 0 ? (
+        <section className="section">
+          <div className="section-heading"><div><p className="eyebrow">VERSION HISTORY</p><h2>Saved answer drafts</h2></div><span className="document-status">{solutions.length} shown</span></div>
+          <ul className="calculation-checks">
+            {solutions.map((item) => (
+              <li key={item.id}>
+                <strong>{item.id === selectedSolution?.id ? "CURRENTLY VIEWING" : "SAVED DRAFT"}</strong>
+                <span>{new Date(item.created_at).toLocaleString()} · {item.provider} / {item.model}</span>
+                <small>{item.verification_status.replace("_", " ")}</small>
+                {item.id === selectedSolution?.id
+                  ? <span className="question-card-meta">This version is currently open.</span>
+                  : <Link className="sign-in-link" href={"/dashboard/questions/" + question.id + "?solution=" + item.id}>Open this version →</Link>}
+              </li>
+            ))}
+          </ul>
+          <p className="question-card-meta">Showing the latest 20 saved versions. Generating another answer creates a new draft; it does not overwrite earlier versions.</p>
+        </section>
       ) : null}
     </main>
   );
