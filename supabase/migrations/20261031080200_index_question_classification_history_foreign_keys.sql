@@ -1,0 +1,5 @@
+create index question_classification_history_question_owner_fk_idx
+  on public.question_classification_history(question_id, owner_id);
+
+create index question_classification_history_changed_by_idx
+  on public.question_classification_history(changed_by);
