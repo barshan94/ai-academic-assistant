@@ -38,7 +38,7 @@
 - [x] Owner and invited teacher review records are append-only.
 - [x] Teacher access is question-scoped and can be revoked by the owner.
 - [ ] Live AI provider configured and tested with explicit cost approval.
-- [ ] Teacher invitation, acceptance, review and revocation tested against the isolated Supabase test project using the authenticated browser workflow (`docs/AUTHENTICATED_E2E_SETUP.md`).
+- [ ] Teacher invitation, acceptance, review and revocation tested against the chosen non-production Supabase project using the authenticated browser workflow (`docs/AUTHENTICATED_E2E_SETUP.md`).
 - [ ] Golden-set answer quality manually graded across subjects.
 - [ ] Official mark-scheme/source grounding and citation checks.
 - [ ] Teacher verification status is only set through an independently authorized workflow.
@@ -51,8 +51,15 @@
 - [x] Owner-only classification editor; teacher accounts remain read-only.
 - [x] Unit tests cover confirmed, uncertain, unreviewed, incomplete and invalid confidence cases.
 - [x] Question bank can filter by unreviewed, uncertain and confirmed classification state.
+- [x] Owner-scoped syllabus catalogue stores board, qualification, subject, version, effective dates and source provenance.
+- [x] Chapter and topic records are linked hierarchically and constrained to the same owner's catalogue.
+- [x] Questions can reference catalogue, chapter and topic IDs while retaining legacy text snapshots.
+- [x] Only an owner can read or edit their catalogue; no anonymous access or delete grant is exposed.
+- [x] A catalogue cannot be marked verified without an HTTPS source and verification timestamp.
+- [x] A question cannot be confirmed against a draft or retired structured catalogue.
+- [ ] Automated database tests prove cross-account catalogue/chapter/topic isolation and reject mismatched reference IDs.
 - [ ] Dedicated uncertain-mapping review queue with prioritization and batch review.
-- [ ] Versioned reference taxonomy for boards, qualifications, subjects, chapters and topics.
+- [ ] Shared, centrally curated reference dataset and import pipeline for boards, qualifications, subjects, chapters and topics.
 - [ ] Assisted classification with source evidence and calibrated confidence.
 - [ ] Classification filters and a dedicated uncertain-mapping review queue.
 - [ ] Chapter notes cite contributing questions and source documents.
