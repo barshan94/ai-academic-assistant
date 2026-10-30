@@ -58,7 +58,8 @@
 - [x] A catalogue cannot be marked verified without an HTTPS source and verification timestamp.
 - [x] A question cannot be confirmed against a draft or retired structured catalogue.
 - [ ] Automated database tests prove cross-account catalogue/chapter/topic isolation and reject mismatched reference IDs.
-- [ ] Dedicated uncertain-mapping review queue with prioritization and batch review.
+- [x] Dedicated owner-only queue for unreviewed and uncertain mappings, sorted by missing/lowest confidence first.
+- [ ] Batch review actions with per-question validation and an auditable change history.
 - [ ] Shared, centrally curated reference dataset and import pipeline for boards, qualifications, subjects, chapters and topics.
 - [ ] Assisted classification with source evidence and calibrated confidence.
 - [ ] Chapter notes cite contributing questions and source documents.
