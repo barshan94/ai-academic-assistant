@@ -46,16 +46,29 @@ type TopicOption = {
   topic_code: string | null;
 };
 
+type EvidenceOption = {
+  id: string;
+  chapter_id: string;
+  topic_id: string | null;
+  source_url: string;
+  source_title: string;
+  source_locator: string | null;
+  evidence_excerpt: string | null;
+  created_at: string;
+};
+
 export function ClassificationForm({
   question,
   catalogs,
   chapters,
   topics,
+  evidence,
 }: {
   question: ClassificationQuestion;
   catalogs: CatalogOption[];
   chapters: ChapterOption[];
   topics: TopicOption[];
+  evidence: EvidenceOption[];
 }) {
   const [selectedCatalogId, setSelectedCatalogId] = useState(question.syllabus_catalog_id ?? "");
   const [selectedChapterId, setSelectedChapterId] = useState(question.syllabus_chapter_id ?? "");
@@ -64,6 +77,10 @@ export function ClassificationForm({
   const availableTopics = topics.filter((topic) => topic.chapter_id === selectedChapterId);
   const chapterSuggestions = rankSyllabusTextMatches(question.question_text, availableChapters);
   const topicSuggestions = rankSyllabusTextMatches(question.question_text, availableTopics, 3);
+  const selectedEvidence = evidence.filter((item) =>
+    item.chapter_id === selectedChapterId &&
+    (selectedTopicId ? item.topic_id === selectedTopicId : item.topic_id === null),
+  );
 
   return (
     <form action={updateQuestionClassification} className="review-form classification-form">
@@ -119,6 +136,19 @@ export function ClassificationForm({
         </label>
       </div>
       <p className="question-card-meta">Chapter choices are restricted to the selected syllabus version, and topic choices to the selected chapter. Changing the version clears the chapter and topic. A catalogue must be verified before its mapping can be confirmed.</p>
+      {selectedCatalogId && selectedChapterId ? (
+        <div className="classification-provenance">
+          <strong>Selected mapping evidence</strong>
+          {selectedEvidence.length ? selectedEvidence.map((item) => (
+            <span key={item.id}>
+              <a href={item.source_url} target="_blank" rel="noreferrer">{item.source_title} ↗</a>
+              {item.source_locator ? " · " + item.source_locator : ""}
+              {item.evidence_excerpt ? <small>{item.evidence_excerpt}</small> : null}
+            </span>
+          )) : <span>No source citation recorded for this exact {selectedTopicId ? "topic" : "chapter"}.</span>}
+          <small>Only owner-recorded citations count toward confirmation. The application does not independently certify source authenticity or content.</small>
+        </div>
+      ) : null}
       {selectedCatalogId ? (() => {
         const selectedCatalog = catalogs.find((catalog) => catalog.id === selectedCatalogId);
         if (!selectedCatalog) return null;
