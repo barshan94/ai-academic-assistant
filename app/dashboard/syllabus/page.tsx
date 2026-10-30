@@ -7,6 +7,7 @@ import {
   createSyllabusCatalog,
   createSyllabusChapter,
   createSyllabusTopic,
+  addSyllabusReferenceEvidence,
   retireSyllabusCatalog,
   verifySyllabusCatalog,
 } from "./actions";
@@ -17,6 +18,7 @@ type PageProps = {
     chapter?: string;
     topic?: string;
     import?: string;
+    evidence?: string;
   }>;
 };
 
@@ -33,7 +35,32 @@ const statusMessages: Record<string, string> = {
   import_duplicate: "A matching syllabus version or chapter/topic already exists. Nothing from this import was saved.",
   import_invalid: "The JSON document is invalid or exceeds the import limits. Check its format and try again.",
   import_save_failed: "The import could not be saved. No partial chapter/topic import was committed.",
+  added: "Source citation recorded. The app has not independently certified the source or its contents.",
+  evidence_invalid: "Enter a valid HTTPS source URL, title and evidence details within the stated limits.",
+  evidence_not_found: "The selected chapter or topic was not found in your catalogue.",
+  evidence_save_failed: "The evidence citation could not be saved. Check the source details and try again.",
 };
+
+
+function EvidenceForm({ catalogId, chapterId, topicId = "" }: { catalogId: string; chapterId: string; topicId?: string }) {
+  return (
+    <details className="syllabus-evidence-form">
+      <summary>Add source evidence</summary>
+      <form action={addSyllabusReferenceEvidence} className="review-form">
+        <input type="hidden" name="catalogId" value={catalogId} />
+        <input type="hidden" name="chapterId" value={chapterId} />
+        <input type="hidden" name="topicId" value={topicId} />
+        <div className="question-fields">
+          <label>Source URL (HTTPS)<input name="sourceUrl" type="url" required maxLength={2048} placeholder="https://..." /></label>
+          <label>Source title<input name="sourceTitle" required maxLength={200} placeholder="Official specification / syllabus PDF" /></label>
+          <label>Page, section or paragraph<input name="sourceLocator" maxLength={200} placeholder="e.g. page 18, section 2.3" /></label>
+        </div>
+        <label>Short supporting excerpt or note<textarea name="evidenceExcerpt" rows={2} maxLength={600} placeholder="Record the wording that supports this chapter/topic reference." /></label>
+        <button className="document-action" type="submit">Record citation</button>
+      </form>
+    </details>
+  );
+}
 
 function Notice({ value, label }: { value?: string; label: string }) {
   if (!value) return null;
