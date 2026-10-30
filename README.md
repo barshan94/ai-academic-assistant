@@ -30,9 +30,11 @@ A personal, web-based AI academic workspace for a tutor working across Edexcel O
 ## Repository contents
 - Responsive foundation dashboard with clearly marked planned modules.
 - Supabase server-client helper and public environment-variable validation.
-- Initial profile table and owner-scoped RLS migration.
+- Applied profile, document intake, processing job, question and Google Drive connection tables with owner-scoped RLS.
 - ESLint and Vitest configuration with initial smoke tests.
-- Architecture, data model, roadmap, security, private authentication setup, Google Drive, PDF processing and operations documentation.
+- Private Supabase sign-in and protected dashboard.
+- Google Drive OAuth with encrypted refresh-token storage, PDF archiving, JPEG/PNG-to-PDF conversion, OCR extraction and per-page review.
+- Architecture, data model, roadmap, security, authentication, Drive setup, PDF processing and operations documentation.
 
 ## Development
 1. Install dependencies with `npm install`.
@@ -40,7 +42,7 @@ A personal, web-based AI academic workspace for a tutor working across Edexcel O
 3. Run `npm run dev`.
 4. Run `npm run lint`, `npm run typecheck`, `npm test` and `npm run build` before proposing a milestone as complete.
 
-Do not commit `.env.local`, credentials, service-role keys, OAuth tokens, student personal data or private source documents. Do not apply database migrations until they have been reviewed and tested.
+Do not commit `.env.local`, credentials, service-role keys, OAuth tokens, student personal data or private source documents. Database migrations are applied to the dedicated Supabase project and mirrored in `supabase/migrations/`.
 
 ## Current status
-Milestone 1 is in progress. The foundation dashboard and project configuration files are committed, but dependency installation, lint, type-check, tests and production build have not yet been verified in this environment. Email/password sign-in, dashboard session checks and sign-out are implemented in code. The Supabase environment variables and owner account still need to be configured; the profile migration has not been applied. The dashboard's four modules are placeholders, not functioning features.
+The foundation CI pipeline passes ESLint, TypeScript, tests and production build. Supabase profile/document/processing/question/Drive-connection tables and owner-scoped RLS are applied. Private sign-in and document-intake code are implemented. Live authentication and Google Drive OAuth/OCR still require the owner's environment credentials and an end-to-end smoke test. Upload is currently capped at 4 MB; resumable uploads and automatic background workers are not implemented. OCR output remains unverified until reviewed by the owner. The dashboard's solver and chapter-intelligence modules remain planned.
