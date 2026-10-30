@@ -6,6 +6,7 @@ const valid = {
   workingSteps: [{ step: "1", explanation: "Substitute the values." }],
   calculationChecks: [{ expression: "2 * 3", claimedResult: 6, unit: "N" }],
   chemistryChecks: [],
+  physicsChecks: [{ formulaUnit: "kg*m/s^2", claimedUnit: "N" }],
   bengaliExplanation: "নিউটনের দ্বিতীয় সূত্র।",
   englishExplanation: "Newton's second law.",
   keyConcepts: ["Force"],
