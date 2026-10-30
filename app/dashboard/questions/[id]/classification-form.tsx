@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import { updateQuestionClassification } from "./classification-actions";
+import { rankSyllabusTextMatches } from "@/lib/questions/syllabus-matcher";
 
 type ClassificationQuestion = {
   id: string;
+  question_text: string;
   board: string | null;
   qualification: string | null;
   subject: string | null;
@@ -57,6 +59,8 @@ export function ClassificationForm({
   const [selectedTopicId, setSelectedTopicId] = useState(question.syllabus_topic_id ?? "");
   const availableChapters = chapters.filter((chapter) => chapter.catalog_id === selectedCatalogId);
   const availableTopics = topics.filter((topic) => topic.chapter_id === selectedChapterId);
+  const chapterSuggestions = rankSyllabusTextMatches(question.question_text, availableChapters);
+  const topicSuggestions = rankSyllabusTextMatches(question.question_text, availableTopics, 3);
 
   return (
     <form action={updateQuestionClassification} className="review-form classification-form">
@@ -112,6 +116,40 @@ export function ClassificationForm({
         </label>
       </div>
       <p className="question-card-meta">Chapter choices are restricted to the selected syllabus version, and topic choices to the selected chapter. Changing the version clears the chapter and topic. A catalogue must be verified before its mapping can be confirmed.</p>
+      {selectedCatalogId ? (
+        <section className="classification-suggestions" aria-label="Text-match suggestions">
+          <h3>Possible chapter matches</h3>
+          <p className="question-card-meta">Suggestions are ranked only by shared words between this question and your catalogue labels. They are not AI predictions, official evidence, or probabilities.</p>
+          {chapterSuggestions.length ? (
+            <ul className="classification-suggestion-list">
+              {chapterSuggestions.map((suggestion) => (
+                <li key={suggestion.id}>
+                  <div><strong>{suggestion.title}</strong><span>{suggestion.reasons.join(" · ")}</span></div>
+                  <button type="button" className="secondary-action" onClick={() => {
+                    setSelectedChapterId(suggestion.id);
+                    setSelectedTopicId("");
+                  }}>Select chapter</button>
+                </li>
+              ))}
+            </ul>
+          ) : <p className="question-card-meta">No meaningful catalogue terms matched. Choose the chapter manually.</p>}
+          {selectedChapterId ? (
+            <>
+              <h3>Possible topic matches</h3>
+              {topicSuggestions.length ? (
+                <ul className="classification-suggestion-list">
+                  {topicSuggestions.map((suggestion) => (
+                    <li key={suggestion.id}>
+                      <div><strong>{suggestion.title}</strong><span>{suggestion.reasons.join(" · ")}</span></div>
+                      <button type="button" className="secondary-action" onClick={() => setSelectedTopicId(suggestion.id)}>Select topic</button>
+                    </li>
+                  ))}
+                </ul>
+              ) : <p className="question-card-meta">No meaningful topic terms matched this question.</p>}
+            </>
+          ) : null}
+        </section>
+      ) : null}
       <details className="classification-manual">
         <summary>Manual labels (without a structured catalogue)</summary>
         <div className="question-fields">
