@@ -3,7 +3,7 @@ import { PDFDocument } from "pdf-lib";
 export const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
 
 export function safeFileName(value: string) {
-  return value.replace(/[\\/\\0-\\x1f]/g, "_").trim().slice(0, 180) || "academic-document";
+  return value.replaceAll("/", "_").replaceAll("\\\\", "_").replace(/[\\u0000-\\u001f]/g, "_").trim().slice(0, 180) || "academic-document";
 }
 
 export async function normalizeToPdf(file: File) {
