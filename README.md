@@ -32,7 +32,7 @@ A personal, web-based AI academic workspace for a tutor working across Edexcel O
 - Supabase server-client helper and public environment-variable validation.
 - Initial profile table and owner-scoped RLS migration.
 - ESLint and Vitest configuration with initial smoke tests.
-- Architecture, data model, roadmap, security, Google Drive, PDF processing and operations documentation.
+- Architecture, data model, roadmap, security, private authentication setup, Google Drive, PDF processing and operations documentation.
 
 ## Development
 1. Install dependencies with `npm install`.
