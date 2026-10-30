@@ -87,6 +87,11 @@ export default async function SyllabusPage({ searchParams }: PageProps) {
     ? await supabase.from("syllabus_topics").select("id,chapter_id,title,topic_code,sort_order")
       .eq("owner_id", user.id).in("chapter_id", chapterIds).order("sort_order").order("title")
     : { data: [] as { id: string; chapter_id: string; title: string; topic_code: string | null; sort_order: number }[], error: null };
+  const { data: evidence, error: evidenceError } = chapterIds.length
+    ? await supabase.from("syllabus_reference_evidence")
+      .select("id,catalog_id,chapter_id,topic_id,source_url,source_title,source_locator,evidence_excerpt,created_at")
+      .eq("owner_id", user.id).in("chapter_id", chapterIds).order("created_at", { ascending: false })
+    : { data: [] as { id: string; catalog_id: string; chapter_id: string; topic_id: string | null; source_url: string; source_title: string; source_locator: string | null; evidence_excerpt: string | null; created_at: string }[], error: null };
 
   const chapterCount = chapters?.length ?? 0;
   const topicCount = topics?.length ?? 0;
@@ -116,8 +121,9 @@ export default async function SyllabusPage({ searchParams }: PageProps) {
       <Notice value={params.chapter} label="Chapter" />
       <Notice value={params.topic} label="Topic" />
       <Notice value={params.import === "save_failed" ? "import_save_failed" : params.import} label="Syllabus import" />
+      <Notice value={params.evidence === "save_failed" ? "evidence_save_failed" : params.evidence === "not_found" ? "evidence_not_found" : params.evidence === "invalid" ? "evidence_invalid" : params.evidence} label="Source evidence" />
 
-      {catalogError || chapterError || topicError ? <p className="notice notice-error">Some catalogue data could not be loaded. Refresh the page or check the database connection.</p> : null}
+      {catalogError || chapterError || topicError || evidenceError ? <p className="notice notice-error">Some catalogue or source-evidence data could not be loaded. Refresh the page or check the database connection.</p> : null}
 
       <section className="section">
         <div className="section-heading">
