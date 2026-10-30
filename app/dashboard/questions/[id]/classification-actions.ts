@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
 import { redirect } from "next/navigation";
 import { questionClassificationSchema } from "@/lib/questions/classification";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -18,7 +19,14 @@ export async function updateQuestionClassification(formData: FormData) {
     classificationConfidence: String(formData.get("classificationConfidence") ?? ""),
   });
 
-  if (!parsed.success) redirect("/dashboard/questions?classification=invalid");
+  if (!parsed.success) {
+    const questionId = z.string().uuid().safeParse(String(formData.get("questionId") ?? ""));
+    if (questionId.success) {
+      const status = String(formData.get("classificationStatus") ?? "");
+      redirect("/dashboard/questions/" + questionId.data + "?classification=" + (status === "confirmed" ? "incomplete" : "invalid"));
+    }
+    redirect("/dashboard/questions?classification=invalid");
+  }
 
   const values = parsed.data;
   const supabase = await createSupabaseServerClient();
