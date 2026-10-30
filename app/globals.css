@@ -208,3 +208,12 @@ h2 { font-size: 24px; letter-spacing: -.04em; margin: 0; font-weight: 600; }
   cursor: pointer;
 }
 .secondary-action:hover { border-color: var(--accent, #38bdf8); }
+
+
+/* Syllabus classification review */
+.classification-panel { margin-top: 26px; padding: 22px; border: 1px solid var(--line); border-radius: 12px; background: linear-gradient(145deg, #16212b, #101821); }
+.classification-panel h2 { margin-bottom: 10px; }
+.classification-form input { width: 100%; border: 1px solid #354451; border-radius: 7px; background: #0b1219; color: var(--text); padding: 10px; font: inherit; font-size: 11px; }
+.classification-form input:focus { outline: 1px solid var(--accent); border-color: var(--accent); }
+.classification-form .question-fields { margin: 8px 0 12px; }
+@media (max-width: 680px) { .classification-panel { padding: 15px; } }
