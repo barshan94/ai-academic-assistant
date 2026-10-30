@@ -146,3 +146,5 @@ h2 { font-size: 24px; letter-spacing: -.04em; margin: 0; font-weight: 600; }
   .review-page { padding: 14px; }
   .review-page-heading, .approve-panel { align-items: flex-start; flex-direction: column; }
 }
+
+.drive-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
