@@ -18,7 +18,7 @@ export async function normalizeToPdf(file: File) {
   }
 
   if (file.type === "application/pdf" && Buffer.from(bytes).subarray(0, 5).toString() === "%PDF-") {
-    const name = file.name.toLowerCase().endsWith(".pdf") ? file.name : \`${file.name}.pdf\`;
+    const name = file.name.toLowerCase().endsWith(".pdf") ? file.name : file.name + ".pdf";
     return { bytes, fileName: safeFileName(name), converted: false };
   }
 
@@ -34,7 +34,7 @@ export async function normalizeToPdf(file: File) {
   const baseName = file.name.replace(/\.[^.]+$/, "");
   return {
     bytes: new Uint8Array(output),
-    fileName: safeFileName(\`${baseName}.pdf\`),
+    fileName: safeFileName(baseName + ".pdf"),
     converted: true,
   };
 }
