@@ -109,7 +109,7 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
     <main className="shell">
       <header className="topbar">
         <Link className="brand" href="/"><span className="brand-mark">A</span><span>Academic<span className="brand-muted">Assistant</span></span></Link>
-        <div className="topbar-actions"><Link className="sign-in-link" href="/dashboard/teacher-invites">Teacher invitations</Link><Link className="sign-in-link" href="/dashboard/questions">Question bank</Link><Link className="sign-in-link" href="/dashboard">Dashboard</Link></div>
+        <div className="topbar-actions"><Link className="sign-in-link" href="/dashboard/teacher-invites">Teacher invitations</Link><Link className="sign-in-link" href="/dashboard/questions">Question bank</Link><Link className="sign-in-link" href="/dashboard/syllabus">Syllabus catalogue</Link><Link className="sign-in-link" href="/dashboard">Dashboard</Link></div>
       </header>
       <section className="hero documents-hero">
         <p className="eyebrow">ACADEMIC SOLVER · M3</p>
