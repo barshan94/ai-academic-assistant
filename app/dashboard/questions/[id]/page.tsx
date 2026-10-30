@@ -75,7 +75,7 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
     : { data: [], error: null };
   const isOwner = question.owner_id === user.id;
   const { data: syllabusCatalogs } = isOwner
-    ? await supabase.from("syllabus_catalogs").select("id,board,qualification,subject,version,status").eq("owner_id", user.id).order("created_at", { ascending: false })
+    ? await supabase.from("syllabus_catalogs").select("id,board,qualification,subject,version,status,source_url,source_title,source_checked_at").eq("owner_id", user.id).order("created_at", { ascending: false })
     : { data: [] };
   const syllabusCatalogIds = (syllabusCatalogs ?? []).map((item) => item.id);
   const { data: syllabusChapters } = isOwner && syllabusCatalogIds.length
