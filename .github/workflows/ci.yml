@@ -49,6 +49,9 @@ jobs:
       - name: Type-check Playwright configuration
         run: npx tsc --noEmit --target ES2017 --module esnext --moduleResolution bundler --types node playwright.config.ts
 
+      - name: Type-check authenticated browser acceptance
+        run: npx tsc --noEmit --target ES2017 --module esnext --moduleResolution bundler --types node --skipLibCheck playwright.auth.config.ts e2e/authenticated.spec.ts
+
       - name: Run unit tests
         run: npm test
 
