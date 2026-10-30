@@ -51,6 +51,10 @@ export default async function QuestionsPage({ searchParams }: QuestionsPageProps
         <p className="eyebrow">QUESTION BANK · M3</p>
         <h1>Your question <span>library.</span></h1>
         <p className="hero-copy">Capture questions from reviewed source pages, add syllabus metadata, and approve records before opening the solver. AI answer generation requires a server-side provider configuration.</p>
+        <div className="hero-actions">
+          <Link className="sign-in-link" href="/dashboard/syllabus">Manage syllabus catalogue</Link>
+          <Link className="sign-in-link" href="/dashboard/syllabus/review">Review uncertain mappings</Link>
+        </div>
       </section>
 
       {notice ? <p className="notice notice-info" role="status">{notice}</p> : null}
