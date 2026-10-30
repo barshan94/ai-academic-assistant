@@ -28,7 +28,7 @@ begin
     raise exception 'A syllabus import may contain at most 300 chapters';
   end if;
 
-  if coalesce(payload #>> '{catalog,source_url}', '') !~ '^https://' then
+  if coalesce(payload #>> '{catalog,sourceUrl}', '') !~ '^https://' then
     raise exception 'An HTTPS source URL is required';
   end if;
 
