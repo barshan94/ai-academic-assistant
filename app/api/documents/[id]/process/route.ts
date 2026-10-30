@@ -15,7 +15,7 @@ function redirectToDocument(request: NextRequest, id: string, status: string) {
 
 export async function POST(request: NextRequest, context: RouteContext) {
   const origin = request.headers.get("origin");
-  if (origin && origin !== request.nextUrl.origin) return new NextResponse("Forbidden", { status: 403 });
+  if (origin !== request.nextUrl.origin) return new NextResponse("Forbidden", { status: 403 });
 
   const supabase = await createSupabaseServerClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
