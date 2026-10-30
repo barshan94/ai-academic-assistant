@@ -55,7 +55,3 @@ create table public.syllabus_topics (
   unique (id, chapter_id),
   foreign key (chapter_id) references public.syllabus_chapters(id) on delete restrict
 );
-create unique index syllabus_topics_chapter_title_idx
-  on public.syllabus_topics (chapter_id, lower(title));
-create index syllabus_topics_chapter_order_idx
-  on public.syllabus_topics (chapter_id, sort_order, title);
