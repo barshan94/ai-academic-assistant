@@ -218,3 +218,21 @@ h2 { font-size: 24px; letter-spacing: -.04em; margin: 0; font-weight: 600; }
 .classification-form input:focus { outline: 1px solid var(--accent); border-color: var(--accent); }
 .classification-form .question-fields { margin: 8px 0 12px; }
 @media (max-width: 680px) { .classification-panel { padding: 15px; } }
+
+
+/* Versioned syllabus catalogue */
+.syllabus-create-panel, .syllabus-catalog-card { padding: 20px; border: 1px solid var(--line); border-radius: 11px; background: linear-gradient(145deg, #16212b, #101821); }
+.syllabus-create-panel > p { line-height: 1.7; }
+.syllabus-catalog-list { display: flex; flex-direction: column; gap: 14px; }
+.syllabus-catalog-card h3 { margin: 14px 0 8px; font-size: 16px; }
+.syllabus-inline-actions { display: flex; flex-wrap: wrap; gap: 9px; margin: 10px 0; }
+.syllabus-children { margin-top: 20px; padding-top: 17px; border-top: 1px solid var(--line); }
+.syllabus-children h4 { margin: 0 0 12px; color: var(--accent); font-size: 12px; }
+.syllabus-chapter { margin: 10px 0; padding: 13px; border: 1px solid #2d3b47; border-radius: 8px; background: #0d151d; }
+.syllabus-chapter > .question-card-heading { justify-content: flex-start; }
+.syllabus-topic-list { margin: 10px 0; padding-left: 19px; color: #c5d0d9; font-size: 11px; line-height: 1.9; }
+.syllabus-add-form { display: grid; grid-template-columns: minmax(140px, 2fr) minmax(90px, 1fr) 85px auto; align-items: end; gap: 9px; margin-top: 12px; }
+.syllabus-add-form label { display: flex; flex-direction: column; gap: 6px; color: #c5d0d9; font-size: 10px; font-weight: 650; }
+.syllabus-add-form input { width: 100%; min-width: 0; border: 1px solid #354451; border-radius: 7px; background: #0b1219; color: var(--text); padding: 9px; font: inherit; font-size: 11px; }
+.classification-form select { width: 100%; border: 1px solid #354451; border-radius: 7px; background: #0b1219; color: var(--text); padding: 10px; font: inherit; font-size: 11px; }
+@media (max-width: 680px) { .syllabus-add-form { grid-template-columns: 1fr 1fr; } .syllabus-add-form label:first-of-type { grid-column: 1 / -1; } }
