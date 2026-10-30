@@ -27,11 +27,20 @@ A personal, web-based AI academic workspace for a tutor working across Edexcel O
 | Uploaded PDFs | Preserve original PDF; do not reconvert needlessly |
 | Architecture | Modular monolith + durable background workers |
 
-## Repository status
-The initial documentation, architecture notes, database design, project memory, initial Supabase server helpers and profile RLS migration have been committed. This is an incomplete starter scaffold, not yet a runnable or tested application. The dashboard page, remaining setup files, authentication flow and automated tests still need implementation.
+## Repository contents
+- Responsive foundation dashboard with clearly marked planned modules.
+- Supabase server-client helper and public environment-variable validation.
+- Initial profile table and owner-scoped RLS migration.
+- ESLint and Vitest configuration with initial smoke tests.
+- Architecture, data model, roadmap, security, Google Drive, PDF processing and operations documentation.
 
 ## Development
-See `docs/` for architecture, data model, Google Drive integration, PDF processing, security, operations, development process and roadmap. Do not apply migrations to production until they have been reviewed and tested.
+1. Install dependencies with `npm install`.
+2. Copy `.env.example` to `.env.local` and add the Supabase project URL and publishable key.
+3. Run `npm run dev`.
+4. Run `npm run lint`, `npm run typecheck`, `npm test` and `npm run build` before proposing a milestone as complete.
+
+Do not commit `.env.local`, credentials, service-role keys, OAuth tokens, student personal data or private source documents. Do not apply database migrations until they have been reviewed and tested.
 
 ## Current status
-Milestone 1 is in progress. The Supabase project has been provisioned, but the application has not yet been connected to it. No successful application build, automated test run or deployment is being claimed.
+Milestone 1 is in progress. The foundation dashboard and project configuration files are committed, but dependency installation, lint, type-check, tests and production build have not yet been verified in this environment. Authentication is not implemented, the application is not connected to Supabase, and the profile migration has not been applied. The dashboard's four modules are placeholders, not functioning features.
