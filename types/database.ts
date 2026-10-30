@@ -221,6 +221,8 @@ export type Database = {
           board: string | null
           chapter: string | null
           classification_confidence: number | null
+          classification_status: string
+          syllabus_version: string | null
           created_at: string
           document_id: string
           document_page_id: string | null
@@ -237,6 +239,8 @@ export type Database = {
           board?: string | null
           chapter?: string | null
           classification_confidence?: number | null
+          classification_status?: string
+          syllabus_version?: string | null
           created_at?: string
           document_id: string
           document_page_id?: string | null
@@ -253,6 +257,8 @@ export type Database = {
           board?: string | null
           chapter?: string | null
           classification_confidence?: number | null
+          classification_status?: string
+          syllabus_version?: string | null
           created_at?: string
           document_id?: string
           document_page_id?: string | null
