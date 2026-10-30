@@ -26,11 +26,21 @@ export async function normalizeToPdf(file: File) {
   const isPng = Buffer.from(bytes).subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]));
   if (!isJpeg && !isPng) throw new Error("Only valid PDF, JPEG and PNG files are supported.");
 
+  if (isPng) {
+    const pngHeader = Buffer.from(bytes);
+    const width = pngHeader.readUInt32BE(16);
+    const height = pngHeader.readUInt32BE(20);
+    if (!width || !height || width > 10000 || height > 10000 || width * height > 25000000) {
+      throw new Error("Image dimensions exceed the safe conversion limit.");
+    }
+  }
+
   const pdf = await PDFDocument.create();
   const image = isJpeg ? await pdf.embedJpg(bytes) : await pdf.embedPng(bytes);
   const page = pdf.addPage([image.width, image.height]);
   page.drawImage(image, { x: 0, y: 0, width: image.width, height: image.height });
   const output = await pdf.save();
+  if (output.byteLength > MAX_UPLOAD_BYTES) throw new Error("Converted PDF exceeds the 4 MB archive limit.");
   const baseName = file.name.replace(/\.[^.]+$/, "");
   return {
     bytes: new Uint8Array(output),
