@@ -17,7 +17,10 @@ export default function HomePage() {
           <span className="brand-mark">A</span>
           <span>Academic<span className="brand-muted">Assistant</span></span>
         </Link>
-        <span className="workspace-label"><span className="status-dot" /> Personal workspace</span>
+        <div className="topbar-actions">
+          <span className="workspace-label"><span className="status-dot" /> Personal workspace</span>
+          <Link className="sign-in-link" href="/login">Sign in <span aria-hidden="true">→</span></Link>
+        </div>
       </header>
 
       <section className="hero">
@@ -26,7 +29,7 @@ export default function HomePage() {
         <p className="hero-copy">A focused workspace for teaching, solving and organising O Level, A Level, SSC and HSC academic material.</p>
         <div className="hero-actions">
           <a className="primary-action" href="#workspace">Explore workspace <span aria-hidden="true">↗</span></a>
-          <span className="build-note">Foundation build · Authentication not connected yet</span>
+          <span className="build-note">Foundation build · Private sign-in now available</span>
         </div>
       </section>
 
