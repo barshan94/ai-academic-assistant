@@ -111,6 +111,11 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
   const { data: syllabusTopics } = isOwner && syllabusChapterIds.length
     ? await supabase.from("syllabus_topics").select("id,chapter_id,title,topic_code").eq("owner_id", user.id).in("chapter_id", syllabusChapterIds).order("sort_order").order("title")
     : { data: [] };
+  const { data: syllabusEvidence } = isOwner && syllabusChapterIds.length
+    ? await supabase.from("syllabus_reference_evidence")
+      .select("id,catalog_id,chapter_id,topic_id,source_url,source_title,source_locator,evidence_excerpt,created_at")
+      .eq("owner_id", user.id).in("chapter_id", syllabusChapterIds).order("created_at", { ascending: false })
+    : { data: [] };
   const { data: teacherInvites, error: teacherInviteError } = isOwner
     ? await typedSupabase.from("question_teacher_invites").select("id,invited_email,accepted_by,revoked_at,created_at").eq("question_id", question.id).eq("owner_id", user.id).order("created_at", { ascending: false })
     : { data: [], error: null };
@@ -147,6 +152,7 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
       {query.classification === "incomplete" ? <p className="notice notice-error" role="alert">A confirmed classification requires board, qualification, subject and syllabus version.</p> : null}
       {query.classification === "save_failed" || query.classification === "invalid" || query.classification === "reference_not_found" || query.classification === "reference_mismatch" ? <p className="notice notice-error" role="alert">The syllabus classification could not be saved. Check the selected catalogue, chapter and topic, then try again.</p> : null}
       {query.classification === "catalog_unverified" ? <p className="notice notice-error" role="alert">Verify this syllabus version with an official source before confirming a question mapping.</p> : null}
+      {query.classification === "evidence_required" ? <p className="notice notice-error" role="alert">Record a source citation for the selected chapter or topic in the Syllabus catalogue before confirming this structured mapping. A citation is owner-recorded, not independently certified by the app.</p> : null}
       {solutionError ? <p className="notice notice-error">Could not load saved answers.</p> : null}
       {reviewError ? <p className="notice notice-error">Could not load review history.</p> : null}
       {teacherInviteError ? <p className="notice notice-error">Could not load teacher invitations.</p> : null}
@@ -178,6 +184,7 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
               catalogs={syllabusCatalogs ?? []}
               chapters={syllabusChapters ?? []}
               topics={syllabusTopics ?? []}
+              evidence={syllabusEvidence ?? []}
             />
             <section className="classification-history">
               <h3>Classification change history</h3>
