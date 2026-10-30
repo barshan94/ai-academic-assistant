@@ -8,6 +8,7 @@ import { checkPhysicsUnits } from "@/lib/ai/physics-unit-check";
 import type { DatabaseWithAISolutions } from "@/types/ai-database";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { examAnswerSchema } from "@/lib/ai/answer-schema";
+import { ClassificationForm } from "./classification-form";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -33,7 +34,7 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
   if (authError || !user) redirect("/login");
 
   const { data: question, error } = await supabase.from("questions")
-    .select("id,owner_id,question_text,question_number,board,qualification,subject,chapter,topic,review_status,created_at")
+    .select("id,owner_id,question_text,question_number,board,qualification,subject,syllabus_version,chapter,topic,classification_status,classification_confidence,review_status,created_at")
     .eq("id", id)
     .maybeSingle();
 
@@ -105,6 +106,9 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
         <p className="hero-copy">Generate an examination-style answer with Bengali and English teaching explanations. Generated answers are drafts, not verified mark-scheme solutions.</p>
       </section>
       {message ? <p className="notice notice-info" role="status">{message}</p> : null}
+      {query.classification === "saved" ? <p className="notice notice-info" role="status">Syllabus classification saved.</p> : null}
+      {query.classification === "incomplete" ? <p className="notice notice-error" role="alert">A confirmed classification requires board, qualification, subject and syllabus version.</p> : null}
+      {query.classification === "save_failed" || query.classification === "invalid" ? <p className="notice notice-error" role="alert">The syllabus classification could not be saved. Check the fields and try again.</p> : null}
       {solutionError ? <p className="notice notice-error">Could not load saved answers.</p> : null}
       {reviewError ? <p className="notice notice-error">Could not load review history.</p> : null}
       {teacherInviteError ? <p className="notice notice-error">Could not load teacher invitations.</p> : null}
@@ -117,7 +121,7 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
             <span className="question-subject">{question.subject ?? "Subject not set"}</span>
           </div>
           <p className="question-card-text">{question.question_number ? question.question_number + ". " : ""}{question.question_text}</p>
-          <p className="question-card-meta">{[question.board, question.qualification, question.chapter, question.topic].filter(Boolean).join(" · ") || "Syllabus metadata not set"}</p>
+          <p className="question-card-meta">{[question.board, question.qualification, question.syllabus_version, question.chapter, question.topic].filter(Boolean).join(" · ") || "Syllabus metadata not set"} · Mapping: {question.classification_status.replace("_", " ")}</p>
           {isOwner && question.review_status === "approved" ? (
             <form action={generateQuestionSolution}>
               <input type="hidden" name="questionId" value={question.id} />
@@ -126,6 +130,16 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
             </form>
            ) : isOwner ? <p className="notice notice-info">This question needs teacher approval before it can be sent to the AI provider.</p> : <p className="notice notice-info">You have review access only. AI generation and question editing remain with the owner.</p>}
         </article>
+        {isOwner ? (
+          <div className="classification-panel">
+            <p className="eyebrow">SYLLABUS INTELLIGENCE · M5</p>
+            <h2>Review syllabus classification</h2>
+            <p className="question-card-meta">Record the exact syllabus specification and mark uncertain mappings for later checking. Classification review is separate from question-content approval.</p>
+            <ClassificationForm question={question} />
+          </div>
+        ) : (
+          <p className="question-card-meta">Syllabus mapping: {question.classification_status.replace("_", " ")} · Version: {question.syllabus_version ?? "Not recorded"}</p>
+        )}
       </section>
       {isOwner ? (
         <section className="section">
