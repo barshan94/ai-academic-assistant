@@ -14,7 +14,7 @@ function redirectWithStatus(request: NextRequest, status: string) {
 
 export async function POST(request: NextRequest) {
   const origin = request.headers.get("origin");
-  if (origin && origin !== request.nextUrl.origin) return new NextResponse("Forbidden", { status: 403 });
+  if (origin !== request.nextUrl.origin) return new NextResponse("Forbidden", { status: 403 });
 
   const supabase = await createSupabaseServerClient();
   const { data: { user }, error: userError } = await supabase.auth.getUser();
