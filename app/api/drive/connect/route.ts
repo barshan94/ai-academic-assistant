@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
   }).toString();
 
   const response = NextResponse.redirect(authUrl);
-  response.cookies.set("drive_oauth_state", state, {
+  response.cookies.set("drive_oauth_state", `${state}.${user.id}`, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
