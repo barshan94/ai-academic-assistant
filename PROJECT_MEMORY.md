@@ -39,12 +39,15 @@ M1 10% foundation; M2 25% document intelligence; M3 45% solver; M4 58% verificat
 - Project API URL: https://uqpyzicftxxegajaocxi.supabase.co
 - No credentials or service-role key should be committed.
 - GitHub repository exists and is public by owner's choice.
-- Initial README commit exists.
-- Application has not yet been connected to Supabase, migrations have not been applied, and no application tests/build/deployment have been completed.
+- Foundation dashboard, global styles, environment template, ESLint config, Vitest config and two smoke tests are committed.
+- README now documents the current incomplete state and setup steps.
+- Authentication is not implemented; the app is not connected to Supabase; migrations have not been applied.
+- Dependency installation, lint, type-check, tests and production build remain unverified because this execution environment could not resolve github.com.
 - Google Drive OAuth has not been configured.
 
 ## Next tasks
-1. Upload the complete starter source and documentation to GitHub.
-2. Add safe CI checks and verify dependency installation/build.
-3. Configure Supabase environment locally without committing secrets.
-4. Apply schema and RLS migrations; test authentication and ownership.
+1. Establish a reproducible dependency install and run lint, type-check, tests and production build in a network-enabled environment.
+2. Fix any errors found before adding more features.
+3. Implement authentication and protected routes using Supabase SSR.
+4. Review and test profile schema/RLS before applying it to the dedicated Supabase project.
+5. Keep Google Drive OAuth and AI provider credentials out of Git.
