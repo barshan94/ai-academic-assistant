@@ -27,6 +27,9 @@ type CatalogOption = {
   subject: string;
   version: string;
   status: string;
+  source_url: string | null;
+  source_title: string | null;
+  source_checked_at: string | null;
 };
 
 type ChapterOption = {
@@ -116,6 +119,18 @@ export function ClassificationForm({
         </label>
       </div>
       <p className="question-card-meta">Chapter choices are restricted to the selected syllabus version, and topic choices to the selected chapter. Changing the version clears the chapter and topic. A catalogue must be verified before its mapping can be confirmed.</p>
+      {selectedCatalogId ? (() => {
+        const selectedCatalog = catalogs.find((catalog) => catalog.id === selectedCatalogId);
+        if (!selectedCatalog) return null;
+        return (
+          <div className="classification-provenance">
+            <strong>Catalogue source provenance</strong>
+            {selectedCatalog.source_title ? <span>{selectedCatalog.source_title}</span> : <span>Source title not recorded</span>}
+            {selectedCatalog.source_url ? <a href={selectedCatalog.source_url} target="_blank" rel="noreferrer">Open source document ↗</a> : <span>No source URL recorded</span>}
+            <small>{selectedCatalog.source_checked_at ? "Source checked: " + new Date(selectedCatalog.source_checked_at).toLocaleDateString() : "Source has not been checked by the owner"} · Status: {selectedCatalog.status}</small>
+          </div>
+        );
+      })() : null}
       {selectedCatalogId ? (
         <section className="classification-suggestions" aria-label="Text-match suggestions">
           <h3>Possible chapter matches</h3>
