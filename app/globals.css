@@ -236,3 +236,11 @@ h2 { font-size: 24px; letter-spacing: -.04em; margin: 0; font-weight: 600; }
 .syllabus-add-form input { width: 100%; min-width: 0; border: 1px solid #354451; border-radius: 7px; background: #0b1219; color: var(--text); padding: 9px; font: inherit; font-size: 11px; }
 .classification-form select { width: 100%; border: 1px solid #354451; border-radius: 7px; background: #0b1219; color: var(--text); padding: 10px; font: inherit; font-size: 11px; }
 @media (max-width: 680px) { .syllabus-add-form { grid-template-columns: 1fr 1fr; } .syllabus-add-form label:first-of-type { grid-column: 1 / -1; } }
+
+
+/* Syllabus bulk import */
+.syllabus-import-panel { padding: 20px; border: 1px solid var(--line); border-radius: 11px; background: #101821; }
+.syllabus-import-panel > summary { cursor: pointer; color: var(--accent); font-size: 13px; font-weight: 700; }
+.syllabus-import-panel > p { line-height: 1.7; }
+.syllabus-json-input { width: 100%; min-height: 280px; resize: vertical; border: 1px solid #354451; border-radius: 8px; background: #0b1219; color: #d7e3eb; padding: 13px; font: 11px/1.65 ui-monospace, SFMono-Regular, Consolas, monospace; }
+.syllabus-import-panel .review-form { margin-top: 14px; }
