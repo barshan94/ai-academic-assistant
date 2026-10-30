@@ -3,6 +3,9 @@ import { questionClassificationSchema } from "@/lib/questions/classification";
 
 const base = {
   questionId: "d2719c3a-2a77-4f1b-9b65-3d70d7a3a010",
+  catalogId: "",
+  chapterId: "",
+  topicId: "",
   board: "Pearson Edexcel",
   qualification: "International GCSE",
   subject: "Physics",
@@ -48,6 +51,33 @@ describe("question syllabus classification", () => {
     expect(questionClassificationSchema.safeParse({
       ...base,
       classificationConfidence: "-0.1",
+    }).success).toBe(false);
+  });
+
+  it("accepts a confirmed mapping from a selected structured syllabus catalogue", () => {
+    const result = questionClassificationSchema.safeParse({
+      ...base,
+      catalogId: "d2719c3a-2a77-4f1b-9b65-3d70d7a3a011",
+      board: "",
+      qualification: "",
+      subject: "",
+      syllabusVersion: "",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects a chapter without a selected syllabus catalogue", () => {
+    expect(questionClassificationSchema.safeParse({
+      ...base,
+      chapterId: "d2719c3a-2a77-4f1b-9b65-3d70d7a3a012",
+    }).success).toBe(false);
+  });
+
+  it("rejects a topic without a selected chapter", () => {
+    expect(questionClassificationSchema.safeParse({
+      ...base,
+      catalogId: "d2719c3a-2a77-4f1b-9b65-3d70d7a3a011",
+      topicId: "d2719c3a-2a77-4f1b-9b65-3d70d7a3a013",
     }).success).toBe(false);
   });
 
