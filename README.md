@@ -23,17 +23,17 @@ A personal, web-based AI academic workspace for a tutor working across Edexcel O
 | Internet | Hybrid: own library/source documents first; web research only when needed |
 | Database | Supabase PostgreSQL Free initially |
 | File archive | User-authorized Google Drive account |
-| Image archive | Convert images to optimized PDF, validate, then remove temporary source by default |
+| Image archive | Convert JPEG/PNG batches into one PDF, in selected order; source files are not stored separately |
 | Uploaded PDFs | Preserve original PDF; do not reconvert needlessly |
 | Architecture | Modular monolith + durable background workers |
 
 ## Repository contents
-- Responsive foundation dashboard with clearly marked planned modules.
+- Responsive dashboard, private sign-in and owner-protected document library.
 - Supabase server-client helper and public environment-variable validation.
 - Applied profile, document intake, processing job, question and Google Drive connection tables with owner-scoped RLS.
 - ESLint and Vitest configuration with initial smoke tests.
 - Private Supabase sign-in and protected dashboard.
-- Google Drive OAuth with encrypted refresh-token storage, PDF archiving, JPEG/PNG-to-PDF conversion, OCR extraction and per-page review.
+- Google Drive OAuth with encrypted refresh-token storage and disconnect/revocation; PDF archiving; JPEG/PNG batch-to-PDF conversion; OCR extraction; editable per-page corrections and explicit teacher review.
 - Architecture, data model, roadmap, security, authentication, Drive setup, PDF processing and operations documentation.
 
 ## Development
@@ -45,4 +45,4 @@ A personal, web-based AI academic workspace for a tutor working across Edexcel O
 Do not commit `.env.local`, credentials, service-role keys, OAuth tokens, student personal data or private source documents. Database migrations are applied to the dedicated Supabase project and mirrored in `supabase/migrations/`.
 
 ## Current status
-The foundation CI pipeline passes ESLint, TypeScript, tests and production build. Supabase profile/document/processing/question/Drive-connection tables and owner-scoped RLS are applied. Private sign-in and document-intake code are implemented. Live authentication and Google Drive OAuth/OCR still require the owner's environment credentials and an end-to-end smoke test. Upload is currently capped at 4 MB; resumable uploads and automatic background workers are not implemented. OCR output remains unverified until reviewed by the owner. The dashboard's solver and chapter-intelligence modules remain planned.
+The latest GitHub Actions run passed dependency installation (`npm ci`), dependency-audit report generation, ESLint, TypeScript, Vitest and the Next.js production build. Supabase profile/document/page/job/question/Drive-connection tables and owner-scoped RLS are applied; composite foreign keys prevent child rows from referencing another owner's document. The private sign-in, Drive OAuth, PDF/image upload, OCR extraction, per-page correction and teacher-review flows are implemented in code. They are not yet live-smoke-tested because the owner's deployment environment and Google OAuth credentials have not been configured. Upload is capped at 4 MB; resumable uploads and automatic background workers are not implemented. OCR output remains unverified until the owner checks it against the original. The AI solver and chapter-intelligence modules remain planned.
