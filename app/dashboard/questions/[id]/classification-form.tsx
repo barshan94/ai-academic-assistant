@@ -89,7 +89,7 @@ export function ClassificationForm({
           </select>
         </label>
       </div>
-      <p className="question-card-meta">Selecting a structured version fills board, qualification, subject and version from your catalogue. Chapter and topic choices must belong to that same version. A catalogue must be verified before its mapping can be confirmed.</p>
+      <p className="question-card-meta">Selecting a structured version fills board, qualification, subject and version from your catalogue. Chapter options show their version; choose one from the selected version. A catalogue must be verified before its mapping can be confirmed. To use manual labels, clear the version, chapter and topic selections first.</p>
       <details className="classification-manual">
         <summary>Manual labels (without a structured catalogue)</summary>
         <div className="question-fields">
