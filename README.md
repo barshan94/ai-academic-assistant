@@ -62,4 +62,4 @@ M1 foundation and core M2 document/question workflows are implemented in code. M
 
 The authenticated two-account browser test is intentionally postponed until final acceptance. Ordinary CI checks continue throughout development. Live AI provider configuration, Google OAuth/Drive workflows, golden-set answer grading, the shared centrally curated syllabus dataset, assisted classification, batch classification review, and chapter intelligence remain outstanding. Main is unchanged; work remains in draft PR #1.
 
-Estimated implementation progress: approximately 45%. This is a planning estimate, not a release-readiness score.
+Estimated implementation progress: approximately 46%. This is a planning estimate, not a release-readiness score.
