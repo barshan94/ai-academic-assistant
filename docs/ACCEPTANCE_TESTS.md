@@ -38,7 +38,7 @@
 - [x] Owner and invited teacher review records are append-only.
 - [x] Teacher access is question-scoped and can be revoked by the owner.
 - [ ] Live AI provider configured and tested with explicit cost approval.
-- [ ] Teacher invitation, acceptance, review and revocation tested with two real accounts.
+- [ ] Teacher invitation, acceptance, review and revocation tested against the isolated Supabase test project using the authenticated browser workflow (`docs/AUTHENTICATED_E2E_SETUP.md`).
 - [ ] Golden-set answer quality manually graded across subjects.
 - [ ] Official mark-scheme/source grounding and citation checks.
 - [ ] Teacher verification status is only set through an independently authorized workflow.
@@ -55,3 +55,11 @@
 - [ ] Rate limits, retries and job recovery tested.
 - [ ] Error reporting excludes secrets and sensitive payloads.
 - [ ] Mobile usability and accessibility smoke tests pass.
+
+
+## Authenticated browser acceptance
+- [x] Add a separate Playwright configuration for real Supabase authentication.
+- [x] Add a two-account test covering pre-invitation denial, acceptance, teacher correction review, owner visibility and post-revocation denial.
+- [x] Add a deterministic answer fixture that does not call an AI provider.
+- [x] Add a manual GitHub Actions workflow that uses only a dedicated test Supabase project.
+- [ ] Configure test-project credentials as repository Actions secrets and execute the workflow successfully.
