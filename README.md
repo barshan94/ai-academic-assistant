@@ -1,6 +1,6 @@
 # AI Academic Assistant
 
-A personal, web-based AI academic workspace for a tutor working across Edexcel O Level/A Level, SSC and HSC subjects. It turns uploaded questions and documents into structured examination answers, Bengali and English teaching explanations, verified working where possible, and reusable chapter knowledge.
+A personal, web-based AI academic workspace for a tutor working across Edexcel O Level/A Level, SSC and HSC subjects. It is designed to turn uploaded questions and documents into structured examination answers, Bengali and English teaching explanations, checked working where possible, and reusable chapter knowledge.
 
 > This repository is public by the owner's choice. Never commit credentials, service-role keys, OAuth tokens, student personal data, or private source documents.
 
@@ -27,14 +27,11 @@ A personal, web-based AI academic workspace for a tutor working across Edexcel O
 | Uploaded PDFs | Preserve original PDF; do not reconvert needlessly |
 | Architecture | Modular monolith + durable background workers |
 
-## Quick start
-1. Copy `.env.example` to `.env.local`.
-2. Fill Supabase project URL and anon/publishable key.
-3. Install dependencies with `npm install`.
-4. Apply SQL migrations using Supabase CLI or SQL Editor.
-5. Run `npm run dev`.
+## Repository status
+The initial documentation, architecture notes, database design, project memory, initial Supabase server helpers and profile RLS migration have been committed. This is an incomplete starter scaffold, not yet a runnable or tested application. The dashboard page, remaining setup files, authentication flow and automated tests still need implementation.
 
-See `docs/` for architecture, data model, Google Drive integration, PDF processing, security, operations, development memory and roadmap.
+## Development
+See `docs/` for architecture, data model, Google Drive integration, PDF processing, security, operations, development process and roadmap. Do not apply migrations to production until they have been reviewed and tested.
 
 ## Current status
-Milestone 1 scaffold and documentation prepared. This is not yet a connected or production-tested deployment. Google Drive OAuth and live Supabase credentials must be configured before integration tests can pass.
+Milestone 1 is in progress. The Supabase project has been provisioned, but the application has not yet been connected to it. No successful application build, automated test run or deployment is being claimed.
