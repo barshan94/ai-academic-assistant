@@ -5,7 +5,7 @@ Percentages are planned scope estimates, not completed progress.
 | Milestone | Scope | Cumulative target |
 |---|---|---:|
 | M1 | Foundation: scaffold, Supabase, auth, schema/RLS, CI and baseline tests | 10% |
-| M2 | Document intelligence: Drive OAuth, image-to-PDF, extraction, OCR and review | 25% |
+| M2 | Document intelligence: Drive OAuth, PDF/image archive, OCR extraction, correction and teacher review | 25% |
 | M3 | AI solver: structured exam answers, bilingual explanations, provider adapters | 45% |
 | M4 | Verification: symbolic/numeric/unit checks and teacher corrections | 58% |
 | M5 | Syllabus intelligence: board/qualification/subject/chapter/topic mapping | 68% |
@@ -17,9 +17,17 @@ Percentages are planned scope estimates, not completed progress.
 - Application installs and starts locally.
 - Supabase environment configuration is documented.
 - Authentication works and protected routes reject anonymous access.
-- Database migrations apply cleanly.
-- Row Level Security tests prove owner isolation.
+- Database migrations apply cleanly and match committed migration files.
+- Row Level Security policies and grants are verified for owner isolation.
 - Lint, typecheck, build and automated tests pass.
+
+## M2 exit criteria
+- Google Drive OAuth is configured and live-tested with the owner's account.
+- PDFs are archived unchanged; JPEG/PNG inputs become PDFs before archive.
+- OCR/extraction creates page-level text and bounded processing jobs.
+- The owner can correct extracted text and explicitly mark a document teacher-reviewed.
+- Duplicate uploads, failure handling and retry limits are tested.
+- Upload size limits and all external-service dependencies are documented.
 
 ## Working rules
 - Complete one milestone's acceptance criteria before calling it done.
