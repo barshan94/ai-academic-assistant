@@ -192,7 +192,7 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
                   {reviews.map((review) => (
                     <li key={review.id}>
                       <strong>{review.decision === "approved" ? "OWNER REVIEW: ACCEPTABLE DRAFT" : "CORRECTIONS REQUESTED"}</strong>
-                      <span>{new Date(review.created_at).toLocaleString()} · Reviewer account {review.reviewer_id.slice(0, 8)}</span>
+                      <span>{new Date(review.created_at).toLocaleString()} · Reviewed by the signed-in account</span>
                       {review.correction_notes ? <small>{review.correction_notes}</small> : null}
                     </li>
                   ))}
