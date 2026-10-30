@@ -41,8 +41,11 @@ M1 10% foundation; M2 25% document intelligence; M3 45% solver; M4 58% verificat
 - GitHub repository exists and is public by owner's choice.
 - Foundation dashboard, global styles, environment template, ESLint config, Vitest config and two smoke tests are committed.
 - README now documents the current incomplete state and setup steps.
-- Authentication is not implemented; the app is not connected to Supabase; migrations have not been applied.
-- Dependency installation, lint, type-check, tests and production build remain unverified because this execution environment could not resolve github.com.
+- Supabase email/password sign-in, protected dashboard middleware, server-side user verification and sign-out are implemented in code.
+- The app still needs its Supabase environment variables and a privately created owner account before live authentication can be smoke-tested.
+- Profile migration has not been applied.
+- GitHub Actions run 41030669684 passed ESLint, TypeScript type-check, Vitest tests and Next.js production build on commit e5ec453.
+- CI validation of the authentication implementation is pending.
 - Google Drive OAuth has not been configured.
 
 ## Next tasks
