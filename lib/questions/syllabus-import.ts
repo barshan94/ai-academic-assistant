@@ -81,7 +81,7 @@ export const syllabusImportSchema = z.object({
 export type SyllabusImportPayload = z.infer<typeof syllabusImportSchema>;
 
 export function parseSyllabusImportText(raw: string) {
-  if (raw.length > 512_000) {
+  if (new TextEncoder().encode(raw).byteLength > 512_000) {
     return { success: false as const, error: "The import document exceeds the 512 KB limit." };
   }
 
