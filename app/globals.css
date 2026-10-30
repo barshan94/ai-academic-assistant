@@ -260,3 +260,10 @@ h2 { font-size: 24px; letter-spacing: -.04em; margin: 0; font-weight: 600; }
 .classification-provenance { display: grid; gap: 5px; margin: 12px 0 16px; padding: 11px 13px; border-left: 3px solid var(--accent); background: #111c25; font-size: 12px; }
 .classification-provenance a { width: fit-content; color: var(--accent); text-decoration: underline; overflow-wrap: anywhere; }
 .classification-provenance small { color: var(--muted); line-height: 1.5; }
+
+
+.classification-history { margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--line); }
+.classification-history h3 { margin: 0 0 7px; font-size: 14px; }
+.classification-history .calculation-checks { margin-top: 12px; }
+.classification-history .calculation-checks li { gap: 6px; }
+.classification-history .calculation-checks small { overflow-wrap: anywhere; line-height: 1.55; }
