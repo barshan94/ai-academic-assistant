@@ -60,6 +60,7 @@ Implemented on feature/m3-ai-solver:
 - Make classification chapter/topic selectors dependent on the selected syllabus version and chapter; clear stale child selections when parents change.
 - Add deterministic, owner-catalogue-only text-match suggestions for chapters and topics; show matched terms and require explicit owner selection (not calibrated confidence or automatic confirmation).
 - Add an append-only database audit trail for question classification creation and changes, including before/after snapshots, owner-only visibility and baseline snapshots for existing questions.
+- Record owner-only, append-only HTTPS source citations at chapter/topic level and enforce citation presence at the database layer before structured mappings can be confirmed; citations are not independently certified by the app.
 
 M5 exit criteria still outstanding:
 - Build and maintain a shared, centrally curated reference dataset with official-board provenance; the current JSON importer is a personal catalogue import foundation, not a shared dataset.
