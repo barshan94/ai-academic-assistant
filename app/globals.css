@@ -184,3 +184,11 @@ h2 { font-size: 24px; letter-spacing: -.04em; margin: 0; font-weight: 600; }
 .solution-steps li { padding: 6px 0 12px 4px; line-height: 1.7; }
 .solution-steps p { margin: 5px 0 0; color: var(--muted); font-size: 12px; }
 .solution-panel ul { color: #c5d0d9; font-size: 12px; line-height: 1.8; }
+
+
+/* Deterministic arithmetic-check results */
+.calculation-checks { display: grid; gap: 10px; padding: 0; list-style: none; }
+.calculation-checks li { display: grid; gap: 5px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 9px; background: rgba(255,255,255,.025); }
+.calculation-checks li strong { font-size: 10px; letter-spacing: .09em; }
+.calculation-checks li span { color: #d8e2e9; font-size: 12px; overflow-wrap: anywhere; }
+.calculation-checks li small { color: var(--muted); font-size: 11px; line-height: 1.6; }
