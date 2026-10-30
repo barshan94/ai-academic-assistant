@@ -54,7 +54,7 @@ jobs:
 
   browser:
     name: Browser smoke tests (Chromium)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     needs: verify
     steps:
