@@ -15,6 +15,7 @@ export default async function DashboardPage() {
       <header className="topbar">
         <span className="brand"><span className="brand-mark">A</span><span>Academic<span className="brand-muted">Assistant</span></span></span>
         <div className="topbar-actions">
+          <Link className="sign-in-link" href="/dashboard/teacher-invites">Teacher invitations</Link>
           <Link className="sign-in-link" href="/dashboard/questions">Questions</Link>
           <Link className="sign-in-link" href="/dashboard/documents">Documents</Link>
           <form action={signOut}><button className="signout-button" type="submit">Sign out</button></form>
@@ -23,7 +24,7 @@ export default async function DashboardPage() {
       <section className="hero dashboard-hero">
         <p className="eyebrow">PRIVATE WORKSPACE</p>
         <h1>Your learning hub<span>.</span></h1>
-        <p className="hero-copy">You are signed in as {user.email ?? "the account owner"}. Build your source library and organise questions before enabling AI solving.</p>
+        <p className="hero-copy">You are signed in as {user.email ?? "the account owner"}. Build your source library, generate answer drafts when a provider is configured, and collaborate with invited teachers.</p>
         <div className="hero-actions">
           <Link className="primary-action" href="/dashboard/documents">Open document library <span aria-hidden="true">→</span></Link>
           <Link className="sign-in-link" href="/dashboard/questions">Open question library</Link>
@@ -32,12 +33,12 @@ export default async function DashboardPage() {
       <section className="section">
         <div className="section-heading">
           <div><p className="eyebrow">CURRENT BUILD</p><h2>Working modules</h2></div>
-          <span className="section-count">Foundation + document intake</span>
+          <span className="section-count">M3 solver preview</span>
         </div>
         <div className="module-grid">
           <article className="module-card"><span className="module-number">01</span><h3>Question library</h3><p>Capture individual questions from source pages and add board, qualification, subject and chapter metadata.</p><Link className="document-open" href="/dashboard/questions">Open library ↗</Link></article>
           <article className="module-card"><span className="module-number">02</span><h3>Document intake</h3><p>Archive PDFs and image batches in Google Drive, extract text and review corrections.</p><Link className="document-open" href="/dashboard/documents">Open documents ↗</Link></article>
-          <article className="module-card"><span className="module-number">03</span><h3>AI solutions</h3><p>Exam-ready answers and Bengali/English teaching explanations.</p><span className="planned">Planned</span></article>
+          <article className="module-card"><span className="module-number">03</span><h3>AI solutions & reviews</h3><p>Structured answer drafts, saved versions and question-scoped teacher feedback.</p><Link className="document-open" href="/dashboard/questions">Open solver ↗</Link></article>
           <article className="module-card"><span className="module-number">04</span><h3>Chapter intelligence</h3><p>Reusable notes, formula sheets and revision material.</p><span className="planned">Planned</span></article>
         </div>
       </section>

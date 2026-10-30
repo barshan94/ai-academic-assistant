@@ -40,13 +40,13 @@ export default async function QuestionsPage({ searchParams }: QuestionsPageProps
     <main className="shell">
       <header className="topbar">
         <Link className="brand" href="/"><span className="brand-mark">A</span><span>Academic<span className="brand-muted">Assistant</span></span></Link>
-        <div className="topbar-actions"><Link className="sign-in-link" href="/dashboard/documents">Documents</Link><Link className="sign-in-link" href="/dashboard">Dashboard</Link><form action={signOut}><button className="signout-button" type="submit">Sign out</button></form></div>
+        <div className="topbar-actions"><Link className="sign-in-link" href="/dashboard/teacher-invites">Teacher invitations</Link><Link className="sign-in-link" href="/dashboard/documents">Documents</Link><Link className="sign-in-link" href="/dashboard">Dashboard</Link><form action={signOut}><button className="signout-button" type="submit">Sign out</button></form></div>
       </header>
 
       <section className="hero documents-hero">
-        <p className="eyebrow">QUESTION BANK · EARLY M3</p>
+        <p className="eyebrow">QUESTION BANK · M3</p>
         <h1>Your question <span>library.</span></h1>
-        <p className="hero-copy">Capture individual questions from reviewed source pages, add syllabus metadata, and approve your own question records. AI classification and solving are not enabled yet.</p>
+        <p className="hero-copy">Capture questions from reviewed source pages, add syllabus metadata, and approve records before opening the solver. AI answer generation requires a server-side provider configuration.</p>
       </section>
 
       {notice ? <p className="notice notice-info" role="status">{notice}</p> : null}
