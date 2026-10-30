@@ -21,6 +21,9 @@ export async function savePageCorrection(formData: FormData) {
     status: "review_required",
   }).eq("id", pageId).eq("document_id", documentId).eq("owner_id", user.id);
 
+  if (!error) {
+    await supabase.from("documents").update({ status: "review_required" }).eq("id", documentId).eq("owner_id", user.id);
+  }
   redirect("/dashboard/documents/" + encodeURIComponent(documentId) + (error ? "?review=save_failed" : "?review=saved"));
 }
 
