@@ -37,6 +37,9 @@ jobs:
       - name: Audit dependencies
         run: npm audit
 
+      - name: Install temporary Playwright types for validation
+        run: npm install --no-save --package-lock=false @playwright/test@1.56.1
+
       - name: Run ESLint
         run: npm run lint
 
