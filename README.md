@@ -27,7 +27,7 @@ A personal academic workspace for Edexcel O/A Level, SSC and HSC tutoring. It ac
 ## Implemented
 - Private sign-in and owner-protected document library.
 - Google Drive OAuth code with encrypted refresh-token storage, PDF archiving, image-to-PDF conversion and OCR correction workflow.
-- Manual source-linked question library with board, qualification, subject, chapter and topic metadata.
+- Manual source-linked question library with board, qualification, subject, syllabus version, chapter and topic metadata, owner review states and classification filters.
 - Structured AI answer schema with English exam answer, Bengali/English explanations, working steps, concepts, assumptions and limitations.
 - OpenAI-compatible provider adapter with HTTPS enforcement, timeout, bounded question size and strict schema validation.
 - Deterministic arithmetic, supported neutral chemistry equation atom-count, and SI dimensional-consistency checks. These are narrow checks, not proof of a fully correct answer.
