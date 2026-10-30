@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import { updateQuestionClassification } from "./classification-actions";
 
 type ClassificationQuestion = {
@@ -49,12 +52,24 @@ export function ClassificationForm({
   chapters: ChapterOption[];
   topics: TopicOption[];
 }) {
+  const [selectedCatalogId, setSelectedCatalogId] = useState(question.syllabus_catalog_id ?? "");
+  const [selectedChapterId, setSelectedChapterId] = useState(question.syllabus_chapter_id ?? "");
+  const availableChapters = chapters.filter((chapter) => chapter.catalog_id === selectedCatalogId);
+  const availableTopics = topics.filter((topic) => topic.chapter_id === selectedChapterId);
+
   return (
     <form action={updateQuestionClassification} className="review-form classification-form">
       <input type="hidden" name="questionId" value={question.id} />
       <div className="question-fields">
         <label>Reference syllabus version
-          <select name="catalogId" defaultValue={question.syllabus_catalog_id ?? ""}>
+          <select
+            name="catalogId"
+            value={selectedCatalogId}
+            onChange={(event) => {
+              setSelectedCatalogId(event.target.value);
+              setSelectedChapterId("");
+            }}
+          >
             <option value="">Use manual labels below</option>
             {catalogs.map((catalog) => (
               <option key={catalog.id} value={catalog.id}>
@@ -64,32 +79,33 @@ export function ClassificationForm({
           </select>
         </label>
         <label>Chapter reference
-          <select name="chapterId" defaultValue={question.syllabus_chapter_id ?? ""}>
+          <select
+            name="chapterId"
+            value={selectedChapterId}
+            disabled={!selectedCatalogId || availableChapters.length === 0}
+            onChange={(event) => setSelectedChapterId(event.target.value)}
+          >
             <option value="">No chapter selected</option>
-            {chapters.map((chapter) => {
-              const catalog = catalogs.find((item) => item.id === chapter.catalog_id);
-              return <option key={chapter.id} value={chapter.id}>
-                {(catalog ? catalog.subject + " · " + catalog.version + " · " : "")}
+            {availableChapters.map((chapter) => (
+              <option key={chapter.id} value={chapter.id}>
                 {chapter.chapter_code ? chapter.chapter_code + " · " : ""}{chapter.title}
-              </option>;
-            })}
+              </option>
+            ))}
           </select>
         </label>
         <label>Topic reference
-          <select name="topicId" defaultValue={question.syllabus_topic_id ?? ""}>
+          <select name="topicId" defaultValue={question.syllabus_topic_id ?? ""} key={selectedChapterId}
+            disabled={!selectedChapterId || availableTopics.length === 0}>
             <option value="">No topic selected</option>
-            {topics.map((topic) => {
-              const chapter = chapters.find((item) => item.id === topic.chapter_id);
-              const catalog = catalogs.find((item) => item.id === chapter?.catalog_id);
-              return <option key={topic.id} value={topic.id}>
-                {(catalog ? catalog.subject + " · " : "")}
-                {chapter?.title ?? "Chapter"} · {topic.topic_code ? topic.topic_code + " · " : ""}{topic.title}
-              </option>;
-            })}
+            {availableTopics.map((topic) => (
+              <option key={topic.id} value={topic.id}>
+                {topic.topic_code ? topic.topic_code + " · " : ""}{topic.title}
+              </option>
+            ))}
           </select>
         </label>
       </div>
-      <p className="question-card-meta">Selecting a structured version fills board, qualification, subject and version from your catalogue. Chapter options show their version; choose one from the selected version. A catalogue must be verified before its mapping can be confirmed. To use manual labels, clear the version, chapter and topic selections first.</p>
+      <p className="question-card-meta">Chapter choices are restricted to the selected syllabus version, and topic choices to the selected chapter. Changing the version clears the chapter and topic. A catalogue must be verified before its mapping can be confirmed.</p>
       <details className="classification-manual">
         <summary>Manual labels (without a structured catalogue)</summary>
         <div className="question-fields">
