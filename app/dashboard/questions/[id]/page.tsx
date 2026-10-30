@@ -48,7 +48,8 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
 
   const latest = solutions?.[0];
   const answer = latest?.answer_json as unknown as ExamAnswer | undefined;
-  const arithmeticResults = answer ? checkCalculations(answer.calculationChecks ?? []) : [];
+  const calculationChecks = Array.isArray(answer?.calculationChecks) ? answer.calculationChecks : [];
+  const arithmeticResults = checkCalculations(calculationChecks);
   const arithmeticPassed = arithmeticResults.length > 0 && arithmeticResults.every((item) => item.status === "passed");
   const message = query.solve ? messages[query.solve] ?? "Answer generation failed (" + query.solve.slice(0, 80) + ")." : undefined;
 
@@ -92,7 +93,7 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
               <h3>Working and reasoning</h3>
               <ol className="solution-steps">{answer.workingSteps.map((step, index) => <li key={index}><strong>{step.step}</strong><p>{step.explanation}</p></li>)}</ol>
             </> : null}
-            {answer.calculationChecks.length ? <>
+            {calculationChecks.length ? <>
               <h3>Arithmetic consistency checks</h3>
               <p className="question-card-meta">These checks recalculate only the supplied arithmetic expressions. They do not verify the physics, chemistry, algebraic modelling, units or exam-method correctness.</p>
               <ul className="calculation-checks">{arithmeticResults.map((item, index) => (
