@@ -148,3 +148,14 @@ export async function extractTextFromDrivePdf(input: {
     await deleteDriveFile(input.accessToken, converted.id);
   }
 }
+
+
+export async function revokeDriveRefreshToken(refreshToken: string) {
+  const response = await fetch("https://oauth2.googleapis.com/revoke", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ token: refreshToken }),
+    cache: "no-store",
+  });
+  return response.ok || response.status === 400;
+}
