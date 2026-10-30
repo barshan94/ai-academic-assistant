@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 const workspaceItems = [
   { number: "01", title: "Question library", description: "Organise questions by board, qualification, subject and chapter.", status: "Planned" },
   { number: "02", title: "Upload documents", description: "Prepare question images and PDFs for structured extraction.", status: "Planned" },
@@ -11,10 +13,10 @@ export default function HomePage() {
   return (
     <main className="shell">
       <header className="topbar">
-        <a className="brand" href="/" aria-label="Academic Assistant home">
+        <Link className="brand" href="/" aria-label="Academic Assistant home">
           <span className="brand-mark">A</span>
           <span>Academic<span className="brand-muted">Assistant</span></span>
-        </a>
+        </Link>
         <span className="workspace-label"><span className="status-dot" /> Personal workspace</span>
       </header>
 
