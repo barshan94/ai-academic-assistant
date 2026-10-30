@@ -5,13 +5,16 @@ import { signOut } from "../actions";
 import { setQuestionReviewStatus } from "./actions";
 
 type QuestionsPageProps = {
-  searchParams: Promise<{ q?: string; subject?: string; created?: string; review?: string }>;
+  searchParams: Promise<{ q?: string; subject?: string; created?: string; review?: string; classification?: string }>;
 };
 
 export default async function QuestionsPage({ searchParams }: QuestionsPageProps) {
   const params = await searchParams;
   const search = (params.q ?? "").trim().slice(0, 120);
   const subject = (params.subject ?? "").trim().slice(0, 80);
+  const classificationFilter = ["unreviewed", "uncertain", "confirmed"].includes(params.classification ?? "")
+    ? params.classification ?? ""
+    : "";
   const supabase = await createSupabaseServerClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) redirect("/login");
@@ -22,6 +25,7 @@ export default async function QuestionsPage({ searchParams }: QuestionsPageProps
 
   if (search) questionQuery = questionQuery.ilike("question_text", "%" + search + "%");
   if (subject) questionQuery = questionQuery.ilike("subject", "%" + subject + "%");
+  if (classificationFilter) questionQuery = questionQuery.eq("classification_status", classificationFilter);
 
   const { data: questions, error } = await questionQuery.order("created_at", { ascending: false }).limit(100);
   const documentIds = Array.from(new Set((questions ?? []).map((question) => question.document_id)));
@@ -58,6 +62,13 @@ export default async function QuestionsPage({ searchParams }: QuestionsPageProps
           <input id="question-search-text" name="q" defaultValue={search} placeholder="Search your saved questions" />
           <label htmlFor="question-search-subject">Subject</label>
           <input id="question-search-subject" name="subject" defaultValue={subject} placeholder="e.g. Physics" />
+          <label htmlFor="question-classification-status">Classification state</label>
+          <select id="question-classification-status" name="classification" defaultValue={classificationFilter}>
+            <option value="">All mappings</option>
+            <option value="unreviewed">Not yet reviewed</option>
+            <option value="uncertain">Uncertain</option>
+            <option value="confirmed">Confirmed</option>
+          </select>
           <button className="document-action" type="submit">Search</button>
           <Link className="document-open" href="/dashboard/questions">Clear filters</Link>
         </form>
