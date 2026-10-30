@@ -43,8 +43,11 @@ jobs:
       - name: Run ESLint
         run: npm run lint
 
-      - name: Type-check
+      - name: Type-check application
         run: npm run typecheck
+
+      - name: Type-check Playwright configuration
+        run: npx tsc --noEmit --target ES2017 --module esnext --moduleResolution bundler --types node playwright.config.ts
 
       - name: Run unit tests
         run: npm test
