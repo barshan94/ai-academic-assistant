@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { signOut } from "../actions";
+import { SyllabusImportForm } from "./import-form";
 import {
   createSyllabusCatalog,
   createSyllabusChapter,
@@ -15,6 +16,7 @@ type PageProps = {
     catalog?: string;
     chapter?: string;
     topic?: string;
+    import?: string;
   }>;
 };
 
@@ -27,6 +29,10 @@ const statusMessages: Record<string, string> = {
   save_failed: "Could not save this entry. Please check the values and try again.",
   not_found: "The selected parent entry was not found in your account.",
   source_required: "Add an official HTTPS source URL before marking a syllabus version verified.",
+  imported: "The syllabus was imported atomically as a draft. Review its source and contents before marking it verified.",
+  duplicate: "A matching syllabus version or chapter/topic already exists. Nothing from this import was saved.",
+  invalid: "The JSON document is invalid or exceeds the import limits. Check its format and try again.",
+  save_failed: "The import could not be saved. No partial chapter/topic import was committed.",
 };
 
 function Notice({ value, label }: { value?: string; label: string }) {
@@ -82,8 +88,16 @@ export default async function SyllabusPage({ searchParams }: PageProps) {
       <Notice value={params.catalog} label="Syllabus version" />
       <Notice value={params.chapter} label="Chapter" />
       <Notice value={params.topic} label="Topic" />
+      <Notice value={params.import} label="Syllabus import" />
 
       {catalogError || chapterError || topicError ? <p className="notice notice-error">Some catalogue data could not be loaded. Refresh the page or check the database connection.</p> : null}
+
+      <section className="section">
+        <div className="section-heading">
+          <div><p className="eyebrow">BULK IMPORT</p><h2>Import an existing specification</h2></div>
+        </div>
+        <SyllabusImportForm />
+      </section>
 
       <section className="section">
         <div className="section-heading">
