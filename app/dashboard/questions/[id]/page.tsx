@@ -85,7 +85,7 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
     : query.invite === "invalid" || query.invite === "not_found" ? "The invitation details were invalid or the question was not found."
     : query.solve
     ? messages[query.solve] ?? "Answer generation failed (" + query.solve.slice(0, 80) + ")."
-    : query.review === "approved" ? "Your review was saved. This is an owner review, not independent verification."
+    : query.review === "approved" ? "Your review was saved under your account. It is recorded separately from other reviewers."
     : query.review === "needs_correction" ? "Correction feedback was saved in the review history."
     : query.review === "save_failed" ? "The review could not be saved. Please retry."
     : query.review === "notes_required" ? "Please add correction notes when marking an answer as needing correction."
@@ -145,11 +145,11 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
                 <input type="hidden" name="inviteId" value={invite.id} />
                 <input type="hidden" name="questionId" value={question.id} />
                 <button className="secondary-action" type="submit">Revoke access</button>
-              </form>
+              </form> : null}
             </li>)}
           </ul></> : null}
         </section>
-      ) : <p className="notice notice-info">Shared with you for independent review. You can read saved answers and submit review feedback, but cannot edit the owner's question or generate new answers.</p>}
+      ) : <p className="notice notice-info">Shared with you for independent review. You can read saved answers and submit review feedback, but cannot edit the owner&apos;s question or generate new answers.</p>}
       {answer ? (
         <section className="section">
           <div className="section-heading"><div><p className="eyebrow">SELECTED SAVED RESPONSE</p><h2>Answer draft</h2></div><span className="document-status">{selectedSolution?.verification_status.replace("_", " ")}</span></div>

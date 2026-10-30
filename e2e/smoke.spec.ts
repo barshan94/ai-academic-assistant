@@ -20,3 +20,9 @@ test("protected dashboard redirects to login when auth is unconfigured", async (
   await expect(page).toHaveURL(/\/login\?error=configuration$/);
   await expect(page.locator("p.auth-error")).toContainText(/authentication is not configured/i);
 });
+
+test("teacher invitations page is protected when auth is unconfigured", async ({ page }) => {
+  await page.goto("/dashboard/teacher-invites");
+  await expect(page).toHaveURL(/\/login\?error=configuration$/);
+  await expect(page.locator("p.auth-error")).toContainText(/authentication is not configured/i);
+});
