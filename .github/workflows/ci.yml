@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: foundation-checks-${{ github.ref }}
@@ -31,14 +31,17 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Export generated dependency lockfile
-        uses: actions/upload-artifact@v4
-        with:
-          name: generated-package-lock
-          path: package-lock.json
-          if-no-files-found: error
-          retention-days: 1
 
+      - name: Commit generated dependency lockfile
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          if ! git ls-files --error-unmatch package-lock.json >/dev/null 2>&1; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add package-lock.json
+            git commit -m "build: add npm lockfile"
+            git push origin HEAD:main
+          fi
       - name: Run ESLint
         run: npm run lint
 
