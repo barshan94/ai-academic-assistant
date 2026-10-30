@@ -4,6 +4,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { generateQuestionSolution } from "./actions";
 import { checkCalculations } from "@/lib/ai/math-check";
 import { checkChemicalEquations } from "@/lib/ai/chemistry-check";
+import { checkPhysicsUnits } from "@/lib/ai/physics-unit-check";
 import type { DatabaseWithAISolutions } from "@/types/ai-database";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { ExamAnswer } from "@/lib/ai/answer-schema";
@@ -51,10 +52,13 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
   const answer = latest?.answer_json as unknown as ExamAnswer | undefined;
   const calculationChecks = Array.isArray(answer?.calculationChecks) ? answer.calculationChecks : [];
   const chemistryChecks = Array.isArray(answer?.chemistryChecks) ? answer.chemistryChecks : [];
+  const physicsChecks = Array.isArray(answer?.physicsChecks) ? answer.physicsChecks : [];
   const arithmeticResults = checkCalculations(calculationChecks);
   const arithmeticPassed = arithmeticResults.length > 0 && arithmeticResults.every((item) => item.status === "passed");
   const chemistryResults = checkChemicalEquations(chemistryChecks);
   const chemistryPassed = chemistryResults.length > 0 && chemistryResults.every((item) => item.status === "balanced");
+  const physicsResults = checkPhysicsUnits(physicsChecks);
+  const physicsPassed = physicsResults.length > 0 && physicsResults.every((item) => item.status === "dimensionally_consistent");
   const message = query.solve ? messages[query.solve] ?? "Answer generation failed (" + query.solve.slice(0, 80) + ")." : undefined;
 
   return (
@@ -121,6 +125,18 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
                 </li>
               ))}</ul>
               {chemistryPassed ? <p className="notice notice-info">All submitted equations passed the supported atom-count check. This does not verify reaction conditions, products or chemical feasibility.</p> : <p className="notice notice-info">At least one equation was unbalanced, misreported or unsupported. Review it manually.</p>}
+            </> : null}
+            {physicsChecks.length ? <>
+              <h3>Physics dimensional checks</h3>
+              <p className="question-card-meta">Compares the dimensions of the supplied formula unit with the claimed answer unit. It does not prove that the formula or substitution is physically correct.</p>
+              <ul className="calculation-checks">{physicsResults.map((item, index) => (
+                <li key={index}>
+                  <strong>{item.status === "dimensionally_consistent" ? "DIMENSIONS MATCH" : item.status === "dimension_mismatch" ? "DIMENSION MISMATCH" : "NOT CHECKED"}</strong>
+                  <span><code>{item.formulaUnit}</code> → <code>{item.claimedUnit}</code></span>
+                  <small>{item.message}</small>
+                </li>
+              ))}</ul>
+              {physicsPassed ? <p className="notice notice-info">All submitted dimensional checks matched. This is not a complete physics verification.</p> : <p className="notice notice-info">At least one dimensional check did not match or could not be checked. Review it manually.</p>}
             </> : null}
             <h3>Bengali explanation</h3><div className="solution-prose" lang="bn">{answer.bengaliExplanation}</div>
             <h3>English explanation</h3><div className="solution-prose">{answer.englishExplanation}</div>

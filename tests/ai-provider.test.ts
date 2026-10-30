@@ -12,6 +12,7 @@ const validAnswer = {
   workingSteps: [{ step: "1", explanation: "Clockwise moment equals anticlockwise moment." }],
   calculationChecks: [{ expression: "5 * 2", claimedResult: 10, unit: "Nm" }],
   chemistryChecks: [],
+  physicsChecks: [{ formulaUnit: "kg*m/s^2", claimedUnit: "N" }],
   bengaliExplanation: "ঘড়ির কাঁটার দিকে ও বিপরীত দিকের মোট মুহূর্ত সমান।",
   englishExplanation: "The turning effects balance.",
   keyConcepts: ["Principle of moments"],

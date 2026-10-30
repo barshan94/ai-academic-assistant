@@ -15,6 +15,10 @@ export const examAnswerSchema = z.object({
     equation: z.string().trim().min(1).max(300),
     claimedBalanced: z.boolean(),
   })).max(20),
+  physicsChecks: z.array(z.object({
+    formulaUnit: z.string().trim().min(1).max(100),
+    claimedUnit: z.string().trim().min(1).max(100),
+  })).max(20),
   bengaliExplanation: z.string().trim().min(1).max(12000),
   englishExplanation: z.string().trim().min(1).max(12000),
   keyConcepts: z.array(z.string().trim().min(1).max(300)).max(20),
@@ -25,10 +29,10 @@ export const examAnswerSchema = z.object({
 export type ExamAnswer = z.infer<typeof examAnswerSchema>;
 
 export function parseExamAnswer(raw: string): ExamAnswer {
-  const cleaned = raw.trim()
-    .replace(/^\uFEFF/, "")
-    .replace(/^\x60{3}(?:json)?\s*/i, "")
-    .replace(/\s*\x60{3}$/i, "");
+  let cleaned = raw.trim().replace(/^\uFEFF/, "");
+  if (cleaned.startsWith(String.fromCharCode(96).repeat(3))) {
+    cleaned = cleaned.replace(/^\x60{3}(?:json)?\s*/i, "").replace(/\s*\x60{3}$/, "");
+  }
   const parsed: unknown = JSON.parse(cleaned);
   return examAnswerSchema.parse(parsed);
 }
