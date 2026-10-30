@@ -70,6 +70,10 @@
 - [x] Dedicated owner-only queue for unreviewed and uncertain mappings, sorted by missing/lowest confidence first.
 - [ ] Batch review actions with per-question validation and an auditable change history.
 - [ ] Shared, centrally curated reference dataset and import pipeline for boards, qualifications, subjects, chapters and topics.
+- [x] Record append-only owner citations for individual syllabus chapters and topics, including HTTPS URL, source title, page/section locator and short supporting excerpt.
+- [x] Structured mappings cannot be marked confirmed unless the catalogue is verified and a citation exists for the exact selected chapter or topic; database trigger enforces this beyond the UI.
+- [x] Source citations are owner-scoped, readable only by their owner, and cannot be edited or deleted by authenticated clients; the UI clearly says citations are not independently certified by the app.
+- [ ] Authenticated database tests prove the evidence-required trigger, owner isolation, and append-only grants with two real accounts.
 - [ ] Assisted classification with source evidence and calibrated confidence.
 - [ ] Chapter notes cite contributing questions and source documents.
 - [ ] Reprocessing creates a new note version rather than overwriting teacher-approved content.
