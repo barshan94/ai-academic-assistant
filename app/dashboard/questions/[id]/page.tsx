@@ -12,7 +12,7 @@ import { ClassificationForm } from "./classification-form";
 
 type PageProps = {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ solve?: string; solution?: string; review?: string; invite?: string }>;
+  searchParams: Promise<{ solve?: string; solution?: string; review?: string; invite?: string; classification?: string }>;
 };
 
 const messages: Record<string, string> = {
