@@ -216,13 +216,138 @@ export type Database = {
         }
         Relationships: []
       }
+      question_solution_reviews: {
+        Row: {
+          correction_notes: string | null
+          created_at: string
+          decision: string
+          id: string
+          owner_id: string
+          reviewer_id: string
+          solution_id: string
+        }
+        Insert: {
+          correction_notes?: string | null
+          created_at?: string
+          decision: string
+          id?: string
+          owner_id: string
+          reviewer_id: string
+          solution_id: string
+        }
+        Update: {
+          correction_notes?: string | null
+          created_at?: string
+          decision?: string
+          id?: string
+          owner_id?: string
+          reviewer_id?: string
+          solution_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "question_solution_reviews_solution_owner_fk"
+            columns: ["solution_id", "owner_id"]
+            isOneToOne: false
+            referencedRelation: "question_solutions"
+            referencedColumns: ["id", "owner_id"]
+          },
+        ]
+      }
+      question_solutions: {
+        Row: {
+          answer_json: Json
+          created_at: string
+          id: string
+          model: string
+          owner_id: string
+          prompt_version: string
+          provider: string
+          question_id: string
+          updated_at: string
+          verification_status: string
+        }
+        Insert: {
+          answer_json: Json
+          created_at?: string
+          id?: string
+          model: string
+          owner_id: string
+          prompt_version: string
+          provider: string
+          question_id: string
+          updated_at?: string
+          verification_status?: string
+        }
+        Update: {
+          answer_json?: Json
+          created_at?: string
+          id?: string
+          model?: string
+          owner_id?: string
+          prompt_version?: string
+          provider?: string
+          question_id?: string
+          updated_at?: string
+          verification_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "question_solutions_question_owner_fk"
+            columns: ["question_id", "owner_id"]
+            isOneToOne: false
+            referencedRelation: "questions"
+            referencedColumns: ["id", "owner_id"]
+          },
+        ]
+      }
+      question_teacher_invites: {
+        Row: {
+          accepted_at: string | null
+          accepted_by: string | null
+          created_at: string
+          id: string
+          invited_email: string
+          owner_id: string
+          question_id: string
+          revoked_at: string | null
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          id?: string
+          invited_email: string
+          owner_id: string
+          question_id: string
+          revoked_at?: string | null
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          id?: string
+          invited_email?: string
+          owner_id?: string
+          question_id?: string
+          revoked_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "question_teacher_invites_question_owner_fk"
+            columns: ["question_id", "owner_id"]
+            isOneToOne: false
+            referencedRelation: "questions"
+            referencedColumns: ["id", "owner_id"]
+          },
+        ]
+      }
       questions: {
         Row: {
           board: string | null
           chapter: string | null
           classification_confidence: number | null
           classification_status: string
-          syllabus_version: string | null
           created_at: string
           document_id: string
           document_page_id: string | null
@@ -233,6 +358,10 @@ export type Database = {
           question_text: string
           review_status: string
           subject: string | null
+          syllabus_catalog_id: string | null
+          syllabus_chapter_id: string | null
+          syllabus_topic_id: string | null
+          syllabus_version: string | null
           topic: string | null
         }
         Insert: {
@@ -240,7 +369,6 @@ export type Database = {
           chapter?: string | null
           classification_confidence?: number | null
           classification_status?: string
-          syllabus_version?: string | null
           created_at?: string
           document_id: string
           document_page_id?: string | null
@@ -251,6 +379,10 @@ export type Database = {
           question_text: string
           review_status?: string
           subject?: string | null
+          syllabus_catalog_id?: string | null
+          syllabus_chapter_id?: string | null
+          syllabus_topic_id?: string | null
+          syllabus_version?: string | null
           topic?: string | null
         }
         Update: {
@@ -258,7 +390,6 @@ export type Database = {
           chapter?: string | null
           classification_confidence?: number | null
           classification_status?: string
-          syllabus_version?: string | null
           created_at?: string
           document_id?: string
           document_page_id?: string | null
@@ -269,6 +400,10 @@ export type Database = {
           question_text?: string
           review_status?: string
           subject?: string | null
+          syllabus_catalog_id?: string | null
+          syllabus_chapter_id?: string | null
+          syllabus_topic_id?: string | null
+          syllabus_version?: string | null
           topic?: string | null
         }
         Relationships: [
@@ -284,6 +419,151 @@ export type Database = {
             columns: ["document_page_id", "owner_id"]
             isOneToOne: false
             referencedRelation: "document_pages"
+            referencedColumns: ["id", "owner_id"]
+          },
+          {
+            foreignKeyName: "questions_syllabus_catalog_owner_fk"
+            columns: ["syllabus_catalog_id", "owner_id"]
+            isOneToOne: false
+            referencedRelation: "syllabus_catalogs"
+            referencedColumns: ["id", "owner_id"]
+          },
+          {
+            foreignKeyName: "questions_syllabus_chapter_catalog_fk"
+            columns: ["syllabus_chapter_id", "syllabus_catalog_id"]
+            isOneToOne: false
+            referencedRelation: "syllabus_chapters"
+            referencedColumns: ["id", "catalog_id"]
+          },
+          {
+            foreignKeyName: "questions_syllabus_topic_chapter_fk"
+            columns: ["syllabus_topic_id", "syllabus_chapter_id"]
+            isOneToOne: false
+            referencedRelation: "syllabus_topics"
+            referencedColumns: ["id", "chapter_id"]
+          },
+        ]
+      }
+      syllabus_catalogs: {
+        Row: {
+          board: string
+          created_at: string
+          effective_from: string | null
+          effective_to: string | null
+          id: string
+          owner_id: string
+          qualification: string
+          source_checked_at: string | null
+          source_title: string | null
+          source_url: string | null
+          status: string
+          subject: string
+          version: string
+        }
+        Insert: {
+          board: string
+          created_at?: string
+          effective_from?: string | null
+          effective_to?: string | null
+          id?: string
+          owner_id: string
+          qualification: string
+          source_checked_at?: string | null
+          source_title?: string | null
+          source_url?: string | null
+          status?: string
+          subject: string
+          version: string
+        }
+        Update: {
+          board?: string
+          created_at?: string
+          effective_from?: string | null
+          effective_to?: string | null
+          id?: string
+          owner_id?: string
+          qualification?: string
+          source_checked_at?: string | null
+          source_title?: string | null
+          source_url?: string | null
+          status?: string
+          subject?: string
+          version?: string
+        }
+        Relationships: []
+      }
+      syllabus_chapters: {
+        Row: {
+          catalog_id: string
+          chapter_code: string | null
+          created_at: string
+          id: string
+          owner_id: string
+          sort_order: number
+          title: string
+        }
+        Insert: {
+          catalog_id: string
+          chapter_code?: string | null
+          created_at?: string
+          id?: string
+          owner_id: string
+          sort_order?: number
+          title: string
+        }
+        Update: {
+          catalog_id?: string
+          chapter_code?: string | null
+          created_at?: string
+          id?: string
+          owner_id?: string
+          sort_order?: number
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "syllabus_chapters_catalog_id_owner_id_fkey"
+            columns: ["catalog_id", "owner_id"]
+            isOneToOne: false
+            referencedRelation: "syllabus_catalogs"
+            referencedColumns: ["id", "owner_id"]
+          },
+        ]
+      }
+      syllabus_topics: {
+        Row: {
+          chapter_id: string
+          created_at: string
+          id: string
+          owner_id: string
+          sort_order: number
+          title: string
+          topic_code: string | null
+        }
+        Insert: {
+          chapter_id: string
+          created_at?: string
+          id?: string
+          owner_id: string
+          sort_order?: number
+          title: string
+          topic_code?: string | null
+        }
+        Update: {
+          chapter_id?: string
+          created_at?: string
+          id?: string
+          owner_id?: string
+          sort_order?: number
+          title?: string
+          topic_code?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "syllabus_topics_chapter_owner_fk"
+            columns: ["chapter_id", "owner_id"]
+            isOneToOne: false
+            referencedRelation: "syllabus_chapters"
             referencedColumns: ["id", "owner_id"]
           },
         ]
