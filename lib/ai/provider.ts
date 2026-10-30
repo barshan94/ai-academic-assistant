@@ -34,7 +34,7 @@ export function getAIProviderConfig(env: Record<string, string | undefined> = pr
   const model = env.AI_MODEL?.trim();
   if (!apiKey || !model) throw new AIConfigurationError();
 
-  const baseUrl = (env.AI_API_BASE_URL?.trim() || "https://api.openai.com/v1").replace(/\\/+$/, "");
+  const baseUrl = (env.AI_API_BASE_URL?.trim() || "https://api.openai.com/v1").replace(/\/+$/, "");
   let parsedUrl: URL;
   try {
     parsedUrl = new URL(baseUrl);
