@@ -17,7 +17,10 @@ Use .env.local for local secrets and keep it ignored by Git. Commit only placeho
 - Keep service-role credentials server-only and use least privilege.
 - Validate uploads by content type, file signature, size and page limits.
 - Store files in the owner's Drive and keep only necessary metadata in the database.
-- Encrypt OAuth refresh tokens at rest and restrict OAuth scopes to the required Drive access.
+- Encrypt Google Drive OAuth refresh tokens with AES-256-GCM at rest and restrict OAuth scopes to `drive.file`.
+- Bind OAuth state to the signed-in owner, use a short-lived HTTP-only SameSite cookie, and never return access tokens to the browser.
+- Validate PDF/JPEG/PNG file signatures, cap the current upload route at 4 MB, and use owner-derived IDs for database writes.
+- Treat OCR output as unverified until the owner reviews and approves it.
 - Use CSRF-safe OAuth state, secure cookies, and strict redirect URI validation.
 - Apply rate limits and bounded retries to costly AI and document-processing operations.
 
