@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { signOut } from "../actions";
 
 type DocumentsPageProps = {
   searchParams: Promise<{ drive?: string; upload?: string }>;
@@ -39,7 +40,7 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
     <main className="shell">
       <header className="topbar">
         <Link className="brand" href="/"><span className="brand-mark">A</span><span>Academic<span className="brand-muted">Assistant</span></span></Link>
-        <div className="topbar-actions"><Link className="sign-in-link" href="/dashboard">Dashboard</Link><form action="/dashboard/signout" method="post"><button className="signout-button" type="submit">Sign out</button></form></div>
+        <div className="topbar-actions"><Link className="sign-in-link" href="/dashboard">Dashboard</Link><form action={signOut}><button className="signout-button" type="submit">Sign out</button></form></div>
       </header>
 
       <section className="hero documents-hero">
@@ -59,11 +60,11 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
       </section>
 
       <section className="section">
-        <div className="section-heading"><div><p className="eyebrow">NEW SOURCE</p><h2>Upload a question paper</h2></div><span className="section-count">20 MB max</span></div>
+        <div className="section-heading"><div><p className="eyebrow">NEW SOURCE</p><h2>Upload a question paper</h2></div><span className="section-count">4 MB max</span></div>
         <form className="upload-panel" action="/api/documents/upload" method="post" encType="multipart/form-data">
           <label htmlFor="document-file">Choose PDF, JPEG or PNG</label>
           <input id="document-file" name="file" type="file" accept="application/pdf,image/jpeg,image/png" required disabled={!connection} />
-          <p>Images become single-page PDFs. Existing PDFs remain unchanged. Maximum upload size: 20 MB.</p>
+          <p>Images become single-page PDFs. Existing PDFs remain unchanged. Maximum upload size: 4 MB.</p>
           <button className="primary-action" type="submit" disabled={!connection}>Archive and queue for processing <span aria-hidden="true">→</span></button>
         </form>
       </section>
