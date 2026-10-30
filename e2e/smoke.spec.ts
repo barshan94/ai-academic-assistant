@@ -18,5 +18,5 @@ test("login page exposes accessible email and password fields", async ({ page })
 test("protected dashboard redirects to login when auth is unconfigured", async ({ page }) => {
   await page.goto("/dashboard");
   await expect(page).toHaveURL(/\/login\?error=configuration$/);
-  await expect(page.getByRole("alert")).toContainText(/authentication is not configured/i);
+  await expect(page.locator("p.auth-error")).toContainText(/authentication is not configured/i);
 });
