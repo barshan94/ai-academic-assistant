@@ -34,7 +34,7 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
   if (authError || !user) redirect("/login");
 
   const { data: question, error } = await supabase.from("questions")
-    .select("id,owner_id,question_text,question_number,board,qualification,subject,syllabus_version,chapter,topic,classification_status,classification_confidence,review_status,created_at")
+    .select("id,owner_id,question_text,question_number,board,qualification,subject,syllabus_version,chapter,topic,syllabus_catalog_id,syllabus_chapter_id,syllabus_topic_id,classification_status,classification_confidence,review_status,created_at")
     .eq("id", id)
     .maybeSingle();
 
@@ -74,6 +74,17 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
         .limit(20)
     : { data: [], error: null };
   const isOwner = question.owner_id === user.id;
+  const { data: syllabusCatalogs } = isOwner
+    ? await supabase.from("syllabus_catalogs").select("id,board,qualification,subject,version,status").eq("owner_id", user.id).order("created_at", { ascending: false })
+    : { data: [] };
+  const syllabusCatalogIds = (syllabusCatalogs ?? []).map((item) => item.id);
+  const { data: syllabusChapters } = isOwner && syllabusCatalogIds.length
+    ? await supabase.from("syllabus_chapters").select("id,catalog_id,title,chapter_code").eq("owner_id", user.id).in("catalog_id", syllabusCatalogIds).order("sort_order").order("title")
+    : { data: [] };
+  const syllabusChapterIds = (syllabusChapters ?? []).map((item) => item.id);
+  const { data: syllabusTopics } = isOwner && syllabusChapterIds.length
+    ? await supabase.from("syllabus_topics").select("id,chapter_id,title,topic_code").eq("owner_id", user.id).in("chapter_id", syllabusChapterIds).order("sort_order").order("title")
+    : { data: [] };
   const { data: teacherInvites, error: teacherInviteError } = isOwner
     ? await typedSupabase.from("question_teacher_invites").select("id,invited_email,accepted_by,revoked_at,created_at").eq("question_id", question.id).eq("owner_id", user.id).order("created_at", { ascending: false })
     : { data: [], error: null };
@@ -108,7 +119,8 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
       {message ? <p className="notice notice-info" role="status">{message}</p> : null}
       {query.classification === "saved" ? <p className="notice notice-info" role="status">Syllabus classification saved.</p> : null}
       {query.classification === "incomplete" ? <p className="notice notice-error" role="alert">A confirmed classification requires board, qualification, subject and syllabus version.</p> : null}
-      {query.classification === "save_failed" || query.classification === "invalid" ? <p className="notice notice-error" role="alert">The syllabus classification could not be saved. Check the fields and try again.</p> : null}
+      {query.classification === "save_failed" || query.classification === "invalid" || query.classification === "reference_not_found" || query.classification === "reference_mismatch" ? <p className="notice notice-error" role="alert">The syllabus classification could not be saved. Check the selected catalogue, chapter and topic, then try again.</p> : null}
+      {query.classification === "catalog_unverified" ? <p className="notice notice-error" role="alert">Verify this syllabus version with an official source before confirming a question mapping.</p> : null}
       {solutionError ? <p className="notice notice-error">Could not load saved answers.</p> : null}
       {reviewError ? <p className="notice notice-error">Could not load review history.</p> : null}
       {teacherInviteError ? <p className="notice notice-error">Could not load teacher invitations.</p> : null}
@@ -135,7 +147,12 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
             <p className="eyebrow">SYLLABUS INTELLIGENCE · M5</p>
             <h2>Review syllabus classification</h2>
             <p className="question-card-meta">Record the exact syllabus specification and mark uncertain mappings for later checking. Classification review is separate from question-content approval.</p>
-            <ClassificationForm question={question} />
+            <ClassificationForm
+              question={question}
+              catalogs={syllabusCatalogs ?? []}
+              chapters={syllabusChapters ?? []}
+              topics={syllabusTopics ?? []}
+            />
           </div>
         ) : (
           <p className="question-card-meta">Syllabus mapping: {question.classification_status.replace("_", " ")} · Version: {question.syllabus_version ?? "Not recorded"}</p>
