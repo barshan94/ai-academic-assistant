@@ -51,7 +51,12 @@ Implemented on feature/m3-ai-solver:
 - Add unit coverage for valid, incomplete, uncertain and out-of-range classifications.
 
 M5 exit criteria still outstanding:
-- Build versioned board/qualification/subject/chapter/topic reference data rather than relying only on free-text labels.
+- [x] Add owner-scoped, versioned syllabus catalogues with board, qualification, subject, version, effective dates and source provenance.
+- [x] Add hierarchical chapter and topic references with uniqueness and same-owner/same-version foreign-key enforcement.
+- [x] Link questions to structured catalogue, chapter and topic IDs while retaining text snapshots for backward compatibility.
+- [x] Add a private catalogue workspace to create versions, chapters and topics; require an HTTPS source and explicit owner review before marking a version verified.
+- [x] Prevent a question mapping from being marked confirmed against a draft or retired catalogue.
+- Build a shared, centrally curated reference dataset and import pipeline rather than requiring every owner to build the catalogue manually.
 - Add assisted classification with evidence and calibrated confidence; never silently guess a syllabus version.
 - Add a dedicated uncertain-mapping review queue with prioritization and batch review.
 - Chapter notes cite contributing questions and source documents.
