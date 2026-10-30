@@ -41,10 +41,10 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
   if (jobError || !job) return redirectToDocument(request, id, "job_missing");
   if (job.status === "completed") return redirectToDocument(request, id, "already_processed");
+  if (job.status === "running") return redirectToDocument(request, id, "already_processing");
   if (job.attempt_count >= job.max_attempts) return redirectToDocument(request, id, "retry_limit");
 
-  await supabase.from("documents").update({ status: "processing" }).eq("id", id).eq("owner_id", user.id);
-  await supabase.from("processing_jobs").update({
+  const { data: claimedJob, error: claimError } = await supabase.from("processing_jobs").update({
     status: "running",
     stage: "ocr",
     progress: 10,
@@ -52,7 +52,10 @@ export async function POST(request: NextRequest, context: RouteContext) {
     started_at: new Date().toISOString(),
     error_code: null,
     error_message: null,
-  }).eq("id", job.id).eq("owner_id", user.id);
+  }).eq("id", job.id).eq("owner_id", user.id).in("status", ["queued", "failed"]).select("id").maybeSingle();
+  if (claimError || !claimedJob) return redirectToDocument(request, id, "already_processing");
+
+  await supabase.from("documents").update({ status: "processing" }).eq("id", id).eq("owner_id", user.id);
 
   try {
     const accessToken = await getDriveAccessToken();
