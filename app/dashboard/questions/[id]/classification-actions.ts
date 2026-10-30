@@ -2,26 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { z } from "zod";
+import { questionClassificationSchema } from "@/lib/questions/classification";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-const classificationSchema = z.object({
-  questionId: z.string().uuid(),
-  board: z.string().trim().max(100),
-  qualification: z.string().trim().max(100),
-  subject: z.string().trim().max(120),
-  syllabusVersion: z.string().trim().max(80),
-  chapter: z.string().trim().max(160),
-  topic: z.string().trim().max(160),
-  classificationStatus: z.enum(["unreviewed", "confirmed", "uncertain"]),
-  classificationConfidence: z.preprocess(
-    (value) => value === "" || value === null || value === undefined ? null : Number(value),
-    z.number().min(0).max(1).nullable(),
-  ),
-});
-
 export async function updateQuestionClassification(formData: FormData) {
-  const parsed = classificationSchema.safeParse({
+  const parsed = questionClassificationSchema.safeParse({
     questionId: String(formData.get("questionId") ?? ""),
     board: String(formData.get("board") ?? ""),
     qualification: String(formData.get("qualification") ?? ""),
@@ -36,11 +21,6 @@ export async function updateQuestionClassification(formData: FormData) {
   if (!parsed.success) redirect("/dashboard/questions?classification=invalid");
 
   const values = parsed.data;
-  if (values.classificationStatus === "confirmed" &&
-      (!values.board || !values.qualification || !values.subject || !values.syllabusVersion)) {
-    redirect("/dashboard/questions/" + values.questionId + "?classification=incomplete");
-  }
-
   const supabase = await createSupabaseServerClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) redirect("/login");
