@@ -188,7 +188,24 @@ export default async function SyllabusPage({ searchParams }: PageProps) {
                       return (
                         <div className="syllabus-chapter" key={chapter.id}>
                           <div className="question-card-heading"><strong>{chapter.chapter_code ? chapter.chapter_code + " · " : ""}{chapter.title}</strong><span className="section-count">{chapterTopics.length} topics</span></div>
-                          {chapterTopics.length ? <ul className="syllabus-topic-list">{chapterTopics.map((topic) => <li key={topic.id}>{topic.topic_code ? topic.topic_code + " · " : ""}{topic.title}</li>)}</ul> : <p className="question-card-meta">No topics yet.</p>}
+                          <div className="syllabus-evidence-list">
+                            <strong>Chapter evidence ({(evidence ?? []).filter((item) => item.chapter_id === chapter.id && item.topic_id === null).length})</strong>
+                            {(evidence ?? []).filter((item) => item.chapter_id === chapter.id && item.topic_id === null).map((item) => (
+                              <p key={item.id}><a href={item.source_url} target="_blank" rel="noreferrer">{item.source_title} ↗</a>{item.source_locator ? " · " + item.source_locator : ""}{item.evidence_excerpt ? <small>{item.evidence_excerpt}</small> : null}</p>
+                            ))}
+                            <EvidenceForm catalogId={catalog.id} chapterId={chapter.id} />
+                          </div>
+                          {chapterTopics.length ? <ul className="syllabus-topic-list">{chapterTopics.map((topic) => {
+                            const topicEvidence = (evidence ?? []).filter((item) => item.chapter_id === chapter.id && item.topic_id === topic.id);
+                            return <li key={topic.id}>
+                              <span>{topic.topic_code ? topic.topic_code + " · " : ""}{topic.title}</span>
+                              <div className="syllabus-evidence-list">
+                                <strong>Topic evidence ({topicEvidence.length})</strong>
+                                {topicEvidence.map((item) => <p key={item.id}><a href={item.source_url} target="_blank" rel="noreferrer">{item.source_title} ↗</a>{item.source_locator ? " · " + item.source_locator : ""}{item.evidence_excerpt ? <small>{item.evidence_excerpt}</small> : null}</p>)}
+                                <EvidenceForm catalogId={catalog.id} chapterId={chapter.id} topicId={topic.id} />
+                              </div>
+                            </li>;
+                          })}</ul> : <p className="question-card-meta">No topics yet.</p>}
                           <form action={createSyllabusTopic} className="syllabus-add-form">
                             <input type="hidden" name="chapterId" value={chapter.id} />
                             <label>New topic<input name="title" required maxLength={160} placeholder="e.g. Moments" /></label>
