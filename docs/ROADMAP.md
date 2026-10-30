@@ -58,7 +58,8 @@ M5 exit criteria still outstanding:
 - [x] Prevent a question mapping from being marked confirmed against a draft or retired catalogue.
 - Build a shared, centrally curated reference dataset and import pipeline rather than requiring every owner to build the catalogue manually.
 - Add assisted classification with evidence and calibrated confidence; never silently guess a syllabus version.
-- Add a dedicated uncertain-mapping review queue with prioritization and batch review.
+- [x] Add a dedicated owner-only review queue for unreviewed and uncertain mappings, prioritizing missing/lowest confidence first.
+- Add batch review actions after individual mapping workflows have been exercised.
 - Chapter notes cite contributing questions and source documents.
 - Reprocessing creates a new note version rather than overwriting teacher-approved content.
 
