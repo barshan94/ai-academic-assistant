@@ -56,8 +56,8 @@ A personal academic workspace for Edexcel O/A Level, SSC and HSC tutoring. It ac
 Never commit .env.local, service-role keys, OAuth tokens, student personal data or private source documents. Applied Supabase migrations are mirrored in supabase/migrations/.
 
 ## Current status (30 October 2026)
-M1 foundation and core M2 document/question workflows are implemented in code. M3 answer generation, version history and question-scoped teacher review are implemented on the feature branch. The latest feature commit is under CI; see PR #1 for live checks. The Vercel preview is available from the PR's deployment checks.
+M1 foundation and core M2 document/question workflows are implemented in code. M3 answer generation, version history and question-scoped teacher review are implemented on the feature branch. Latest feature commit `0755f96` passed GitHub Actions: dependency audit, ESLint, TypeScript, unit tests, production build and four Chromium smoke tests. Its Vercel preview is marked READY. Supabase security advisor reports zero findings.
 
-Not production-ready yet: AI provider credentials are not configured, so live model inference has not been tested and no provider charges have been incurred. Google OAuth and real-account upload/teacher-sharing flows still need live end-to-end testing. Supabase security advisor currently reports no findings; cross-account integration tests with two real accounts are still outstanding. Main and production remain unchanged while this work stays in the draft PR.
+Not production-ready yet: AI provider credentials are not configured, so live model inference has not been tested and no provider charges have been incurred. Google OAuth, real-account uploads, and teacher acceptance/revocation still need live end-to-end testing with two separate accounts. The Chromium tests currently verify the public landing/login pages and that protected routes redirect when auth is unconfigured; they do not simulate two authenticated users. Main and production remain unchanged while this work stays in the draft PR.
 
 Estimated implementation progress: approximately 40%. This is a planning estimate, not a release-readiness score.

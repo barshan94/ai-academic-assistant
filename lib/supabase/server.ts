@@ -9,7 +9,7 @@ export async function createSupabaseServerClient() {
   return createServerClient<Database>(NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, {
     cookies: {
       getAll() { return cookieStore.getAll(); },
-      setAll(cookiesToSet, _headers) {
+      setAll(cookiesToSet) {
         try { cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options)); }
         catch { /* Server Components cannot write cookies; middleware will refresh sessions. */ }
       },
