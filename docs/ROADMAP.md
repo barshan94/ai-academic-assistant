@@ -53,12 +53,13 @@ Implemented on feature/m3-ai-solver:
 - Add hierarchical chapter and topic references with uniqueness and same-owner/same-version foreign-key enforcement.
 - Link questions to structured catalogue, chapter and topic IDs while retaining text snapshots for backward compatibility.
 - Add a private catalogue workspace to create versions, chapters and topics; require an HTTPS source and explicit owner review before marking a version verified.
+- Add a versioned JSON import format with strict validation, duplicate detection and an atomic owner-scoped database import; imports remain drafts.
 - Restrict catalogue INSERT/UPDATE privileges to the minimum required columns; chapter/topic structure is append-only until dedicated edit workflows exist.
 - Prevent a question mapping from being marked confirmed against a draft or retired catalogue.
 - Add a dedicated owner-only review queue for unreviewed and uncertain mappings, prioritizing missing/lowest confidence first.
 
 M5 exit criteria still outstanding:
-- Build a shared, centrally curated reference dataset and import pipeline rather than requiring every owner to build the catalogue manually.
+- Build and maintain a shared, centrally curated reference dataset with official-board provenance; the current JSON importer is a personal catalogue import foundation, not a shared dataset.
 - Add assisted classification with evidence and calibrated confidence; never silently guess a syllabus version.
 - Add batch review actions after individual mapping workflows have been exercised.
 - Chapter notes cite contributing questions and source documents.
