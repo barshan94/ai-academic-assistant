@@ -54,7 +54,7 @@
 - [x] Owner-scoped syllabus catalogue stores board, qualification, subject, version, effective dates and source provenance.
 - [x] Chapter and topic records are linked hierarchically and constrained to the same owner's catalogue.
 - [x] Questions can reference catalogue, chapter and topic IDs while retaining legacy text snapshots.
-- [x] Only an owner can read or edit their catalogue; no anonymous access or delete grant is exposed.
+- [x] Only an owner can read and create catalogue data; RLS blocks cross-account access, anonymous grants and delete grants are absent, and catalogue updates are restricted to verification state/timestamp.
 - [x] A catalogue cannot be marked verified without an HTTPS source and verification timestamp.
 - [x] A question cannot be confirmed against a draft or retired structured catalogue.
 - [ ] Automated database tests prove cross-account catalogue/chapter/topic isolation and reject mismatched reference IDs.
