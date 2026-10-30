@@ -53,6 +53,7 @@ Implemented on feature/m3-ai-solver:
 - Add hierarchical chapter and topic references with uniqueness and same-owner/same-version foreign-key enforcement.
 - Link questions to structured catalogue, chapter and topic IDs while retaining text snapshots for backward compatibility.
 - Add a private catalogue workspace to create versions, chapters and topics; require an HTTPS source and explicit owner review before marking a version verified.
+- Restrict catalogue INSERT/UPDATE privileges to the minimum required columns; chapter/topic structure is append-only until dedicated edit workflows exist.
 - Prevent a question mapping from being marked confirmed against a draft or retired catalogue.
 - Add a dedicated owner-only review queue for unreviewed and uncertain mappings, prioritizing missing/lowest confidence first.
 
