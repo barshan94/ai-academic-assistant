@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { parseSyllabusImportText } from "@/lib/questions/syllabus-import";
+import type { Json } from "@/types/database";
 
 const catalogSchema = z.object({
   board: z.string().trim().min(1).max(100),
@@ -39,6 +41,24 @@ async function requireOwner() {
   const { data: { user }, error } = await supabase.auth.getUser();
   if (error || !user) redirect("/login");
   return { supabase, user };
+}
+
+export async function importSyllabusCatalog(formData: FormData) {
+  const parsed = parseSyllabusImportText(String(formData.get("payload") ?? ""));
+  if (!parsed.success) redirect("/dashboard/syllabus?import=invalid");
+
+  const { supabase } = await requireOwner();
+  const { error } = await supabase.rpc("import_syllabus_catalog", {
+    payload: parsed.data as Json,
+  });
+
+  if (error) {
+    redirect("/dashboard/syllabus?import=" + (error.code === "23505" ? "duplicate" : "save_failed"));
+  }
+
+  revalidatePath("/dashboard/syllabus");
+  revalidatePath("/dashboard/questions");
+  redirect("/dashboard/syllabus?import=imported");
 }
 
 export async function createSyllabusCatalog(formData: FormData) {
