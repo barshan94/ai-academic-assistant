@@ -80,6 +80,9 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
     : query.review === "approved" ? "Your review was saved. This is an owner review, not independent verification."
     : query.review === "needs_correction" ? "Correction feedback was saved in the review history."
     : query.review === "save_failed" ? "The review could not be saved. Please retry."
+    : query.review === "notes_required" ? "Please add correction notes when marking an answer as needing correction."
+    : query.review === "invalid" ? "The review details were invalid. Check the decision and try again."
+    : query.review === "not_found" ? "The selected answer draft could not be found."
     : undefined;
 
   return (
