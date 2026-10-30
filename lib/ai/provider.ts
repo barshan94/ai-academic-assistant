@@ -21,7 +21,7 @@ export class AIProviderError extends Error {
   }
 }
 
-export function getAIProviderConfig(env: NodeJS.ProcessEnv = process.env): AIProviderConfig {
+export function getAIProviderConfig(env: Record<string, string | undefined> = process.env): AIProviderConfig {
   const apiKey = env.AI_API_KEY?.trim();
   const model = env.AI_MODEL?.trim();
   if (!apiKey || !model) throw new AIConfigurationError();
