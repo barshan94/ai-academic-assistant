@@ -573,7 +573,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      import_syllabus_catalog: {
+        Args: { payload: Json }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never
