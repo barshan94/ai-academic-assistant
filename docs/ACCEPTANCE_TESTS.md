@@ -52,6 +52,8 @@
 - [x] Classification chapter options depend on the selected syllabus version; topic options depend on the selected chapter and stale child selections are cleared.
 - [x] Unit-tested deterministic text matching suggests only labels from the owner's loaded catalogue, displays matched terms/reasons, and never auto-selects or confirms a mapping.
 - [x] Classification review displays the selected catalogue's recorded source title, HTTPS source link, owner-checked date and verification status beside text-match suggestions.
+- [x] Database trigger writes append-only classification snapshots on question creation and actual classification changes; owner-only history is displayed with before/after summaries.
+- [x] Existing questions receive a baseline snapshot without pretending that pre-audit historical changes can be reconstructed.
 - [ ] Browser acceptance confirms changing a syllabus version cannot submit a chapter/topic from the previous selection.
 - [x] Unit tests cover confirmed, uncertain, unreviewed, incomplete and invalid confidence cases.
 - [x] Question bank can filter by unreviewed, uncertain and confirmed classification state.
