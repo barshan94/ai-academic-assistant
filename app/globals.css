@@ -197,3 +197,14 @@ h2 { font-size: 24px; letter-spacing: -.04em; margin: 0; font-weight: 600; }
 .review-form label { color: var(--muted, #9aa7b8); font-size: 0.9rem; }
 .review-form select, .review-form textarea { width: 100%; border: 1px solid var(--border, #334155); border-radius: 0.7rem; padding: 0.8rem; background: var(--surface, #111827); color: inherit; font: inherit; }
 .review-form textarea { resize: vertical; }
+
+.secondary-action {
+  border: 1px solid var(--border, #334155);
+  border-radius: 0.7rem;
+  padding: 0.65rem 0.9rem;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.secondary-action:hover { border-color: var(--accent, #38bdf8); }
