@@ -13,12 +13,19 @@ export default async function TeacherInvitesPage({ searchParams }: PageProps) {
   const { data: { user }, error } = await supabase.auth.getUser();
   if (error || !user?.email) redirect("/login");
   const typedSupabase = supabase as unknown as SupabaseClient<DatabaseWithAISolutions>;
-  const { data: invites, error: inviteError } = await typedSupabase.from("question_teacher_invites")
-    .select("id,question_id,owner_id,invited_email,accepted_by,accepted_at,revoked_at,created_at")
-    .or("owner_id.eq." + user.id + ",invited_email.eq." + user.email.toLowerCase())
-    .order("created_at", { ascending: false }).limit(50);
-  const incoming = invites?.filter((invite) => invite.invited_email === user.email?.toLowerCase()) ?? [];
-  const outgoing = invites?.filter((invite) => invite.owner_id === user.id) ?? [];
+  const [incomingResult, outgoingResult] = await Promise.all([
+    typedSupabase.from("question_teacher_invites")
+      .select("id,question_id,owner_id,invited_email,accepted_by,accepted_at,revoked_at,created_at")
+      .eq("invited_email", user.email.toLowerCase())
+      .order("created_at", { ascending: false }).limit(50),
+    typedSupabase.from("question_teacher_invites")
+      .select("id,question_id,owner_id,invited_email,accepted_by,accepted_at,revoked_at,created_at")
+      .eq("owner_id", user.id)
+      .order("created_at", { ascending: false }).limit(50),
+  ]);
+  const incoming = incomingResult.data ?? [];
+  const outgoing = outgoingResult.data ?? [];
+  const inviteError = incomingResult.error || outgoingResult.error;
   const message = query.invite === "accepted" ? "Invitation accepted. You can now open the shared question."
     : query.invite === "not_available" ? "This invitation is unavailable, revoked, already accepted, or belongs to another email account."
     : query.invite === "invalid" ? "The invitation details were invalid." : undefined;

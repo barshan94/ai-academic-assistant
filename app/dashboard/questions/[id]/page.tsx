@@ -74,12 +74,12 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
     : { data: [], error: null };
   const isOwner = question.owner_id === user.id;
   const { data: teacherInvites, error: teacherInviteError } = isOwner
-    ? await typedSupabase.from("question_teacher_invites").select("id,invited_email,accepted_by,created_at").eq("question_id", question.id).eq("owner_id", user.id).order("created_at", { ascending: false })
+    ? await typedSupabase.from("question_teacher_invites").select("id,invited_email,accepted_by,revoked_at,created_at").eq("question_id", question.id).eq("owner_id", user.id).order("created_at", { ascending: false })
     : { data: [], error: null };
   const message = query.invite === "created" ? "Invitation created. The teacher must sign in with this exact email address and accept it from Teacher invitations."
     : query.invite === "accepted" ? "Teacher access accepted. You can now review the shared question and saved answers."
     : query.invite === "revoked" ? "Teacher access has been revoked."
-    : query.invite === "exists" ? "An invitation for this email and question already exists. Remove the old invitation before sending another."
+    : query.invite === "exists" ? "An active invitation for this email and question already exists."
     : query.invite === "self" ? "You cannot invite your own account as a teacher."
     : query.invite === "save_failed" || query.invite === "revoke_failed" ? "The invitation could not be saved. Please try again."
     : query.invite === "invalid" || query.invite === "not_found" ? "The invitation details were invalid or the question was not found."
@@ -140,8 +140,8 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
           </form>
           {teacherInvites?.length ? <><h3>Access list</h3><ul className="calculation-checks">
             {teacherInvites.map((invite) => <li key={invite.id}>
-              <strong>{invite.accepted_by ? "ACCEPTED" : "PENDING"}</strong><span>{invite.invited_email}</span>
-              <form action={revokeQuestionTeacherInvite}>
+              <strong>{invite.revoked_at ? "REVOKED" : invite.accepted_by ? "ACCEPTED" : "PENDING"}</strong><span>{invite.invited_email}</span>
+              {!invite.revoked_at ? <form action={revokeQuestionTeacherInvite}>
                 <input type="hidden" name="inviteId" value={invite.id} />
                 <input type="hidden" name="questionId" value={question.id} />
                 <button className="secondary-action" type="submit">Revoke access</button>

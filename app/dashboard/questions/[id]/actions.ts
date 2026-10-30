@@ -169,7 +169,7 @@ export async function revokeQuestionTeacherInvite(formData: FormData) {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) redirect("/login");
   const typedSupabase = supabase as unknown as SupabaseClient<DatabaseWithAISolutions>;
-  const { error } = await typedSupabase.from("question_teacher_invites").delete().eq("id", inviteId.data).eq("question_id", questionId.data).eq("owner_id", user.id);
+  const { error } = await typedSupabase.from("question_teacher_invites").update({ revoked_at: new Date().toISOString() }).eq("id", inviteId.data).eq("question_id", questionId.data).eq("owner_id", user.id).is("revoked_at", null);
   if (error) redirect("/dashboard/questions/" + questionId.data + "?invite=revoke_failed");
   revalidatePath("/dashboard/questions/" + questionId.data);
   revalidatePath("/dashboard/teacher-invites");
