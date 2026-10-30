@@ -56,8 +56,8 @@ A personal academic workspace for Edexcel O/A Level, SSC and HSC tutoring. It ac
 Never commit .env.local, service-role keys, OAuth tokens, student personal data or private source documents. Applied Supabase migrations are mirrored in supabase/migrations/.
 
 ## Current status (30 October 2026)
-M1 foundation and core M2 document/question workflows are implemented in code. M3 answer generation, version history and question-scoped teacher review are implemented on the feature branch. M5 has started: questions now store a syllabus version and a separate classification state (unreviewed, uncertain or confirmed), with owner-only editing and validation.
+M1 foundation and core M2 document/question workflows are implemented in code. M3 answer generation, version history and question-scoped teacher review are implemented on the feature branch. M5 now includes owner-scoped versioned syllabus catalogues, source provenance, hierarchical chapter/topic references, question foreign-key links, and owner-only classification review. Existing free-text question metadata remains supported for backward compatibility.
 
-The authenticated two-account browser test is intentionally postponed until final acceptance. Ordinary CI checks continue throughout development. Live AI provider configuration, Google OAuth/Drive workflows, golden-set answer grading, the full syllabus reference taxonomy and chapter intelligence remain outstanding. Main is unchanged; work remains in draft PR #1.
+The authenticated two-account browser test is intentionally postponed until final acceptance. Ordinary CI checks continue throughout development. Live AI provider configuration, Google OAuth/Drive workflows, golden-set answer grading, the shared centrally curated syllabus dataset, assisted classification, chapter intelligence and related review queues remain outstanding. Main is unchanged; work remains in draft PR #1.
 
-Estimated implementation progress: approximately 42%. This is a planning estimate, not a release-readiness score.
+Estimated implementation progress: approximately 45%. This is a planning estimate, not a release-readiness score.
