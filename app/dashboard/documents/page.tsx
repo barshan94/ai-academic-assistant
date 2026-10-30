@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { signOut } from "../actions";
+import { disconnectDrive } from "./actions";
 
 type DocumentsPageProps = {
   searchParams: Promise<{ drive?: string; upload?: string; process?: string }>;
@@ -14,6 +15,9 @@ const notices: Record<string, { text: string; tone: "success" | "error" | "info"
   token_exchange_failed: { text: "Google rejected the OAuth exchange. Check the Google Cloud OAuth configuration.", tone: "error" },
   missing_refresh_token: { text: "Google did not return a refresh token. Disconnect the app in Google Account permissions, then connect again.", tone: "error" },
   save_failed: { text: "The Drive connection could not be saved securely.", tone: "error" },
+  disconnected: { text: "Google Drive was disconnected and the stored refresh token was revoked.", tone: "success" },
+  revocation_warning: { text: "The local Drive token was removed, but Google did not confirm revocation. Remove app access in your Google Account settings too.", tone: "error" },
+  disconnect_failed: { text: "Could not remove the Drive connection. Try again.", tone: "error" },
   success: { text: "Your file was archived in Google Drive and queued for processing.", tone: "success" },
   duplicate: { text: "This exact PDF is already in your library.", tone: "info" },
   drive_not_connected: { text: "Connect Google Drive before uploading.", tone: "error" },
@@ -62,7 +66,7 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
         <div className="section-heading"><div><p className="eyebrow">CLOUD ARCHIVE</p><h2>Google Drive</h2></div><span className="section-count">{connection ? "Connected" : "Not connected"}</span></div>
         <div className="drive-panel">
           <div><h3>{connection ? "Your Drive is ready" : "Connect your Google account"}</h3><p>Only files created by this app are accessed through the limited Drive file scope. Refresh tokens are encrypted before being stored.</p></div>
-          <Link className="primary-action" href="/api/drive/connect">{connection ? "Reconnect Drive" : "Connect Drive"} <span aria-hidden="true">→</span></Link>
+          <div className="drive-actions"><Link className="primary-action" href="/api/drive/connect">{connection ? "Reconnect Drive" : "Connect Drive"} <span aria-hidden="true">→</span></Link>{connection ? <form action={disconnectDrive}><button className="document-action" type="submit">Disconnect Drive</button></form> : null}</div>
         </div>
       </section>
 
