@@ -28,5 +28,8 @@
     "typescript": "^5.9.0",
     "vitest": "^4.1.12",
     "postcss": "^8.5.32"
+  },
+  "overrides": {
+    "postcss": "8.5.32"
   }
 }
