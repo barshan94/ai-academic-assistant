@@ -6,6 +6,7 @@ import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { parseSyllabusImportText } from "@/lib/questions/syllabus-import";
 import type { Json } from "@/types/database";
+import { parseSyllabusEvidenceInput } from "@/lib/questions/syllabus-evidence";
 
 const catalogSchema = z.object({
   board: z.string().trim().min(1).max(100),
@@ -182,19 +183,7 @@ export async function retireSyllabusCatalog(formData: FormData) {
 
 
 export async function addSyllabusReferenceEvidence(formData: FormData) {
-  const schema = z.object({
-    catalogId: z.string().uuid(),
-    chapterId: z.string().uuid(),
-    topicId: z.string().uuid().or(z.literal("")),
-    sourceUrl: z.string().trim().url().max(2048).refine((value) => {
-      try { return new URL(value).protocol === "https:"; }
-      catch { return false; }
-    }),
-    sourceTitle: z.string().trim().min(1).max(200),
-    sourceLocator: z.string().trim().max(200),
-    evidenceExcerpt: z.string().trim().max(600),
-  });
-  const parsed = schema.safeParse({
+  const parsed = parseSyllabusEvidenceInput({
     catalogId: String(formData.get("catalogId") ?? ""),
     chapterId: String(formData.get("chapterId") ?? ""),
     topicId: String(formData.get("topicId") ?? ""),
