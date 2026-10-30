@@ -20,8 +20,7 @@ Physics, Mathematics A, Mathematics B, Further Pure Mathematics, General Mathema
 - Supabase region: ap-south-1 (Mumbai).
 - Supabase project reference: uqpyzicftxxegajaocxi.
 - Google Drive is the long-term document archive; Supabase stores metadata and Drive file IDs.
-- Images are converted to optimized PDFs, then checked for readability before source cleanup.
-- Existing PDFs remain PDFs and are not needlessly reconverted.
+- Images are converted to PDFs; original PDFs are preserved.
 - Public GitHub repository is explicitly accepted by owner: https://github.com/barshan94/ai-academic-assistant
 
 ## Academic processing rules
@@ -35,22 +34,42 @@ Physics, Mathematics A, Mathematics B, Further Pure Mathematics, General Mathema
 M1 10% foundation; M2 25% document intelligence; M3 45% solver; M4 58% verification; M5 68% syllabus intelligence; M6 82% chapter intelligence; M7 93% exam preparation; M8 100% production readiness.
 
 ## Current verified state
-- Supabase project created and returned ACTIVE_HEALTHY.
-- Project API URL: https://uqpyzicftxxegajaocxi.supabase.co
-- No credentials or service-role key should be committed.
-- GitHub repository exists and is public by owner's choice.
-- Foundation dashboard, global styles, environment template, ESLint config, Vitest config and two smoke tests are committed.
-- README now documents the current incomplete state and setup steps.
-- Supabase email/password sign-in, protected dashboard middleware, server-side user verification and sign-out are implemented in code.
-- The app still needs its Supabase environment variables and a privately created owner account before live authentication can be smoke-tested.
-- Profile migration has not been applied.
-- GitHub Actions run 41030669684 passed ESLint, TypeScript type-check, Vitest tests and Next.js production build on commit e5ec453.
-- CI validation of the authentication implementation is pending.
-- Google Drive OAuth has not been configured.
+- Supabase project is ACTIVE_HEALTHY on the Free plan.
+- GitHub repository is public by the owner's choice.
+- GitHub Actions run 41031067223 passed ESLint, TypeScript type-check, Vitest tests and Next.js production build on commit 1b2dfde (authentication code).
+- Supabase migrations applied:
+  - 20261030091025 profiles_owner_rls
+  - 20261030091056 document_intake_core
+  - 20261030091102 fix_question_page_owner_fk
+  - 20261030091123 index_document_foreign_keys
+  - 20261030091243 google_drive_connections
+- RLS is enabled on profiles, documents, document_pages, processing_jobs, questions and drive_connections.
+- Supabase security advisors returned no security lint findings after the document schema was applied. Performance advisor identified four missing foreign-key indexes; those were added in migration 20261030091123. Re-run advisors after the latest migration.
+- Database grants verified: anon cannot SELECT profiles; authenticated can SELECT/INSERT/UPDATE profiles.
+- Profile policies use auth.uid() owner checks; document, page, job, question and Drive connection tables have owner-scoped RLS policies.
+- Supabase stores document metadata and extracted text; original PDFs are archived in the user's Google Drive.
+- Email/password sign-in, protected dashboard, server-side user checks and sign-out are implemented.
+- Google Drive OAuth uses drive.file scope, owner-bound state cookie and AES-256-GCM encrypted refresh tokens.
+- Upload route archives existing PDFs unchanged and converts JPEG/PNG images to PDFs. Current hosted upload limit is 4 MB.
+- Google Drive OCR extraction creates a temporary Google Doc, exports text, then deletes the temporary Doc. Page text requires manual correction/review before the document is marked ready.
+- Document processing has a three-attempt limit and a 100-page cap; it is manually started from the library (no automatic background worker yet).
+- Unit tests cover PDF preservation, image conversion and extracted-text page splitting.
+- Live Supabase sign-in, Google OAuth, Drive upload and OCR are NOT yet smoke-tested because owner environment credentials and a live authenticated test session have not been configured.
+- Google Drive disconnect/revoke UI, resumable large-file uploads, automatic background workers, question segmentation, AI solving and syllabus classification remain unfinished.
+
+## Environment requirements (never commit values)
+- NEXT_PUBLIC_SUPABASE_URL
+- NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+- GOOGLE_CLIENT_ID
+- GOOGLE_CLIENT_SECRET
+- GOOGLE_DRIVE_REDIRECT_URI
+- DRIVE_TOKEN_ENCRYPTION_KEY
 
 ## Next tasks
-1. Establish a reproducible dependency install and run lint, type-check, tests and production build in a network-enabled environment.
-2. Fix any errors found before adding more features.
-3. Implement authentication and protected routes using Supabase SSR.
-4. Review and test profile schema/RLS before applying it to the dedicated Supabase project.
-5. Keep Google Drive OAuth and AI provider credentials out of Git.
+1. Finish CI verification after the document intake implementation and fix all actual failures.
+2. Re-run Supabase security/performance advisors and verify RLS grants/policies for every table.
+3. Configure Google Cloud OAuth credentials and perform a live Drive connection, PDF/image upload, OCR and review test.
+4. Add a safe Drive disconnect/revoke action.
+5. Implement resumable uploads above the current 4 MB request cap and a durable worker rather than claiming the queued job is automatic.
+6. Build question segmentation, editing and classification.
+7. Only then continue to the AI solver and chapter knowledge system.
