@@ -47,6 +47,7 @@ test("two-account teacher invitation, review, and revocation lifecycle", async (
     await expect(teacher.getByRole("heading", { name: "Teacher invitations." })).toBeVisible();
     await teacher.getByRole("button", { name: /accept invitation/i }).click();
     await expect(teacher).toHaveURL(new RegExp(`/dashboard/questions/${config.questionId}\\?invite=accepted`));
+    await teacher.goto(`${questionUrl}?solution=${config.solutionId}`);
     await expect(teacher.getByRole("heading", { name: "Answer draft" })).toBeVisible();
 
     // Teacher records a correction; this must not overwrite the saved AI answer.
