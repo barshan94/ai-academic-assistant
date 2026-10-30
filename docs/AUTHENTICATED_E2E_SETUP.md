@@ -18,7 +18,7 @@ These tests exercise the real Supabase Auth and Row Level Security paths using t
 
 ## Configure GitHub Actions secrets
 
-In the repository, open **Settings → Secrets and variables → Actions** and add:
+In the repository, open **Settings → Secrets and variables → Actions**. Add the repository variable `ENABLE_AUTHENTICATED_E2E` with value `true`, then add these Actions secrets:
 
 | Secret | Value |
 |---|---|
@@ -35,7 +35,7 @@ Never add a service-role key. The workflow only needs the public key and normal 
 
 ## Run
 
-Open **Actions → Authenticated browser acceptance → Run workflow**. The workflow builds the application against the test project and runs the two-account Chromium test.
+The authenticated workflow runs on PRs targeting `main` only after `ENABLE_AUTHENTICATED_E2E=true` is set. It can also be run manually from **Actions → Authenticated browser acceptance → Run workflow** once the workflow is available on the default branch. The workflow builds the application against the test project and runs the two-account Chromium test.
 
 The test verifies:
 1. The teacher cannot read the owner's question before invitation acceptance.
