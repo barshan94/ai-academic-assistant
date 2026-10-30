@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { signOut } from "./actions";
 
@@ -30,7 +31,7 @@ export default async function DashboardPage() {
           <div><p className="eyebrow">MILESTONE 1</p><h2>Foundation modules</h2></div>
           <span className="section-count">Implementation in progress</span>
         </div>
-        <div className="module-grid">
+        <div className="hero-actions" style={{ marginBottom: 24 }}><Link className="primary-action" href="/dashboard/documents">Open document library <span aria-hidden="true">→</span></Link></div>\n        <div className="module-grid">
           <article className="module-card"><span className="module-number">01</span><h3>Question library</h3><p>Organise questions by board, qualification, subject and chapter.</p><span className="planned">Planned</span></article>
           <article className="module-card"><span className="module-number">02</span><h3>Document intake</h3><p>Prepare question images and PDFs for structured extraction.</p><span className="planned">Planned</span></article>
           <article className="module-card"><span className="module-number">03</span><h3>Solutions</h3><p>Create exam-ready answers with Bengali and English teaching notes.</p><span className="planned">Planned</span></article>
