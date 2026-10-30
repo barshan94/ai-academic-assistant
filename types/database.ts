@@ -444,6 +444,47 @@ export type Database = {
           },
         ]
       }
+      question_classification_history: {
+        Row: {
+          changed_at: string
+          changed_by: string | null
+          event_type: string
+          id: string
+          new_state: Json
+          owner_id: string
+          previous_state: Json | null
+          question_id: string
+        }
+        Insert: {
+          changed_at?: string
+          changed_by?: string | null
+          event_type: string
+          id?: string
+          new_state: Json
+          owner_id: string
+          previous_state?: Json | null
+          question_id: string
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string | null
+          event_type?: string
+          id?: string
+          new_state?: Json
+          owner_id?: string
+          previous_state?: Json | null
+          question_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "question_classification_history_question_owner_fk"
+            columns: ["question_id", "owner_id"]
+            isOneToOne: false
+            referencedRelation: "questions"
+            referencedColumns: ["id", "owner_id"]
+          },
+        ]
+      }
       syllabus_catalogs: {
         Row: {
           board: string
