@@ -49,6 +49,8 @@
 - [x] Validate confirmed mappings require board, qualification, subject and syllabus version.
 - [x] Validate optional classification confidence is between 0 and 1.
 - [x] Owner-only classification editor; teacher accounts remain read-only.
+- [x] Classification chapter options depend on the selected syllabus version; topic options depend on the selected chapter and stale child selections are cleared.
+- [ ] Browser acceptance confirms changing a syllabus version cannot submit a chapter/topic from the previous selection.
 - [x] Unit tests cover confirmed, uncertain, unreviewed, incomplete and invalid confidence cases.
 - [x] Question bank can filter by unreviewed, uncertain and confirmed classification state.
 - [x] Owner-scoped syllabus catalogue stores board, qualification, subject, version, effective dates and source provenance.
