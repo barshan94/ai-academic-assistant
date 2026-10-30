@@ -18,7 +18,7 @@ const notices: Record<string, { text: string; tone: "success" | "error" | "info"
   duplicate: { text: "This exact PDF is already in your library.", tone: "info" },
   drive_not_connected: { text: "Connect Google Drive before uploading.", tone: "error" },
   missing_file: { text: "Choose a PDF, JPEG or PNG file first.", tone: "error" },
-  failed: { text: "Upload failed. Check file format, size and Google Drive permissions.", tone: "error" },
+  failed: { text: "Upload failed. Check file format, size and Google Drive permissions.", tone: "error" },\n  complete: { text: "Text extraction finished. Review every page before approving it.", tone: "success" },\n  already_processed: { text: "This document has already been processed.", tone: "info" },\n  not_found: { text: "Document not found or you do not have access to it.", tone: "error" },\n  job_missing: { text: "No processing job was found for this document.", tone: "error" },\n  retry_limit: { text: "The automatic retry limit has been reached. Review the file manually.", tone: "error" },\n  failed: { text: "Processing failed. You can inspect the document and retry if attempts remain.", tone: "error" },
   queue_failed: { text: "The processing job could not be queued. The uploaded file was rolled back.", tone: "error" },
 };
 
@@ -33,7 +33,7 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
     supabase.from("documents").select("id,file_name,file_size_bytes,status,created_at,drive_web_view_link,page_count").eq("owner_id", user.id).order("created_at", { ascending: false }).limit(50),
   ]);
 
-  const noticeKey = params.drive ?? params.upload;
+  const noticeKey = params.drive ?? params.upload ?? params.process;
   const notice = noticeKey ? notices[noticeKey] : undefined;
 
   return (
