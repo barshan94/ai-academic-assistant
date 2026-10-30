@@ -1,24 +1,28 @@
 # Project Overview
 
 ## Purpose
-Build a personal AI academic assistant for a tutor/coaching centre working across Edexcel O Level, Edexcel A Level, SSC and HSC. The system ingests question images and PDFs, identifies board/qualification/subject/chapter/topic, generates exam-ready answers and bilingual teaching explanations, verifies work where deterministic checks are available, and accumulates reusable chapter knowledge.
+Build a personal AI academic assistant for Edexcel O Level, Edexcel A Level, SSC and HSC tutoring. It ingests question images and PDFs, extracts editable text, generates exam-style answers and Bengali/English teaching explanations, runs narrow deterministic checks, and accumulates reusable chapter knowledge.
 
 ## Subjects
 Physics, Mathematics A, Mathematics B, Further Pure Mathematics, General Mathematics, Higher Mathematics, ICT and Computer Science.
 
 ## User and product scope
-- One personal owner initially; no student accounts or public access in the first release.
+- One personal owner plus invited teacher accounts with question-specific access.
+- No student accounts or public question sharing in the initial release.
 - Responsive web application, designed to be PWA-ready.
 - Bengali and English teaching explanations; exam-ready answers in English by default.
-- Minimal manual configuration: automate OCR, classification, processing, and provider selection while allowing review and correction.
+- Minimal manual configuration, with owner/teacher review for uncertain or high-impact outputs.
 - Cloud database and user-owned Google Drive archive.
 
 ## Core outputs
-1. Structured exam-ready answer with working, units, diagrams/notation where relevant.
-2. Separate detailed teaching explanation in Bengali and English.
-3. Topic/chapter classification with confidence and source provenance.
-4. Reusable concept, formula, short-note and chapter-summary knowledge.
-5. Verification status clearly separated into AI-generated, machine-checked and teacher-verified.
+1. Structured AI-generated exam answer with working and units where relevant.
+2. Separate Bengali and English teaching explanations.
+3. Narrow deterministic checks for supported arithmetic, neutral chemistry equations and SI dimensions.
+4. Append-only owner/teacher review and correction history.
+5. Topic/chapter classification with confidence and source provenance.
+6. Reusable concept, formula, short-note and chapter-summary knowledge.
+
+Generated output, machine checks and teacher review remain separate. Passing one narrow check does not prove the full answer correct. Teacher review does not imply official exam-board endorsement.
 
 ## Locked architecture decisions
 | Area | Decision |
@@ -29,13 +33,7 @@ Physics, Mathematics A, Mathematics B, Further Pure Mathematics, General Mathema
 | File archive | User-authorized Google Drive |
 | Image intake | Convert images into optimized PDF after validation |
 | Existing PDFs | Preserve as PDFs; do not needlessly reconvert |
-| AI | Provider-neutral adapters and task-based model routing |
+| AI | Provider-neutral server-side adapters and task-based routing |
 | Retrieval | Own library first; web research only when needed |
-| Processing | Chunked, resumable background jobs |
-| Initial users | Personal use, one owner |
-
-## Non-goals for initial release
-- Multi-tenant SaaS or public student accounts.
-- Guaranteed correctness for every handwritten or diagram-heavy question.
-- Automatic deletion of source files before archive and readability validation.
-- Dependence on a single AI vendor.
+| Processing | Chunked, resumable background jobs planned |
+| Users | One owner; invited teachers get access only to explicitly shared questions |

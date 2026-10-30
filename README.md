@@ -1,49 +1,63 @@
 # AI Academic Assistant
 
-A personal, web-based AI academic workspace for a tutor working across Edexcel O Level/A Level, SSC and HSC subjects. It is designed to turn uploaded questions and documents into structured examination answers, Bengali and English teaching explanations, checked working where possible, and reusable chapter knowledge.
+A personal academic workspace for Edexcel O/A Level, SSC and HSC tutoring. It accepts question images and PDFs, extracts editable question text, generates structured exam-style answer drafts with Bengali and English teaching explanations, and records deterministic checks and teacher feedback.
 
 > This repository is public by the owner's choice. Never commit credentials, service-role keys, OAuth tokens, student personal data, or private source documents.
 
 ## Product principles
 - Accuracy and traceability before speed.
-- Simple upload-first user experience.
-- Permanent user-owned academic knowledge, independent of AI vendors.
 - Board-, qualification-, syllabus- and version-aware classification.
-- No silent claims of verification: generated, machine-checked and teacher-verified are distinct states.
+- Knowledge-first retrieval; web research only when needed.
+- Bengali and English teaching explanations; exam answers in English by default.
+- Generated, machine-checked, owner-reviewed and independently teacher-reviewed are distinct states.
 - Keep infrastructure costs low; never assume AI inference is free.
 
-## Locked decisions
+## Architecture and locked decisions
 | Area | Decision |
 |---|---|
-| Users | Personal use; one owner initially |
-| Platform | Responsive web app; PWA-ready |
-| UI/explanations | Bengali and English |
-| Exam answer | English by default |
-| AI provider | Automatic task-based routing behind provider adapters |
-| Internet | Hybrid: own library/source documents first; web research only when needed |
-| Database | Supabase PostgreSQL Free initially |
-| File archive | User-authorized Google Drive account |
-| Image archive | Convert JPEG/PNG batches into one PDF in selected order; source images are not archived separately |
-| Uploaded PDFs | Preserve original PDF; do not reconvert needlessly |
-| Architecture | Modular monolith + durable background workers |
+| Platform | Responsive Next.js web app; PWA-ready |
+| Database/auth | Supabase PostgreSQL and Auth, Free plan initially |
+| Region | Mumbai (ap-south-1) |
+| File archive | User-authorized Google Drive |
+| AI | Provider-neutral OpenAI-compatible adapter; provider/model configured server-side |
+| Retrieval | Own library first; web research when needed |
+| Initial users | One owner plus question-scoped invited teacher accounts; no student accounts |
+| Processing | Modular monolith with a path to durable background workers |
 
-## Repository contents
-- Responsive dashboard, private sign-in and owner-protected document library.
-- Supabase server-client helper and public environment-variable validation.
-- Applied profile, document intake, processing job, question and Google Drive connection tables with owner-scoped RLS.
-- ESLint and Vitest configuration with initial smoke tests.
-- Private Supabase sign-in and protected dashboard.
-- Google Drive OAuth with encrypted refresh-token storage and disconnect/revocation; PDF archiving; JPEG/PNG batch-to-PDF conversion; OCR extraction; editable per-page corrections and explicit teacher review.
-- A manual, source-linked question library with board, qualification, subject, chapter and topic metadata; search and teacher approval/rejection. AI question classification and solving are not implemented yet.
-- Architecture, data model, roadmap, security, authentication, Drive setup, PDF processing and operations documentation.
+## Implemented
+- Private sign-in and owner-protected document library.
+- Google Drive OAuth code with encrypted refresh-token storage, PDF archiving, image-to-PDF conversion and OCR correction workflow.
+- Manual source-linked question library with board, qualification, subject, chapter and topic metadata.
+- Structured AI answer schema with English exam answer, Bengali/English explanations, working steps, concepts, assumptions and limitations.
+- OpenAI-compatible provider adapter with HTTPS enforcement, timeout, bounded question size and strict schema validation.
+- Deterministic arithmetic, supported neutral chemistry equation atom-count, and SI dimensional-consistency checks. These are narrow checks, not proof of a fully correct answer.
+- Saved answer versions and safe schema validation before rendering.
+- Append-only owner and teacher review/correction records.
+- Question-scoped teacher invitations, email matching, explicit acceptance, restricted read/review access and owner-controlled revocation.
+- Supabase RLS policies and least-privilege grants for question sharing and reviews.
+- ESLint, TypeScript, Vitest, production build and Chromium smoke tests in GitHub Actions.
+
+## Teacher review limits
+- The invited teacher must already have an account using the exact invited email address.
+- The invitation appears in the teacher's /dashboard/teacher-invites page; the app does not currently send invitation emails.
+- Teachers can read the shared question and saved answer drafts and submit append-only review feedback.
+- Teachers cannot edit the question or generate AI answers.
+- Revoking an invitation removes access; invitation/revocation records are retained.
+- A teacher review is not an official exam-board mark scheme and does not automatically change an answer to teacher_verified.
+- See docs/TEACHER_REVIEW.md.
 
 ## Development
-1. Install the exact dependency tree with `npm ci`.
-2. Copy `.env.example` to `.env.local` and add the Supabase project URL and publishable key.
-3. Run `npm run dev`.
-4. Run `npm run lint`, `npm run typecheck`, `npm test` and `npm run build` before proposing a milestone as complete.
+1. Install dependencies: npm ci.
+2. Copy .env.example to .env.local.
+3. Configure Supabase URL and publishable key for local auth/database access.
+4. Run npm run dev.
+5. Before a milestone is considered complete, run npm run lint, npm run typecheck, npm test and npm run build.
 
-Do not commit `.env.local`, credentials, service-role keys, OAuth tokens, student personal data or private source documents. Database migrations are applied to the dedicated Supabase project and mirrored in `supabase/migrations/`.
+Never commit .env.local, service-role keys, OAuth tokens, student personal data or private source documents. Applied Supabase migrations are mirrored in supabase/migrations/.
 
-## Current status
-The latest GitHub Actions run passed pinned dependency installation (`npm ci`), `npm audit` with zero reported vulnerabilities, ESLint, TypeScript, Vitest and the Next.js production build. Supabase profile/document/page/job/question/Drive-connection tables and owner-scoped RLS are applied; composite foreign keys prevent child rows from referencing another owner's document. The private sign-in, Drive OAuth, PDF/image batch upload, OCR extraction, per-page correction, teacher review and manual source-linked question library are implemented in code. Estimated implementation progress is 25%; this is not a claim of production readiness. Live authentication and Google Drive workflows still need the owner's environment credentials and an end-to-end smoke test. Upload is capped at 4 MB; resumable uploads and automatic background workers are not implemented. OCR output remains unverified until the owner checks it against the original. The AI solver and chapter-intelligence modules remain planned.
+## Current status (30 October 2026)
+M1 foundation and core M2 document/question workflows are implemented in code. M3 answer generation, version history and question-scoped teacher review are implemented on the feature branch. The latest feature commit is under CI; see PR #1 for live checks. The Vercel preview is available from the PR's deployment checks.
+
+Not production-ready yet: AI provider credentials are not configured, so live model inference has not been tested and no provider charges have been incurred. Google OAuth and real-account upload/teacher-sharing flows still need live end-to-end testing. Supabase security advisor currently reports no findings; cross-account integration tests with two real accounts are still outstanding. Main and production remain unchanged while this work stays in the draft PR.
+
+Estimated implementation progress: approximately 40%. This is a planning estimate, not a release-readiness score.
