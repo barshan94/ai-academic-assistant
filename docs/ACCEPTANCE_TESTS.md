@@ -44,8 +44,15 @@
 - [ ] Teacher verification status is only set through an independently authorized workflow.
 
 ## Syllabus and chapter intelligence (M5-M6)
-- [ ] Classification includes board, qualification, subject, syllabus version, chapter and topic.
-- [ ] Uncertain classifications are reviewable.
+- [x] Store board, qualification, subject, syllabus version, chapter and topic separately.
+- [x] Keep classification status separate from question-content review status.
+- [x] Validate confirmed mappings require board, qualification, subject and syllabus version.
+- [x] Validate optional classification confidence is between 0 and 1.
+- [x] Owner-only classification editor; teacher accounts remain read-only.
+- [x] Unit tests cover confirmed, uncertain, unreviewed, incomplete and invalid confidence cases.
+- [ ] Versioned reference taxonomy for boards, qualifications, subjects, chapters and topics.
+- [ ] Assisted classification with source evidence and calibrated confidence.
+- [ ] Classification filters and a dedicated uncertain-mapping review queue.
 - [ ] Chapter notes cite contributing questions and source documents.
 - [ ] Reprocessing creates a new note version rather than overwriting teacher-approved content.
 
