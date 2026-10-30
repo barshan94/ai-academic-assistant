@@ -30,6 +30,7 @@ export default async function DashboardPage() {
           <Link className="primary-action" href="/dashboard/documents">Open document library <span aria-hidden="true">→</span></Link>
           <Link className="sign-in-link" href="/dashboard/questions">Open question library</Link>
           <Link className="sign-in-link" href="/dashboard/syllabus">Manage syllabus references</Link>
+          <Link className="sign-in-link" href="/dashboard/syllabus/review">Classification review queue</Link>
         </div>
       </section>
       <section className="section">
