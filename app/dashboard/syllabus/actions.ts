@@ -66,7 +66,6 @@ export async function createSyllabusCatalog(formData: FormData) {
     effective_to: value.effectiveTo || null,
     source_url: value.sourceUrl || null,
     source_title: value.sourceTitle || null,
-    status: "draft",
   });
 
   if (error) redirect("/dashboard/syllabus?catalog=" + (error.code === "23505" ? "duplicate" : "save_failed"));
