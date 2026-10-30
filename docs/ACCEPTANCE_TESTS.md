@@ -61,7 +61,6 @@
 - [ ] Dedicated uncertain-mapping review queue with prioritization and batch review.
 - [ ] Shared, centrally curated reference dataset and import pipeline for boards, qualifications, subjects, chapters and topics.
 - [ ] Assisted classification with source evidence and calibrated confidence.
-- [ ] Classification filters and a dedicated uncertain-mapping review queue.
 - [ ] Chapter notes cite contributing questions and source documents.
 - [ ] Reprocessing creates a new note version rather than overwriting teacher-approved content.
 
