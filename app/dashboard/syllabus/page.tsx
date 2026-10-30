@@ -75,6 +75,7 @@ export default async function SyllabusPage({ searchParams }: PageProps) {
         <p className="hero-copy">Build a versioned reference for each board, qualification and subject. Add chapters and topics underneath it, then attach questions to the exact version instead of relying on free-text labels.</p>
         <div className="hero-actions">
           <Link className="sign-in-link" href="/dashboard/questions">Back to question bank</Link>
+          <Link className="sign-in-link" href="/dashboard/syllabus/review">Open classification review queue</Link>
         </div>
       </section>
 
