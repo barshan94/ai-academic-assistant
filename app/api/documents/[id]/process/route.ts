@@ -34,21 +34,21 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
   const { data: job, error: jobError } = await supabase
     .from("processing_jobs")
-    .select("id,status")
+    .select("id,status,attempt_count,max_attempts")
     .eq("document_id", id)
     .eq("owner_id", user.id)
-    .eq("stage", "validate")
     .maybeSingle();
 
   if (jobError || !job) return redirectToDocument(request, id, "job_missing");
   if (job.status === "completed") return redirectToDocument(request, id, "already_processed");
+  if (job.attempt_count >= job.max_attempts) return redirectToDocument(request, id, "retry_limit");
 
   await supabase.from("documents").update({ status: "processing" }).eq("id", id).eq("owner_id", user.id);
   await supabase.from("processing_jobs").update({
     status: "running",
     stage: "ocr",
     progress: 10,
-    attempt_count: 1,
+    attempt_count: job.attempt_count + 1,
     started_at: new Date().toISOString(),
     error_code: null,
     error_message: null,
@@ -60,10 +60,10 @@ export async function POST(request: NextRequest, context: RouteContext) {
       accessToken,
       driveFileId: document.drive_file_id,
     });
-    const pages = splitExtractedText(extractedText).slice(0, 100);
+    const pages = splitExtractedText(extractedText);
 
     if (!pages.length) throw new Error("No readable text was detected. The file needs manual review.");
-    if (pages.length >= 100) throw new Error("The document exceeded the 100-page processing limit.");
+    if (pages.length > 100) throw new Error("The document exceeded the 100-page processing limit.");
 
     const { error: deleteError } = await supabase
       .from("document_pages")
