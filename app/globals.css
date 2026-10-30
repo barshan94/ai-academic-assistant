@@ -244,3 +244,14 @@ h2 { font-size: 24px; letter-spacing: -.04em; margin: 0; font-weight: 600; }
 .syllabus-import-panel > p { line-height: 1.7; }
 .syllabus-json-input { width: 100%; min-height: 280px; resize: vertical; border: 1px solid #354451; border-radius: 8px; background: #0b1219; color: #d7e3eb; padding: 13px; font: 11px/1.65 ui-monospace, SFMono-Regular, Consolas, monospace; }
 .syllabus-import-panel .review-form { margin-top: 14px; }
+
+
+/* Explainable syllabus text-match suggestions */
+.classification-suggestions { margin: 16px 0 20px; padding: 14px; border: 1px solid var(--line); border-radius: 9px; background: #0d151d; }
+.classification-suggestions h3 { margin: 10px 0 7px; font-size: 13px; }
+.classification-suggestion-list { display: grid; gap: 8px; margin: 8px 0 14px; padding: 0; list-style: none; }
+.classification-suggestion-list li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px; border: 1px solid #2d3b47; border-radius: 7px; }
+.classification-suggestion-list li > div { display: grid; gap: 4px; min-width: 0; }
+.classification-suggestion-list li span { color: var(--muted); font-size: 11px; line-height: 1.5; overflow-wrap: anywhere; }
+.classification-suggestion-list .secondary-action { flex: 0 0 auto; font-size: 11px; }
+@media (max-width: 560px) { .classification-suggestion-list li { align-items: flex-start; flex-direction: column; } }
