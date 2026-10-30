@@ -12,7 +12,11 @@ const catalogSchema = z.object({
   version: z.string().trim().min(1).max(80),
   effectiveFrom: z.string().trim().max(10),
   effectiveTo: z.string().trim().max(10),
-  sourceUrl: z.string().trim().max(2048).refine((value) => !value || value.startsWith("https://")),
+  sourceUrl: z.string().trim().max(2048).refine((value) => {
+    if (!value) return true;
+    try { return new URL(value).protocol === "https:"; }
+    catch { return false; }
+  }),
   sourceTitle: z.string().trim().max(200),
 });
 
