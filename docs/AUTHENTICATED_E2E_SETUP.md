@@ -4,15 +4,16 @@ These tests exercise the real Supabase Auth and Row Level Security paths using t
 
 ## Safety requirements
 
-- Create a **separate Supabase project** used only for automated testing. Never use production.
-- Apply every SQL migration in `supabase/migrations/` to that test project.
+- Use a non-production Supabase development/test project. The existing `academic-assistant` project may be reused if it is not production and remains free of real user/student data; do not create another project just for this workflow.
+- If the existing project is production or contains real user data, stop and use a separate test project instead.
+- Ensure every SQL migration in `supabase/migrations/` is applied to the chosen test environment.
 - Create two confirmed auth users in the test project: one owner and one teacher. Use distinct email addresses and strong test-only passwords.
 - Do not use personal accounts, real student records, or production credentials.
 - The test does not call an AI provider. Its answer is a fixture inserted by `supabase/e2e_seed.sql`.
 
 ## Seed the test question
 
-1. Open the dedicated test project's SQL Editor.
+1. Open the chosen non-production project's SQL Editor.
 2. Open `supabase/e2e_seed.sql`, replace `OWNER_E2E_EMAIL_HERE` with the test owner's email, and run it.
 3. Copy the `E2E_QUESTION_ID` and `E2E_SOLUTION_ID` values from the SQL result.
 
@@ -22,7 +23,7 @@ In the repository, open **Settings → Secrets and variables → Actions**. Add 
 
 | Secret | Value |
 |---|---|
-| `E2E_SUPABASE_URL` | URL of the dedicated test Supabase project |
+| `E2E_SUPABASE_URL` | URL of the chosen non-production test Supabase project |
 | `E2E_SUPABASE_PUBLISHABLE_KEY` | Publishable/anon key for that test project |
 | `E2E_OWNER_EMAIL` | Test owner email |
 | `E2E_OWNER_PASSWORD` | Test owner password |
@@ -49,4 +50,4 @@ Each run creates a new invitation and revokes it. The invitation audit record is
 
 ## Limits
 
-This does not test live AI inference, Google OAuth/Drive, upload processing, or official answer quality. Those require separate acceptance tests and explicit cost/account approval. A passing run demonstrates the tested two-account workflow against the test project's currently applied migrations; it does not certify every production security path.
+This does not test live AI inference, Google OAuth/Drive, upload processing, or official answer quality. Those require separate acceptance tests and explicit cost/account approval. A passing run demonstrates the tested two-account workflow against the chosen test environment's currently applied migrations; it does not certify every production security path.
