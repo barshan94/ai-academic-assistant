@@ -20,7 +20,7 @@ export async function generateQuestionSolution(formData: FormData) {
 
   const { data: question, error: questionError } = await supabase
     .from("questions")
-    .select("id,question_text,review_status")
+    .select("id,question_text,review_status,board,qualification,subject,chapter,topic")
     .eq("id", questionId.data)
     .eq("owner_id", user.id)
     .maybeSingle();
@@ -42,7 +42,13 @@ export async function generateQuestionSolution(formData: FormData) {
 
   let answer;
   try {
-    answer = await generateStructuredAnswer(question.question_text, config);
+    answer = await generateStructuredAnswer(question.question_text, config, fetch, {
+      board: question.board,
+      qualification: question.qualification,
+      subject: question.subject,
+      chapter: question.chapter,
+      topic: question.topic,
+    });
   } catch (error) {
     const code = error instanceof AIProviderError ? error.message.split(":")[0] : "AI_PROVIDER_ERROR";
     redirect("/dashboard/questions/" + question.id + "?solve=" + encodeURIComponent(code.slice(0, 80)));
@@ -54,7 +60,7 @@ export async function generateQuestionSolution(formData: FormData) {
     question_id: question.id,
     provider: config.provider,
     model: config.model,
-    prompt_version: "academic-answer-v1",
+    prompt_version: "academic-answer-v2-math-checks",
     answer_json: answer,
     verification_status: "generated",
   });

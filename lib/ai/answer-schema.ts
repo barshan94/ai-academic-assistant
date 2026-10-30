@@ -6,6 +6,11 @@ export const examAnswerSchema = z.object({
     step: z.string().trim().min(1).max(300),
     explanation: z.string().trim().min(1).max(3000),
   })).max(30),
+  calculationChecks: z.array(z.object({
+    expression: z.string().trim().min(1).max(200),
+    claimedResult: z.number().finite(),
+    unit: z.string().max(40),
+  })).max(20),
   bengaliExplanation: z.string().trim().min(1).max(12000),
   englishExplanation: z.string().trim().min(1).max(12000),
   keyConcepts: z.array(z.string().trim().min(1).max(300)).max(20),

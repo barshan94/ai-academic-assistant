@@ -10,6 +10,7 @@ import { parseExamAnswer } from "@/lib/ai/answer-schema";
 const validAnswer = {
   examAnswer: "The resultant moment is zero.",
   workingSteps: [{ step: "1", explanation: "Clockwise moment equals anticlockwise moment." }],
+  calculationChecks: [{ expression: "5 * 2", claimedResult: 10, unit: "Nm" }],
   bengaliExplanation: "ঘড়ির কাঁটার দিকে ও বিপরীত দিকের মোট মুহূর্ত সমান।",
   englishExplanation: "The turning effects balance.",
   keyConcepts: ["Principle of moments"],
@@ -53,14 +54,20 @@ describe("structured exam answer generation", () => {
       choices: [{ message: { content: JSON.stringify(validAnswer) } }],
     }), { status: 200, headers: { "Content-Type": "application/json" } }));
 
-    const result = await generateStructuredAnswer("Explain the principle of moments.", config, fetcher);
+    const result = await generateStructuredAnswer("Explain the principle of moments.", config, fetcher, {
+      board: "Edexcel",
+      qualification: "A Level",
+      subject: "Physics",
+    });
 
     expect(result).toEqual(validAnswer);
     expect(fetcher).toHaveBeenCalledOnce();
     const [url, init] = fetcher.mock.calls[0];
     expect(url).toBe("https://example.test/v1/chat/completions");
     expect((init?.headers as Record<string, string>).Authorization).toBe("Bearer test-key");
-    expect(JSON.parse(String(init?.body)).response_format).toEqual({ type: "json_object" });
+    const body = JSON.parse(String(init?.body));
+    expect(body.response_format).toEqual({ type: "json_object" });
+    expect(body.messages[1].content).toContain("Edexcel");
   });
 
   it("does not accept malformed provider output", async () => {

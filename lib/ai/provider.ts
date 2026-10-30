@@ -7,6 +7,14 @@ export type AIProviderConfig = {
   model: string;
 };
 
+export type AcademicContext = {
+  board?: string | null;
+  qualification?: string | null;
+  subject?: string | null;
+  chapter?: string | null;
+  topic?: string | null;
+};
+
 export class AIConfigurationError extends Error {
   constructor() {
     super("AI_NOT_CONFIGURED");
@@ -54,6 +62,7 @@ export async function generateStructuredAnswer(
   questionText: string,
   config: AIProviderConfig = getAIProviderConfig(),
   fetcher: typeof fetch = fetch,
+  context: AcademicContext = {},
 ): Promise<ExamAnswer> {
   const question = questionText.trim();
   if (!question || question.length > 20000) throw new AIProviderError("QUESTION_INVALID");
@@ -75,16 +84,27 @@ export async function generateStructuredAnswer(
             role: "system",
             content: [
               "You are a careful Edexcel, Cambridge O Level/A Level, SSC and HSC academic tutor.",
+              "Adapt terminology, depth and notation to the supplied board, qualification, subject, chapter and topic. If context is absent, do not guess a syllabus or exam board.",
               "Produce an examination-ready answer in English, followed by clear Bengali and English teaching explanations.",
               "Show calculations and logical working step by step when relevant. Preserve units and significant figures when supplied.",
+              "For every arithmetic calculation you perform, include a calculationChecks item with a simple arithmetic expression, the numerical result and its unit. Use an empty array when there are no arithmetic calculations. Do not include an expression that cannot be evaluated using basic arithmetic.",
               "Do not invent missing values, diagrams, mark schemes, syllabus facts or citations.",
               "If the question is ambiguous or missing information, state the assumption and limitation explicitly.",
               "Do not claim that an answer has been independently verified.",
-              "Return one valid JSON object only with keys: examAnswer, workingSteps, bengaliExplanation, englishExplanation, keyConcepts, assumptions, limitations.",
-              "workingSteps must be an array of objects with step and explanation strings. The other list fields must be arrays of strings.",
+              "Return one valid JSON object only with keys: examAnswer, workingSteps, calculationChecks, bengaliExplanation, englishExplanation, keyConcepts, assumptions, limitations.",
+              "workingSteps must be an array of objects with step and explanation strings. calculationChecks must be an array of objects with expression, claimedResult (number), and unit (string). The other list fields must be arrays of strings.",
             ].join(" "),
           },
-          { role: "user", content: "Solve and explain this question:\n\n" + question },
+          {
+            role: "user",
+            content: [
+              "Academic context:",
+              JSON.stringify(context),
+              "",
+              "Solve and explain this question:",
+              question,
+            ].join("\n"),
+          },
         ],
       }),
       signal: AbortSignal.timeout(45000),

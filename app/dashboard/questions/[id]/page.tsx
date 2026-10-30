@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { generateQuestionSolution } from "./actions";
+import { checkCalculations } from "@/lib/ai/math-check";
 import type { DatabaseWithAISolutions } from "@/types/ai-database";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { ExamAnswer } from "@/lib/ai/answer-schema";
@@ -47,6 +48,8 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
 
   const latest = solutions?.[0];
   const answer = latest?.answer_json as unknown as ExamAnswer | undefined;
+  const arithmeticResults = answer ? checkCalculations(answer.calculationChecks ?? []) : [];
+  const arithmeticPassed = arithmeticResults.length > 0 && arithmeticResults.every((item) => item.status === "passed");
   const message = query.solve ? messages[query.solve] ?? "Answer generation failed (" + query.solve.slice(0, 80) + ")." : undefined;
 
   return (
@@ -88,6 +91,18 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
             {answer.workingSteps.length ? <>
               <h3>Working and reasoning</h3>
               <ol className="solution-steps">{answer.workingSteps.map((step, index) => <li key={index}><strong>{step.step}</strong><p>{step.explanation}</p></li>)}</ol>
+            </> : null}
+            {answer.calculationChecks.length ? <>
+              <h3>Arithmetic consistency checks</h3>
+              <p className="question-card-meta">These checks recalculate only the supplied arithmetic expressions. They do not verify the physics, chemistry, algebraic modelling, units or exam-method correctness.</p>
+              <ul className="calculation-checks">{arithmeticResults.map((item, index) => (
+                <li key={index}>
+                  <strong>{item.status === "passed" ? "PASS" : item.status === "mismatch" ? "MISMATCH" : "NOT CHECKED"}</strong>
+                  <span><code>{item.expression}</code> = {item.calculatedResult === null ? "not calculated" : item.calculatedResult} {item.unit}</span>
+                  <small>{item.message} Claimed result: {item.claimedResult} {item.unit}</small>
+                </li>
+              ))}</ul>
+              {arithmeticPassed ? <p className="notice notice-info">All supplied arithmetic expressions passed. This is not an overall answer verification.</p> : <p className="notice notice-info">At least one arithmetic expression did not pass or could not be checked. Review the calculations manually.</p>}
             </> : null}
             <h3>Bengali explanation</h3><div className="solution-prose" lang="bn">{answer.bengaliExplanation}</div>
             <h3>English explanation</h3><div className="solution-prose">{answer.englishExplanation}</div>
