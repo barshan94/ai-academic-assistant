@@ -126,3 +126,23 @@ h2 { font-size: 24px; letter-spacing: -.04em; margin: 0; font-weight: 600; }
   .document-status { margin-left: 50px; }
   .document-open { margin-left: auto; }
 }
+
+
+/* OCR review workspace */
+.document-action { border: 1px solid #3b514f; border-radius: 7px; padding: 8px 11px; color: var(--accent); background: #13211f; font: inherit; font-size: 10px; font-weight: 650; cursor: pointer; white-space: nowrap; }
+.document-action:hover { background: #1a302b; }
+.review-list { display: flex; flex-direction: column; gap: 15px; }
+.review-page { padding: 20px; border: 1px solid var(--line); border-radius: 11px; background: linear-gradient(145deg, #16212b, #101821); }
+.review-page-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; }
+.review-page-heading h3 { margin: 0; font-size: 14px; }
+.review-form { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+.review-form label { color: #c5d0d9; font-size: 11px; font-weight: 650; }
+.review-form textarea { width: 100%; min-height: 180px; resize: vertical; border: 1px solid #354451; border-radius: 7px; background: #0b1219; color: var(--text); padding: 13px; font: 12px/1.75 ui-monospace, SFMono-Regular, Menlo, monospace; }
+.review-form textarea:focus { outline: 1px solid var(--accent); border-color: var(--accent); }
+.approve-panel { display: flex; justify-content: space-between; align-items: center; gap: 20px; margin-top: 22px; padding: 20px; border: 1px solid #315b4f; border-radius: 11px; background: #11251f; }
+.approve-panel h3 { margin: 0 0 7px; font-size: 14px; }
+.approve-panel p { max-width: 580px; margin: 0; color: #a9c9bd; font-size: 11px; line-height: 1.7; }
+@media (max-width: 640px) {
+  .review-page { padding: 14px; }
+  .review-page-heading, .approve-panel { align-items: flex-start; flex-direction: column; }
+}
