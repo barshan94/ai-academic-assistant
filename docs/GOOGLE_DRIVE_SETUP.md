@@ -1,17 +1,69 @@
-# Google Drive OAuth Setup
+# Google Drive OAuth and document archive setup
 
-This is a setup guide for the app's own Google Drive API integration; it is not a ChatGPT connector.
+The app archives source PDFs in the owner's Google Drive. It uses the narrow \`drive.file\` OAuth scope and does not scan the user's entire Drive.
 
-## Setup outline
-1. Create or select a Google Cloud project owned by the user.
-2. Enable Google Drive API.
-3. Configure the OAuth consent screen and test-user settings appropriate to the account.
-4. Create OAuth client credentials for a web application.
-5. Add exact local and production redirect URIs used by the app.
-6. Store client ID and client secret only in server-side environment variables.
-7. Implement Authorization Code flow with state validation and least-privilege Drive scopes.
-8. Encrypt refresh tokens at rest and implement disconnect/revocation.
-9. Test upload, resumable upload, metadata verification, quota errors and token refresh.
+## Google Cloud setup
 
-## Safety
-Never commit OAuth client secrets or refresh tokens. Do not request broad Drive access unless the selected Drive API flow genuinely requires it. Review Google's current OAuth verification and restricted-scope requirements before production release.
+1. Create or select a Google Cloud project.
+2. Enable the **Google Drive API**.
+3. Configure the OAuth consent screen. While the app is in Testing, add the Google account that will own the archive as a test user.
+4. Create an OAuth client ID with application type **Web application**.
+5. Add these exact authorized redirect URIs:
+   - Local: \`http://localhost:3000/api/drive/callback\`
+   - Production: \`https://YOUR-DEPLOYED-DOMAIN/api/drive/callback\`
+6. Copy the client ID and client secret into the server environment. Do not expose either in a \`NEXT_PUBLIC_\` variable.
+
+## Environment variables
+
+Add these to \`.env.local\` locally and to the deployment's server-side environment settings:
+
+\`\`\`dotenv
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+GOOGLE_DRIVE_REDIRECT_URI=http://localhost:3000/api/drive/callback
+DRIVE_TOKEN_ENCRYPTION_KEY=
+\`\`\`
+
+Generate the encryption key with:
+
+\`\`\`bash
+openssl rand -base64 32
+\`\`\`
+
+The decoded value must be exactly 32 bytes. Keep the same key backed up securely. If it is lost or changed, the app cannot decrypt already-stored refresh tokens and the user must reconnect Google Drive.
+
+Also configure the Supabase URL and publishable key as documented in \`AUTHENTICATION_SETUP.md\`.
+
+## Current document workflow
+
+1. Sign in to the private Academic Assistant account.
+2. Open **Dashboard → Document library**.
+3. Connect the Google account that should own the archive.
+4. Upload a PDF, JPEG or PNG up to 4 MB. The current hosted request path is deliberately capped at 4 MB; larger/resumable uploads are not implemented yet.
+5. Existing PDFs are uploaded unchanged. JPEG/PNG images are wrapped in a single-page PDF before archiving.
+6. The app stores only file metadata and the Drive file ID in Supabase.
+7. Select **Extract text**. The app temporarily imports the archived PDF into Google Docs using Drive's conversion/OCR support, exports text, and deletes the temporary Google Doc.
+8. Review and correct each extracted page. OCR output is not considered verified.
+9. Select **Mark reviewed** only after checking the extracted text against the original in Drive.
+
+The extraction route has a three-attempt limit and a 100-page extracted-text limit. Google Drive conversion and OCR behavior depends on the source document and Google's service availability. It is not a substitute for checking formulas, diagrams, tables, or symbols manually.
+
+## Security behavior
+
+- OAuth uses a random state value stored in a short-lived, HTTP-only, SameSite=Lax cookie and binds it to the signed-in owner.
+- The refresh token is encrypted with AES-256-GCM before it is stored in the owner-scoped \`drive_connections\` table.
+- Access tokens are refreshed server-side and never returned to the browser.
+- Only \`drive.file\` scope is requested.
+- Temporary Google Docs created for extraction are deleted after export.
+- Supabase stores metadata, extracted text and review state; the original PDF remains in the user's Drive.
+- The current implementation does not yet include a disconnect/revoke screen, resumable large-file upload, or automatic background worker. Processing is started explicitly from the document library.
+
+## Troubleshooting
+
+- **Drive credentials not configured:** check all four Google variables and redeploy/restart.
+- **Redirect URI mismatch:** the URI in Google Cloud must exactly match \`GOOGLE_DRIVE_REDIRECT_URI\`, including scheme, host and path.
+- **Missing refresh token:** remove the app from Google Account → Security → Third-party connections, then connect again with consent.
+- **OCR failed:** open the source PDF in Drive and check whether it is readable. Password-protected, malformed, very large, or image-heavy PDFs may need manual handling.
+- **Token decryption failed:** restore the original \`DRIVE_TOKEN_ENCRYPTION_KEY\`; otherwise reconnect Drive after removing the old connection.
+
+Review Google's current OAuth verification and Drive API policies before making the app available to other users.
