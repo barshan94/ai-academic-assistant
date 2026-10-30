@@ -25,6 +25,8 @@
 - [x] Provide a Drive disconnect action that attempts token revocation.
 - [x] Enforce a three-attempt processing limit and a 100-page text cap.
 - [ ] Live Google OAuth, PDF upload, image upload, Drive OCR and review workflow tested with the owner's Google account.
+- [x] Manually capture an individual question from a reviewed source page with board/qualification/subject/chapter metadata.
+- [x] Search the source-linked question library and mark captured questions approved or rejected.
 - [ ] Resumable uploads for files larger than 4 MB.
 - [ ] Durable background processing worker and automatic retries.
 - [ ] Verify mathematical symbols, tables and diagrams against the original before approval.

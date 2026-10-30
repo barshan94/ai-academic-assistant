@@ -148,3 +148,29 @@ h2 { font-size: 24px; letter-spacing: -.04em; margin: 0; font-weight: 600; }
 }
 
 .drive-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+
+
+/* Source-linked question library */
+.question-create { margin-top: 15px; border-top: 1px solid var(--line); padding-top: 13px; }
+.question-create summary { color: var(--accent); font-size: 11px; font-weight: 650; cursor: pointer; }
+.question-create > p { color: var(--muted); font-size: 11px; line-height: 1.6; margin: 10px 0; }
+.question-create-form { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; margin-top: 12px; }
+.question-create-form label, .question-search label { display: flex; flex-direction: column; gap: 6px; color: #c5d0d9; font-size: 10px; font-weight: 650; }
+.question-create-form textarea, .question-create-form input, .question-search input { width: 100%; border: 1px solid #354451; border-radius: 7px; background: #0b1219; color: var(--text); padding: 10px; font: inherit; font-size: 11px; }
+.question-create-form textarea { min-height: 110px; resize: vertical; line-height: 1.7; }
+.question-fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; width: 100%; }
+.question-search { display: grid; grid-template-columns: 2fr 1fr auto auto; align-items: end; gap: 12px; margin-bottom: 22px; }
+.question-list { display: flex; flex-direction: column; gap: 12px; }
+.question-card { padding: 18px; border: 1px solid var(--line); border-radius: 10px; background: linear-gradient(145deg, #16212b, #101821); }
+.question-card-heading, .question-card-footer, .question-review-actions { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.question-subject { color: var(--accent); font-size: 10px; font-weight: 650; }
+.question-card-text { margin: 14px 0; color: var(--text); font-size: 13px; line-height: 1.8; white-space: pre-wrap; }
+.question-card-meta { margin: 0 0 14px; color: var(--muted); font-size: 10px; }
+.question-card-footer { flex-wrap: wrap; padding-top: 12px; border-top: 1px solid var(--line); }
+.question-review-actions { justify-content: flex-start; }
+.document-action-muted { color: #e4a7a7; border-color: #684343; background: #261719; }
+@media (max-width: 680px) {
+  .question-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .question-search { grid-template-columns: 1fr; }
+  .question-card-footer { align-items: flex-start; flex-direction: column; }
+}

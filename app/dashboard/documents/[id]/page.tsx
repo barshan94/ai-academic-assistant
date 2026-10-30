@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { approveDocument, savePageCorrection } from "./actions";
+import { approveDocument, createQuestionFromPage, savePageCorrection } from "./actions";
 
 type PageProps = {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ process?: string; review?: string }>;
+  searchParams: Promise<{ process?: string; review?: string; question?: string }>;
 };
 
 const notices: Record<string, string> = {
@@ -24,6 +24,10 @@ const notices: Record<string, string> = {
   approved: "You marked this document as reviewed. This is a teacher review status, not an automated accuracy guarantee.",
   approve_failed: "The review status could not be updated completely. Refresh and inspect the document.",
   empty: "There are no extracted pages to approve.",
+  created: "Question saved to your question library.",
+  invalid_question: "Check the question text and metadata, then try again.",
+  source_invalid: "The selected page does not belong to this document or account.",
+  save_failed_question: "The question could not be saved.",
 };
 
 export default async function DocumentReviewPage({ params, searchParams }: PageProps) {
@@ -39,14 +43,18 @@ export default async function DocumentReviewPage({ params, searchParams }: PageP
   ]);
 
   if (documentError || !document) notFound();
-  const noticeKey = query.review ?? query.process;
+  const noticeKey = query.question === "created" ? "created"
+    : query.question === "invalid" ? "invalid_question"
+    : query.question === "source_invalid" ? "source_invalid"
+    : query.question === "save_failed" ? "save_failed_question"
+    : query.review ?? query.process;
   const notice = noticeKey ? notices[noticeKey] : undefined;
 
   return (
     <main className="shell">
       <header className="topbar">
         <Link className="brand" href="/"><span className="brand-mark">A</span><span>Academic<span className="brand-muted">Assistant</span></span></Link>
-        <div className="topbar-actions"><Link className="sign-in-link" href="/dashboard/documents">Library</Link><Link className="sign-in-link" href="/dashboard">Dashboard</Link></div>
+        <div className="topbar-actions"><Link className="sign-in-link" href="/dashboard/documents">Library</Link><Link className="sign-in-link" href="/dashboard/questions">Questions</Link><Link className="sign-in-link" href="/dashboard">Dashboard</Link></div>
       </header>
 
       <section className="hero documents-hero">
@@ -75,6 +83,25 @@ export default async function DocumentReviewPage({ params, searchParams }: PageP
                   <textarea id={"page-text-" + page.id} name="extractedText" defaultValue={page.extracted_text ?? ""} rows={10} maxLength={50000} required />
                   <button className="document-action" type="submit">Save correction</button>
                 </form>
+                <details className="question-create">
+                  <summary>Save a question from this page</summary>
+                  <p>Copy one individual question into the field below. This creates a source-linked question record; it does not generate an answer.</p>
+                  <form action={createQuestionFromPage} className="question-create-form">
+                    <input type="hidden" name="documentId" value={document.id} />
+                    <input type="hidden" name="documentPageId" value={page.id} />
+                    <label htmlFor={"question-text-" + page.id}>Question text</label>
+                    <textarea id={"question-text-" + page.id} name="questionText" defaultValue={page.extracted_text ?? ""} rows={5} maxLength={20000} required />
+                    <div className="question-fields">
+                      <label>Question number<input name="questionNumber" placeholder="e.g. 3(b)" maxLength={40} /></label>
+                      <label>Board<input name="board" placeholder="e.g. Cambridge" maxLength={120} /></label>
+                      <label>Qualification<input name="qualification" placeholder="e.g. O Level" maxLength={120} /></label>
+                      <label>Subject<input name="subject" placeholder="e.g. Physics" maxLength={120} /></label>
+                      <label>Chapter<input name="chapter" placeholder="Chapter name" maxLength={120} /></label>
+                      <label>Topic<input name="topic" placeholder="Topic name" maxLength={120} /></label>
+                    </div>
+                    <button className="document-action" type="submit">Add to question library</button>
+                  </form>
+                </details>
               </article>
             ))}
           </div>

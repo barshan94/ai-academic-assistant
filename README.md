@@ -34,6 +34,7 @@ A personal, web-based AI academic workspace for a tutor working across Edexcel O
 - ESLint and Vitest configuration with initial smoke tests.
 - Private Supabase sign-in and protected dashboard.
 - Google Drive OAuth with encrypted refresh-token storage and disconnect/revocation; PDF archiving; JPEG/PNG batch-to-PDF conversion; OCR extraction; editable per-page corrections and explicit teacher review.
+- A manual, source-linked question library with board, qualification, subject, chapter and topic metadata; search and teacher approval/rejection. AI question classification and solving are not implemented yet.
 - Architecture, data model, roadmap, security, authentication, Drive setup, PDF processing and operations documentation.
 
 ## Development

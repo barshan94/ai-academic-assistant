@@ -21,6 +21,12 @@ Percentages are planned scope estimates, not completed progress.
 - Row Level Security policies and grants are verified for owner isolation.
 - Lint, typecheck, build and automated tests pass.
 
+## Early M3 scope
+- Capture individual questions from teacher-reviewed document pages.
+- Store question text with source page/document provenance and optional board, qualification, subject, chapter and topic metadata.
+- Search the owner's question library and approve/reject captured records.
+- AI segmentation, classification and solution generation remain later M3 work.
+
 ## M2 exit criteria
 - Google Drive OAuth is configured and live-tested with the owner's account.
 - PDFs are archived unchanged; JPEG/PNG inputs become PDFs before archive.
