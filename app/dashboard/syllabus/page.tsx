@@ -32,13 +32,13 @@ const statusMessages: Record<string, string> = {
   imported: "The syllabus was imported atomically as a draft. Review its source and contents before marking it verified.",
   import_duplicate: "A matching syllabus version or chapter/topic already exists. Nothing from this import was saved.",
   import_invalid: "The JSON document is invalid or exceeds the import limits. Check its format and try again.",
-  save_failed: "The import could not be saved. No partial chapter/topic import was committed.",
+  import_save_failed: "The import could not be saved. No partial chapter/topic import was committed.",
 };
 
 function Notice({ value, label }: { value?: string; label: string }) {
   if (!value) return null;
   const message = statusMessages[value];
-  return message ? <p className={value === "save_failed" || value === "invalid" || value.endsWith("_invalid") || value.endsWith("_duplicate") ? "notice notice-error" : "notice notice-info"} role="status">{label}: {message}</p> : null;
+  return message ? <p className={value === "save_failed" || value === "import_save_failed" || value === "invalid" || value.endsWith("_invalid") || value.endsWith("_duplicate") ? "notice notice-error" : "notice notice-info"} role="status">{label}: {message}</p> : null;
 }
 
 export default async function SyllabusPage({ searchParams }: PageProps) {
@@ -88,7 +88,7 @@ export default async function SyllabusPage({ searchParams }: PageProps) {
       <Notice value={params.catalog} label="Syllabus version" />
       <Notice value={params.chapter} label="Chapter" />
       <Notice value={params.topic} label="Topic" />
-      <Notice value={params.import} label="Syllabus import" />
+      <Notice value={params.import === "save_failed" ? "import_save_failed" : params.import} label="Syllabus import" />
 
       {catalogError || chapterError || topicError ? <p className="notice notice-error">Some catalogue data could not be loaded. Refresh the page or check the database connection.</p> : null}
 
