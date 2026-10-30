@@ -49,16 +49,16 @@ Implemented on feature/m3-ai-solver:
 - Surface syllabus version and classification state in the question bank.
 - Filter the question bank by unreviewed, uncertain and confirmed classification state.
 - Add unit coverage for valid, incomplete, uncertain and out-of-range classifications.
+- Add owner-scoped, versioned syllabus catalogues with board, qualification, subject, version, effective dates and source provenance.
+- Add hierarchical chapter and topic references with uniqueness and same-owner/same-version foreign-key enforcement.
+- Link questions to structured catalogue, chapter and topic IDs while retaining text snapshots for backward compatibility.
+- Add a private catalogue workspace to create versions, chapters and topics; require an HTTPS source and explicit owner review before marking a version verified.
+- Prevent a question mapping from being marked confirmed against a draft or retired catalogue.
+- Add a dedicated owner-only review queue for unreviewed and uncertain mappings, prioritizing missing/lowest confidence first.
 
 M5 exit criteria still outstanding:
-- [x] Add owner-scoped, versioned syllabus catalogues with board, qualification, subject, version, effective dates and source provenance.
-- [x] Add hierarchical chapter and topic references with uniqueness and same-owner/same-version foreign-key enforcement.
-- [x] Link questions to structured catalogue, chapter and topic IDs while retaining text snapshots for backward compatibility.
-- [x] Add a private catalogue workspace to create versions, chapters and topics; require an HTTPS source and explicit owner review before marking a version verified.
-- [x] Prevent a question mapping from being marked confirmed against a draft or retired catalogue.
 - Build a shared, centrally curated reference dataset and import pipeline rather than requiring every owner to build the catalogue manually.
 - Add assisted classification with evidence and calibrated confidence; never silently guess a syllabus version.
-- [x] Add a dedicated owner-only review queue for unreviewed and uncertain mappings, prioritizing missing/lowest confidence first.
 - Add batch review actions after individual mapping workflows have been exercised.
 - Chapter notes cite contributing questions and source documents.
 - Reprocessing creates a new note version rather than overwriting teacher-approved content.
