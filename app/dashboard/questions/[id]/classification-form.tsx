@@ -8,7 +8,7 @@ type ClassificationQuestion = {
   syllabus_version: string | null;
   chapter: string | null;
   topic: string | null;
-  classification_status: "unreviewed" | "confirmed" | "uncertain";
+  classification_status: string;
   classification_confidence: number | null;
 };
 
