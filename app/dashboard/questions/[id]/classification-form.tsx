@@ -54,6 +54,7 @@ export function ClassificationForm({
 }) {
   const [selectedCatalogId, setSelectedCatalogId] = useState(question.syllabus_catalog_id ?? "");
   const [selectedChapterId, setSelectedChapterId] = useState(question.syllabus_chapter_id ?? "");
+  const [selectedTopicId, setSelectedTopicId] = useState(question.syllabus_topic_id ?? "");
   const availableChapters = chapters.filter((chapter) => chapter.catalog_id === selectedCatalogId);
   const availableTopics = topics.filter((topic) => topic.chapter_id === selectedChapterId);
 
@@ -68,6 +69,7 @@ export function ClassificationForm({
             onChange={(event) => {
               setSelectedCatalogId(event.target.value);
               setSelectedChapterId("");
+              setSelectedTopicId("");
             }}
           >
             <option value="">Use manual labels below</option>
@@ -83,7 +85,10 @@ export function ClassificationForm({
             name="chapterId"
             value={selectedChapterId}
             disabled={!selectedCatalogId || availableChapters.length === 0}
-            onChange={(event) => setSelectedChapterId(event.target.value)}
+            onChange={(event) => {
+              setSelectedChapterId(event.target.value);
+              setSelectedTopicId("");
+            }}
           >
             <option value="">No chapter selected</option>
             {availableChapters.map((chapter) => (
@@ -94,7 +99,8 @@ export function ClassificationForm({
           </select>
         </label>
         <label>Topic reference
-          <select name="topicId" defaultValue={question.syllabus_topic_id ?? ""} key={selectedChapterId}
+          <select name="topicId" value={selectedTopicId}
+            onChange={(event) => setSelectedTopicId(event.target.value)}
             disabled={!selectedChapterId || availableTopics.length === 0}>
             <option value="">No topic selected</option>
             {availableTopics.map((topic) => (
