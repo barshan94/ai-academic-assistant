@@ -20,7 +20,7 @@ const STOP_WORDS = new Set([
 ]);
 
 function normalizeText(value: string): string {
-  return value.normalize("NFKC").toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+  return value.normalize("NFKC").toLocaleLowerCase().replace(/[^\p{L}\p{M}\p{N}]+/gu, " ").trim();
 }
 
 function meaningfulTokens(value: string): string[] {
