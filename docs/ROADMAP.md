@@ -58,10 +58,11 @@ Implemented on feature/m3-ai-solver:
 - Prevent a question mapping from being marked confirmed against a draft or retired catalogue.
 - Add a dedicated owner-only review queue for unreviewed and uncertain mappings, prioritizing missing/lowest confidence first.
 - Make classification chapter/topic selectors dependent on the selected syllabus version and chapter; clear stale child selections when parents change.
+- Add deterministic, owner-catalogue-only text-match suggestions for chapters and topics; show matched terms and require explicit owner selection (not calibrated confidence or automatic confirmation).
 
 M5 exit criteria still outstanding:
 - Build and maintain a shared, centrally curated reference dataset with official-board provenance; the current JSON importer is a personal catalogue import foundation, not a shared dataset.
-- Add assisted classification with evidence and calibrated confidence; never silently guess a syllabus version.
+- Improve assisted classification with official source evidence and calibrated confidence; current lexical suggestions are only a navigation aid and must not be treated as evidence or probability. Never silently guess a syllabus version.
 - Add batch review actions after individual mapping workflows have been exercised.
 - Chapter notes cite contributing questions and source documents.
 - Reprocessing creates a new note version rather than overwriting teacher-approved content.
