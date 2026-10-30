@@ -3,22 +3,30 @@
 ## Foundation (M1)
 - [ ] Fresh install succeeds from documented steps.
 - [ ] Development server starts.
-- [ ] Production build succeeds.
-- [ ] Typecheck and lint pass.
-- [ ] Unauthenticated users cannot access protected routes or owner data.
-- [ ] Authenticated owner can sign in and sign out.
-- [ ] Database migrations apply on a clean project.
-- [ ] RLS tests prove rows are isolated by owner.
+- [x] Production build, lint, type-check and automated tests pass in GitHub Actions for the last verified foundation commit.
+- [ ] Unauthenticated users cannot access protected routes or owner data in a live browser test.
+- [ ] Authenticated owner can sign in and sign out in a live browser test.
+- [x] Database migrations are applied and mirrored in timestamped migration files.
+- [x] RLS is enabled on all current public application tables; owner policies and anonymous grants have been inspected.
+- [ ] Full two-owner integration test proves cross-account row isolation.
 - [ ] No secrets are committed to Git.
 
 ## Document intake (M2)
-- [ ] Accept supported image formats and PDFs; reject invalid signatures and oversized files.
-- [ ] Preserve original PDF bytes.
-- [ ] Convert multi-image upload into PDF with stable page ordering.
-- [ ] Validate rendered PDF readability for mathematical symbols and diagrams.
-- [ ] Drive upload retries safely and verifies file metadata.
-- [ ] Failed upload retains source data.
-- [ ] OCR extracts text and confidence metadata with page references.
+- [x] Reject unsupported file signatures and files over the current 4 MB request limit.
+- [x] Preserve existing PDF bytes unchanged in the normalization helper.
+- [x] Convert one JPEG or PNG image into a single-page PDF in the normalization helper.
+- [x] Archive PDFs to the connected owner's Google Drive using the drive.file scope.
+- [x] Store document metadata, page text, processing jobs and Drive connection state in owner-scoped Supabase tables.
+- [x] Use AES-256-GCM encryption for stored Drive refresh tokens.
+- [x] Use owner-bound OAuth state and same-origin checks for document POST routes.
+- [x] Provide editable page-level extracted text and an explicit teacher-review action.
+- [x] Enforce a three-attempt processing limit and a 100-page text cap.
+- [ ] Live Google OAuth, PDF upload, image upload, Drive OCR and review workflow tested with the owner's Google account.
+- [ ] Multi-image batch upload with stable ordering.
+- [ ] Resumable uploads for files larger than 4 MB.
+- [ ] Durable background processing worker and automatic retries.
+- [ ] Verify mathematical symbols, tables and diagrams against the original before approval.
+- [ ] Cross-account integration test for every document-related table.
 
 ## Solver and verification (M3-M4)
 - [ ] Each question receives structured exam answer and separate Bengali/English explanation.
@@ -40,18 +48,3 @@
 - [ ] Rate limits, retries and job recovery tested.
 - [ ] Error reporting excludes secrets and sensitive payloads.
 - [ ] Mobile usability and accessibility smoke tests pass.
-
-
-## Document intake acceptance tests
-- [ ] Connect Google Drive using the private owner account; verify a mismatched OAuth state or account is rejected.
-- [ ] Upload a valid PDF and confirm the archived Drive file is byte-preserved.
-- [ ] Upload a valid JPEG and PNG; confirm each becomes a PDF in Drive.
-- [ ] Reject a spoofed MIME type, unsupported signature and file over 4 MB.
-- [ ] Upload the same content twice and confirm duplicate detection.
-- [ ] Run extraction and confirm page text is saved with `review_required` status.
-- [ ] Edit extracted text and confirm the correction is saved as manual extraction.
-- [ ] Mark the document reviewed and confirm page/document states update.
-- [ ] Confirm a different authenticated owner cannot read or mutate these records.
-- [ ] Confirm OCR failures are bounded by three attempts and do not mark the document reviewed.
-
-These external-service checks remain pending until Google OAuth credentials are configured and a real owner account completes the workflow.
