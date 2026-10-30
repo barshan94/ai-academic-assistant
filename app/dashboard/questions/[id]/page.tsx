@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { generateQuestionSolution, reviewQuestionSolution } from "./actions";
+import { generateQuestionSolution, reviewQuestionSolution, createQuestionTeacherInvite, revokeQuestionTeacherInvite } from "./actions";
 import { checkCalculations } from "@/lib/ai/math-check";
 import { checkChemicalEquations } from "@/lib/ai/chemistry-check";
 import { checkPhysicsUnits } from "@/lib/ai/physics-unit-check";
@@ -11,7 +11,7 @@ import { examAnswerSchema } from "@/lib/ai/answer-schema";
 
 type PageProps = {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ solve?: string; solution?: string; review?: string }>;
+  searchParams: Promise<{ solve?: string; solution?: string; review?: string; invite?: string }>;
 };
 
 const messages: Record<string, string> = {
@@ -33,18 +33,16 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
   if (authError || !user) redirect("/login");
 
   const { data: question, error } = await supabase.from("questions")
-    .select("id,question_text,question_number,board,qualification,subject,chapter,topic,review_status,created_at")
+    .select("id,owner_id,question_text,question_number,board,qualification,subject,chapter,topic,review_status,created_at")
     .eq("id", id)
-    .eq("owner_id", user.id)
     .maybeSingle();
 
   if (error || !question) notFound();
 
   const typedSupabase = supabase as unknown as SupabaseClient<DatabaseWithAISolutions>;
   const { data: solutions, error: solutionError } = await typedSupabase.from("question_solutions")
-    .select("id,provider,model,prompt_version,answer_json,verification_status,created_at")
+    .select("id,owner_id,provider,model,prompt_version,answer_json,verification_status,created_at")
     .eq("question_id", question.id)
-    .eq("owner_id", user.id)
     .order("created_at", { ascending: false })
     .limit(20);
 
@@ -69,13 +67,23 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
   const physicsPassed = physicsResults.length > 0 && physicsResults.every((item) => item.status === "dimensionally_consistent");
   const { data: reviews, error: reviewError } = selectedSolution
     ? await typedSupabase.from("question_solution_reviews")
-        .select("id,reviewer_id,decision,correction_notes,created_at")
+        .select("id,owner_id,reviewer_id,decision,correction_notes,created_at")
         .eq("solution_id", selectedSolution.id)
-        .eq("owner_id", user.id)
         .order("created_at", { ascending: false })
         .limit(20)
     : { data: [], error: null };
-  const message = query.solve
+  const isOwner = question.owner_id === user.id;
+  const { data: teacherInvites, error: teacherInviteError } = isOwner
+    ? await typedSupabase.from("question_teacher_invites").select("id,invited_email,accepted_by,created_at").eq("question_id", question.id).eq("owner_id", user.id).order("created_at", { ascending: false })
+    : { data: [], error: null };
+  const message = query.invite === "created" ? "Invitation created. The teacher must sign in with this exact email address and accept it from Teacher invitations."
+    : query.invite === "accepted" ? "Teacher access accepted. You can now review the shared question and saved answers."
+    : query.invite === "revoked" ? "Teacher access has been revoked."
+    : query.invite === "exists" ? "An invitation for this email and question already exists. Remove the old invitation before sending another."
+    : query.invite === "self" ? "You cannot invite your own account as a teacher."
+    : query.invite === "save_failed" || query.invite === "revoke_failed" ? "The invitation could not be saved. Please try again."
+    : query.invite === "invalid" || query.invite === "not_found" ? "The invitation details were invalid or the question was not found."
+    : query.solve
     ? messages[query.solve] ?? "Answer generation failed (" + query.solve.slice(0, 80) + ")."
     : query.review === "approved" ? "Your review was saved. This is an owner review, not independent verification."
     : query.review === "needs_correction" ? "Correction feedback was saved in the review history."
@@ -89,7 +97,7 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
     <main className="shell">
       <header className="topbar">
         <Link className="brand" href="/"><span className="brand-mark">A</span><span>Academic<span className="brand-muted">Assistant</span></span></Link>
-        <div className="topbar-actions"><Link className="sign-in-link" href="/dashboard/questions">Question bank</Link><Link className="sign-in-link" href="/dashboard">Dashboard</Link></div>
+        <div className="topbar-actions"><Link className="sign-in-link" href="/dashboard/teacher-invites">Teacher invitations</Link><Link className="sign-in-link" href="/dashboard/questions">Question bank</Link><Link className="sign-in-link" href="/dashboard">Dashboard</Link></div>
       </header>
       <section className="hero documents-hero">
         <p className="eyebrow">ACADEMIC SOLVER · M3</p>
@@ -97,7 +105,9 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
         <p className="hero-copy">Generate an examination-style answer with Bengali and English teaching explanations. Generated answers are drafts, not verified mark-scheme solutions.</p>
       </section>
       {message ? <p className="notice notice-info" role="status">{message}</p> : null}
-      {solutionError ? <p className="notice notice-error">Could not load saved answers.</p> : null}\n      {reviewError ? <p className="notice notice-error">Could not load review history.</p> : null}
+      {solutionError ? <p className="notice notice-error">Could not load saved answers.</p> : null}
+      {reviewError ? <p className="notice notice-error">Could not load review history.</p> : null}
+      {teacherInviteError ? <p className="notice notice-error">Could not load teacher invitations.</p> : null}
       {requestedSolutionMissing ? <p className="notice notice-info">That saved draft is not in the available history. Showing the latest saved draft instead.</p> : null}
       {storedAnswerInvalid ? <p className="notice notice-error">This saved response does not match the current answer format and cannot be displayed safely.</p> : null}
       <section className="section">
@@ -108,15 +118,38 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
           </div>
           <p className="question-card-text">{question.question_number ? question.question_number + ". " : ""}{question.question_text}</p>
           <p className="question-card-meta">{[question.board, question.qualification, question.chapter, question.topic].filter(Boolean).join(" · ") || "Syllabus metadata not set"}</p>
-          {question.review_status === "approved" ? (
+          {isOwner && question.review_status === "approved" ? (
             <form action={generateQuestionSolution}>
               <input type="hidden" name="questionId" value={question.id} />
               <button className="primary-action" type="submit">Generate AI answer <span aria-hidden="true">→</span></button>
               <p className="question-card-meta">This action sends the question to your configured AI provider and may incur provider charges.</p>
             </form>
-          ) : <p className="notice notice-info">This question needs teacher approval before it can be sent to the AI provider.</p>}
+           ) : isOwner ? <p className="notice notice-info">This question needs teacher approval before it can be sent to the AI provider.</p> : <p className="notice notice-info">You have review access only. AI generation and question editing remain with the owner.</p>}
         </article>
       </section>
+      {isOwner ? (
+        <section className="section">
+          <p className="eyebrow">INDEPENDENT TEACHER REVIEW</p>
+          <h2>Share this question with a teacher</h2>
+          <p className="question-card-meta">The invited person must already have an Academic Assistant account using this exact email address. No email is sent automatically; the invitation appears in their Teacher invitations page after they sign in.</p>
+          <form action={createQuestionTeacherInvite} className="review-form">
+            <input type="hidden" name="questionId" value={question.id} />
+            <label htmlFor="teacher-email">Teacher account email</label>
+            <input id="teacher-email" name="email" type="email" required maxLength={320} placeholder="teacher@example.com" />
+            <button className="primary-action" type="submit">Create teacher invitation →</button>
+          </form>
+          {teacherInvites?.length ? <><h3>Access list</h3><ul className="calculation-checks">
+            {teacherInvites.map((invite) => <li key={invite.id}>
+              <strong>{invite.accepted_by ? "ACCEPTED" : "PENDING"}</strong><span>{invite.invited_email}</span>
+              <form action={revokeQuestionTeacherInvite}>
+                <input type="hidden" name="inviteId" value={invite.id} />
+                <input type="hidden" name="questionId" value={question.id} />
+                <button className="secondary-action" type="submit">Revoke access</button>
+              </form>
+            </li>)}
+          </ul></> : null}
+        </section>
+      ) : <p className="notice notice-info">Shared with you for independent review. You can read saved answers and submit review feedback, but cannot edit the owner's question or generate new answers.</p>}
       {answer ? (
         <section className="section">
           <div className="section-heading"><div><p className="eyebrow">SELECTED SAVED RESPONSE</p><h2>Answer draft</h2></div><span className="document-status">{selectedSolution?.verification_status.replace("_", " ")}</span></div>
@@ -170,7 +203,7 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
             {answer.assumptions.length ? <><h3>Assumptions</h3><ul>{answer.assumptions.map((item, index) => <li key={index}>{item}</li>)}</ul></> : null}
             {answer.limitations.length ? <><h3>Limitations</h3><ul>{answer.limitations.map((item, index) => <li key={index}>{item}</li>)}</ul></> : null}
             <p className="question-card-meta">Provider: {selectedSolution?.provider} · Model: {selectedSolution?.model} · Prompt: {selectedSolution?.prompt_version}</p>
-            <p className="notice notice-info">AI-generated draft. The review form below records your own review only; it does not certify independent teacher verification or replace an official mark scheme.</p>
+            <p className="notice notice-info">AI-generated draft. Review feedback is recorded separately and does not alter this answer. A teacher review is independent of the owner review, but it is not an official exam-board mark scheme.</p>
             <section className="section">
               <p className="eyebrow">REVIEW & CORRECTION LOG</p>
               <h3>Record your review</h3>
@@ -185,14 +218,14 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
                 <textarea id="review-notes" name="correctionNotes" rows={4} maxLength={5000} placeholder="Explain the error, corrected method, missing mark points, or syllabus issue." />
                 <button className="primary-action" type="submit">Save review record →</button>
               </form>
-              <p className="question-card-meta">Reviews are append-only records tied to your signed-in account. They do not alter the original AI answer.</p>
+              <p className="question-card-meta">Reviews are append-only records tied to the reviewer account. They do not alter the original AI answer. The owner can see all reviews; a teacher can see their own review records.</p>
               <h3>Review history</h3>
               {reviews && reviews.length ? (
                 <ul className="calculation-checks">
                   {reviews.map((review) => (
                     <li key={review.id}>
-                      <strong>{review.decision === "approved" ? "OWNER REVIEW: ACCEPTABLE DRAFT" : "CORRECTIONS REQUESTED"}</strong>
-                      <span>{new Date(review.created_at).toLocaleString()} · Reviewed by the signed-in account</span>
+                      <strong>{review.reviewer_id === review.owner_id ? "OWNER REVIEW: ACCEPTABLE DRAFT" : review.decision === "approved" ? "TEACHER REVIEW: ACCEPTABLE DRAFT" : "TEACHER REQUESTED CORRECTIONS"}</strong>
+                      <span>{new Date(review.created_at).toLocaleString()} · {review.reviewer_id === review.owner_id ? "Owner review" : "Independent teacher account"}</span>
                       {review.correction_notes ? <small>{review.correction_notes}</small> : null}
                     </li>
                   ))}

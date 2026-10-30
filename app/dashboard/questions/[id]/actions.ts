@@ -97,9 +97,8 @@ export async function reviewQuestionSolution(formData: FormData) {
   const typedSupabase = supabase as unknown as SupabaseClient<DatabaseWithAISolutions>;
   const { data: solution, error: solutionError } = await typedSupabase
     .from("question_solutions")
-    .select("id,question_id")
+    .select("id,question_id,owner_id")
     .eq("id", parsed.data.solutionId)
-    .eq("owner_id", user.id)
     .maybeSingle();
 
   if (solutionError || !solution) redirect("/dashboard/questions?review=not_found");
@@ -108,7 +107,7 @@ export async function reviewQuestionSolution(formData: FormData) {
     .from("question_solution_reviews")
     .insert({
       solution_id: solution.id,
-      owner_id: user.id,
+      owner_id: solution.owner_id,
       reviewer_id: user.id,
       decision: parsed.data.decision,
       correction_notes: parsed.data.correctionNotes || null,
@@ -122,4 +121,57 @@ export async function reviewQuestionSolution(formData: FormData) {
     "?solution=" + solution.id +
     "&review=" + parsed.data.decision
   );
+}
+
+const teacherInviteSchema = z.object({
+  questionId: z.string().uuid(),
+  email: z.string().trim().email().max(320).transform((value) => value.toLowerCase()),
+});
+
+export async function createQuestionTeacherInvite(formData: FormData) {
+  const parsed = teacherInviteSchema.safeParse({ questionId: String(formData.get("questionId") ?? ""), email: String(formData.get("email") ?? "") });
+  if (!parsed.success) redirect("/dashboard/questions?invite=invalid");
+  const supabase = await createSupabaseServerClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) redirect("/login");
+  if (user.email?.toLowerCase() === parsed.data.email) redirect("/dashboard/questions/" + parsed.data.questionId + "?invite=self");
+  const { data: question, error: questionError } = await supabase.from("questions").select("id").eq("id", parsed.data.questionId).eq("owner_id", user.id).maybeSingle();
+  if (questionError || !question) redirect("/dashboard/questions?invite=not_found");
+  const typedSupabase = supabase as unknown as SupabaseClient<DatabaseWithAISolutions>;
+  const { error: inviteError } = await typedSupabase.from("question_teacher_invites").insert({ question_id: question.id, owner_id: user.id, invited_email: parsed.data.email });
+  if (inviteError) redirect("/dashboard/questions/" + question.id + "?invite=" + (inviteError.code === "23505" ? "exists" : "save_failed"));
+  revalidatePath("/dashboard/questions/" + question.id);
+  revalidatePath("/dashboard/teacher-invites");
+  redirect("/dashboard/questions/" + question.id + "?invite=created");
+}
+
+export async function acceptQuestionTeacherInvite(formData: FormData) {
+  const inviteId = z.string().uuid().safeParse(String(formData.get("inviteId") ?? ""));
+  if (!inviteId.success) redirect("/dashboard/teacher-invites?invite=invalid");
+  const supabase = await createSupabaseServerClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user?.email) redirect("/login");
+  const typedSupabase = supabase as unknown as SupabaseClient<DatabaseWithAISolutions>;
+  const { data: invite, error } = await typedSupabase.from("question_teacher_invites")
+    .update({ accepted_by: user.id, accepted_at: new Date().toISOString() })
+    .eq("id", inviteId.data).is("accepted_by", null).is("revoked_at", null)
+    .select("question_id").maybeSingle();
+  if (error || !invite) redirect("/dashboard/teacher-invites?invite=not_available");
+  revalidatePath("/dashboard/teacher-invites");
+  redirect("/dashboard/questions/" + invite.question_id + "?invite=accepted");
+}
+
+export async function revokeQuestionTeacherInvite(formData: FormData) {
+  const inviteId = z.string().uuid().safeParse(String(formData.get("inviteId") ?? ""));
+  const questionId = z.string().uuid().safeParse(String(formData.get("questionId") ?? ""));
+  if (!inviteId.success || !questionId.success) redirect("/dashboard/questions?invite=invalid");
+  const supabase = await createSupabaseServerClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) redirect("/login");
+  const typedSupabase = supabase as unknown as SupabaseClient<DatabaseWithAISolutions>;
+  const { error } = await typedSupabase.from("question_teacher_invites").delete().eq("id", inviteId.data).eq("question_id", questionId.data).eq("owner_id", user.id);
+  if (error) redirect("/dashboard/questions/" + questionId.data + "?invite=revoke_failed");
+  revalidatePath("/dashboard/questions/" + questionId.data);
+  revalidatePath("/dashboard/teacher-invites");
+  redirect("/dashboard/questions/" + questionId.data + "?invite=revoked");
 }
