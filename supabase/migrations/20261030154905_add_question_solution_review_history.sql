@@ -1,3 +1,4 @@
+
 alter table public.question_solutions
   add constraint question_solutions_id_owner_unique unique (id, owner_id);
 
