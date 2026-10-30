@@ -40,3 +40,18 @@
 - [ ] Rate limits, retries and job recovery tested.
 - [ ] Error reporting excludes secrets and sensitive payloads.
 - [ ] Mobile usability and accessibility smoke tests pass.
+
+
+## Document intake acceptance tests
+- [ ] Connect Google Drive using the private owner account; verify a mismatched OAuth state or account is rejected.
+- [ ] Upload a valid PDF and confirm the archived Drive file is byte-preserved.
+- [ ] Upload a valid JPEG and PNG; confirm each becomes a PDF in Drive.
+- [ ] Reject a spoofed MIME type, unsupported signature and file over 4 MB.
+- [ ] Upload the same content twice and confirm duplicate detection.
+- [ ] Run extraction and confirm page text is saved with `review_required` status.
+- [ ] Edit extracted text and confirm the correction is saved as manual extraction.
+- [ ] Mark the document reviewed and confirm page/document states update.
+- [ ] Confirm a different authenticated owner cannot read or mutate these records.
+- [ ] Confirm OCR failures are bounded by three attempts and do not mark the document reviewed.
+
+These external-service checks remain pending until Google OAuth credentials are configured and a real owner account completes the workflow.
