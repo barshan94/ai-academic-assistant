@@ -40,6 +40,22 @@ M3 exit criteria still outstanding:
 - Test teacher invitation, acceptance, review and revocation using two real accounts.
 - Add automated database authorization tests for cross-account isolation.
 
+## M5 status — in progress
+Implemented on feature/m3-ai-solver:
+- Store an explicit syllabus specification/version separately from board and qualification.
+- Track classification review state independently from question-content review: unreviewed, uncertain or confirmed.
+- Validate confidence values in the 0–1 range and prevent incomplete mappings from being marked confirmed.
+- Add an owner-only classification editor; invited teachers remain read-only.
+- Surface syllabus version and classification state in the question bank.
+- Add unit coverage for valid, incomplete, uncertain and out-of-range classifications.
+
+M5 exit criteria still outstanding:
+- Build versioned board/qualification/subject/chapter/topic reference data rather than relying only on free-text labels.
+- Add assisted classification with evidence and calibrated confidence; never silently guess a syllabus version.
+- Add classification filters and review queues.
+- Chapter notes cite contributing questions and source documents.
+- Reprocessing creates a new note version rather than overwriting teacher-approved content.
+
 ## M4 exit criteria
 - Unsupported verification is explicitly marked not checked.
 - Independent teacher feedback is tied to authenticated reviewer identity.
