@@ -91,3 +91,13 @@ This file records material implementation, CI, integration and release problems 
 - Two-account teacher and cross-account database acceptance on a dedicated non-production Supabase project.
 - Real official syllabus curation and independent source validation.
 - Backup/restore, accessibility, mobile usability, performance and release acceptance.
+
+## ERR-009 — Reprocessing could delete saved questions linked to document pages
+
+- Date: 2026-10-31
+- Area: M2 document processing / data integrity
+- Symptom: The previous reprocessing flow deleted every document-page row before inserting newly extracted pages. The questions table uses an ON DELETE CASCADE relationship to document pages, so a retry could silently delete saved questions. Immutable chapter-note page references can also reject page deletion.
+- Root cause: Reprocessing treated extracted pages as disposable cache rows even though other academic records depend on their stable IDs.
+- Fix: Before claiming a processing job, the route now checks whether existing document pages are referenced by saved questions or chapter-note sources. If any dependency exists, reprocessing is refused before any page or job mutation and the UI explains that a new document version must be uploaded. If the dependency check fails, processing is also refused safely.
+- Verification: Added pure unit tests for zero references, question references, note references and both reference types. Full CI is pending for this commit.
+- Status: Implemented; CI verification pending. This protects linked academic data but does not yet provide a first-class document versioning/revision workflow.
