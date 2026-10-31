@@ -439,3 +439,22 @@ h2 { font-size: 24px; letter-spacing: -.04em; margin: 0; font-weight: 600; }
   .document-filter-form { grid-template-columns: 1fr; }
   .document-filter-form button { width: 100%; }
 }
+
+
+@media print {
+  .practice-print-control, .practice-print-area .revision-rating-form,
+  .practice-print-area .question-card-footer { display: none !important; }
+  .practice-print-area { display: block !important; }
+  .practice-print-area .question-card {
+    break-inside: avoid;
+    margin: 0 0 12px !important;
+    padding: 12px !important;
+    border: 1px solid #bbb !important;
+    border-radius: 0 !important;
+    background: #fff !important;
+    color: #111 !important;
+    box-shadow: none !important;
+  }
+  .practice-print-area .question-card * { color: #222 !important; }
+  .practice-print-area .question-card-text { white-space: pre-wrap; }
+}
