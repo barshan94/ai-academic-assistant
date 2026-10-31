@@ -35,6 +35,10 @@ export default async function StudyPlanPage({ searchParams }: PageProps) {
   const visibleSessions = calendarData?.sessions ?? [];
   const sessionsTotal = calendarData?.sessions_total ?? 0;
   const sessionPages = Math.max(1, Math.ceil(sessionsTotal / 50));
+  if (sessionPage > sessionPages) {
+    const query = new URLSearchParams({ week: String(weekOffset), sessionPage: String(sessionPages), revisionPage: String(revisionPage), practicePage: String(practicePage) });
+    redirect("/dashboard/study-plan?" + query.toString());
+  }
   const queue = queueData;
   const dueRevisions = queue?.revision_items ?? [];
   const unfinishedItems = queue?.practice_items ?? [];
