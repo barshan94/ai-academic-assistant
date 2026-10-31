@@ -119,8 +119,8 @@ This file records material implementation, CI, integration and release problems 
 - Symptom: Foundation workflow failed at ESLint parsing `e2e/smoke.spec.ts` line 44 with an invalid-character parsing error.
 - Root cause: The route assertion used doubled backslashes inside a regular-expression literal, so the slash delimiter was not escaped correctly.
 - Fix: Corrected the expression to match the literal `/login?error=configuration` route.
-- Verification: The database authorization workflow passed on the same checkpoint; the corrected foundation workflow is pending on the newer branch head.
-- Status: Code fixed; final CI verification pending.
+- Verification: ESLint passed in foundation run 41191435476 after the correction.
+- Status: Fixed and verified by ESLint.
 
 ## ERR-012 — Single-request document upload could not support larger PDFs reliably
 
@@ -131,3 +131,23 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Added browser-side normalization, a 50 MB file limit, Google Drive resumable session initiation, 1 MB chunk uploads (256 KB-aligned), AES-256-GCM encrypted owner-bound session tokens, server-side session validation and Google-confirmed byte offsets. The document and processing job are registered only after Drive reports completion. Added pure protocol tests for range parsing and chunk boundaries.
 - Verification: Unit tests and full CI for the implementation are pending. Live Drive upload, interrupted network recovery, session expiry and cross-account tests require a configured non-production Google/Supabase environment.
 - Status: Implemented in code; not yet verified against a live Google Drive account.
+
+## ERR-013 — WebCrypto and Blob typed-array buffer incompatibility
+
+- Date: 2026-10-31
+- Area: M2 resumable upload / TypeScript
+- Symptom: TypeScript rejected the browser's Uint8Array<ArrayBufferLike> as a WebCrypto BufferSource and rejected typed-array test fixtures as BlobPart.
+- Root cause: Newer TypeScript typed-array generics distinguish ArrayBufferLike from the ArrayBuffer-only types accepted by these Web APIs.
+- Fix: Copy the upload bytes into a fresh Uint8Array and pass its ArrayBuffer to crypto.subtle.digest; similarly copy test fixture bytes and pass the resulting ArrayBuffer to File.
+- Verification: Application type-check passed in foundation run 41191435476.
+- Status: Fixed and type-checked.
+
+## ERR-014 — Legacy normalization test retained the obsolete 4 MB expectation
+
+- Date: 2026-10-31
+- Area: M2 upload tests
+- Symptom: Unit tests failed because tests/document-normalization.test.ts still expected the former 4 MB error message after the supported limit increased to 50 MB.
+- Root cause: The new normalization tests were updated, but an older duplicate test suite was not updated in the same change.
+- Fix: Updated the legacy test to assert the 50 MB limit and replaced a 50 MB in-memory fixture with a small File-shaped object whose declared size exceeds the limit, avoiding unnecessary allocation.
+- Verification: New foundation CI run is pending.
+- Status: Fixed in code; unit-test verification pending.
