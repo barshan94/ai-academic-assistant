@@ -36,7 +36,7 @@ Implemented on feature/m3-ai-solver:
 
 M3 exit criteria still outstanding:
 - Configure a provider key/model securely and test live generation with explicit cost approval.
-- Build a golden question set across subjects and manually grade output quality.
+- An original five-case cross-subject golden-set draft and two-reviewer scoring rubric are documented in `docs/AI_GOLDEN_SET.md`; live runs against the configured model and manual grading remain outstanding.
 - Complete citation/source-grounding checks and mark-scheme comparison workflows. Current source-page context is opt-in and traceable, but does not yet provide verified quotations or official mark-scheme matching. A conservative mark-scheme review workflow now saves owner-supplied HTTPS source references and structured mark points against a specific saved answer, then displays literal key-phrase presence for human review; it does not award marks, prove semantic equivalence or certify an official scheme. Saved references are append-only and owner-scoped.
 - Test teacher invitation, acceptance, review and revocation using two real accounts.
 - Add automated database authorization tests for cross-account isolation.
