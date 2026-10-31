@@ -22,6 +22,10 @@ export class WebResearchProviderError extends Error {
   }
 }
 
+function canonicalUrlTooLong(url: URL) {
+  return url.toString().length > 2048;
+}
+
 function getBraveApiKey(env: Record<string, string | undefined> = process.env) {
   const provider = env.WEB_SEARCH_PROVIDER?.trim() || "brave";
   const apiKey = env.BRAVE_SEARCH_API_KEY?.trim();
@@ -99,7 +103,7 @@ export async function searchWebSources(
     } catch {
       continue;
     }
-    if (sourceUrl.protocol !== "https:" || sourceUrl.username || sourceUrl.password) continue;
+    if (sourceUrl.protocol !== "https:" || sourceUrl.username || sourceUrl.password || canonicalUrlTooLong(sourceUrl)) continue;
     const canonicalUrl = sourceUrl.toString();
     if (seen.has(canonicalUrl)) continue;
 
