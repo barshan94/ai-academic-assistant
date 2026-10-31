@@ -17,7 +17,9 @@ export type DatabaseWithPractice = Omit<DatabaseWithRevision, "public"> & {
       };
     };
     Functions: DatabaseWithRevision["public"]["Functions"] & {
-      create_practice_set: { Args: { p_title: string; p_question_ids: string[]; p_subject?: string | null; p_chapter?: string | null; p_topic?: string | null }; Returns: string };\n      get_practice_filter_options: { Args: Record<PropertyKey, never>; Returns: { option_type: string; option_value: string }[] };\n      create_practice_set_from_filters: { Args: { p_title: string; p_count: number; p_subject?: string | null; p_chapter?: string | null; p_topic?: string | null }; Returns: string };
+      create_practice_set: { Args: { p_title: string; p_question_ids: string[]; p_subject?: string | null; p_chapter?: string | null; p_topic?: string | null }; Returns: string };
+      get_practice_filter_options: { Args: Record<PropertyKey, never>; Returns: { option_type: string; option_value: string }[] };
+      create_practice_set_from_filters: { Args: { p_title: string; p_count: number; p_subject?: string | null; p_chapter?: string | null; p_topic?: string | null }; Returns: string };
       record_practice_answer: { Args: { p_item_id: string; p_outcome: string; p_response_notes?: string | null }; Returns: undefined };
     };
   };
