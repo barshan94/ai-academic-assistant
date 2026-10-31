@@ -299,3 +299,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Restored a page-source validation branch. Every attached page must still exist for the same owner and be linked to an approved question classified to the same catalogue and chapter at approval time.
 - Verification: The updated migration is included in the latest feature-branch CI run; database pgTAP verification remains pending.
 - Status: Corrected in migration before any live deployment; hosted Supabase was not changed.
+
+
+## ERR-026 — Page-source approval rejected mixed-chapter pages
+
+- Date: 2026-10-31
+- Area: M6 chapter-note source integrity
+- Symptom: A document page containing multiple captured questions could be rejected for a note even when at least one approved question on that page belonged to the selected chapter.
+- Root cause: The approval trigger joined every question on the page and rejected the page if any joined question was unapproved or classified to another chapter. A page can legitimately contain questions from more than one chapter.
+- Fix: Approval now requires at least one owner-matching, approved question on the page classified to the note's exact catalogue and chapter. Added a regression fixture with both matching and other-chapter questions on one page.
+- Verification: Updated pgTAP suite is awaiting feature-branch CI. No hosted Supabase migration was applied.
+- Status: Guard corrected; verification pending.
