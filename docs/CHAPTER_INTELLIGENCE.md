@@ -35,3 +35,8 @@ This module establishes the persistence and safety contract for M6. It deliberat
 - Review whether a future evidence-coverage report should distinguish cited claims, uncited background explanations and claims with weak source support.
 
 No sample syllabus, question or note content is seeded. Live AI generation remains blocked until a provider is explicitly configured and its cost is approved.
+
+
+## Knowledge-first solver retrieval
+
+When a question has a confirmed syllabus chapter, the owner may explicitly opt in to include up to three latest approved chapter-note versions from that exact chapter in AI answer generation. The source note IDs, titles and immutable version numbers are stored with the answer and checked by a database trigger against the same owner, question chapter and approved note status. The AI prompt treats note text as secondary, potentially fallible study context rather than an official mark scheme. Retrieval is not automatic: the owner must check the inclusion box, and the original source-page checkbox remains separate.
