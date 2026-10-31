@@ -505,3 +505,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Added a follow-up migration that uses explicit `IS DISTINCT FROM` type checks and separate validation steps before calling JSON array functions. It also rejects whitespace-padded point IDs and requires explicit key-phrase arrays.
 - Verification: Implementation-only SQL review; database migration and malformed direct-insert behavior remain for the later test phase.
 - Status: Corrected in migration `20261101041000_harden_mark_scheme_validator.sql`; tests pending.
+
+
+## ERR-047 — HTTPS source validation allowed embedded URL credentials
+
+- Date: 2026-11-01
+- Area: M3 mark-scheme provenance and optional web research
+- Symptom: HTTPS URL validation checked the scheme and host presence but did not reject user-info credentials embedded before the host.
+- Root cause: URL validation treated the HTTPS scheme as sufficient and the database constraints only rejected whitespace and missing hosts.
+- Fix: The mark-scheme schema now rejects username/password components. A database migration strengthens both mark-scheme and web-research URL constraints so direct inserts cannot store URLs with embedded credentials in the authority.
+- Verification: Implementation-only validation review; database migration and malformed URL cases remain for the later test phase.
+- Status: Code and migration committed; tests pending.
