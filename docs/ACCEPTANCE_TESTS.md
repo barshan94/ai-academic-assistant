@@ -30,6 +30,7 @@
 - [ ] Live Google Drive acceptance for uploads above 4 MB, network interruption/recovery, expired sessions, duplicate handling and final document/job persistence.
 - [x] Implement scheduled server-side document worker with conditional atomic claims, stale-running recovery, per-job retry limits, and one-job-per-invocation processing.
 - [x] Commit a GitHub Actions five-minute scheduled/manual worker invocation with HTTPS validation, bearer-secret header, serialized workflow concurrency and bounded request retries.
+- [ ] Merge the workflow to the default branch before expecting scheduled runs; GitHub does not execute scheduled workflows from feature branches.
 - [ ] Configure `APP_BASE_URL` and `CRON_SECRET` GitHub Actions secrets plus deployed Supabase/Google environment variables; manually invoke against a non-production deployment.
 - [ ] Verify wrong-secret rejection, single-job processing, concurrent claim safety, retry exhaustion and stale recovery against a live non-production database.
 - [ ] Durable background processing worker and automatic retries proven in live integration tests (scheduler is best-effort; queue persistence and subsequent invocations must recover delayed runs).
