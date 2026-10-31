@@ -131,7 +131,7 @@ export async function generateQuestionSolution(formData: FormData) {
     question_id: question.id,
     provider: selectedProvider.provider,
     model: selectedProvider.model,
-    prompt_version: sourceContext ? "academic-answer-v3-source-context" : "academic-answer-v2-math-checks",
+    prompt_version: relatedKnowledge?.length ? (sourceContext ? "academic-answer-v4-source-and-knowledge" : "academic-answer-v4-knowledge") : (sourceContext ? "academic-answer-v3-source-context" : "academic-answer-v2-math-checks"),
     answer_json: answer,
     source_context: sourceProvenance,
     knowledge_sources: knowledgeProvenance,
