@@ -181,3 +181,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Removed the unsupported Vercel cron configuration and added a GitHub Actions scheduled/manual workflow. It calls the HTTPS worker endpoint with a bearer secret, serializes scheduled invocations, bounds request duration and retries transient network failures. Added a deployment setup guide.
 - Verification: Workflow YAML and end-to-end invocation are awaiting CI and configured non-production secrets. No live worker invocation has been claimed.
 - Status: Superseded by ERR-015, which records the final canonical workflow and secret names. The worker remains unverified until non-production secrets and a deployment are configured.
+
+
+## ERR-016 — Cross-account RLS test verified deletion under the wrong JWT
+
+- Date: 2026-10-31
+- Area: Database authorization tests / M2
+- Symptom: The test reported that another account had deleted an owner's document page, even though the page was merely invisible under the other account's RLS context.
+- Root cause: The assertion queried the page count before switching the simulated JWT back to the resource owner. RLS correctly returned zero rows to the other account, so the assertion did not distinguish invisibility from deletion.
+- Fix: Keep the attempted mutation under the second account, then switch the request JWT back to the owner before asserting that the original page and document values remain unchanged. The test now checks the protected record from the principal that is allowed to see it.
+- Verification: All 62 pgTAP assertions across document intake, question solutions and study features passed in GitHub Actions run 41192293698. Lint, type-check, unit tests, build and Chromium browser smoke also passed in foundation run 41192293876.
+- Status: Fixed and verified. Authenticated two-account browser acceptance remains skipped because dedicated non-production credentials are not configured.
