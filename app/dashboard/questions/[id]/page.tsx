@@ -355,7 +355,7 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
               })}
               {isOwner ? (
                 <form action={saveQuestionSolutionMarkScheme} className="review-form">
-                  <input type="hidden" name="solutionId" value={selectedSolution.id} />
+                  <input type="hidden" name="solutionId" value={selectedSolution?.id ?? ""} />
                   <label htmlFor="mark-scheme-title">Mark scheme title</label>
                   <input id="mark-scheme-title" name="title" required maxLength={200} placeholder="Exact title from your source" />
                   <label htmlFor="mark-scheme-board">Awarding body</label>
