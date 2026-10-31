@@ -2,7 +2,25 @@ import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { decryptDriveUploadSession } from "@/lib/drive/crypto";
 import { getDriveAccessToken, sendResumablePdfChunk, deleteDriveFile } from "@/lib/drive/google";
-import { MAX_UPLOAD_CHUNK_BYTES } from "@/lib/documents/normalize-to-pdf";
+import { isValidDriveChunk, parseDriveUploadOffset } from "@/lib/drive/resumable-upload";
+
+export const runtime = "nodejs";
+
+type UploadSession = {
+  ownerId: string;
+  sessionUri: string;
+  fileName: string;
+  fileSizeBytes: number;
+  sha256: string;
+  pageCount: number | null;
+  expiresAt: number;
+};
+
+mport { NextRequest, NextResponse } from "next/server";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { decryptDriveUploadSession } from "@/lib/drive/crypto";
+import { getDriveAccessToken, sendResumablePdfChunk, deleteDriveFile } from "@/lib/drive/google";
+import { isValidDriveChunk, parseDriveUploadOffset } from "@/lib/drive/resumable-upload";
 
 export const runtime = "nodejs";
 
@@ -112,17 +130,12 @@ export async function POST(request: NextRequest) {
   }
 
   const query = contentRange === "bytes */" + session.fileSizeBytes && bytes.byteLength === 0;
-  const match = /^bytes (\d+)-(\d+)\/(\d+)$/.exec(contentRange);
-  if (!query) {
-    if (!match) return NextResponse.json({ error: "Invalid Content-Range." }, { status: 400 });
-    const start = Number(match[1]);
-    const end = Number(match[2]);
-    const total = Number(match[3]);
-    if (total !== session.fileSizeBytes || end < start || end - start + 1 !== bytes.byteLength ||
-        bytes.byteLength > MAX_UPLOAD_CHUNK_BYTES || start % (256 * 1024) !== 0 ||
-        (end + 1 < total && bytes.byteLength % (256 * 1024) !== 0)) {
-      return NextResponse.json({ error: "Upload chunk size or byte range is invalid." }, { status: 400 });
-    }
+  if (!query && !isValidDriveChunk({
+    contentRange,
+    byteLength: bytes.byteLength,
+    totalBytes: session.fileSizeBytes,
+  })) {
+    return NextResponse.json({ error: "Upload chunk size or byte range is invalid." }, { status: 400 });
   }
 
   try {
@@ -135,7 +148,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (result.status === 308) {
-      return NextResponse.json({ nextOffset: parseNextOffset(result.range), complete: false });
+      return NextResponse.json({ nextOffset: parseDriveUploadOffset(result.range), complete: false });
     }
     if (result.status === 404 || result.status === 410) {
       return NextResponse.json({ error: "Google Drive upload session expired. Start again." }, { status: 410 });
