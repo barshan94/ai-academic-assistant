@@ -72,7 +72,7 @@
 - [x] Dedicated owner-only queue for unreviewed and uncertain mappings, sorted by missing/lowest confidence first.
 - [x] Batch review accepts 1–50 unique owner question IDs, rejects malformed/duplicate IDs and never offers bulk confirmation.
 - [x] Batch status changes use a SECURITY INVOKER PostgreSQL function that locks and validates the complete owner-scoped batch in one transaction; stale or inaccessible selections roll back entirely. The database trigger records a before/after snapshot for each changed question.
-- [x] Stale or inaccessible selections are rejected; individual confirmation remains subject to verified catalogue and exact chapter/topic evidence.
+- [x] Stale or inaccessible selections and no-op selections are rejected atomically; every successful batch change produces a real state transition and an audit snapshot. Individual confirmation remains subject to verified catalogue and exact chapter/topic evidence.
 - [ ] Shared, centrally curated reference dataset and import pipeline for boards, qualifications, subjects, chapters and topics.
 - [x] Record append-only owner citations for individual syllabus chapters and topics, including HTTPS URL, source title, page/section locator and short supporting excerpt.
 - [x] Structured mappings cannot be marked confirmed unless the catalogue is verified and a citation exists for the exact selected chapter or topic; database trigger enforces this beyond the UI.
