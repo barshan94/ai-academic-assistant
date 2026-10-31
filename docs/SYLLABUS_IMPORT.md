@@ -58,3 +58,13 @@ Replace every illustrative value with data checked against the actual board spec
 ## Future extensions
 
 CSV and official-board-specific import adapters can be added after this stable format has been exercised. A centrally maintained dataset needs separate editorial provenance, version-update and correction workflows; it should not be conflated with private user imports.
+
+
+## Bundled chapter-index drafts
+
+The repository includes two illustrative-but-source-checked private import drafts under `data/syllabus-imports/`:
+
+- Cambridge O Level Physics 5054, 2026–2028, Version 2.
+- Cambridge O Level Chemistry 5070, 2026–2028, Version 1.
+
+They contain only the top-level content chapter names transcribed from the official syllabus PDFs. Topic arrays are intentionally empty. They are not a complete syllabus, do not constitute a centrally curated shared reference dataset, and must remain drafts until a curator checks every chapter and topic against the current official source and confirms qualification availability for the relevant administrative zone. Recheck the PDFs before each exam cycle.
