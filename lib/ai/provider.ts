@@ -126,9 +126,9 @@ export async function generateStructuredAnswer(
   }
 
   if (!response.ok) {
-    const body = await response.text().catch(() => "");
-    const safeMessage = body.slice(0, 300).replace(/[\r\n\t]+/g, " ");
-    throw new AIProviderError("AI_PROVIDER_HTTP_" + response.status + (safeMessage ? ": " + safeMessage : ""));
+    // Provider error bodies are untrusted and may echo prompt content or other
+    // sensitive request details. Keep only the HTTP status in application errors.
+    throw new AIProviderError("AI_PROVIDER_HTTP_" + response.status);
   }
 
   let payload: ChatCompletionResponse;
@@ -140,7 +140,7 @@ export async function generateStructuredAnswer(
 
   const content = payload.choices?.[0]?.message?.content;
   if (typeof content !== "string" || !content.trim()) {
-    throw new AIProviderError(payload.error?.message || "AI_PROVIDER_EMPTY_RESPONSE");
+    throw new AIProviderError("AI_PROVIDER_EMPTY_RESPONSE");
   }
 
   try {
