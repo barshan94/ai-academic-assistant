@@ -383,6 +383,8 @@ h2 { font-size: 24px; letter-spacing: -.04em; margin: 0; font-weight: 600; }
 /* When a note-specific export is requested, print only that immutable version. */
 @media print {
   body[data-print-note] .chapter-note-version { display: none !important; }
+  body[data-print-note] .chapter-workspace-card { display: none !important; }
+  body[data-print-note] .chapter-workspace-card:has(.print-selected-note) { display: block !important; }
   body[data-print-note] .chapter-note-version { display: none !important; }
   body[data-print-note] .chapter-note-version.print-selected-note { display: block !important; }
 }
