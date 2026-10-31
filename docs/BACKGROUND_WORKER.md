@@ -13,9 +13,9 @@ Configure these values in the dedicated non-production Vercel project:
 - `GOOGLE_CLIENT_ID`
 - `GOOGLE_CLIENT_SECRET`
 
-The scheduler is GitHub Actions, defined in `.github/workflows/process-document-queue.yml`, and requests one job every five minutes. Configure these repository Actions secrets:
+The scheduler is GitHub Actions, defined in `.github/workflows/document-worker.yml`, and requests one job every five minutes. Configure these repository Actions secrets:
 
-- `DOCUMENT_WORKER_URL` — the HTTPS base URL of the deployed application, for example `https://your-app.example.com` (no path suffix).
+- `APP_BASE_URL` — the HTTPS base URL of the deployed application, for example `https://your-app.example.com` (no path suffix).
 - `CRON_SECRET` — the same random secret configured in the Vercel environment.
 
 GitHub scheduled workflows run only from the repository's default branch. This feature-branch workflow will not run on a schedule until it is merged to the default branch; do not merge it or deploy it without authorization. Once available on the default branch, GitHub Actions can also be manually dispatched. GitHub may delay scheduled runs during periods of high load.
