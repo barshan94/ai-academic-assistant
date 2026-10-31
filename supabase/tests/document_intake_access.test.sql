@@ -77,16 +77,23 @@ update public.documents
 set file_name = 'tampered.pdf'
 where id = '21000000-0000-4000-8000-000000000001';
 
+set local request.jwt.claim.sub = '11000000-0000-4000-8000-000000000001';
+set local request.jwt.claims = '{"sub":"11000000-0000-4000-8000-000000000001","role":"authenticated","email":"intake-owner@example.test"}';
+
 select is(
-  (select count(*)::integer from public.documents
-   where id = '21000000-0000-4000-8000-000000000001'
-     and file_name = 'tampered.pdf'),
-  0,
+  (select file_name from public.documents where id = '21000000-0000-4000-8000-000000000001'),
+  'intake-owner.pdf',
   'another account cannot update the owner document'
 );
 
+set local request.jwt.claim.sub = '11000000-0000-4000-8000-000000000002';
+set local request.jwt.claims = '{"sub":"11000000-0000-4000-8000-000000000002","role":"authenticated","email":"intake-other@example.test"}';
+
 delete from public.document_pages
 where id = '22000000-0000-4000-8000-000000000001';
+
+set local request.jwt.claim.sub = '11000000-0000-4000-8000-000000000001';
+set local request.jwt.claims = '{"sub":"11000000-0000-4000-8000-000000000001","role":"authenticated","email":"intake-owner@example.test"}';
 
 select is(
   (select count(*)::integer from public.document_pages
@@ -94,6 +101,9 @@ select is(
   1,
   'another account cannot delete the owner extracted page'
 );
+
+set local request.jwt.claim.sub = '11000000-0000-4000-8000-000000000002';
+set local request.jwt.claims = '{"sub":"11000000-0000-4000-8000-000000000002","role":"authenticated","email":"intake-other@example.test"}';
 
 select throws_ok(
   $$insert into public.documents (owner_id, file_name, mime_type, file_size_bytes)
