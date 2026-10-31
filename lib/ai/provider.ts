@@ -105,11 +105,11 @@ export async function generateStructuredAnswer(
             content: [
               "Academic context:",
               JSON.stringify({ ...context, sourceContext: undefined }),
-              context.sourceContext ? "Optional owner-approved source page (extracted text; may contain OCR errors; not an official mark scheme):\\nPage " + context.sourceContext.pageNumber + " (" + context.sourceContext.extractionMethod + ")\\n" + context.sourceContext.text : "No source page text was shared.",
+              context.sourceContext ? "Optional owner-approved source page (extracted text; may contain OCR errors; not an official mark scheme):\nPage " + context.sourceContext.pageNumber + " (" + context.sourceContext.extractionMethod + ")\n" + context.sourceContext.text : "No source page text was shared.",
               "",
               "Solve and explain this question:",
               question,
-            ].join("\\n"),
+            ].join("\n"),
           },
         ],
       }),
@@ -121,7 +121,7 @@ export async function generateStructuredAnswer(
 
   if (!response.ok) {
     const body = await response.text().catch(() => "");
-    const safeMessage = body.slice(0, 300).replace(/[\\r\\n\\t]+/g, " ");
+    const safeMessage = body.slice(0, 300).replace(/[\r\n\t]+/g, " ");
     throw new AIProviderError("AI_PROVIDER_HTTP_" + response.status + (safeMessage ? ": " + safeMessage : ""));
   }
 
