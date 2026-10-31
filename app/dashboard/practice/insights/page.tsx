@@ -2,77 +2,42 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { signOut } from "../../actions";
-import type { DatabaseWithPractice } from "@/types/practice-database";
+import type { DatabaseWithPractice, PracticeInsightsResult } from "@/types/practice-database";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 type Outcome = "correct" | "partial" | "incorrect" | "skipped";
-type PracticeItem = {
-  practice_set_id: string;
-  subject: string | null;
-  chapter: string | null;
-  topic: string | null;
-  outcome: Outcome | null;
-  answered_at: string | null;
-};
 
 export default async function PracticeInsightsPage() {
   const supabase = await createSupabaseServerClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) redirect("/login");
+
   const db = supabase as unknown as SupabaseClient<DatabaseWithPractice>;
-
-  const [{ data: sets, error: setsError }, { data: rawItems, error: itemsError }] = await Promise.all([
-    db.from("practice_sets")
-      .select("id,title,status,question_count,created_at,completed_at")
-      .eq("owner_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(301),
-    db.from("practice_set_items")
-      .select("practice_set_id,subject,chapter,topic,outcome,answered_at")
-      .eq("owner_id", user.id)
-      .order("answered_at", { ascending: false, nullsFirst: false })
-      .limit(3001),
-  ]);
-
-  const setOverflow = (sets?.length ?? 0) > 300;
-  const itemOverflow = (rawItems?.length ?? 0) > 3000;
-  const visibleSets = (sets ?? []).slice(0, 300);
-  const items = ((rawItems ?? []).slice(0, 3000)) as PracticeItem[];
-  const answered = items.filter((item) => item.outcome !== null);
-  const count = (outcome: Outcome) => answered.filter((item) => item.outcome === outcome).length;
-  const correct = count("correct");
-  const partial = count("partial");
-  const incorrect = count("incorrect");
-  const skipped = count("skipped");
+  const { data, error } = await db.rpc("get_practice_insights");
+  const insights = data as PracticeInsightsResult | null;
+  const summary = insights?.summary ?? {
+    total_sets: 0, total_items: 0, marked: 0,
+    correct: 0, partial: 0, incorrect: 0, skipped: 0,
+  };
+  const correct = summary.correct;
+  const partial = summary.partial;
+  const incorrect = summary.incorrect;
+  const skipped = summary.skipped;
   const scored = correct + partial + incorrect;
-  const completionRate = items.length ? Math.round((answered.length / items.length) * 100) : 0;
+  const completionRate = summary.total_items
+    ? Math.round((summary.marked / summary.total_items) * 100)
+    : 0;
   const successRate = scored ? Math.round((correct / scored) * 100) : null;
 
-  // Weekly trend is based only on saved outcomes with timestamps. A week with
-  // fewer than three scored answers is displayed but not interpreted.
-  const now = new Date();
-  const currentMonday = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-  currentMonday.setUTCDate(currentMonday.getUTCDate() - ((currentMonday.getUTCDay() + 6) % 7));
-  const weeklyTrend = Array.from({ length: 8 }, (_, index) => {
-    const start = new Date(currentMonday);
-    start.setUTCDate(start.getUTCDate() - (7 * (7 - index)));
-    const end = new Date(start);
-    end.setUTCDate(end.getUTCDate() + 7);
-    const weekItems = answered.filter((item) => {
-      if (!item.answered_at) return false;
-      const timestamp = new Date(item.answered_at).getTime();
-      return Number.isFinite(timestamp) && timestamp >= start.getTime() && timestamp < end.getTime();
-    });
-    const weekCorrect = weekItems.filter((item) => item.outcome === "correct").length;
-    const weekPartial = weekItems.filter((item) => item.outcome === "partial").length;
-    const weekIncorrect = weekItems.filter((item) => item.outcome === "incorrect").length;
-    const weekScored = weekCorrect + weekPartial + weekIncorrect;
+  const weeklyTrend = (insights?.weekly ?? []).map((week) => {
+    const start = new Date(week.week_start + "T00:00:00.000Z");
+    const weekScored = week.correct + week.partial + week.incorrect;
     return {
-      key: start.toISOString().slice(0, 10),
+      key: week.week_start,
       label: start.toLocaleDateString("en", { month: "short", day: "numeric", timeZone: "UTC" }),
-      total: weekItems.length,
+      total: week.marked,
       scored: weekScored,
-      correctRate: weekScored ? Math.round((weekCorrect / weekScored) * 100) : null,
+      correctRate: weekScored ? Math.round((week.correct / weekScored) * 100) : null,
       needsMoreData: weekScored < 3,
     };
   });
@@ -83,22 +48,9 @@ export default async function PracticeInsightsPage() {
     ? trendLast.correctRate! - trendFirst.correctRate!
     : null;
 
-  const groups = new Map<string, { subject: string; chapter: string; topic: string; total: number; correct: number; partial: number; incorrect: number; skipped: number }>();
-  for (const item of answered) {
-    const subject = item.subject?.trim() || "Unmapped subject";
-    const chapter = item.chapter?.trim() || "Unmapped chapter";
-    const topic = item.topic?.trim() || "Unmapped topic";
-    const key = [subject, chapter, topic].join("\u001f");
-    const group = groups.get(key) ?? { subject, chapter, topic, total: 0, correct: 0, partial: 0, incorrect: 0, skipped: 0 };
-    group.total += 1;
-    if (item.outcome) group[item.outcome] += 1;
-    groups.set(key, group);
-  }
-  const topicRows = [...groups.values()]
-    .sort((a, b) => (b.incorrect + b.partial) - (a.incorrect + a.partial) || b.total - a.total)
-    .slice(0, 100);
-
-  const hasErrors = Boolean(setsError || itemsError);
+  const topicRows = insights?.topics ?? [];
+  const recentSessions = insights?.recent_sessions ?? [];
+  const hasError = Boolean(error);
 
   return (
     <main className="shell">
@@ -113,16 +65,15 @@ export default async function PracticeInsightsPage() {
       <section className="hero documents-hero">
         <p className="eyebrow">EXAM PREPARATION · PERFORMANCE</p>
         <h1>Practice <span>insights.</span></h1>
-        <p className="hero-copy">A combined view of the results you have recorded across saved practice sessions. These are self-assessments, not independently graded marks or proof of mastery.</p>
+        <p className="hero-copy">A combined view of every saved practice result in your account. These are self-assessments, not independently graded marks or proof of mastery.</p>
         <div className="hero-actions"><Link className="primary-action" href="/dashboard/practice">Create a practice set →</Link><Link className="sign-in-link" href="/dashboard/revision/insights">Revision confidence insights</Link></div>
       </section>
-      {hasErrors ? <p className="notice notice-error" role="status">Some practice analytics could not be loaded. The figures below may be incomplete.</p> : null}
+      {hasError ? <p className="notice notice-error" role="status">Practice analytics could not be loaded. Refresh the page; no partial totals are being presented as complete.</p> : null}
       <section className="section">
-        <div className="section-heading"><div><p className="eyebrow">ALL RECORDED ATTEMPTS</p><h2>Overall snapshot</h2></div><span className="section-count">Latest 3,000 saved question results</span></div>
-        {setOverflow || itemOverflow ? <p className="notice notice-error" role="status">This account has more practice history than the analytics sample displays. {setOverflow ? "Older sessions beyond the latest 300 are excluded. " : ""}{itemOverflow ? "Older question results beyond the latest 3,000 are excluded. " : ""}The figures below describe this recent sample, not your complete history.</p> : null}
+        <div className="section-heading"><div><p className="eyebrow">ALL RECORDED ATTEMPTS</p><h2>Overall snapshot</h2></div><span className="section-count">Complete saved history</span></div>
         <div className="module-grid revision-stats">
-          <article className="module-card"><span className="module-number">{visibleSets.length}</span><h3>Practice sets</h3><p>Latest 300 saved sessions.</p></article>
-          <article className="module-card"><span className="module-number">{answered.length}/{items.length}</span><h3>Marked questions</h3><p>{completionRate}% of loaded question snapshots have a recorded outcome.</p></article>
+          <article className="module-card"><span className="module-number">{summary.total_sets}</span><h3>Practice sets</h3><p>All saved sessions in this account.</p></article>
+          <article className="module-card"><span className="module-number">{summary.marked}/{summary.total_items}</span><h3>Marked questions</h3><p>{completionRate}% of all saved question snapshots have a recorded outcome.</p></article>
           <article className="module-card"><span className="module-number">{successRate === null ? "—" : successRate + "%"}</span><h3>Self-marked correct</h3><p>Correct divided by correct, partial and incorrect; skipped items are excluded.</p></article>
           <article className="module-card"><span className="module-number">{incorrect + partial}</span><h3>More practice recorded</h3><p>Incorrect or partially solved attempts, based on your own marking.</p></article>
         </div>
@@ -133,7 +84,7 @@ export default async function PracticeInsightsPage() {
         </div>
       </section>
       <section className="section">
-        <div className="section-heading"><div><p className="eyebrow">PROGRESS OVER TIME</p><h2>Weekly practice trend</h2></div><span className="section-count">Last 8 weeks</span></div>
+        <div className="section-heading"><div><p className="eyebrow">PROGRESS OVER TIME</p><h2>Weekly practice trend</h2></div><span className="section-count">Last 8 weeks · all saved attempts</span></div>
         <div className="question-card">
           <div className="question-card-heading"><strong>Self-marked correct rate</strong><span className="question-subject">{trendChange === null ? "Not enough comparable weeks" : `${trendChange > 0 ? "+" : ""}${trendChange} percentage points`}</span></div>
           <p className="question-card-meta">Each week uses correct ÷ (correct + partial + incorrect). Skipped answers are excluded. A week needs at least three scored answers before its rate is interpreted.</p>
@@ -149,12 +100,12 @@ export default async function PracticeInsightsPage() {
             ))}
           </div>
           {trendChange === null
-            ? <p className="question-card-meta">There are not yet two separate weeks with enough scored attempts to compare. Keep recording results; no trend will be inferred from sparse data.</p>
+            ? <p className="question-card-meta">There are not yet two separate weeks with enough scored attempts to compare. No trend is inferred from sparse data.</p>
             : <p className="question-card-meta">The displayed change compares the earliest and latest weeks with at least three scored attempts in this eight-week window. It is descriptive, not a prediction of future performance.</p>}
         </div>
       </section>
       <section className="section">
-        <div className="section-heading"><div><p className="eyebrow">WHERE TO FOCUS</p><h2>Subject, chapter and topic patterns</h2></div><span className="section-count">{topicRows.length} groups</span></div>
+        <div className="section-heading"><div><p className="eyebrow">WHERE TO FOCUS</p><h2>Subject, chapter and topic patterns</h2></div><span className="section-count">Top {topicRows.length} groups</span></div>
         {!topicRows.length ? <div className="empty-state"><h3>No marked practice results yet</h3><p>Record outcomes in a practice session. Topic summaries will appear once there is saved history.</p></div> : (
           <div className="question-list">
             {topicRows.map((group) => {
@@ -175,12 +126,13 @@ export default async function PracticeInsightsPage() {
             })}
           </div>
         )}
+        <p className="question-card-meta">Topic groups are aggregated across the full saved history; this page displays the 100 groups with the highest partial/incorrect counts. Unmapped metadata is retained under an explicit unmapped label.</p>
       </section>
       <section className="section">
-        <div className="section-heading"><div><p className="eyebrow">RECENT ACTIVITY</p><h2>Saved sessions</h2></div></div>
-        {!visibleSets.length ? <div className="empty-state"><p>No saved practice sessions yet.</p></div> : (
+        <div className="section-heading"><div><p className="eyebrow">RECENT ACTIVITY</p><h2>Saved sessions</h2></div><span className="section-count">Latest {recentSessions.length}</span></div>
+        {!recentSessions.length ? <div className="empty-state"><p>No saved practice sessions yet.</p></div> : (
           <div className="question-list">
-            {visibleSets.slice(0, 12).map((set) => (
+            {recentSessions.map((set) => (
               <article className="question-card" key={set.id}>
                 <div className="question-card-heading"><span className="document-status">{set.status.replace("_", " ")}</span><span className="question-subject">{set.question_count} questions</span></div>
                 <h3>{set.title}</h3>
@@ -191,7 +143,7 @@ export default async function PracticeInsightsPage() {
           </div>
         )}
       </section>
-      <p className="question-card-meta">Coverage note: outcome analytics use up to the latest 3,000 saved question snapshots; the recent-session list shows up to 300 sets. Overflow is detected and reported above. A topic without mapped subject/chapter/topic metadata is grouped under an unmapped label. No AI grading or mastery prediction is performed.</p>
+      <p className="question-card-meta">Coverage note: all saved outcomes and all saved sets are included in the database-side totals. Only eight weekly buckets, the top 100 topic groups and the twelve most recent sessions are sent to this page. No AI grading or mastery prediction is performed.</p>
     </main>
   );
 }
