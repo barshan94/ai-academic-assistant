@@ -26,6 +26,7 @@ Use .env.local for local secrets and keep it ignored by Git. Commit only placeho
 - Treat OCR output as unverified until the owner reviews and approves it.
 - Use CSRF-safe OAuth state, secure cookies, and strict redirect URI validation.
 - Apply bounded input sizes, request timeouts and bounded retries to AI and document-processing operations; production rate limiting and abuse monitoring still require explicit acceptance.
+- Route-level and root-level error boundaries show generic messages only; they do not render exception messages, stacks, provider response bodies or submitted academic content. They warn that a failed action may not have been saved.
 
 ## Browser response protections
 - Disable framework fingerprinting and set HSTS, frame denial, MIME-sniffing protection, a strict referrer policy and a restrictive Permissions-Policy. These headers are covered by a Chromium smoke test.
