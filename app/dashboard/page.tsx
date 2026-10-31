@@ -34,6 +34,7 @@ export default async function DashboardPage() {
           <Link className="sign-in-link" href="/dashboard/revision">Open revision tracker</Link>
           <Link className="sign-in-link" href="/dashboard/revision/insights">Topic revision insights</Link>
           <Link className="sign-in-link" href="/dashboard/practice">Practice sets</Link>
+          <Link className="sign-in-link" href="/dashboard/practice/insights">Cross-session practice insights</Link>
           <Link className="sign-in-link" href="/dashboard/syllabus/review">Classification review queue</Link>
           <Link className="sign-in-link" href="/dashboard/syllabus/references">Shared syllabus library</Link>
         </div>
@@ -52,6 +53,7 @@ export default async function DashboardPage() {
           <article className="module-card"><span className="module-number">06</span><h3>Revision tracker</h3><p>Rate your confidence on approved questions and schedule the next review using spaced intervals.</p><Link className="document-open" href="/dashboard/revision">Open revision queue ↗</Link></article>
           <article className="module-card"><span className="module-number">07</span><h3>Topic gap insights</h3><p>Compare self-reported confidence across mapped syllabus topics and identify what needs another look.</p><Link className="document-open" href="/dashboard/revision/insights">View topic insights ↗</Link></article>
           <article className="module-card"><span className="module-number">08</span><h3>Custom practice sets</h3><p>Build focused sessions from approved questions and keep a history of your self-marked results.</p><Link className="document-open" href="/dashboard/practice">Create practice set ↗</Link></article>
+          <article className="module-card"><span className="module-number">09</span><h3>Practice performance</h3><p>Review cross-session outcomes by subject, chapter and topic using your own recorded results.</p><Link className="document-open" href="/dashboard/practice/insights">View practice insights ↗</Link></article>
         </div>
       </section>
     </main>
