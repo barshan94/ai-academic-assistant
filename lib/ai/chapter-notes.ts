@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { AIProviderError, getAIProviderConfigs, type AIProviderConfig } from "./provider";
+import { readLimitedResponseText } from "@/lib/http/read-limited-response";
 
 const chapterNoteSchema = z.object({
   title: z.string().trim().min(1).max(200),
@@ -103,8 +104,7 @@ export async function generateChapterNote(input: {
 
   let raw: unknown;
   try {
-    const body = await response.text();
-    if (body.length > 500_000) throw new Error("AI_RESPONSE_TOO_LARGE");
+    const body = await readLimitedResponseText(response, 500_000);
     raw = JSON.parse(body) as unknown;
   } catch {
     throw new AIProviderError("AI_PROVIDER_INVALID_RESPONSE");
