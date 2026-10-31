@@ -138,6 +138,7 @@ export default async function StudyPlanPage({ searchParams }: PageProps) {
           <form action={createStudySession} className="study-queue-schedule-form">
             <input type="hidden" name="sessionDate" value={dateKey(formDefaultDate)} />
             <input type="hidden" name="weekOffset" value={weekOffset} />
+            <input type="hidden" name="sessionPage" value={sessionPage} />
             <input type="hidden" name="title" value={"Practice: " + (item.subject ?? "Question") + (item.chapter ? " — " + item.chapter : "")} />
             <input type="hidden" name="plannedMinutes" value="45" />
             <input type="hidden" name="notes" value={"Continue practice set: " + (item.set_title) + ". Record the result in the practice workspace."} />
