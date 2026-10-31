@@ -21,6 +21,7 @@ const catalogSchema = z.object({
     try { return new URL(value).protocol === "https:"; } catch { return false; }
   })()),
   sourceTitle: z.string().trim().max(200),
+  sourceCheckedAt: z.string().trim().max(10),
 });
 
 const chapterSchema = z.object({
@@ -73,6 +74,7 @@ export async function createReferenceCatalog(formData: FormData) {
     effectiveTo: String(formData.get("effectiveTo") ?? ""),
     sourceUrl: String(formData.get("sourceUrl") ?? ""),
     sourceTitle: String(formData.get("sourceTitle") ?? ""),
+    sourceCheckedAt: String(formData.get("sourceCheckedAt") ?? ""),
   });
   if (!parsed.success) redirect("/dashboard/syllabus/references/manage?result=invalid");
 
@@ -87,6 +89,7 @@ export async function createReferenceCatalog(formData: FormData) {
     effective_to: value.effectiveTo || null,
     source_url: value.sourceUrl || null,
     source_title: value.sourceTitle || null,
+    source_checked_at: value.sourceCheckedAt ? new Date(value.sourceCheckedAt + "T00:00:00.000Z").toISOString() : null,
   });
   if (error) redirect("/dashboard/syllabus/references/manage?result=" + (error.code === "23505" ? "duplicate" : "save_failed"));
   refreshReferencePages();
@@ -169,9 +172,9 @@ export async function verifyReferenceCatalog(formData: FormData) {
   const catalogId = String(formData.get("catalogId") ?? "");
   if (!z.string().uuid().safeParse(catalogId).success) redirect("/dashboard/syllabus/references/manage?result=invalid");
   const supabase = await requirePlatformAdmin();
-  const { error } = await supabase.from("reference_syllabus_catalogs")
-    .update({ status: "verified" }).eq("id", catalogId).eq("status", "draft");
-  if (error) redirect("/dashboard/syllabus/references/manage?result=verify_failed");
+  const { data, error } = await supabase.from("reference_syllabus_catalogs")
+    .update({ status: "verified" }).eq("id", catalogId).eq("status", "draft").select("id").maybeSingle();
+  if (error || !data) redirect("/dashboard/syllabus/references/manage?result=verify_failed");
   refreshReferencePages(catalogId);
   redirect("/dashboard/syllabus/references/manage?result=verified");
 }
@@ -180,9 +183,9 @@ export async function retireReferenceCatalog(formData: FormData) {
   const catalogId = String(formData.get("catalogId") ?? "");
   if (!z.string().uuid().safeParse(catalogId).success) redirect("/dashboard/syllabus/references/manage?result=invalid");
   const supabase = await requirePlatformAdmin();
-  const { error } = await supabase.from("reference_syllabus_catalogs")
-    .update({ status: "retired" }).eq("id", catalogId).eq("status", "verified");
-  if (error) redirect("/dashboard/syllabus/references/manage?result=retire_failed");
+  const { data, error } = await supabase.from("reference_syllabus_catalogs")
+    .update({ status: "retired" }).eq("id", catalogId).eq("status", "verified").select("id").maybeSingle();
+  if (error || !data) redirect("/dashboard/syllabus/references/manage?result=retire_failed");
   refreshReferencePages(catalogId);
   redirect("/dashboard/syllabus/references/manage?result=retired");
 }
