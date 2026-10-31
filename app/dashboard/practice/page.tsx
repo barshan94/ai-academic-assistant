@@ -37,6 +37,7 @@ export default async function PracticePage({ searchParams }: PracticePageProps) 
       <header className="topbar">
         <Link className="brand" href="/"><span className="brand-mark">A</span><span>Academic<span className="brand-muted">Assistant</span></span></Link>
         <div className="topbar-actions">
+          <Link className="sign-in-link" href="/dashboard/practice/insights">Practice insights</Link>
           <Link className="sign-in-link" href="/dashboard/revision">Revision tracker</Link>
           <Link className="sign-in-link" href="/dashboard">Dashboard</Link>
           <form action={signOut}><button className="signout-button" type="submit">Sign out</button></form>
@@ -46,6 +47,7 @@ export default async function PracticePage({ searchParams }: PracticePageProps) 
         <p className="eyebrow">EXAM PREPARATION · PRACTICE</p>
         <h1>Build a <span>practice set.</span></h1>
         <p className="hero-copy">Create a focused session from your own approved question bank. Questions are selected from your library and saved as a snapshot so later edits do not rewrite your practice history.</p>
+        <div className="hero-actions"><Link className="primary-action" href="/dashboard/practice/insights">View cross-session insights →</Link></div>
       </section>
       {message ? <p className="notice notice-error" role="status">{message}</p> : null}
       {questionError || setsError ? <p className="notice notice-error">Some practice data could not be loaded.</p> : null}
