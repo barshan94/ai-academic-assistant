@@ -77,6 +77,101 @@ export async function createChapterNoteDraft(formData: FormData) {
   redirect("/dashboard/chapters?create=saved");
 }
 
+
+export async function generateChapterNoteDraft(formData: FormData) {
+  const parsed = z.object({
+    catalogId: z.string().uuid(),
+    chapterId: z.string().uuid(),
+  }).safeParse({
+    catalogId: String(formData.get("catalogId") ?? ""),
+    chapterId: String(formData.get("chapterId") ?? ""),
+  });
+  if (!parsed.success) redirect("/dashboard/chapters?ai=invalid");
+
+  const supabase = await createSupabaseServerClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) redirect("/login");
+
+  const [{ data: catalog }, { data: chapter }, { data: questions, error: questionError }] = await Promise.all([
+    supabase.from("syllabus_catalogs").select("id,board,qualification,subject").eq("id", parsed.data.catalogId).eq("owner_id", user.id).maybeSingle(),
+    supabase.from("syllabus_chapters").select("id,catalog_id,title").eq("id", parsed.data.chapterId).eq("catalog_id", parsed.data.catalogId).eq("owner_id", user.id).maybeSingle(),
+    supabase.from("questions").select("id,question_number,question_text,document_page_id")
+      .eq("owner_id", user.id).eq("syllabus_chapter_id", parsed.data.chapterId)
+      .eq("review_status", "approved").order("created_at", { ascending: false }).limit(12),
+  ]);
+  if (!catalog || !chapter || questionError || !questions?.length) {
+    redirect("/dashboard/chapters?ai=no_sources");
+  }
+
+  const pageIds = Array.from(new Set(questions.map((question) => question.document_page_id).filter((id): id is string => Boolean(id))));
+  const { data: pages, error: pageError } = pageIds.length
+    ? await supabase.from("document_pages").select("id,page_number,extracted_text,extraction_method").eq("owner_id", user.id).in("id", pageIds)
+    : { data: [], error: null };
+  if (pageError) redirect("/dashboard/chapters?ai=source_error");
+  const pageMap = new Map((pages ?? []).map((page) => [page.id, page]));
+  const sources = questions.map((question, index) => {
+    const page = question.document_page_id ? pageMap.get(question.document_page_id) : undefined;
+    return {
+      ref: "S" + (index + 1),
+      questionId: question.id,
+      questionNumber: question.question_number,
+      questionText: question.question_text,
+      pageId: page?.id ?? null,
+      pageNumber: page?.page_number ?? null,
+      extractionMethod: page?.extraction_method ?? null,
+      pageText: page?.extracted_text ?? null,
+    };
+  });
+
+  let generated;
+  try {
+    const { generateChapterNote } = await import("@/lib/ai/chapter-notes");
+    generated = await generateChapterNote({
+      board: catalog.board,
+      qualification: catalog.qualification,
+      subject: catalog.subject,
+      chapter: chapter.title,
+      sources,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "AI_GENERATION_FAILED";
+    redirect("/dashboard/chapters?ai=" + (message === "AI_NOT_CONFIGURED" ? "not_configured" : "failed"));
+  }
+
+  const content: Json = {
+    summary: generated.summary,
+    concepts: generated.concepts,
+    formulas: generated.formulas,
+    workedExamples: generated.workedExamples,
+    revisionPrompts: generated.revisionPrompts,
+    generatedBy: "ai",
+    reviewRequired: true,
+    sourceReferences: sources.map((source) => ({
+      ref: source.ref,
+      questionId: source.questionId,
+      pageId: source.pageId,
+      pageNumber: source.pageNumber,
+      extractionMethod: source.extractionMethod,
+    })),
+    generationModel: "configured-ai-provider",
+    verificationStatus: "not_independently_verified",
+  };
+
+  const { data: noteId, error: saveError } = await supabase.rpc("create_chapter_note_draft", {
+    p_catalog_id: parsed.data.catalogId,
+    p_chapter_id: parsed.data.chapterId,
+    p_title: generated.title,
+    p_content_json: content,
+    p_question_ids: questions.map((question) => question.id),
+    p_document_page_ids: pageIds,
+    p_supersedes_id: null,
+  });
+  if (saveError || !noteId) redirect("/dashboard/chapters?ai=save_failed");
+
+  revalidatePath("/dashboard/chapters");
+  redirect("/dashboard/chapters?ai=generated");
+}
+
 export async function updateChapterNoteStatus(formData: FormData) {
   const noteId = z.string().uuid().safeParse(String(formData.get("noteId") ?? ""));
   const status = z.enum(["approved", "archived"]).safeParse(String(formData.get("status") ?? ""));
