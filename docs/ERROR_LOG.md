@@ -375,3 +375,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Require the owner-scoped document processing transition to return the expected row. Require the running job's completion transition to return the expected row before reporting success. If finalization fails, the existing catch path marks the job failed for a later bounded retry; page replacement remains atomic.
 - Verification: Feature-branch CI pending. Live concurrent-claim, retry-exhaustion and stale-recovery acceptance remains outstanding.
 - Status: Implemented; CI verification pending.
+
+
+## ERR-035 — User-triggered document processing ignored persistence failures
+
+- Date: 2026-10-31
+- Area: M2 manual processing and recovery
+- Symptom: The authenticated processing route ignored errors when marking a document as processing, recovering a stale document, and marking a processing job complete. It could report completion while the durable job state remained running, or continue after stale recovery failed to persist.
+- Root cause: State-changing Supabase writes were awaited but their returned errors/rows were not checked.
+- Fix: Require stale-document recovery to persist, require the owner-scoped processing transition to return the updated document, and require the running job completion transition to return the updated job. If completion persistence fails, route through the existing failure/retry path. Added a user-facing recovery failure notice.
+- Verification: Feature-branch CI pending. Live Drive and authenticated route acceptance remains outstanding.
+- Status: Implemented; CI verification pending.
