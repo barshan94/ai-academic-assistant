@@ -16,31 +16,6 @@ type UploadSession = {
   expiresAt: number;
 };
 
-mport { NextRequest, NextResponse } from "next/server";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { decryptDriveUploadSession } from "@/lib/drive/crypto";
-import { getDriveAccessToken, sendResumablePdfChunk, deleteDriveFile } from "@/lib/drive/google";
-import { isValidDriveChunk, parseDriveUploadOffset } from "@/lib/drive/resumable-upload";
-
-export const runtime = "nodejs";
-
-type UploadSession = {
-  ownerId: string;
-  sessionUri: string;
-  fileName: string;
-  fileSizeBytes: number;
-  sha256: string;
-  pageCount: number | null;
-  expiresAt: number;
-};
-
-function parseNextOffset(range: string | null) {
-  if (!range) return 0;
-  const match = /^bytes=0-(\d+)$/.exec(range);
-  if (!match) throw new Error("Google Drive returned an invalid upload range.");
-  return Number(match[1]) + 1;
-}
-
 async function saveCompletedUpload(
   supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
   session: UploadSession,
@@ -48,8 +23,9 @@ async function saveCompletedUpload(
 ) {
   if (!file.id) throw new Error("Google Drive completed the upload without returning a file ID.");
 
-  const { data: existing } = await supabase.from("documents")
+  const { data: existing, error: existingError } = await supabase.from("documents")
     .select("id,drive_file_id").eq("owner_id", session.ownerId).eq("sha256", session.sha256).maybeSingle();
+  if (existingError) throw new Error("Could not verify whether this document was already archived.");
   if (existing) {
     if (existing.drive_file_id !== file.id) {
       const accessToken = await getDriveAccessToken();
