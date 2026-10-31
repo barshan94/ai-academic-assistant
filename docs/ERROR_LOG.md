@@ -332,3 +332,10 @@ This file records material implementation, CI, integration and release problems 
 - Root cause: Citation-like token discovery was case-sensitive, although the accepted citation format is intentionally uppercase.
 - Fix: Make token discovery case-insensitive while retaining the strict uppercase exact-format validator; add a regression test where `[s1]` coexists with valid `[S1]`.
 - Verification: Pending Foundation CI on the commit containing this change.
+
+
+## ERR-030 — Study feature authorization tests did not cover aggregate RPC leakage
+- Symptom: Existing M7 database tests checked direct table isolation and foreign-ID rejection but did not assert that aggregate analytics, paginated study queues, and weekly calendar RPCs return no cross-account totals or rows.
+- Root cause: The acceptance suite tested underlying RLS tables more thoroughly than the SECURITY DEFINER aggregate/query boundaries.
+- Fix: Extend the isolated study-feature pgTAP suite with eight outsider assertions across practice analytics, the consolidated study queue, and weekly calendar RPC results.
+- Verification: Pending database authorization CI.

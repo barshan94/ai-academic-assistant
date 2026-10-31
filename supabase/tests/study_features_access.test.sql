@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(29);
+select plan(37);
 
 -- Isolated owner and outsider fixtures. The entire test rolls back.
 insert into auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
@@ -136,6 +136,47 @@ select is((select count(*)::integer from public.question_revision_progress), 0, 
 select is((select count(*)::integer from public.practice_sets), 0, 'outsider cannot read practice sets');
 select is((select count(*)::integer from public.practice_set_items), 0, 'outsider cannot read practice item snapshots');
 select is((select count(*)::integer from public.weekly_study_sessions), 0, 'outsider cannot read weekly study sessions');
+
+select is(
+  (public.get_practice_insights() -> 'summary' ->> 'total_items')::integer,
+  0,
+  'outsider practice analytics contain no other owner item totals'
+);
+select is(
+  jsonb_array_length(public.get_practice_insights() -> 'topics'),
+  0,
+  'outsider practice analytics contain no other owner topic groups'
+);
+select is(
+  jsonb_array_length(public.get_practice_insights() -> 'recent_sessions'),
+  0,
+  'outsider practice analytics contain no other owner session history'
+);
+select is(
+  (public.get_study_queue_page(1, 1, 25) ->> 'revision_total')::integer,
+  0,
+  'outsider study queue contains no other owner revision total'
+);
+select is(
+  (public.get_study_queue_page(1, 1, 25) ->> 'practice_total')::integer,
+  0,
+  'outsider study queue contains no other owner practice total'
+);
+select is(
+  jsonb_array_length(public.get_study_queue_page(1, 1, 25) -> 'practice_items'),
+  0,
+  'outsider study queue contains no other owner practice items'
+);
+select is(
+  (public.get_weekly_study_sessions_page(date '2026-10-26', date '2026-11-01', 1, 50) ->> 'sessions_total')::integer,
+  0,
+  'outsider weekly calendar contains no other owner session total'
+);
+select is(
+  jsonb_array_length(public.get_weekly_study_sessions_page(date '2026-10-26', date '2026-11-01', 1, 50) -> 'sessions'),
+  0,
+  'outsider weekly calendar contains no other owner session rows'
+);
 select throws_ok(
   $$select public.record_question_revision('31000000-0000-4000-8000-000000000001', 5)$$,
   'P0001',
