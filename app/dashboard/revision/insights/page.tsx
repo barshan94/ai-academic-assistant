@@ -29,22 +29,30 @@ export default async function RevisionInsightsPage() {
   const db = supabase as unknown as SupabaseClient<DatabaseWithRevision>;
   const [{ data: questions, error: questionError }, { data: progress, error: progressError }] = await Promise.all([
     db.from("questions")
-      .select("id,subject,chapter,topic,created_at")
+      .select("id,subject,chapter,topic,created_at", { count: "exact" })
       .eq("owner_id", user.id)
       .eq("review_status", "approved")
       .order("created_at", { ascending: false })
-      .limit(1000),
-    db.from("question_revision_progress")
-      .select("question_id,confidence,next_review_at")
-      .eq("owner_id", user.id),
+      .order("id", { ascending: false })
+      .limit(1001),
   ]);
+
+  const questionsLimited = (questions ?? []).length > 1000;
+  const visibleQuestions = (questions ?? []).slice(0, 1000);
+  const questionIds = visibleQuestions.map((question) => question.id);
+  const { data: progress, error: progressError } = questionIds.length
+    ? await db.from("question_revision_progress")
+      .select("question_id,confidence,next_review_at")
+      .eq("owner_id", user.id)
+      .in("question_id", questionIds)
+    : { data: [], error: null };
 
   const now = Date.now();
   const progressByQuestion = new Map((progress ?? []).map((item) => [item.question_id, item]));
   const groups = new Map<string, TopicGroup>();
   let unmapped = 0;
 
-  for (const question of questions ?? []) {
+  for (const question of visibleQuestions) {
     const subject = groupLabel(question.subject);
     const chapter = groupLabel(question.chapter);
     const topic = groupLabel(question.topic);
@@ -102,6 +110,7 @@ export default async function RevisionInsightsPage() {
       </section>
 
       {questionError || progressError ? <p className="notice notice-error">Some revision insight data could not be loaded. Refresh the page to try again.</p> : null}
+      {questionsLimited ? <p className="notice notice-info" role="status">Topic insights are based on the latest 1,000 of {approvedQuestionCount ?? "more than 1,000"} approved questions. Older questions are not included in these topic signals yet.</p> : null}
 
       <section className="section">
         <div className="section-heading"><div><p className="eyebrow">YOUR SELF-REPORTED SIGNALS</p><h2>Topic overview</h2></div><span className="section-count">{topics.length} mapped groups</span></div>
@@ -111,7 +120,7 @@ export default async function RevisionInsightsPage() {
           <article className="module-card"><span className="module-number">{lowConfidence}</span><h3>Low confidence</h3><p>Latest ratings of 1 or 2 out of 5.</p></article>
           <article className="module-card"><span className="module-number">{due}</span><h3>Due for review</h3><p>Rated questions whose next review date has arrived.</p></article>
         </div>
-        <p className="question-card-meta">Analysis covers up to the latest 1,000 approved questions. {unmapped} questions without chapter or topic metadata are excluded from topic grouping.</p>
+        <p className="question-card-meta">Analysis covers {visibleQuestions.length} of {approvedQuestionCount ?? visibleQuestions.length} approved questions, with the newest questions first. {unmapped} questions without chapter or topic metadata are excluded from topic grouping.</p>
       </section>
 
       <section className="section">
