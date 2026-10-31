@@ -1,6 +1,6 @@
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(15);
+select plan(17);
 
 insert into auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
 values ('11000000-0000-4000-8000-000000000011', 'authenticated', 'authenticated', 'chapter-note-owner@example.test', '', now(), '{}'::jsonb, '{}'::jsonb, now(), now());
@@ -123,12 +123,35 @@ select lives_ok(
   'draft creation preserves an owned page as a draft source before approval checks'
 );
 select throws_ok(
-  $$update public.chapter_note_versions
+  $update public.chapter_note_versions
     set status = 'approved'
-    where title = 'Wrong chapter page-source note'$$,
+    where title = 'Wrong chapter page-source note'$,
   'P0001',
   'Every document page source must remain linked to an approved question in this chapter',
   'approval is blocked when a page belongs to a question classified to another chapter'
+);
+
+select lives_ok(
+  $select public.create_chapter_note_draft(
+    '41000000-0000-4000-8000-000000000011',
+    '42000000-0000-4000-8000-000000000011',
+    'Revised Forces note',
+    '{"summary":"Revised page-backed note"}'::jsonb,
+    '{}'::uuid[],
+    array['22000000-0000-4000-8000-000000000011'::uuid],
+    (select id from public.chapter_note_versions where title = 'Valid page-source note')
+  )$,
+  'owner can create a new note version that supersedes an existing note'
+);
+select is(
+  (select version_number from public.chapter_note_versions where title = 'Revised Forces note'),
+  4,
+  'a chapter revision receives the next monotonically increasing version number'
+);
+select is(
+  (select supersedes_id from public.chapter_note_versions where title = 'Revised Forces note'),
+  (select id from public.chapter_note_versions where title = 'Valid page-source note'),
+  'a chapter revision retains its explicit supersedes relationship'
 );
 
 -- Note content and source history are immutable after creation.
@@ -168,7 +191,7 @@ insert into public.chapter_note_versions (
   '11000000-0000-4000-8000-000000000011',
   '41000000-0000-4000-8000-000000000011',
   '42000000-0000-4000-8000-000000000011',
-  4,
+  5,
   'No source note',
   '{"summary":"No source attached"}'::jsonb,
   'draft'
