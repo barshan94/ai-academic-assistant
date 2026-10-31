@@ -132,6 +132,6 @@ M6 remaining:
 ## Working rules
 - Complete acceptance criteria before calling a milestone done.
 - Preserve working features; use separate branches for risky changes.
-- Run tests after each meaningful change and report exact outcomes.
+- Follow the owner's staged workflow: finish implementation, migrations, integration wiring and documentation before deliberately beginning the separate test/fix phase. CI may run automatically after commits; record it without treating it as permission to switch phases.
 - Never claim an AI answer is verified unless the relevant check actually ran.
 - Keep main and production untouched until explicit merge/release approval.
