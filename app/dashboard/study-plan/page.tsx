@@ -28,7 +28,7 @@ export default async function StudyPlanPage({ searchParams }: PageProps) {
   const [{ data: sessions, error: sessionsError }, { data: revisionRows, error: revisionError }, { data: sets, error: setsError }] = await Promise.all([
     db.from("weekly_study_sessions").select("id,session_date,title,planned_minutes,notes,status,completed_at").eq("owner_id", user.id).gte("session_date", startKey).lte("session_date", endKey).order("session_date", { ascending: true }).order("created_at", { ascending: true }).limit(200),
     db.from("question_revision_progress").select("question_id,confidence,status,next_review_at,review_count").eq("owner_id", user.id).lte("next_review_at", new Date().toISOString()).order("next_review_at", { ascending: true }).limit(500),
-    db.from("practice_sets").select("id,title").eq("owner_id", user.id).eq("status", "in_progress").limit(100),
+    db.from("practice_sets").select("id,title,created_at").eq("owner_id", user.id).eq("status", "in_progress").order("created_at", { ascending: false }).limit(100),
   ]);
   const revisionIds = [...new Set((revisionRows ?? []).map((row) => row.question_id))];
   const { data: revisionQuestions, error: questionError } = revisionIds.length
