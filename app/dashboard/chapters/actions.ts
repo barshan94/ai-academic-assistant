@@ -6,6 +6,7 @@ import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Json } from "@/types/database";
 import { consumeAIGenerationQuota } from "@/lib/security/ai-generation-quota";
+import { logSafeOperationalEvent } from "@/lib/observability/safe-log";
 
 const noteSchema = z.object({
   catalogId: z.string().uuid(),
@@ -146,6 +147,7 @@ export async function generateChapterNoteDraft(formData: FormData) {
     generationMetadata = { provider: routed.config.provider, model: routed.config.model };
   } catch (error) {
     const message = error instanceof Error ? error.message : "AI_GENERATION_FAILED";
+    logSafeOperationalEvent("ai_generation_failed", { route: "/dashboard/chapters", errorCode: "CHAPTER_NOTE_GENERATION_FAILED" });
     redirect("/dashboard/chapters?ai=" + (message === "AI_NOT_CONFIGURED" ? "not_configured" : "failed"));
   }
 
