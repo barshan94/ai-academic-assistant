@@ -26,15 +26,18 @@ export default async function PracticeInsightsPage() {
       .select("id,title,status,question_count,created_at,completed_at")
       .eq("owner_id", user.id)
       .order("created_at", { ascending: false })
-      .limit(300),
+      .limit(301),
     db.from("practice_set_items")
       .select("practice_set_id,subject,chapter,topic,outcome,answered_at")
       .eq("owner_id", user.id)
       .order("answered_at", { ascending: false, nullsFirst: false })
-      .limit(3000),
+      .limit(3001),
   ]);
 
-  const items = (rawItems ?? []) as PracticeItem[];
+  const setOverflow = (sets?.length ?? 0) > 300;
+  const itemOverflow = (rawItems?.length ?? 0) > 3000;
+  const visibleSets = (sets ?? []).slice(0, 300);
+  const items = ((rawItems ?? []).slice(0, 3000)) as PracticeItem[];
   const answered = items.filter((item) => item.outcome !== null);
   const count = (outcome: Outcome) => answered.filter((item) => item.outcome === outcome).length;
   const correct = count("correct");
@@ -115,9 +118,10 @@ export default async function PracticeInsightsPage() {
       </section>
       {hasErrors ? <p className="notice notice-error" role="status">Some practice analytics could not be loaded. The figures below may be incomplete.</p> : null}
       <section className="section">
-        <div className="section-heading"><div><p className="eyebrow">ALL RECORDED ATTEMPTS</p><h2>Overall snapshot</h2></div><span className="section-count">Up to 3,000 saved question results</span></div>
+        <div className="section-heading"><div><p className="eyebrow">ALL RECORDED ATTEMPTS</p><h2>Overall snapshot</h2></div><span className="section-count">Latest 3,000 saved question results</span></div>
+        {setOverflow || itemOverflow ? <p className="notice notice-error" role="status">This account has more practice history than the analytics sample displays. {setOverflow ? "Older sessions beyond the latest 300 are excluded. " : ""}{itemOverflow ? "Older question results beyond the latest 3,000 are excluded. " : ""}The figures below describe this recent sample, not your complete history.</p> : null}
         <div className="module-grid revision-stats">
-          <article className="module-card"><span className="module-number">{sets?.length ?? 0}</span><h3>Practice sets</h3><p>Latest saved sessions, up to 300.</p></article>
+          <article className="module-card"><span className="module-number">{visibleSets.length}</span><h3>Practice sets</h3><p>Latest 300 saved sessions.</p></article>
           <article className="module-card"><span className="module-number">{answered.length}/{items.length}</span><h3>Marked questions</h3><p>{completionRate}% of loaded question snapshots have a recorded outcome.</p></article>
           <article className="module-card"><span className="module-number">{successRate === null ? "—" : successRate + "%"}</span><h3>Self-marked correct</h3><p>Correct divided by correct, partial and incorrect; skipped items are excluded.</p></article>
           <article className="module-card"><span className="module-number">{incorrect + partial}</span><h3>More practice recorded</h3><p>Incorrect or partially solved attempts, based on your own marking.</p></article>
@@ -174,9 +178,9 @@ export default async function PracticeInsightsPage() {
       </section>
       <section className="section">
         <div className="section-heading"><div><p className="eyebrow">RECENT ACTIVITY</p><h2>Saved sessions</h2></div></div>
-        {!sets?.length ? <div className="empty-state"><p>No saved practice sessions yet.</p></div> : (
+        {!visibleSets.length ? <div className="empty-state"><p>No saved practice sessions yet.</p></div> : (
           <div className="question-list">
-            {sets.slice(0, 12).map((set) => (
+            {visibleSets.slice(0, 12).map((set) => (
               <article className="question-card" key={set.id}>
                 <div className="question-card-heading"><span className="document-status">{set.status.replace("_", " ")}</span><span className="question-subject">{set.question_count} questions</span></div>
                 <h3>{set.title}</h3>
@@ -187,7 +191,7 @@ export default async function PracticeInsightsPage() {
           </div>
         )}
       </section>
-      <p className="question-card-meta">Coverage note: outcome analytics use up to the latest 3,000 saved question snapshots; the recent-session list shows up to 300 sets. A topic without mapped subject/chapter/topic metadata is grouped under an unmapped label. No AI grading or mastery prediction is performed.</p>
+      <p className="question-card-meta">Coverage note: outcome analytics use up to the latest 3,000 saved question snapshots; the recent-session list shows up to 300 sets. Overflow is detected and reported above. A topic without mapped subject/chapter/topic metadata is grouped under an unmapped label. No AI grading or mastery prediction is performed.</p>
     </main>
   );
 }
