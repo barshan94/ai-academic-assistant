@@ -97,6 +97,7 @@ M6 remaining:
 ### M7 status — revision tracking, topic insights, practice history and cross-session analytics implemented in code
 - Add owner-private confidence tracking for approved questions, with a server-side revision scheduler and a five-level self-reported confidence scale.
 - Schedule the next review at 1, 2, 4, 7 or 14 days based on the latest confidence rating; show due, untracked, learning and confident counts.
+- Paginate the full approved-question revision queue in 50-question pages with exact total count and deterministic ordering; revision progress is fetched only for the visible page. The four overview counts are explicitly page-scoped.
 - Restrict direct table writes and use an authenticated, owner-checked database function; revision data is private and cascades with its question.
 - Add topic-level revision insights grouped by the question's subject, chapter and topic metadata; show rated-question counts, low-confidence counts, due counts and average latest confidence.
 - Do not classify a topic as weak from unrated questions or a single rating; label groups with insufficient ratings accordingly. Analysis is limited to the latest 1,000 approved questions and excludes questions without chapter/topic metadata.
