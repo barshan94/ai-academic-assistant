@@ -135,7 +135,7 @@ select throws_ok(
 select throws_ok(
   $$update public.chapter_note_versions
     set title = 'Tampered title'
-    where title = 'Valid page-source note'$,
+    where title = 'Valid page-source note'$$,
   'P0001',
   'Chapter note content is immutable; create a new version instead',
   'owner cannot edit an existing chapter note instead of creating a revision'
@@ -145,7 +145,7 @@ select throws_ok(
     set locator = 'tampered locator'
     where note_version_id = (
       select id from public.chapter_note_versions where title = 'Valid page-source note'
-    )$,
+    )$$,
   'P0001',
   'Chapter note source history is append-only',
   'owner cannot edit an existing chapter note source reference'
@@ -154,7 +154,7 @@ select throws_ok(
   $$delete from public.chapter_note_sources
     where note_version_id = (
       select id from public.chapter_note_versions where title = 'Valid page-source note'
-    )$,
+    )$$,
   'P0001',
   'Chapter note source history is append-only',
   'owner cannot delete an existing chapter note source reference'
@@ -173,7 +173,7 @@ insert into public.chapter_note_versions (
 select throws_ok(
   $$update public.chapter_note_versions
     set status = 'approved'
-    where title = 'No source note'$,
+    where title = 'No source note'$$,
   'P0001',
   'A chapter note needs at least one source before approval',
   'owner cannot approve a chapter note without a source reference'
@@ -195,7 +195,7 @@ select is(
   'a second account cannot read another owner chapter-note source history'
 );
 select throws_ok(
-  $$$select public.create_chapter_note_draft(
+  $$select public.create_chapter_note_draft(
     '41000000-0000-4000-8000-000000000011',
     '42000000-0000-4000-8000-000000000011',
     'Cross-owner note attempt',
