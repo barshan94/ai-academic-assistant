@@ -9,6 +9,7 @@ import { markSchemeSchema } from "@/lib/ai/mark-scheme";
 import { generateStructuredAnswer, getAIProviderConfig, AIConfigurationError, AIProviderError } from "@/lib/ai/provider";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { DatabaseWithAISolutions } from "@/types/ai-database";
+import type { Json } from "@/types/database";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 const questionIdSchema = z.string().uuid();
