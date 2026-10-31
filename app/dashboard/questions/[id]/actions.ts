@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { createHash } from "node:crypto";
+import { prepareSourcePageContext } from "@/lib/ai/source-context";
 import { generateStructuredAnswer, getAIProviderConfig, AIConfigurationError, AIProviderError } from "@/lib/ai/provider";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { DatabaseWithAISolutions } from "@/types/ai-database";
@@ -20,7 +22,7 @@ export async function generateQuestionSolution(formData: FormData) {
 
   const { data: question, error: questionError } = await supabase
     .from("questions")
-    .select("id,question_text,review_status,board,qualification,subject,chapter,topic")
+    .select("id,document_id,document_page_id,question_text,review_status,board,qualification,subject,chapter,topic")
     .eq("id", questionId.data)
     .eq("owner_id", user.id)
     .maybeSingle();
@@ -40,6 +42,32 @@ export async function generateQuestionSolution(formData: FormData) {
     throw error;
   }
 
+  const includeSource = formData.get("includeSourceContext") === "yes";
+  let sourceContext;
+  let sourceProvenance = null;
+  if (includeSource) {
+    if (!question.document_page_id) redirect("/dashboard/questions/" + question.id + "?solve=source_unavailable");
+    const { data: page, error: pageError } = await supabase.from("document_pages")
+      .select("id,page_number,extracted_text,extraction_method")
+      .eq("id", question.document_page_id).eq("document_id", question.document_id).eq("owner_id", user.id).maybeSingle();
+    if (pageError || !page) redirect("/dashboard/questions/" + question.id + "?solve=source_unavailable");
+    const { data: document } = await supabase.from("documents").select("id,file_name").eq("id", question.document_id).eq("owner_id", user.id).maybeSingle();
+    if (!document) redirect("/dashboard/questions/" + question.id + "?solve=source_unavailable");
+    try {
+      sourceContext = prepareSourcePageContext({ pageNumber: page.page_number, extractionMethod: page.extraction_method, extractedText: page.extracted_text });
+    } catch {
+      redirect("/dashboard/questions/" + question.id + "?solve=source_empty");
+    }
+    sourceProvenance = {
+      document_id: document.id,
+      document_name: document.file_name,
+      page_number: sourceContext.pageNumber,
+      extraction_method: sourceContext.extractionMethod,
+      excerpt_sha256: createHash("sha256").update(sourceContext.text, "utf8").digest("hex"),
+      excerpt_length: sourceContext.text.length,
+    };
+  }
+
   let answer;
   try {
     answer = await generateStructuredAnswer(question.question_text, config, fetch, {
@@ -48,6 +76,7 @@ export async function generateQuestionSolution(formData: FormData) {
       subject: question.subject,
       chapter: question.chapter,
       topic: question.topic,
+      ...(sourceContext ? { sourceContext } : {}),
     });
   } catch (error) {
     const code = error instanceof AIProviderError ? error.message.split(":")[0] : "AI_PROVIDER_ERROR";
@@ -60,8 +89,9 @@ export async function generateQuestionSolution(formData: FormData) {
     question_id: question.id,
     provider: config.provider,
     model: config.model,
-    prompt_version: "academic-answer-v2-math-checks",
+    prompt_version: sourceContext ? "academic-answer-v3-source-context" : "academic-answer-v2-math-checks",
     answer_json: answer,
+    source_context: sourceProvenance,
   });
 
   if (saveError) redirect("/dashboard/questions/" + question.id + "?solve=save_failed");
