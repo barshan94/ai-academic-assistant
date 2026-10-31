@@ -122,7 +122,15 @@ export async function generateChapterNote(input: {
       ...result.workedExamples,
       ...result.revisionPrompts,
     ].join("\n");
-    const usedLabels = Array.from(noteText.matchAll(/\[(S[^\]]*)\]/g), (match) => match[1].trim());
+    // Detect complete and malformed citation-like tokens. Do not silently
+    // accept truncated labels such as "[S1" or spaced variants "[ S1 ]".
+    const citationTokens = Array.from(
+      noteText.matchAll(/\[\s*S[^\]]*(?:\]|$)|\bS\d+\]/g),
+      (match) => match[0],
+    );
+    const usedLabels = citationTokens.map((token) =>
+      token.startsWith("[") ? token.slice(1, token.endsWith("]") ? -1 : undefined) : token.slice(0, -1),
+    );
     if (usedLabels.some((label) => !/^S(?:[1-9]|1[0-2])$/.test(label) || !sourceLabels.has(label))) {
       throw new AIProviderError("CHAPTER_NOTE_UNKNOWN_CITATION");
     }
