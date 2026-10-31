@@ -395,5 +395,5 @@ This file records material implementation, CI, integration and release problems 
 - Symptom: When extraction or finalization failed, both worker paths attempted to mark the document and job failed but ignored database errors. The request could return a normal processing-failed response while the durable job remained running or the document retained a stale status.
 - Root cause: Error-path database writes were not treated as part of the queue state machine.
 - Fix: Both paths now check document failure updates and require the owner-scoped running job transition to return the updated row. If failure state cannot be persisted, the manual route displays a distinct warning; the scheduled worker returns HTTP 500 and leaves the lease for stale recovery rather than claiming the failure was saved.
-- Verification: Feature-branch CI pending. Authenticated database-failure injection and live stale-lease recovery remain outstanding.
-- Status: Implemented; CI verification pending.
+- Verification: Foundation CI run `41222194720` passed lint, application/Playwright type-checks, 118 unit tests across 23 files and production build; Chromium smoke run passed 7 tests. Database authorization CI run `41222194715` passed all six pgTAP files. The latest CI validates compilation and regression suites, but does not inject authenticated database write failures into either route. Live stale-lease recovery remains outstanding.
+- Status: Code and automated CI verified; failure-injection and live worker acceptance remain outstanding.
