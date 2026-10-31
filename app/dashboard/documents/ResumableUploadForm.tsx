@@ -20,7 +20,8 @@ export function ResumableUploadForm({ disabled }: { disabled: boolean }) {
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState(0);
   const [message, setMessage] = useState("");
-  const [error, setError] = useState("");\n  const activeStorageKey = useRef<string | null>(null);
+  const [error, setError] = useState("");
+  const activeStorageKey = useRef<string | null>(null);
 
   async function readJson(response: Response) {
     const body = await response.json() as { error?: string; duplicate?: boolean; sessionToken?: string; nextOffset?: number; complete?: boolean };
@@ -48,7 +49,8 @@ export function ResumableUploadForm({ disabled }: { disabled: boolean }) {
       const normalized = await normalizeFilesToPdf(files);
       if (normalized.bytes.byteLength > MAX_UPLOAD_BYTES) throw new Error("The normalized PDF must be 100 MB or smaller.");
       const sha256 = await sha256Hex(normalized.bytes);
-      const storageKey = STORAGE_PREFIX + sha256;\n      activeStorageKey.current = storageKey;
+      const storageKey = STORAGE_PREFIX + sha256;
+      activeStorageKey.current = storageKey;
       let stored: StoredSession | null = null;
       try {
         const raw = localStorage.getItem(storageKey);
