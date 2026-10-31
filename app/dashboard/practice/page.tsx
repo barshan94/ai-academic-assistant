@@ -37,6 +37,7 @@ export default async function PracticePage({ searchParams }: PracticePageProps) 
       <header className="topbar">
         <Link className="brand" href="/"><span className="brand-mark">A</span><span>Academic<span className="brand-muted">Assistant</span></span></Link>
         <div className="topbar-actions">
+          <Link className="sign-in-link" href="/dashboard/study-plan">Daily study plan</Link>
           <Link className="sign-in-link" href="/dashboard/practice/insights">Practice insights</Link>
           <Link className="sign-in-link" href="/dashboard/revision">Revision tracker</Link>
           <Link className="sign-in-link" href="/dashboard">Dashboard</Link>
