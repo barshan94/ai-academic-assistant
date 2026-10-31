@@ -26,11 +26,10 @@ jobs:
 
       - name: Generate migration with Supabase CLI
         run: |
-          before=$(find supabase/migrations -maxdepth 1 -type f -name '*.sql' | sort | tail -n 1)
           npx --yes supabase@latest migration new atomic_document_page_replacement
-          after=$(find supabase/migrations -maxdepth 1 -type f -name '*.sql' | sort | tail -n 1)
-          test "$after" != "$before"
-          cp supabase/migration-drafts/atomic_document_page_replacement.sql "$after"
+          generated=$(find supabase/migrations -maxdepth 1 -type f -name '*_atomic_document_page_replacement.sql' | sort | tail -n 1)
+          test -n "$generated"
+          cp supabase/migration-drafts/atomic_document_page_replacement.sql "$generated"
 
       - name: Commit generated migration file
         run: |
