@@ -93,3 +93,14 @@
 - [x] Add a deterministic answer fixture that does not call an AI provider.
 - [x] Add a manual GitHub Actions workflow that uses only a dedicated test Supabase project.
 - [ ] Configure test-project credentials as repository Actions secrets and execute the workflow successfully.
+
+
+## Shared syllabus reference curation
+- [x] Shared reference catalogues, chapters, topics, evidence and platform-admin membership are separate from owner-private syllabus catalogues.
+- [x] RLS is enabled on every new public-schema table; anon has no table access and authenticated users can read only verified references unless they are appointed platform curators.
+- [x] Authenticated users cannot self-promote into platform_admins; membership is managed out of band.
+- [x] Curator writes are limited to draft catalogues; chapter/topic structure freezes after publication and source evidence is append-only.
+- [x] Database verification requires a checked HTTPS catalogue source and separate source evidence for every chapter and topic.
+- [x] Shared reference reader exposes only verified catalogues and their chapter/topic citations.
+- [ ] Appoint the first real platform curator and seed a real official-board catalogue after checking the board's current source documents.
+- [ ] Test verified-only read access and admin write restrictions with two real authenticated accounts; no test accounts or syllabus rows have been fabricated.
