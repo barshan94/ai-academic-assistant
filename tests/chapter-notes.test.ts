@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { AIProviderError, type AIProviderConfig } from "@/lib/ai/provider";
 import { generateChapterNote } from "@/lib/ai/chapter-notes";
+import { checkFormulaSyntax } from "@/lib/ai/formula-checks";
 
 const config: AIProviderConfig = {
   provider: "test",
@@ -156,5 +157,23 @@ describe("AI chapter note generation", () => {
       chapter: "Forces",
       sources,
     }, config, fetcher)).rejects.toMatchObject({ message: "AI_PROVIDER_INVALID_CHAPTER_NOTE" });
+  });
+});
+
+describe("conservative formula syntax checks", () => {
+  it("accepts a simple conventional formula without claiming mathematical verification", () => {
+    expect(checkFormulaSyntax("F = ma")).toEqual({ checked: true, warnings: [] });
+  });
+
+  it("flags unmatched brackets and incomplete operator endings", () => {
+    const result = checkFormulaSyntax("F = m(a +");
+    expect(result.warnings).toContain("One or more brackets are not closed.");
+    expect(result.warnings).toContain("The expression starts or ends with an operator; check whether it is incomplete.");
+  });
+
+  it("flags suspicious adjacent operators and multiple equality signs", () => {
+    const result = checkFormulaSyntax("a ++ b = c = d");
+    expect(result.warnings).toContain("Adjacent arithmetic operators detected; check the operator sequence.");
+    expect(result.warnings).toContain("More than one equals sign; check whether this is an intended equation chain.");
   });
 });
