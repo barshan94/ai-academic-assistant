@@ -256,7 +256,7 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
                 <ul className="calculation-checks">{approvedChapterNotes.map((note) => <li key={note.id}><span>{note.title} · Version {note.version_number}</span></li>)}</ul>
               </div> : approvedChapterNotesError ? <p className="question-card-meta">Could not load approved chapter notes for optional retrieval.</p> : null}
               <button className="primary-action" type="submit">Generate AI answer <span aria-hidden="true">→</span></button>
-              <p className="question-card-meta">This action sends the question to your configured AI provider and may incur provider charges. Source text is sent only if you check the box above.</p>
+              <p className="question-card-meta">This action sends the question to your configured AI provider and may incur provider charges. Original source-page text and approved chapter-note content are sent only when you check their respective boxes above.</p>
             </form>
            ) : isOwner ? <p className="notice notice-info">This question needs teacher approval before it can be sent to the AI provider.</p> : <p className="notice notice-info">You have review access only. AI generation and question editing remain with the owner.</p>}
         </article>
