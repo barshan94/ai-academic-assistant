@@ -177,7 +177,7 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
     : { data: [], error: null };
   const message = query.research === "saved" ? "Web search results were saved as unverified source leads. Check each publisher and document before relying on it."
     : query.research === "not_configured" ? "Web research is not configured. Add an approved Brave Search API key to the server environment."
-    : query.research === "rate_limited" ? "You have reached the web research limit. Wait 15 minutes before searching again."
+    : query.research === "rate_limited" ? "You have reached the web research limit. Wait for the next 15-minute window or the next UTC day before searching again."
     : query.research === "quota_unavailable" ? "Web research is temporarily blocked because the account quota service is unavailable. No search request was sent."
     : query.research === "no_results" ? "The search provider returned no usable HTTPS sources for that query."
     : query.research === "save_failed" ? "Search results were retrieved but could not be saved to the question record."
@@ -264,7 +264,7 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
           <section className="section web-research-panel">
             <p className="eyebrow">OPTIONAL WEB RESEARCH · OWNER-INITIATED</p>
             <h2>Find external source leads</h2>
-            <p className="question-card-meta">Only the query you type below is sent to Brave Search; the question text and uploaded documents are not sent. Do not include personal or confidential details. Your search provider's own data handling and possible charges apply. Results are unverified leads, not official syllabus documents or mark schemes. Check the publisher, exact document version and page before using a source. Limit: five searches per 15 minutes.</p>
+            <p className="question-card-meta">Only the query you type below is sent to Brave Search; the question text and uploaded documents are not sent. Do not include personal or confidential details. Your search provider's own data handling and possible charges apply. Results are unverified leads, not official syllabus documents or mark schemes. Check the publisher, exact document version and page before using a source. Limit: five searches per 15 minutes and 20 per UTC day.</p>
             <form action={searchQuestionWebSources} className="review-form">
               <input type="hidden" name="questionId" value={question.id} />
               <label htmlFor="web-research-query">Search the web for supporting sources</label>
