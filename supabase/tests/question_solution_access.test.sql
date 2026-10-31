@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(28);
+select plan(30);
 
 -- Isolated identities and records. This test runs inside a transaction and rolls back.
 insert into auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
@@ -31,10 +31,20 @@ set local role authenticated;
 set local request.jwt.claim.sub = '10000000-0000-4000-8000-000000000001';
 set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000001","role":"authenticated","email":"rls-owner@example.test"}';
 select throws_ok(
-  $$select public.record_teacher_solution_review('40000000-0000-4000-8000-000000000001', 'approved', null)$$,
+  $select public.record_teacher_solution_review('40000000-0000-4000-8000-000000000001', 'approved', null)$,
   '42501',
   'Owner cannot submit an independent teacher review',
   'owner cannot promote their own answer to teacher-verified'
+);
+select lives_ok(
+  $insert into public.question_solution_reviews (solution_id, owner_id, reviewer_id, decision, correction_notes)
+    values ('40000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', 'approved', null)$,
+  'owner can append a separate owner review record'
+);
+select is(
+  (select verification_status from public.question_solutions where id = '40000000-0000-4000-8000-000000000001'),
+  'generated',
+  'owner review does not promote an answer to teacher-verified'
 );
 select is(
   (select count(*)::integer from public.question_solution_mark_schemes),
@@ -164,8 +174,8 @@ select lives_ok(
 );
 select is(
   (select count(*)::integer from public.question_solution_reviews),
-  2,
-  'owner retains the historical teacher reviews after revocation'
+  3,
+  'owner retains the owner and teacher review history after revocation'
 );
 
 set local request.jwt.claim.sub = '10000000-0000-4000-8000-000000000002';

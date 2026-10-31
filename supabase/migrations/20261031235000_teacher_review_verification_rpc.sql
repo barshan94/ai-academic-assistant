@@ -4,6 +4,16 @@
 
 drop policy if exists "question_solution_reviews_teacher_insert"
   on public.question_solution_reviews;
+drop policy if exists "question_solution_reviews_owner_or_teacher_insert"
+  on public.question_solution_reviews;
+
+create policy "question_solution_reviews_owner_insert"
+  on public.question_solution_reviews
+  for insert to authenticated
+  with check (
+    reviewer_id = (select auth.uid())
+    and owner_id = (select auth.uid())
+  );
 
 create or replace function public.record_teacher_solution_review(
   p_solution_id uuid,
