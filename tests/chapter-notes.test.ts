@@ -129,6 +129,25 @@ describe("AI chapter note generation", () => {
     }, config, fetcher)).rejects.toMatchObject({ message: "CHAPTER_NOTE_UNKNOWN_CITATION" });
   });
 
+  it("rejects malformed or truncated citation markers instead of silently accepting them", async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(responseWith(JSON.stringify({
+      title: "Newton's first law",
+      summary: "An object maintains its state of motion [S1].",
+      concepts: ["Inertia [ S1 ]"],
+      formulas: [],
+      workedExamples: ["Identify the resultant force [S1]."],
+      revisionPrompts: ["State Newton's first law [S1."],
+    })));
+
+    await expect(generateChapterNote({
+      board: "Cambridge",
+      qualification: "O Level",
+      subject: "Physics",
+      chapter: "Forces",
+      sources,
+    }, config, fetcher)).rejects.toMatchObject({ message: "CHAPTER_NOTE_UNKNOWN_CITATION" });
+  });
+
   it("requires citations on summaries, concepts, formulas and worked examples", async () => {
     const fetcher = vi.fn<typeof fetch>().mockResolvedValue(responseWith(JSON.stringify({
       title: "Newton's first law",
