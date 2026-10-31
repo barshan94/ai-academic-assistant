@@ -925,6 +925,10 @@ export type Database = {
         };
         Returns: number;
       }
+      consume_document_upload_quota: {
+        Args: Record<PropertyKey, never>;
+        Returns: boolean;
+      }
     }
     Enums: {
       [_ in never]: never
