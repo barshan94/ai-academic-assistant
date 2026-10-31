@@ -77,7 +77,7 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
       </section>
 
       <section className="section">
-        <div className="section-heading"><div><p className="eyebrow">NEW SOURCE</p><h2>Upload a question paper</h2></div><span className="section-count">100 MB maximum</span></div>
+        <div className="section-heading"><div><p className="eyebrow">NEW SOURCE</p><h2>Upload a question paper</h2></div><span className="section-count">50 MB maximum</span></div>
         <ResumableUploadForm disabled={!connection} />
       </section>
 
