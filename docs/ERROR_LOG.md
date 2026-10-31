@@ -234,3 +234,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Normalized the affected SQL arguments to paired dollar delimiters, retained all 20 assertions, and checked the test file for incomplete delimiter lines.
 - Verification: Database authorization workflow run 41199349752 passed. The local Supabase migration suite applied all migrations and all 76 pgTAP assertions across the three test files passed. Foundation workflow run 41199349786 also passed lint, type-check, unit tests, production build and Chromium browser smoke tests.
 - Status: Fixed and verified in CI. Authenticated two-account browser acceptance remains skipped because dedicated non-production credentials are not configured.
+
+
+## ERR-021 — Shared syllabus authorization test fixtures exceeded least-privilege insert grants
+
+- Date: 2026-10-31
+- Area: M5 shared syllabus reference library / pgTAP
+- Symptom: The new curator authorization suite failed 13 of 18 assertions. Chapter and topic fixture inserts were denied, dependent evidence and verification assertions then failed, and the non-admin catalogue-insert assertion expected the wrong SQLSTATE.
+- Root cause: Test fixtures explicitly supplied generated primary-key IDs even though the application intentionally receives those IDs from database defaults and the authenticated role has column-scoped insert privileges. A separate non-admin insert is rejected by the catalogue guard trigger with P0001 before the RLS check, not with 42501.
+- Fix: Changed the fixtures to omit generated chapter/topic/catalogue IDs and resolve their generated IDs by their unique fixture keys. Updated the expected SQLSTATE and message to match the guard trigger's actual behavior.
+- Verification: Pending a fresh local Supabase migration and pgTAP run on the corrected test.
+- Status: Test fixture corrected; CI verification pending.
