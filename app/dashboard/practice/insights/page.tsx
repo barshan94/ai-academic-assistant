@@ -15,13 +15,6 @@ type PracticeItem = {
   answered_at: string | null;
 };
 
-const labels: Record<Outcome, string> = {
-  correct: "Correct",
-  partial: "Partial",
-  incorrect: "Incorrect",
-  skipped: "Skipped",
-};
-
 export default async function PracticeInsightsPage() {
   const supabase = await createSupabaseServerClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -138,7 +131,7 @@ export default async function PracticeInsightsPage() {
           </div>
         )}
       </section>
-      <p className="question-card-meta">Coverage note: analytics use up to the latest 300 practice sets and 3,000 saved question snapshots. A topic without mapped subject/chapter/topic metadata is grouped under an unmapped label. No AI grading or mastery prediction is performed.</p>
+      <p className="question-card-meta">Coverage note: outcome analytics use up to the latest 3,000 saved question snapshots; the recent-session list shows up to 300 sets. A topic without mapped subject/chapter/topic metadata is grouped under an unmapped label. No AI grading or mastery prediction is performed. A topic without mapped subject/chapter/topic metadata is grouped under an unmapped label. No AI grading or mastery prediction is performed.</p>
     </main>
   );
 }
