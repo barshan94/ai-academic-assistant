@@ -352,3 +352,26 @@ h2 { font-size: 24px; letter-spacing: -.04em; margin: 0; font-weight: 600; }
 .chapter-note-source-full { margin-top: 8px; color: #aab9c4; font-size: 11px; }
 .chapter-note-source-full summary { color: var(--accent); cursor: pointer; }
 .chapter-note-source-full pre { max-height: 420px; overflow: auto; margin: 8px 0 0; padding: 10px; border: 1px solid var(--line); border-radius: 7px; background: #080e14; color: #d0dbe3; font: inherit; line-height: 1.65; white-space: pre-wrap; overflow-wrap: anywhere; }
+
+
+/* Chapter note print/export: browser print dialog can save a clean PDF. */
+@media print {
+  @page { size: auto; margin: 16mm; }
+  body { background: #fff !important; color: #111 !important; }
+  .topbar, .documents-hero, .notice, .section-heading, .chapter-note-author,
+  .chapter-ai-generate-form, .question-review-actions, .note-print-control,
+  .chapter-empty, .chapter-source-picker { display: none !important; }
+  .shell, .section, .chapter-workspace-list, .chapter-workspace-card,
+  .chapter-note-history, .chapter-note-version { display: block !important; width: 100% !important; max-width: none !important; margin: 0 !important; padding: 0 !important; border: 0 !important; background: #fff !important; box-shadow: none !important; }
+  .chapter-workspace-card { break-inside: auto; }
+  .chapter-workspace-card > h3 { color: #111 !important; margin: 0 0 8px !important; }
+  .chapter-note-history > h4 { color: #111 !important; margin: 12px 0 6px !important; }
+  .chapter-note-version { color: #111 !important; padding: 10px 0 !important; margin: 0 0 12px !important; border-bottom: 1px solid #bbb !important; break-inside: avoid; }
+  .chapter-note-version * { color: #222 !important; }
+  .chapter-note-version .document-status { border: 1px solid #aaa !important; }
+  .chapter-note-citation, .chapter-note-source-full pre { background: #fff !important; border-color: #aaa !important; }
+  .chapter-note-source-full pre { max-height: none !important; overflow: visible !important; white-space: pre-wrap !important; }
+  .chapter-note-source-full > summary { display: none !important; }
+  .chapter-note-source-full > pre { display: block !important; }
+  a { color: #111 !important; text-decoration: none !important; }
+}
