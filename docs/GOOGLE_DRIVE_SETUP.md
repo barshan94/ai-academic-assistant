@@ -55,7 +55,7 @@ The extraction route has a three-attempt limit and a 100-page extracted-text lim
 - OAuth uses a random state value stored in a short-lived, HTTP-only, SameSite=Lax cookie and binds it to the signed-in owner.
 - The refresh token is encrypted with AES-256-GCM before it is stored in the owner-scoped `drive_connections` table.
 - Access tokens are refreshed server-side and never returned to the browser.
-- Only `drive.file` scope is requested.
+- Only `drive.file` scope is requested. The OAuth callback rejects a broader returned scope, and stored connections are checked for the exact file-only grant before use.
 - Temporary Google Docs created for extraction are deleted after export.
 - Supabase stores metadata, extracted text and review state; the original PDF remains in the user's Drive.
 - A disconnect action attempts to revoke the Google refresh token and removes the local encrypted token.
