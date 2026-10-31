@@ -29,12 +29,11 @@ export async function generateChapterNote(input: {
   subject: string;
   chapter: string;
   sources: ChapterNoteSource[];
-}): Promise<GeneratedChapterNote> {
+}, config = getAIProviderConfig(), fetcher: typeof fetch = fetch): Promise<GeneratedChapterNote> {
   if (!input.sources.length || input.sources.length > 12) {
     throw new AIProviderError("CHAPTER_NOTE_SOURCES_INVALID");
   }
 
-  const config = getAIProviderConfig();
   const sourceText = input.sources.map((source) => [
     "[" + source.ref + "]",
     "Question " + (source.questionNumber ?? "—") + ": " + source.questionText.slice(0, 2500),
@@ -43,7 +42,7 @@ export async function generateChapterNote(input: {
 
   let response: Response;
   try {
-    response = await fetch(config.baseUrl + "/chat/completions", {
+    response = await fetcher(config.baseUrl + "/chat/completions", {
       method: "POST",
       headers: {
         Authorization: "Bearer " + config.apiKey,
