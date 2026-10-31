@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(25);
+select plan(27);
 
 insert into auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
 values
@@ -160,6 +160,19 @@ select is(
    where id = '22000000-0000-4000-8000-000000000001'),
   1,
   'another account cannot delete the owner extracted page'
+);
+
+select throws_ok(
+  $delete from public.document_pages where id = '22000000-0000-4000-8000-000000000001'$,
+  '23503', null,
+  'database foreign key prevents deleting a page referenced by a saved question'
+);
+
+select is(
+  (select count(*)::integer from public.questions
+   where id = '24000000-0000-4000-8000-000000000001'),
+  1,
+  'attempted page deletion cannot cascade-delete the saved question'
 );
 
 set local request.jwt.claim.sub = '11000000-0000-4000-8000-000000000002';
