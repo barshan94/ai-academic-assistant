@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(12);
+select plan(15);
 
 -- Isolated identities and records. This test runs inside a transaction and rolls back.
 insert into auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
@@ -34,6 +34,23 @@ select is(
   (select count(*)::integer from public.question_solution_mark_schemes),
   1,
   'owner can read their saved mark scheme'
+);
+
+select throws_ok(
+  $update public.question_solution_mark_schemes
+    set title = 'Mutated scheme'
+    where id = '50000000-0000-4000-8000-000000000001'$,
+  '42501',
+  null,
+  'owner cannot update an append-only saved mark scheme'
+);
+
+select throws_ok(
+  $delete from public.question_solution_mark_schemes
+    where id = '50000000-0000-4000-8000-000000000001'$,
+  '42501',
+  null,
+  'owner cannot delete an append-only saved mark scheme'
 );
 
 -- An unrelated authenticated account cannot read owner records or accept another user's invite.
@@ -70,6 +87,14 @@ where id = '60000000-0000-4000-8000-000000000001';
 select is((select count(*)::integer from public.questions), 1, 'accepted teacher can read the shared question');
 select is((select count(*)::integer from public.question_solutions), 1, 'accepted teacher can read the shared solution');
 select is((select count(*)::integer from public.question_solution_mark_schemes), 0, 'teacher cannot read owner-private mark scheme');
+
+select throws_ok(
+  $insert into public.question_solution_mark_schemes (solution_id, owner_id, title, awarding_body, qualification, subject, source_url, points)
+    values ('40000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', 'Teacher forged scheme', 'Example Board', 'A Level', 'Physics', 'https://example.test/teacher-forged.pdf', '[{"id":"M1","description":"Fixture point","keyPhrases":["fixture"]}]'::jsonb)$,
+  '42501',
+  null,
+  'accepted teacher cannot insert an owner-private mark scheme'
+);
 
 -- Teacher can append their own review, but cannot impersonate the owner.
 select lives_ok(
