@@ -27,6 +27,7 @@ A personal academic workspace for Edexcel O/A Level, SSC and HSC tutoring. It ac
 ## Implemented
 - Private sign-in and owner-protected document library.
 - Google Drive OAuth code with encrypted refresh-token storage, PDF archiving, image-to-PDF conversion and OCR correction workflow.
+- Scheduled document queue worker with conditional job claiming, 15-minute stale-job recovery, bounded retries, owner-scoped service-role operations and protection for question/chapter-note page references; deployment setup is documented in `docs/BACKGROUND_WORKER.md`.
 - Manual source-linked question library with board, qualification, subject, syllabus version, chapter and topic metadata, owner review states and classification filters.
 - Owner-scoped versioned syllabus catalogues with source provenance, hierarchical chapter/topic references and same-owner foreign-key constraints.
 - A private syllabus catalogue workspace, atomic versioned JSON import, dependent chapter/topic classification selectors, transparent lexical suggestions with matched-term explanations, source provenance display, append-only before/after classification history, and a prioritized review queue.
@@ -65,7 +66,7 @@ M1 foundation, the core M2 document intake flow, M3 structured AI answer generat
 
 Implementation is not the same as release acceptance. The remaining work is tracked in `docs/ROADMAP.md` and `docs/ACCEPTANCE_TESTS.md`:
 
-- **M2:** live Google OAuth/Drive acceptance, resumable uploads above 4 MB, durable background processing with automatic retries, and document cross-account tests.
+- **M2:** the scheduled worker is implemented in code but awaits configured non-production secrets, scheduler availability and live integration testing; resumable uploads above 4 MB, live Google OAuth/Drive acceptance and document cross-account tests remain.
 - **M3–M4:** live provider generation with explicit cost approval, a manually graded golden question set, stronger source/official mark-scheme grounding, and real two-account teacher acceptance. AI remains disabled until the owner configures provider credentials.
 - **M5:** the shared official-board reference library is intentionally empty until a real curator is appointed and current official sources are checked. Lexical suggestions are not calibrated confidence.
 - **M6:** live AI chapter-note evaluation, independent source-quality review, dedicated per-note downloads and automated print-layout checks remain.
