@@ -33,6 +33,7 @@ export default async function DashboardPage() {
           <Link className="sign-in-link" href="/dashboard/chapters">Open chapter workspace</Link>
           <Link className="sign-in-link" href="/dashboard/revision">Open revision tracker</Link>
           <Link className="sign-in-link" href="/dashboard/revision/insights">Topic revision insights</Link>
+          <Link className="sign-in-link" href="/dashboard/study-plan">Daily study plan</Link>
           <Link className="sign-in-link" href="/dashboard/practice">Practice sets</Link>
           <Link className="sign-in-link" href="/dashboard/practice/insights">Cross-session practice insights</Link>
           <Link className="sign-in-link" href="/dashboard/syllabus/review">Classification review queue</Link>
