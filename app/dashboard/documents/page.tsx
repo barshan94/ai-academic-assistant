@@ -17,7 +17,7 @@ const notices: Record<string, { text: string; tone: "success" | "error" | "info"
   missing_refresh_token: { text: "Google did not return a refresh token. Disconnect the app in Google Account permissions, then connect again.", tone: "error" },
   save_failed: { text: "The Drive connection could not be saved securely.", tone: "error" },
   disconnected: { text: "Google Drive was disconnected and the stored refresh token was revoked.", tone: "success" },
-  revocation_warning: { text: "The local Drive token was removed, but Google did not confirm revocation. Remove app access in your Google Account settings too.", tone: "error" },
+  revocation_failed: { text: "Google could not confirm token revocation. Your Drive connection is still stored securely so you can retry disconnecting; remove app access in your Google Account settings if needed.", tone: "error" },
   disconnect_failed: { text: "Could not remove the Drive connection. Try again.", tone: "error" },
   success: { text: "Your PDF was archived in Google Drive and queued for processing.", tone: "success" },
   duplicate: { text: "This exact PDF is already in your library.", tone: "info" },
