@@ -58,6 +58,7 @@ describe("bundled Cambridge O Level syllabus topic-index drafts", () => {
     expect(parsed.data.chapters.map((chapter) => chapter.topics.length)).toEqual([2, 7, 3, 2, 1, 4, 3, 5, 6, 3, 8, 5]);
     expect(parsed.data.chapters[10]?.topics[7]).toMatchObject({ code: "11.8", title: "Polymers" });
     expect(parsed.data.chapters[11]?.topics[4]).toMatchObject({ code: "12.5", title: "Identification of ions and gases" });
+  });
 
   it("validates Pearson Edexcel International GCSE Physics 4PH1 Issue 4 topic index", () => {
     const parsed = parseSyllabusImportText(edexcelPhysics);
@@ -83,6 +84,5 @@ describe("bundled Cambridge O Level syllabus topic-index drafts", () => {
     expect(parsed.data.chapters.map((chapter) => chapter.topics.length)).toEqual([9, 8, 3, 8]);
     expect(parsed.data.chapters[0]?.topics[8]?.title).toBe("Electrolysis");
     expect(parsed.data.chapters[3]?.topics[7]?.title).toBe("Synthetic polymers");
-  });
   });
 });
