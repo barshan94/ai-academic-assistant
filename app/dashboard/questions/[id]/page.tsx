@@ -46,6 +46,18 @@ function classificationSummary(state: Json | null): string {
   return parts.length ? parts.join(" · ") : "No syllabus labels recorded";
 }
 
+function sourceProvenanceSummary(value: Json | null): string | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const metadata = value as { [key: string]: Json | undefined };
+  const name = metadata.document_name;
+  const page = metadata.page_number;
+  const method = metadata.extraction_method;
+  const length = metadata.excerpt_length;
+  const hash = metadata.excerpt_sha256;
+  if (typeof name !== "string" || typeof page !== "number" || typeof method !== "string" || typeof length !== "number" || typeof hash !== "string") return null;
+  return name + " · Page " + page + " · " + method + " · " + length + " characters · SHA-256 " + hash.slice(0, 16) + "…";
+}
+
 export default async function QuestionDetailPage({ params, searchParams }: PageProps) {
   const { id } = await params;
   const query = await searchParams;
@@ -62,7 +74,7 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
 
   const typedSupabase = supabase as unknown as SupabaseClient<DatabaseWithAISolutions>;
   const { data: solutions, error: solutionError } = await typedSupabase.from("question_solutions")
-    .select("id,owner_id,provider,model,prompt_version,answer_json,verification_status,created_at")
+    .select("id,owner_id,provider,model,prompt_version,answer_json,source_context,verification_status,created_at")
     .eq("question_id", question.id)
     .order("created_at", { ascending: false })
     .limit(20);
@@ -294,6 +306,7 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
             {answer.assumptions.length ? <><h3>Assumptions</h3><ul>{answer.assumptions.map((item, index) => <li key={index}>{item}</li>)}</ul></> : null}
             {answer.limitations.length ? <><h3>Limitations</h3><ul>{answer.limitations.map((item, index) => <li key={index}>{item}</li>)}</ul></> : null}
             <p className="question-card-meta">Provider: {selectedSolution?.provider} · Model: {selectedSolution?.model} · Prompt: {selectedSolution?.prompt_version}</p>
+            {sourceProvenanceSummary(selectedSolution?.source_context ?? null) ? <p className="question-card-meta">Source context used: {sourceProvenanceSummary(selectedSolution?.source_context ?? null)}. The extracted text itself is not stored with this answer.</p> : null}
             <p className="notice notice-info">AI-generated draft. Review feedback is recorded separately and does not alter this answer. A teacher review is independent of the owner review, but it is not an official exam-board mark scheme.</p>
             <section className="section">
               <p className="eyebrow">REVIEW & CORRECTION LOG</p>
