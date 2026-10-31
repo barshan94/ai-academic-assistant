@@ -92,9 +92,9 @@ export default async function PracticeDetailPage({ params, searchParams }: Props
                 <textarea id={"notes-"+item.id} name="notes" maxLength={4000} rows={2} defaultValue={item.response_notes ?? ""} placeholder="What was difficult? What should you revisit?" />
                 <button className="document-action" type="submit">Save result</button>
               </form>
-              {item.question_id ? (
+              {item.question_id && item.outcome ? (
                 <form action={schedulePracticeQuestionRevision} className="revision-rating-form practice-revision-form">
-                  <input type="hidden" name="questionId" value={item.question_id} />
+                  <input type="hidden" name="itemId" value={item.id} />
                   <input type="hidden" name="setId" value={id} />
                   <p className="question-card-meta"><strong>Optional: add this question to your revision queue.</strong> This is a separate confidence judgment; your practice outcome above will not choose it for you.</p>
                   <label htmlFor={"practice-confidence-" + item.id}>Your confidence after this attempt</label>
@@ -107,6 +107,8 @@ export default async function PracticeDetailPage({ params, searchParams }: Props
                   </select>
                   <button className="document-action" type="submit">Add to revision queue →</button>
                 </form>
+              ) : item.question_id ? (
+                <p className="question-card-meta">Save a practice outcome first, then you can separately choose a confidence rating for the revision queue.</p>
               ) : (
                 <p className="question-card-meta">This saved snapshot no longer has a linked approved question, so it cannot be added to the revision queue.</p>
               )}
