@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(10);
+select plan(12);
 
 -- Isolated identities and records. This test runs inside a transaction and rolls back.
 insert into auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
@@ -42,6 +42,22 @@ set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000003","r
 select is((select count(*)::integer from public.question_solutions), 0, 'uninvited account cannot read saved solutions');
 select is((select count(*)::integer from public.question_solution_mark_schemes), 0, 'uninvited account cannot read mark schemes');
 select is((select count(*)::integer from public.question_teacher_invites), 0, 'uninvited account cannot read another user invite');
+
+select throws_ok(
+  $insert into public.question_solution_mark_schemes (solution_id, owner_id, title, awarding_body, qualification, subject, source_url, points)
+    values ('40000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', 'Forged scheme', 'Example Board', 'A Level', 'Physics', 'https://example.test/forged.pdf', '[]'::jsonb)$,
+  '42501',
+  null,
+  'uninvited account cannot insert a mark scheme for another owner'
+);
+
+select throws_ok(
+  $insert into public.question_solution_reviews (solution_id, owner_id, reviewer_id, decision, correction_notes)
+    values ('40000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000003', 'approved', null)$,
+  '42501',
+  null,
+  'uninvited account cannot add a review to another owner solution'
+);
 
 -- Invited teacher can see the invite and accept it using their authenticated identity.
 set local request.jwt.claim.sub = '10000000-0000-4000-8000-000000000002';
