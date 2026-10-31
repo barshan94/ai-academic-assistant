@@ -1,0 +1,183 @@
+{
+  "formatVersion": 1,
+  "catalog": {
+    "board": "Pearson Edexcel",
+    "qualification": "International GCSE",
+    "subject": "Chemistry",
+    "version": "2017 specification, Issue 3 (September 2024)",
+    "effectiveFrom": null,
+    "effectiveTo": null,
+    "sourceUrl": "https://qualifications.pearson.com/content/dam/pdf/International%20GCSE/Chemistry/2017/specification-and-sample-assessments/international-gcse-chemistry-2017-specification.pdf",
+    "sourceTitle": "Pearson Edexcel International GCSE in Chemistry (4CH1), Specification – Issue 3 – September 2024"
+  },
+  "chapters": [
+    {
+      "code": "1",
+      "title": "Principles of chemistry",
+      "sortOrder": 1,
+      "topics": [
+        {
+          "code": "1(a)",
+          "title": "States of matter",
+          "sortOrder": 1
+        },
+        {
+          "code": "1(b)",
+          "title": "Elements, compounds and mixtures",
+          "sortOrder": 2
+        },
+        {
+          "code": "1(c)",
+          "title": "Atomic structure",
+          "sortOrder": 3
+        },
+        {
+          "code": "1(d)",
+          "title": "The Periodic Table",
+          "sortOrder": 4
+        },
+        {
+          "code": "1(e)",
+          "title": "Chemical formulae, equations and calculations",
+          "sortOrder": 5
+        },
+        {
+          "code": "1(f)",
+          "title": "Ionic bonding",
+          "sortOrder": 6
+        },
+        {
+          "code": "1(g)",
+          "title": "Covalent bonding",
+          "sortOrder": 7
+        },
+        {
+          "code": "1(h)",
+          "title": "Metallic bonding",
+          "sortOrder": 8
+        },
+        {
+          "code": "1(i)",
+          "title": "Electrolysis",
+          "sortOrder": 9
+        }
+      ]
+    },
+    {
+      "code": "2",
+      "title": "Inorganic chemistry",
+      "sortOrder": 2,
+      "topics": [
+        {
+          "code": "2(a)",
+          "title": "Group 1 (alkali metals) – lithium, sodium and potassium",
+          "sortOrder": 1
+        },
+        {
+          "code": "2(b)",
+          "title": "Group 7 (halogens) – chlorine, bromine and iodine",
+          "sortOrder": 2
+        },
+        {
+          "code": "2(c)",
+          "title": "Gases in the atmosphere",
+          "sortOrder": 3
+        },
+        {
+          "code": "2(d)",
+          "title": "Reactivity series",
+          "sortOrder": 4
+        },
+        {
+          "code": "2(e)",
+          "title": "Extraction and uses of metals",
+          "sortOrder": 5
+        },
+        {
+          "code": "2(f)",
+          "title": "Acids, alkalis and titrations",
+          "sortOrder": 6
+        },
+        {
+          "code": "2(g)",
+          "title": "Acids, bases and salt preparations",
+          "sortOrder": 7
+        },
+        {
+          "code": "2(h)",
+          "title": "Chemical tests",
+          "sortOrder": 8
+        }
+      ]
+    },
+    {
+      "code": "3",
+      "title": "Physical chemistry",
+      "sortOrder": 3,
+      "topics": [
+        {
+          "code": "3(a)",
+          "title": "Energetics",
+          "sortOrder": 1
+        },
+        {
+          "code": "3(b)",
+          "title": "Rates of reaction",
+          "sortOrder": 2
+        },
+        {
+          "code": "3(c)",
+          "title": "Reversible reactions and equilibria",
+          "sortOrder": 3
+        }
+      ]
+    },
+    {
+      "code": "4",
+      "title": "Organic chemistry",
+      "sortOrder": 4,
+      "topics": [
+        {
+          "code": "4(a)",
+          "title": "Introduction",
+          "sortOrder": 1
+        },
+        {
+          "code": "4(b)",
+          "title": "Crude oil",
+          "sortOrder": 2
+        },
+        {
+          "code": "4(c)",
+          "title": "Alkanes",
+          "sortOrder": 3
+        },
+        {
+          "code": "4(d)",
+          "title": "Alkenes",
+          "sortOrder": 4
+        },
+        {
+          "code": "4(e)",
+          "title": "Alcohols",
+          "sortOrder": 5
+        },
+        {
+          "code": "4(f)",
+          "title": "Carboxylic acids",
+          "sortOrder": 6
+        },
+        {
+          "code": "4(g)",
+          "title": "Esters",
+          "sortOrder": 7
+        },
+        {
+          "code": "4(h)",
+          "title": "Synthetic polymers",
+          "sortOrder": 8
+        }
+      ]
+    }
+  ]
+}

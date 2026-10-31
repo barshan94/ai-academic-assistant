@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(21);
+select plan(22);
 
 insert into auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
 values
@@ -20,18 +20,26 @@ set local request.jwt.claims = '{"sub":"71000000-0000-4000-8000-000000000001","r
 select ok((select public.is_platform_admin()), 'provisioned curator is recognized as a platform admin');
 select is(
   (select count(*)::integer from public.reference_syllabus_catalogs
-   where board = 'Cambridge International' and status = 'draft'),
+   where board in ('Cambridge International', 'Pearson Edexcel') and status = 'draft'),
   2,
-  'official Cambridge Physics and Chemistry syllabus indexes are seeded as curator-only drafts'
+  'official Cambridge and Pearson Edexcel science syllabus indexes are seeded as curator-only drafts'
 );
 select is(
   (select count(*)::integer
    from public.reference_syllabus_topics topic
    join public.reference_syllabus_chapters chapter on chapter.id = topic.chapter_id
    join public.reference_syllabus_catalogs catalog on catalog.id = chapter.catalog_id
-   where catalog.board = 'Cambridge International'),
-  112,
-  'all 112 Cambridge numbered topic-section headings are available for curator review'
+   where catalog.board in ('Cambridge International', 'Pearson Edexcel')),
+  170,
+  'all 170 Cambridge and Pearson Edexcel numbered topic-section headings are available for curator review'
+);
+select is(
+  (select count(*)::integer
+   from public.reference_syllabus_evidence evidence
+   join public.reference_syllabus_catalogs catalog on catalog.id = evidence.catalog_id
+   where catalog.board in ('Cambridge International', 'Pearson Edexcel')),
+  200,
+  'every seeded chapter and topic has a source-evidence locator'
 );
 select lives_ok(
   $$insert into public.reference_syllabus_catalogs
