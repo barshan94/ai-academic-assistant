@@ -125,6 +125,8 @@ export async function saveQuestionSolutionMarkScheme(formData: FormData) {
     subject: String(formData.get("subject") ?? ""),
     paperReference: String(formData.get("paperReference") ?? "") || undefined,
     sourceUrl: String(formData.get("sourceUrl") ?? ""),
+    sourceLocator: String(formData.get("sourceLocator") ?? ""),
+    sourceDocumentVersion: String(formData.get("sourceDocumentVersion") ?? "") || undefined,
     points: rawPoints,
   });
   if (!solutionId.success || !parsedScheme.success) {
@@ -154,6 +156,8 @@ export async function saveQuestionSolutionMarkScheme(formData: FormData) {
     subject: scheme.subject,
     paper_reference: scheme.paperReference ?? null,
     source_url: scheme.sourceUrl,
+    source_locator: scheme.sourceLocator,
+    source_document_version: scheme.sourceDocumentVersion ?? null,
     points: scheme.points as unknown as Json,
   });
   if (insertError) redirect("/dashboard/questions/" + solution.question_id + "?mark_scheme=save_failed");
