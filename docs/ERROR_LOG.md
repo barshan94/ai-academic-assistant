@@ -192,3 +192,34 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Keep the attempted mutation under the second account, then switch the request JWT back to the owner before asserting that the original page and document values remain unchanged. The test now checks the protected record from the principal that is allowed to see it.
 - Verification: All 62 pgTAP assertions across document intake, question solutions and study features passed in GitHub Actions run 41192293698. Lint, type-check, unit tests, build and Chromium browser smoke also passed in foundation run 41192293876.
 - Status: Fixed and verified. Authenticated two-account browser acceptance remains skipped because dedicated non-production credentials are not configured.
+
+
+## ERR-017 — Document reprocessing could destroy the previous extraction on a failed insert
+
+- Date: 2026-10-31
+- Area: M2 document processing / data integrity
+- Symptom: Both the user-triggered route and background worker deleted existing extracted page rows, then inserted replacement rows in a separate database request. If the insert failed after deletion, the document could lose its previous extraction. The question-to-page foreign key also used ON DELETE CASCADE, so a page deletion could cascade into saved questions if an application-side reference check was bypassed or raced.
+- Root cause: Page replacement was implemented as multiple independent PostgREST operations, and the foreign key encoded destructive cascade semantics for a page that can be an academic source.
+- Fix: Added the Supabase-CLI-generated migration 20261031103244_atomic_document_page_replacement.sql. It changes the question-to-page FK to ON DELETE RESTRICT and adds the owner-checked, SECURITY INVOKER RPC replace_document_pages. The RPC validates the page payload, locks the owning document row, checks question and chapter-note references, replaces all pages, and updates the document page count in one transaction. Both processing routes now call this RPC. The RPC is executable only by authenticated owners and the trusted service role.
+- Verification: Local Supabase applied every migration successfully. All 71 pgTAP assertions passed in GitHub Actions run 41193654822, including replacement success, reference protection, invalid payload rollback, cross-account denial and direct FK deletion protection. Foundation checks passed in run 41193654883: ESLint, application and Playwright type checks, unit tests, production build and Chromium smoke tests.
+- Status: Implemented and locally/CI verified. Live hosted migration has not been applied; authenticated two-account acceptance and live worker/Drive integration remain pending.
+
+## ERR-018 — New atomic page-replacement RPC was missing from the TypeScript database schema
+
+- Date: 2026-10-31
+- Area: M2 database integration / TypeScript
+- Symptom: TypeScript rejected supabase.rpc("replace_document_pages", ...) because the typed public Functions map did not contain the new RPC.
+- Root cause: The migration and route calls were added, but the checked-in generated database type file had not yet been updated.
+- Fix: Added the RPC argument and return types to types/database.ts, matching the SQL signature (uuid, uuid, jsonb → integer).
+- Verification: Application type-check, Playwright configuration type-check and authenticated acceptance type-check passed in foundation run 41193654883.
+- Status: Fixed and verified.
+
+## ERR-019 — Atomic replacement pgTAP test contained malformed dollar quoting and a stale fixture count
+
+- Date: 2026-10-31
+- Area: M2 database authorization test suite
+- Symptom: The first test run stopped parsing the new throws_ok SQL strings; after correcting those, a later direct-delete assertion still had a malformed dollar delimiter. The owner-document read assertion also expected one document after a second fixture document had been added.
+- Root cause: The new test SQL used incomplete dollar-quote delimiters in several assertions, and one pre-existing count assertion was not scoped to the original document ID after the fixture expanded.
+- Fix: Standardized the new SQL literals on the explicit $sql$...$sql$ delimiter and scoped the owner-document assertion to its fixture ID. Added direct FK protection and question-preservation assertions.
+- Verification: All 27 document-intake assertions and all 44 existing question-solution/study-feature assertions passed (71 total) in database run 41193654822.
+- Status: Fixed and verified.
