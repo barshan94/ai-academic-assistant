@@ -17,7 +17,7 @@ type SafeOperationalFields = {
 function safeToken(value: string | undefined, maxLength: number): string | undefined {
   if (!value) return undefined;
   const normalized = value.trim();
-  if (!normalized || normalized.length > maxLength || !/^[a-zA-Z0-9._:/-]+$/.test(normalized)) return undefined;
+  if (!normalized || normalized.length > maxLength || !/^[a-zA-Z0-9._:/\-\[\]]+$/.test(normalized)) return undefined;
   return normalized;
 }
 
