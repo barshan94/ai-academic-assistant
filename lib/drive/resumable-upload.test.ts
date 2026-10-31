@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isValidDriveChunk, parseDriveUploadOffset } from "./resumable-upload";
+import { isValidDriveChunk, parseDriveUploadOffset, readDriveUploadChunk } from "./resumable-upload";
 
 describe("resumable Drive upload protocol", () => {
   it("parses the next byte offset from a confirmed Drive range", () => {
@@ -48,5 +48,28 @@ describe("resumable Drive upload protocol", () => {
       byteLength: 524288,
       totalBytes: 262144,
     })).toBe(false);
+  });
+});
+
+describe("bounded upload body reader", () => {
+  it("reads a chunk without changing its bytes", async () => {
+    const body = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(new Uint8Array([1, 2, 3]));
+        controller.close();
+      },
+    });
+    expect(Array.from(await readDriveUploadChunk(body))).toEqual([1, 2, 3]);
+  });
+
+  it("rejects a body larger than the configured chunk limit", async () => {
+    const body = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(new Uint8Array(1024 * 1024));
+        controller.enqueue(new Uint8Array([1]));
+        controller.close();
+      },
+    });
+    await expect(readDriveUploadChunk(body)).rejects.toThrow("1 MB server limit");
   });
 });
