@@ -159,3 +159,69 @@ export async function revokeDriveRefreshToken(refreshToken: string) {
   });
   return response.ok || response.status === 400;
 }
+
+export async function initiateResumablePdfUpload(input: {
+  accessToken: string;
+  fileName: string;
+  fileSizeBytes: number;
+}) {
+  const response = await fetch(
+    "https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&fields=id,name,mimeType,webViewLink,size",
+    {
+      method: "POST",
+      headers: {
+        Authorization: "Bearer " + input.accessToken,
+        "Content-Type": "application/json; charset=UTF-8",
+        "X-Upload-Content-Type": "application/pdf",
+        "X-Upload-Content-Length": String(input.fileSizeBytes),
+      },
+      body: JSON.stringify({ name: input.fileName, mimeType: "application/pdf" }),
+      cache: "no-store",
+    },
+  );
+  const sessionUri = response.headers.get("Location");
+  if (!response.ok || !sessionUri) {
+    throw new Error("Google Drive could not start a resumable upload session.");
+  }
+  const parsed = new URL(sessionUri);
+  if (parsed.protocol !== "https:" || parsed.hostname !== "www.googleapis.com" ||
+      !parsed.pathname.startsWith("/upload/drive/v3/files")) {
+    throw new Error("Google Drive returned an invalid upload session URL.");
+  }
+  return sessionUri;
+}
+
+export async function sendResumablePdfChunk(input: {
+  accessToken: string;
+  sessionUri: string;
+  contentRange: string;
+  bytes: Uint8Array;
+}) {
+  const session = new URL(input.sessionUri);
+  if (session.protocol !== "https:" || session.hostname !== "www.googleapis.com" ||
+      !session.pathname.startsWith("/upload/drive/v3/files")) {
+    throw new Error("Invalid Google Drive upload session.");
+  }
+
+  const response = await fetch(input.sessionUri, {
+    method: "PUT",
+    headers: {
+      Authorization: "Bearer " + input.accessToken,
+      "Content-Range": input.contentRange,
+      ...(input.bytes.byteLength ? { "Content-Length": String(input.bytes.byteLength) } : {}),
+    },
+    body: input.bytes.byteLength ? Buffer.from(input.bytes) : undefined,
+    cache: "no-store",
+    redirect: "manual",
+  });
+
+  const range = response.headers.get("Range");
+  const text = response.status === 308 || response.status === 404 ? "" : await response.text();
+  let file: { id?: string; webViewLink?: string; name?: string } | null = null;
+  if (text) {
+    try { file = JSON.parse(text) as { id?: string; webViewLink?: string; name?: string }; }
+    catch { throw new Error("Google Drive returned an unreadable upload response."); }
+  }
+
+  return { status: response.status, range, file };
+}
