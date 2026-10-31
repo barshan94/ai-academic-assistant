@@ -168,9 +168,9 @@ This file records material implementation, CI, integration and release problems 
 - Area: M2 background worker scheduling / deployment compatibility
 - Symptom: The initial worker schedule used a five-minute Vercel cron expression, which would fail deployment on Vercel Hobby.
 - Root cause: Vercel Hobby cron jobs are limited to once per day; schedules more frequent than daily require Pro or Enterprise.
-- Fix: Removed the Vercel cron configuration and added a GitHub Actions workflow scheduled every five minutes. The workflow calls the same authenticated worker endpoint using repository secrets DOCUMENT_WORKER_URL and CRON_SECRET. Updated setup documentation to explain that scheduled workflows activate only from the default branch.
+- Fix: Removed the Vercel cron configuration and added the single canonical GitHub Actions workflow at `.github/workflows/document-worker.yml`, scheduled every five minutes. It calls the authenticated worker endpoint using repository secrets APP_BASE_URL and CRON_SECRET. Duplicate scheduler definitions were removed, and setup documentation explains that scheduled workflows activate only from the default branch.
 - Verification: Workflow syntax and live scheduled execution remain pending; it cannot run on a schedule from this feature branch before an authorized merge to the default branch.
-- Status: Code implemented; activation awaits default-branch merge and non-production/production scheduler secrets. No deployment or merge was performed.
+- Status: Code implemented; activation awaits default-branch merge and APP_BASE_URL/CRON_SECRET plus deployed worker environment configuration. No deployment or merge was performed.
 
 ## ERR-014 — Vercel Hobby cron frequency was unsupported
 
@@ -180,4 +180,4 @@ This file records material implementation, CI, integration and release problems 
 - Root cause: The chosen hosting plan does not support the requested frequent cron schedule.
 - Fix: Removed the unsupported Vercel cron configuration and added a GitHub Actions scheduled/manual workflow. It calls the HTTPS worker endpoint with a bearer secret, serializes scheduled invocations, bounds request duration and retries transient network failures. Added a deployment setup guide.
 - Verification: Workflow YAML and end-to-end invocation are awaiting CI and configured non-production secrets. No live worker invocation has been claimed.
-- Status: Scheduler implementation committed; operational activation remains blocked on APP_BASE_URL, CRON_SECRET, and deployed Supabase/Google environment configuration.
+- Status: Superseded by ERR-015, which records the final canonical workflow and secret names. The worker remains unverified until non-production secrets and a deployment are configured.
