@@ -76,12 +76,7 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
 
       <section className="section">
         <div className="section-heading"><div><p className="eyebrow">NEW SOURCE</p><h2>Upload a question paper</h2></div><span className="section-count">100 MB maximum</span></div>
-        <form className="upload-panel" action="/api/documents/upload" method="post" encType="multipart/form-data">
-          <label htmlFor="document-files">Choose one PDF or multiple JPEG/PNG images</label>
-          <input id="document-files" name="files" type="file" accept="application/pdf,image/jpeg,image/png" multiple required disabled={!connection} />
-          <p>Multiple images become one multi-page PDF in selection order. Upload one PDF by itself. Combined upload limit: 4 MB and 50 images.</p>
-          <button className="primary-action" type="submit" disabled={!connection}>Archive and queue for processing <span aria-hidden="true">→</span></button>
-        </form>
+        <ResumableUploadForm disabled={!connection} />
       </section>
 
       <section className="section">
