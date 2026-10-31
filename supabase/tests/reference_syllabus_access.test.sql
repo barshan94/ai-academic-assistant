@@ -21,7 +21,7 @@ select ok((select public.is_platform_admin()), 'provisioned curator is recognize
 select is(
   (select count(*)::integer from public.reference_syllabus_catalogs
    where board in ('Cambridge International', 'Pearson Edexcel') and status = 'draft'),
-  2,
+  4,
   'official Cambridge and Pearson Edexcel science syllabus indexes are seeded as curator-only drafts'
 );
 select is(
