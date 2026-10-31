@@ -34,10 +34,10 @@ jobs:
       - name: Install locked dependencies
         run: npm ci
 
-      - name: Audit production dependencies
-        # ESLint's legacy dev-only minimatch 3 API is not compatible with v11.
-        # The affected typescript-estree minimatch 10 dependency is overridden to the patched v11 release.
-        run: npm audit --omit=dev
+      - name: Audit all dependencies
+        # The vulnerable typescript-estree minimatch range is pinned to a patched
+        # release through a package-scoped npm override; the lockfile is committed.
+        run: npm audit
 
       - name: Install temporary Playwright types for validation
         run: npm install --no-save --package-lock=false @playwright/test@1.56.1
