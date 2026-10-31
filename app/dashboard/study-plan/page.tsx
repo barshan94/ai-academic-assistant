@@ -24,15 +24,29 @@ export default async function StudyPlanPage({ searchParams }: PageProps) {
   const [{ data: sessions, error: sessionsError }, { data: revisionRows, error: revisionError }, { data: sets, error: setsError }] = await Promise.all([
     db.from("weekly_study_sessions").select("id,session_date,title,planned_minutes,notes,status,completed_at").eq("owner_id", user.id).gte("session_date", startKey).lte("session_date", endKey).order("session_date", { ascending: true }).order("created_at", { ascending: true }).limit(200),
     db.from("question_revision_progress").select("question_id,confidence,status,next_review_at,review_count").eq("owner_id", user.id).lte("next_review_at", new Date().toISOString()).order("next_review_at", { ascending: true }).limit(500),
-    db.from("practice_sets").select("id").eq("owner_id", user.id).eq("status", "in_progress").limit(100),
+    db.from("practice_sets").select("id,title").eq("owner_id", user.id).eq("status", "in_progress").limit(100),
   ]);
-  const dueCount = revisionRows?.length ?? 0;
+  const revisionIds = [...new Set((revisionRows ?? []).map((row) => row.question_id))];
+  const { data: revisionQuestions, error: questionError } = revisionIds.length
+    ? await db.from("questions").select("id,question_text,question_number,subject,chapter,topic")
+        .eq("owner_id", user.id).eq("review_status", "approved").in("id", revisionIds)
+    : { data: [], error: null };
+  const questionById = new Map((revisionQuestions ?? []).map((question) => [question.id, question]));
+  const dueRevisions = (revisionRows ?? []).filter((row) => questionById.has(row.question_id));
+  const dueCount = dueRevisions.length;
   const setIds = (sets ?? []).map((set) => set.id);
-  let unfinishedCount = 0, itemsError: { message: string } | null = null;
+  let unfinishedItems: Array<{ id: string; practice_set_id: string; position: number; question_text: string; question_number: string | null; subject: string | null; chapter: string | null; topic: string | null }> = [];
+  let itemsError: { message: string } | null = null;
   if (setIds.length) {
-    const result = await db.from("practice_set_items").select("id", { count: "exact", head: true }).eq("owner_id", user.id).in("practice_set_id", setIds).is("outcome", null);
-    unfinishedCount = result.count ?? 0; itemsError = result.error;
+    const result = await db.from("practice_set_items")
+      .select("id,practice_set_id,position,question_text,question_number,subject,chapter,topic")
+      .eq("owner_id", user.id).in("practice_set_id", setIds).is("outcome", null)
+      .order("practice_set_id", { ascending: true }).order("position", { ascending: true }).limit(1000);
+    unfinishedItems = result.data ?? [];
+    itemsError = result.error;
   }
+  const unfinishedCount = unfinishedItems.length;
+  const setById = new Map((sets ?? []).map((set) => [set.id, set]));
   const totalMinutes = (sessions ?? []).reduce((sum, session) => sum + session.planned_minutes, 0);
   const completedMinutes = (sessions ?? []).filter((session) => session.status === "completed").reduce((sum, session) => sum + session.planned_minutes, 0);
   const completedCount = (sessions ?? []).filter((session) => session.status === "completed").length;
@@ -95,6 +109,23 @@ export default async function StudyPlanPage({ searchParams }: PageProps) {
       <section className="section">
         <div className="section-heading"><div><p className="eyebrow">UNSCHEDULED TASKS</p><h2>Study queue</h2></div><span className="section-count">{dueCount + unfinishedCount} open tasks</span></div>
         <p className="question-card-meta">These tasks remain in their original revision and practice workflows. Add a calendar block above when you decide when to work on them.</p>
+        {dueRevisions.map((item) => {
+          const question = questionById.get(item.question_id);
+          if (!question) return null;
+          return <article className="question-card revision-card" key={item.question_id}>
+            <div className="question-card-heading"><span className="document-status">Revision due · {item.status}</span><span className="question-subject">{question.subject ?? "Subject not set"}</span></div>
+            <p className="question-card-text">{question.question_number ? question.question_number + ". " : ""}{question.question_text}</p>
+            <p className="question-card-meta">{[question.chapter, question.topic].filter(Boolean).join(" · ") || "No chapter/topic mapping"} · Previous confidence {item.confidence}/5 · {item.review_count} reviews</p>
+            <div className="question-card-footer"><Link className="document-open" href="/dashboard/revision">Rate confidence & schedule next review ↗</Link><Link className="document-open" href={"/dashboard/questions/" + question.id}>Open question ↗</Link></div>
+          </article>;
+        })}
+        {unfinishedItems.map((item) => <article className="question-card" key={item.id}>
+          <div className="question-card-heading"><span className="document-status">Practice awaiting result · Question {item.position}</span><span className="question-subject">{item.subject ?? "Subject not set"}</span></div>
+          <h3>{setById.get(item.practice_set_id)?.title ?? "Practice session"}</h3>
+          <p className="question-card-text">{item.question_number ? item.question_number + ". " : ""}{item.question_text}</p>
+          <p className="question-card-meta">{[item.chapter, item.topic].filter(Boolean).join(" · ") || "No chapter/topic mapping"}</p>
+          <div className="question-card-footer"><Link className="document-open" href={"/dashboard/practice/" + item.practice_set_id}>Continue session & record result ↗</Link></div>
+        </article>)}
         {!dueCount && !unfinishedCount ? <div className="empty-state"><h3>No due or unfinished tasks</h3><p>Your current revision reviews and active practice sessions have no open tasks.</p></div> : null}
         {dueRevisions.map((item) => {
           const question = questionById.get(item.question_id)!;
