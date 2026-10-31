@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(18);
+select plan(25);
 
 insert into auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
 values
@@ -10,7 +10,9 @@ values
   ('11000000-0000-4000-8000-000000000002', 'authenticated', 'authenticated', 'intake-other@example.test', '', now(), '{}'::jsonb, '{}'::jsonb, now(), now());
 
 insert into public.documents (id, owner_id, file_name, mime_type, file_size_bytes, status)
-values ('21000000-0000-4000-8000-000000000001', '11000000-0000-4000-8000-000000000001', 'intake-owner.pdf', 'application/pdf', 1024, 'ready');
+values
+  ('21000000-0000-4000-8000-000000000001', '11000000-0000-4000-8000-000000000001', 'intake-owner.pdf', 'application/pdf', 1024, 'ready'),
+  ('21000000-0000-4000-8000-000000000002', '11000000-0000-4000-8000-000000000001', 'intake-unprocessed.pdf', 'application/pdf', 2048, 'queued');
 
 insert into public.drive_connections (owner_id, encrypted_refresh_token, granted_scope)
 values ('11000000-0000-4000-8000-000000000001', 'test-encrypted-token-fixture', 'https://www.googleapis.com/auth/drive.file');
@@ -34,6 +36,54 @@ select is((select count(*)::integer from public.document_pages), 1, 'document ow
 select is((select count(*)::integer from public.processing_jobs), 1, 'document owner can read processing jobs');
 select is((select count(*)::integer from public.questions), 1, 'document owner can read linked questions');
 
+select throws_ok(
+  $select public.replace_document_pages(
+    '21000000-0000-4000-8000-000000000001',
+    '11000000-0000-4000-8000-000000000001',
+    '["replacement text"]'::jsonb
+  )$,
+  'P0001', null,
+  'atomic page replacement refuses to remove pages referenced by saved questions'
+);
+
+select is(
+  (select count(*)::integer from public.document_pages where document_id = '21000000-0000-4000-8000-000000000001'),
+  1,
+  'blocked replacement preserves the original extracted page'
+);
+
+select is(
+  public.replace_document_pages(
+    '21000000-0000-4000-8000-000000000002',
+    '11000000-0000-4000-8000-000000000001',
+    '["replacement page one","replacement page two"]'::jsonb
+  ),
+  2,
+  'atomic replacement inserts the complete new page set'
+);
+
+select is(
+  (select page_count from public.documents where id = '21000000-0000-4000-8000-000000000002'),
+  2,
+  'atomic replacement updates the document page count'
+);
+
+select throws_ok(
+  $select public.replace_document_pages(
+    '21000000-0000-4000-8000-000000000002',
+    '11000000-0000-4000-8000-000000000001',
+    '["valid page",""]'::jsonb
+  )$,
+  'P0001', null,
+  'atomic replacement rejects empty extracted page text'
+);
+
+select is(
+  (select count(*)::integer from public.document_pages where document_id = '21000000-0000-4000-8000-000000000002'),
+  2,
+  'failed replacement rolls back and preserves the prior complete page set'
+);
+
 set local request.jwt.claim.sub = '11000000-0000-4000-8000-000000000002';
 set local request.jwt.claims = '{"sub":"11000000-0000-4000-8000-000000000002","role":"authenticated","email":"intake-other@example.test"}';
 
@@ -42,6 +92,16 @@ select is((select count(*)::integer from public.drive_connections), 0, 'another 
 select is((select count(*)::integer from public.document_pages), 0, 'another account cannot read extracted pages');
 select is((select count(*)::integer from public.processing_jobs), 0, 'another account cannot read processing jobs');
 select is((select count(*)::integer from public.questions), 0, 'another account cannot read linked questions');
+
+select throws_ok(
+  $select public.replace_document_pages(
+    '21000000-0000-4000-8000-000000000002',
+    '11000000-0000-4000-8000-000000000001',
+    '["forged page"]'::jsonb
+  )$,
+  '42501', null,
+  'another account cannot replace pages for a different owner'
+);
 
 select throws_ok(
   $$insert into public.documents (owner_id, file_name, mime_type, file_size_bytes)
