@@ -1,6 +1,6 @@
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(11);
+select plan(15);
 
 insert into auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
 values ('11000000-0000-4000-8000-000000000011', 'authenticated', 'authenticated', 'chapter-note-owner@example.test', '', now(), '{}'::jsonb, '{}'::jsonb, now(), now());
@@ -129,6 +129,54 @@ select throws_ok(
   'P0001',
   'Every document page source must remain linked to an approved question in this chapter',
   'approval is blocked when a page belongs to a question classified to another chapter'
+);
+
+-- Note content and source history are immutable after creation.
+select throws_ok(
+  $update public.chapter_note_versions
+    set title = 'Tampered title'
+    where title = 'Valid page-source note'$,
+  'P0001',
+  'Chapter note content is immutable; create a new version instead',
+  'owner cannot edit an existing chapter note instead of creating a revision'
+);
+select throws_ok(
+  $update public.chapter_note_sources
+    set locator = 'tampered locator'
+    where note_version_id = (
+      select id from public.chapter_note_versions where title = 'Valid page-source note'
+    )$,
+  'P0001',
+  'Chapter note source history is append-only',
+  'owner cannot edit an existing chapter note source reference'
+);
+select throws_ok(
+  $delete from public.chapter_note_sources
+    where note_version_id = (
+      select id from public.chapter_note_versions where title = 'Valid page-source note'
+    )$,
+  'P0001',
+  'Chapter note source history is append-only',
+  'owner cannot delete an existing chapter note source reference'
+);
+insert into public.chapter_note_versions (
+  owner_id, catalog_id, chapter_id, version_number, title, content_json, status
+) values (
+  '11000000-0000-4000-8000-000000000011',
+  '41000000-0000-4000-8000-000000000011',
+  '42000000-0000-4000-8000-000000000011',
+  4,
+  'No source note',
+  '{"summary":"No source attached"}'::jsonb,
+  'draft'
+);
+select throws_ok(
+  $update public.chapter_note_versions
+    set status = 'approved'
+    where title = 'No source note'$,
+  'P0001',
+  'A chapter note needs at least one source before approval',
+  'owner cannot approve a chapter note without a source reference'
 );
 
 -- Switch to a second authenticated account and prove that note data and
