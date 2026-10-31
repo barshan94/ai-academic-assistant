@@ -1,6 +1,7 @@
 import { PDFDocument } from "pdf-lib";
 
-export const MAX_UPLOAD_BYTES = 100 * 1024 * 1024;\nexport const MAX_IMAGE_COUNT = 50;
+export const MAX_UPLOAD_BYTES = 100 * 1024 * 1024;
+export const MAX_IMAGE_COUNT = 50;
 
 export function safeFileName(value: string) {
   return value
@@ -53,7 +54,8 @@ export async function normalizeFilesToPdf(files: File[]) {
     const file = files[index];
     const bytes = buffers[index];
     const isJpeg = bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
-    const pngSignature = [137, 80, 78, 71, 13, 10, 26, 10];\n    const isPng = pngSignature.every((value, signatureIndex) => bytes[signatureIndex] === value);
+    const pngSignature = [137, 80, 78, 71, 13, 10, 26, 10];
+    const isPng = pngSignature.every((value, signatureIndex) => bytes[signatureIndex] === value);
 
     if (file.type === "image/jpeg" && !isJpeg) throw new Error("A JPEG file has an invalid image signature.");
     if (file.type === "image/png" && !isPng) throw new Error("A PNG file has an invalid image signature.");
