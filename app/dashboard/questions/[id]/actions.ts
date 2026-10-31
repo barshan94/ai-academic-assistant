@@ -12,6 +12,7 @@ import type { DatabaseWithAISolutions } from "@/types/ai-database";
 import type { Json } from "@/types/database";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { consumeAIGenerationQuota } from "@/lib/security/ai-generation-quota";
+import { assertWebResearchConfigured, searchWebSources, WebResearchConfigurationError, WebResearchProviderError } from "@/lib/research/web-search";
 
 const questionIdSchema = z.string().uuid();
 
@@ -285,4 +286,70 @@ export async function revokeQuestionTeacherInvite(formData: FormData) {
   revalidatePath("/dashboard/questions/" + questionId.data);
   revalidatePath("/dashboard/teacher-invites");
   redirect("/dashboard/questions/" + questionId.data + "?invite=revoked");
+}
+
+
+const webResearchSchema = z.object({
+  questionId: z.string().uuid(),
+  query: z.string().trim().min(3).max(500),
+});
+
+export async function searchQuestionWebSources(formData: FormData) {
+  const parsed = webResearchSchema.safeParse({
+    questionId: String(formData.get("questionId") ?? ""),
+    query: String(formData.get("query") ?? ""),
+  });
+  if (!parsed.success) redirect("/dashboard/questions?research=invalid");
+
+  const supabase = await createSupabaseServerClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) redirect("/login");
+
+  const { data: question, error: questionError } = await supabase.from("questions")
+    .select("id").eq("id", parsed.data.questionId).eq("owner_id", user.id).maybeSingle();
+  if (questionError || !question) redirect("/dashboard/questions?research=not_found");
+
+  try {
+    assertWebResearchConfigured();
+  } catch (error) {
+    if (error instanceof WebResearchConfigurationError) {
+      redirect("/dashboard/questions/" + question.id + "?research=not_configured");
+    }
+    redirect("/dashboard/questions/" + question.id + "?research=failed");
+  }
+
+  const typedSupabase = supabase as unknown as SupabaseClient<DatabaseWithAISolutions>;
+  const { data: allowed, error: quotaError } = await typedSupabase.rpc("consume_question_web_research_quota");
+  if (quotaError) redirect("/dashboard/questions/" + question.id + "?research=quota_unavailable");
+  if (!allowed) redirect("/dashboard/questions/" + question.id + "?research=rate_limited");
+
+  let sources;
+  try {
+    sources = await searchWebSources(parsed.data.query);
+  } catch (error) {
+    const status = error instanceof WebResearchProviderError
+      ? error.message
+      : "WEB_RESEARCH_FAILED";
+    redirect("/dashboard/questions/" + question.id + "?research=" + encodeURIComponent(status.slice(0, 80)));
+  }
+
+  if (!sources.length) redirect("/dashboard/questions/" + question.id + "?research=no_results");
+
+  const { error: saveError } = await typedSupabase.from("question_web_research_sources").insert(
+    sources.map((source) => ({
+      owner_id: user.id,
+      question_id: question.id,
+      query: parsed.data.query,
+      provider: "brave-search",
+      title: source.title,
+      source_url: source.url,
+      snippet: source.snippet,
+      result_rank: source.rank,
+      retrieved_at: new Date().toISOString(),
+    })),
+  );
+  if (saveError) redirect("/dashboard/questions/" + question.id + "?research=save_failed");
+
+  revalidatePath("/dashboard/questions/" + question.id);
+  redirect("/dashboard/questions/" + question.id + "?research=saved");
 }
