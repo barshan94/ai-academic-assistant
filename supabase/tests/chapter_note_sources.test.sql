@@ -1,6 +1,6 @@
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(4);
+select plan(6);
 
 insert into auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
 values ('11000000-0000-4000-8000-000000000011', 'authenticated', 'authenticated', 'chapter-note-owner@example.test', '', now(), '{}'::jsonb, '{}'::jsonb, now(), now());
@@ -19,6 +19,15 @@ values
  ('31000000-0000-4000-8000-000000000011', '11000000-0000-4000-8000-000000000011', '21000000-0000-4000-8000-000000000011', 'Approved Forces question', 'Example Board', 'O Level', 'Physics', 'Forces', 'Motion', 'approved', '41000000-0000-4000-8000-000000000011', '42000000-0000-4000-8000-000000000011'),
  ('31000000-0000-4000-8000-000000000012', '11000000-0000-4000-8000-000000000011', '21000000-0000-4000-8000-000000000011', 'Unreviewed Forces question', 'Example Board', 'O Level', 'Physics', 'Forces', 'Motion', 'needs_review', '41000000-0000-4000-8000-000000000011', '42000000-0000-4000-8000-000000000011'),
  ('31000000-0000-4000-8000-000000000013', '11000000-0000-4000-8000-000000000011', '21000000-0000-4000-8000-000000000011', 'Approved Energy question', 'Example Board', 'O Level', 'Physics', 'Energy', 'Work', 'approved', '41000000-0000-4000-8000-000000000011', '42000000-0000-4000-8000-000000000012');
+
+insert into public.document_pages (id, owner_id, document_id, page_number, extracted_text, extraction_method, status)
+values
+ ('22000000-0000-4000-8000-000000000011', '11000000-0000-4000-8000-000000000011', '21000000-0000-4000-8000-000000000011', 1, 'Forces source page', 'pdf_text', 'complete'),
+ ('22000000-0000-4000-8000-000000000012', '11000000-0000-4000-8000-000000000011', '21000000-0000-4000-8000-000000000011', 2, 'Energy source page', 'pdf_text', 'complete');
+insert into public.questions (id, owner_id, document_id, document_page_id, question_text, board, qualification, subject, chapter, topic, review_status, syllabus_catalog_id, syllabus_chapter_id)
+values
+ ('31000000-0000-4000-8000-000000000014', '11000000-0000-4000-8000-000000000011', '21000000-0000-4000-8000-000000000011', '22000000-0000-4000-8000-000000000011', 'Approved Forces page question', 'Example Board', 'O Level', 'Physics', 'Forces', 'Motion', 'approved', '41000000-0000-4000-8000-000000000011', '42000000-0000-4000-8000-000000000011'),
+ ('31000000-0000-4000-8000-000000000015', '11000000-0000-4000-8000-000000000011', '21000000-0000-4000-8000-000000000011', '22000000-0000-4000-8000-000000000012', 'Approved Energy page question', 'Example Board', 'O Level', 'Physics', 'Energy', 'Work', 'approved', '41000000-0000-4000-8000-000000000011', '42000000-0000-4000-8000-000000000012');
 
 set local role authenticated;
 set local request.jwt.claim.sub = '11000000-0000-4000-8000-000000000011';
@@ -76,6 +85,46 @@ select throws_ok(
   'P0001',
   'Every question source must be approved and classified to this chapter',
   'owner cannot attach an approved question classified to a different chapter'
+);
+
+
+select lives_ok(
+  $select public.create_chapter_note_draft(
+    '41000000-0000-4000-8000-000000000011',
+    '42000000-0000-4000-8000-000000000011',
+    'Valid page-source note',
+    '{"summary":"Page-backed"}'::jsonb,
+    '{}'::uuid[],
+    array['22000000-0000-4000-8000-000000000011'::uuid],
+    null
+  )$,
+  'owner can create a note with a page linked to an approved question in the selected chapter'
+);
+select lives_ok(
+  $update public.chapter_note_versions
+    set status = 'approved'
+    where title = 'Valid page-source note'$,
+  'a page source linked to an approved question in the same chapter can be approved'
+);
+select lives_ok(
+  $select public.create_chapter_note_draft(
+    '41000000-0000-4000-8000-000000000011',
+    '42000000-0000-4000-8000-000000000011',
+    'Wrong chapter page-source note',
+    '{"summary":"Must not approve"}'::jsonb,
+    '{}'::uuid[],
+    array['22000000-0000-4000-8000-000000000012'::uuid],
+    null
+  )$,
+  'draft creation preserves an owned page as a draft source before approval checks'
+);
+select throws_ok(
+  $update public.chapter_note_versions
+    set status = 'approved'
+    where title = 'Wrong chapter page-source note'$,
+  'P0001',
+  'Every document page source must remain linked to an approved question in this chapter',
+  'approval is blocked when a page belongs to a question classified to another chapter'
 );
 
 select * from finish();
