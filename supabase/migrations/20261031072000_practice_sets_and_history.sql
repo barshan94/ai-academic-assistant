@@ -122,7 +122,7 @@ declare
   v_set_id uuid;
 begin
   if v_owner_id is null then raise exception 'Authentication required'; end if;
-  if p_outcome not in ('correct', 'partial', 'incorrect', 'skipped') then
+  if p_outcome is null or p_outcome not in ('correct', 'partial', 'incorrect', 'skipped') then
     raise exception 'Invalid practice outcome';
   end if;
   if p_response_notes is not null and char_length(p_response_notes) > 4000 then
