@@ -25,8 +25,7 @@ describe("academic answer schema", () => {
   });
 
   it("requires explicit verification arrays and bounds output sizes", () => {
-    const { chemistryChecks: _chemistry, ...withoutChemistry } = valid;
-    expect(examAnswerSchema.safeParse(withoutChemistry).success).toBe(false);
+    expect(examAnswerSchema.safeParse({ ...valid, chemistryChecks: undefined }).success).toBe(false);
     expect(examAnswerSchema.safeParse({ ...valid, examAnswer: "x".repeat(20001) }).success).toBe(false);
     expect(examAnswerSchema.safeParse({ ...valid, keyConcepts: Array(21).fill("concept") }).success).toBe(false);
   });
