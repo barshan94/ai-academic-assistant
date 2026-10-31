@@ -26,35 +26,43 @@ export default async function StudyPlanPage({ searchParams }: PageProps) {
   const formDefaultDate = today >= weekStart && today <= weekEnd ? today : weekStart;
   const startKey = dateKey(weekStart), endKey = dateKey(weekEnd);
   const [{ data: sessions, error: sessionsError }, { data: revisionRows, error: revisionError }, { data: sets, error: setsError }] = await Promise.all([
-    db.from("weekly_study_sessions").select("id,session_date,title,planned_minutes,notes,status,completed_at").eq("owner_id", user.id).gte("session_date", startKey).lte("session_date", endKey).order("session_date", { ascending: true }).order("created_at", { ascending: true }).limit(200),
-    db.from("question_revision_progress").select("question_id,confidence,status,next_review_at,review_count").eq("owner_id", user.id).lte("next_review_at", new Date().toISOString()).order("next_review_at", { ascending: true }).limit(500),
-    db.from("practice_sets").select("id,title,created_at").eq("owner_id", user.id).eq("status", "in_progress").order("created_at", { ascending: false }).limit(100),
+    db.from("weekly_study_sessions").select("id,session_date,title,planned_minutes,notes,status,completed_at").eq("owner_id", user.id).gte("session_date", startKey).lte("session_date", endKey).order("session_date", { ascending: true }).order("created_at", { ascending: true }).limit(201),
+    db.from("question_revision_progress").select("question_id,confidence,status,next_review_at,review_count").eq("owner_id", user.id).lte("next_review_at", new Date().toISOString()).order("next_review_at", { ascending: true }).limit(501),
+    db.from("practice_sets").select("id,title,created_at").eq("owner_id", user.id).eq("status", "in_progress").order("created_at", { ascending: false }).limit(101),
   ]);
-  const revisionIds = [...new Set((revisionRows ?? []).map((row) => row.question_id))];
+  const sessionsLimited = (sessions ?? []).length > 200;
+  const visibleSessions = (sessions ?? []).slice(0, 200);
+  const revisionQueueLimited = (revisionRows ?? []).length > 500;
+  const visibleRevisionRows = (revisionRows ?? []).slice(0, 500);
+  const practiceSetsLimited = (sets ?? []).length > 100;
+  const visibleSets = (sets ?? []).slice(0, 100);
+  const revisionIds = [...new Set(visibleRevisionRows.map((row) => row.question_id))];
   const { data: revisionQuestions, error: questionError } = revisionIds.length
     ? await db.from("questions").select("id,question_text,question_number,subject,chapter,topic")
         .eq("owner_id", user.id).eq("review_status", "approved").in("id", revisionIds)
     : { data: [], error: null };
   const questionById = new Map((revisionQuestions ?? []).map((question) => [question.id, question]));
-  const dueRevisions = (revisionRows ?? []).filter((row) => questionById.has(row.question_id));
+  const dueRevisions = visibleRevisionRows.filter((row) => questionById.has(row.question_id));
   const dueCount = dueRevisions.length;
-  const setIds = (sets ?? []).map((set) => set.id);
+  const setIds = visibleSets.map((set) => set.id);
   let unfinishedItems: Array<{ id: string; practice_set_id: string; position: number; question_text: string; question_number: string | null; subject: string | null; chapter: string | null; topic: string | null }> = [];
   let itemsError: { message: string } | null = null;
+  let unfinishedQueueLimited = false;
   if (setIds.length) {
     const result = await db.from("practice_set_items")
       .select("id,practice_set_id,position,question_text,question_number,subject,chapter,topic")
       .eq("owner_id", user.id).in("practice_set_id", setIds).is("outcome", null)
-      .order("practice_set_id", { ascending: true }).order("position", { ascending: true }).limit(1000);
-    unfinishedItems = result.data ?? [];
+      .order("practice_set_id", { ascending: true }).order("position", { ascending: true }).limit(1001);
+    unfinishedQueueLimited = (result.data ?? []).length > 1000;
+    unfinishedItems = (result.data ?? []).slice(0, 1000);
     itemsError = result.error;
   }
   const unfinishedCount = unfinishedItems.length;
-  const setById = new Map((sets ?? []).map((set) => [set.id, set]));
-  const totalMinutes = (sessions ?? []).reduce((sum, session) => sum + session.planned_minutes, 0);
-  const completedMinutes = (sessions ?? []).filter((session) => session.status === "completed").reduce((sum, session) => sum + session.planned_minutes, 0);
-  const completedCount = (sessions ?? []).filter((session) => session.status === "completed").length;
-  const plannedCount = (sessions ?? []).length - completedCount;
+  const setById = new Map(visibleSets.map((set) => [set.id, set]));
+  const totalMinutes = visibleSessions.reduce((sum, session) => sum + session.planned_minutes, 0);
+  const completedMinutes = visibleSessions.filter((session) => session.status === "completed").reduce((sum, session) => sum + session.planned_minutes, 0);
+  const completedCount = visibleSessions.filter((session) => session.status === "completed").length;
+  const plannedCount = visibleSessions.length - completedCount;
   const message = params.calendar === "created" ? "Study session added to this week's calendar." : params.calendar === "completed" ? "Session marked as completed." : params.calendar === "invalid" ? "Check the date, title and planned duration." : params.calendar === "failed" ? "The session could not be saved. Refresh and try again." : undefined;
   const hasError = Boolean(sessionsError || revisionError || setsError || questionError || itemsError);
 
@@ -92,11 +100,11 @@ export default async function StudyPlanPage({ searchParams }: PageProps) {
         <p className="question-card-meta">Sessions are personal plans, not automatically generated assignments. Due revision and practice tasks remain separate until you choose to schedule them.</p>
       </section>
       <section className="section">
-        <div className="section-heading"><div><p className="eyebrow">MONDAY–SUNDAY</p><h2>Weekly calendar</h2></div><span className="section-count">{(sessions ?? []).length} sessions</span></div>
+        <div className="section-heading"><div><p className="eyebrow">MONDAY–SUNDAY</p><h2>Weekly calendar</h2></div><span className="section-count">{visibleSessions.length}{sessionsLimited ? "+" : ""} sessions</span></div>
         <div className="study-calendar">
           {Array.from({ length: 7 }, (_, index) => {
             const day = new Date(weekStart); day.setDate(day.getDate() + index);
-            const key = dateKey(day), daySessions = (sessions ?? []).filter((session) => session.session_date === key);
+            const key = dateKey(day), daySessions = visibleSessions.filter((session) => session.session_date === key);
             const dayMinutes = daySessions.reduce((sum, session) => sum + session.planned_minutes, 0);
             return <section className="study-calendar-day" key={key}>
               <header><div><h3>{formatDay(day)}</h3><span>{key === dateKey(today) ? "Today" : key}</span></div><strong>{dayMinutes} min</strong></header>
@@ -113,7 +121,7 @@ export default async function StudyPlanPage({ searchParams }: PageProps) {
       </section>
       <section className="section">
         <div className="section-heading"><div><p className="eyebrow">UNSCHEDULED TASKS</p><h2>Study queue</h2></div><span className="section-count">{dueCount + unfinishedCount} loaded tasks</span></div>
-        <p className="question-card-meta">These tasks remain in their original revision and practice workflows. Add a calendar block above when you decide when to work on them. This queue is intentionally bounded: up to 500 due revision records, 100 active practice sets and 1,000 unfinished practice items are loaded. If you have more, the displayed counts and list are partial.</p>
+        <p className="question-card-meta">These tasks remain in their original revision and practice workflows. Add a calendar block above when you decide when to work on them. This queue is intentionally bounded: up to 500 due revision records, 100 active practice sets and 1,000 unfinished practice items are loaded. A “+” means additional records exist beyond the displayed limit.</p>
         {dueRevisions.map((item) => {
           const question = questionById.get(item.question_id);
           if (!question) return null;
@@ -149,7 +157,7 @@ export default async function StudyPlanPage({ searchParams }: PageProps) {
         </article>)}
         {!dueCount && !unfinishedCount ? <div className="empty-state"><h3>No due or unfinished tasks</h3><p>Your current revision reviews and active practice sessions have no open tasks.</p></div> : null}
       </section>
-      <p className="question-card-meta">Calendar window: selected Monday–Sunday week; up to 200 saved sessions are displayed. Navigate up to 52 weeks backward or forward. Queue limits: 500 due revision records, 100 active practice sets and 1,000 unfinished practice items. Time values are estimates entered by you, not measured focus time.</p>
+      <p className="question-card-meta">Calendar window: selected Monday–Sunday week; up to 200 saved sessions are displayed{sessionsLimited ? " (more exist)" : ""}. Navigate up to 52 weeks backward or forward. Queue limits: 500 due revision records{revisionQueueLimited ? " (more exist)" : ""}, 100 active practice sets{practiceSetsLimited ? " (more exist)" : ""} and 1,000 unfinished practice items{unfinishedQueueLimited ? " (more exist)" : ""}. Time values are estimates entered by you, not measured focus time.</p>
     </main>
   );
 }
