@@ -277,3 +277,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Added a migration that requires every question source to remain owner-approved and explicitly classified to the note's catalogue/chapter at draft creation. The approval trigger now rechecks those conditions immediately before approval. Added pgTAP cases for valid sources, unreviewed sources, wrong-chapter sources and source status changing after draft creation.
 - Verification: Pending the isolated local Supabase migration and pgTAP workflow on the feature branch.
 - Status: Implemented in code; CI verification pending. Live hosted migration has not been applied.
+
+
+## ERR-024 — Chapter-note pgTAP test used malformed dollar-quoted SQL
+
+- Date: 2026-10-31
+- Area: M6 chapter-note source integrity regression tests
+- Symptom: The local Supabase migration completed, but the new pgTAP file failed to parse two SQL statements; the test plan expected four assertions while only two were executed.
+- Root cause: The test insertion step accidentally reduced the $$...$$ dollar-quote delimiters to single-dollar delimiters around the approval update and wrong-chapter RPC statements.
+- Fix: Restored the exact $$ delimiters for both statements. No production migration change was needed for this syntax failure.
+- Verification: A fresh database-authorization workflow was triggered on commit bbf7349; result pending. The earlier run had 97 database assertions across the suite but did not complete the new chapter-note test file.
+- Status: Test syntax corrected; CI re-run pending.
