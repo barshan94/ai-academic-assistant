@@ -25,20 +25,20 @@ select lives_ok(
   'platform admin can create a draft shared catalogue'
 );
 select lives_ok(
-  $$insert into public.reference_syllabus_chapters (id, catalog_id, title, sort_order)
-    values ('73000000-0000-4000-8000-000000000001', '72000000-0000-4000-8000-000000000001', 'Mechanics', 1)$$,
+  $$insert into public.reference_syllabus_chapters (catalog_id, title, sort_order)
+    values ('72000000-0000-4000-8000-000000000001', 'Mechanics', 1)$$,
   'platform admin can add a chapter to a draft catalogue'
 );
 select lives_ok(
-  $$insert into public.reference_syllabus_topics (id, chapter_id, title, sort_order)
-    values ('74000000-0000-4000-8000-000000000001', '73000000-0000-4000-8000-000000000001', 'Newton laws', 1)$$,
+  $$insert into public.reference_syllabus_topics (chapter_id, title, sort_order)
+    values ((select id from public.reference_syllabus_chapters where catalog_id = '72000000-0000-4000-8000-000000000001' and title = 'Mechanics'), 'Newton laws', 1)$$,
   'platform admin can add a topic to a draft chapter'
 );
 select lives_ok(
   $$insert into public.reference_syllabus_evidence
     (catalog_id, chapter_id, topic_id, source_url, source_title, source_locator, evidence_excerpt)
-    values ('72000000-0000-4000-8000-000000000001', '73000000-0000-4000-8000-000000000001', null, 'https://example.test/physics', 'Official Physics specification', 'Section 2', 'Mechanics'),
-           ('72000000-0000-4000-8000-000000000001', '73000000-0000-4000-8000-000000000001', '74000000-0000-4000-8000-000000000001', 'https://example.test/physics', 'Official Physics specification', 'Section 2.1', 'Newton laws')$$,
+    values ('72000000-0000-4000-8000-000000000001', (select id from public.reference_syllabus_chapters where catalog_id = '72000000-0000-4000-8000-000000000001' and title = 'Mechanics'), null, 'https://example.test/physics', 'Official Physics specification', 'Section 2', 'Mechanics'),
+           ('72000000-0000-4000-8000-000000000001', (select id from public.reference_syllabus_chapters where catalog_id = '72000000-0000-4000-8000-000000000001' and title = 'Mechanics'), (select id from public.reference_syllabus_topics where title = 'Newton laws'), 'https://example.test/physics', 'Official Physics specification', 'Section 2.1', 'Newton laws')$$,
   'platform admin can attach chapter and topic source evidence'
 );
 select lives_ok(
@@ -54,13 +54,13 @@ select is(
 
 select lives_ok(
   $$insert into public.reference_syllabus_catalogs
-    (id, board, qualification, subject, version)
-    values ('72000000-0000-4000-8000-000000000002', 'Example Board', 'A Level', 'Chemistry', 'draft-1')$$,
+    (board, qualification, subject, version)
+    values ('Example Board', 'A Level', 'Chemistry', 'draft-1')$$,
   'platform admin can create a second draft catalogue'
 );
 select throws_ok(
   $$update public.reference_syllabus_catalogs set status = 'verified'
-    where id = '72000000-0000-4000-8000-000000000002'$$,
+    where subject = 'Chemistry' and version = 'draft-1'$$,
   'P0001',
   'A verified catalogue requires a checked HTTPS source and source title',
   'catalogue without complete source provenance cannot be verified'
@@ -80,8 +80,8 @@ select throws_ok(
 select throws_ok(
   $$insert into public.reference_syllabus_catalogs (board, qualification, subject, version)
     values ('Forged Board', 'A Level', 'Biology', '1')$$,
-  '42501',
-  null,
+  'P0001',
+  'Only platform administrators can manage shared syllabus references',
   'ordinary user cannot create a shared reference catalogue'
 );
 select is((select count(*)::integer from public.reference_syllabus_catalogs), 1, 'ordinary user sees verified catalogues but not drafts');
