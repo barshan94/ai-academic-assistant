@@ -105,6 +105,7 @@ M6 remaining:
 - Add browser Print / Save as PDF for clean practice sheets; saved question snapshots remain printable even if the source question is later edited or deleted.
 - Add cross-session analytics for overall recorded outcomes and subject/chapter/topic patterns, with sample-size safeguards and explicit self-assessment caveats. Analytics are bounded to the latest 300 sets and 3,000 saved question snapshots.
 - Skipped items count toward session completion but are excluded from the correct-rate denominator. A recurring practice signal requires at least three scored attempts and at least half partial/incorrect; it is not presented as an objective weakness or mastery score.
+- Add an eight-week longitudinal practice trend using timestamped outcomes, weekly self-marked correct rates, and a comparison only when at least two weeks each contain three scored attempts. Sparse weeks are shown without interpretation; skipped answers are excluded from the rate.
 - The confidence scale and practice outcomes are learner self-assessments, not validated measures of mastery.
 
 ## M4 exit criteria
