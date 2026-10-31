@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { extractTextFromDrivePdf, getDriveAccessToken } from "@/lib/drive/google";
 import { splitExtractedText } from "@/lib/documents/split-extracted-text";
+import { isProcessingJobStale } from "@/lib/documents/processing-state";
 
 export const runtime = "nodejs";
 
@@ -34,14 +35,27 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
   const { data: job, error: jobError } = await supabase
     .from("processing_jobs")
-    .select("id,status,attempt_count,max_attempts")
+    .select("id,status,attempt_count,max_attempts,started_at")
     .eq("document_id", id)
     .eq("owner_id", user.id)
     .maybeSingle();
 
   if (jobError || !job) return redirectToDocument(request, id, "job_missing");
   if (job.status === "completed") return redirectToDocument(request, id, "already_processed");
-  if (job.status === "running") return redirectToDocument(request, id, "already_processing");
+  if (job.status === "running") {
+    if (!isProcessingJobStale(job.started_at)) return redirectToDocument(request, id, "already_processing");
+    let recoveryQuery = supabase.from("processing_jobs").update({
+      status: "failed",
+      error_code: "STALE_PROCESSING_RECOVERED",
+      error_message: "A previous processing attempt stopped responding and was marked recoverable.",
+    }).eq("id", job.id).eq("owner_id", user.id).eq("status", "running");
+    recoveryQuery = job.started_at
+      ? recoveryQuery.eq("started_at", job.started_at)
+      : recoveryQuery.is("started_at", null);
+    const { data: recoveredJob, error: recoveryError } = await recoveryQuery.select("id").maybeSingle();
+    if (recoveryError || !recoveredJob) return redirectToDocument(request, id, "already_processing");
+    await supabase.from("documents").update({ status: "failed" }).eq("id", id).eq("owner_id", user.id);
+  }
   if (job.attempt_count >= job.max_attempts) return redirectToDocument(request, id, "retry_limit");
 
   const { data: claimedJob, error: claimError } = await supabase.from("processing_jobs").update({
