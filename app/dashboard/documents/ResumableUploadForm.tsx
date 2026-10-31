@@ -3,10 +3,9 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { normalizeFilesToPdf } from "@/lib/documents/normalize-to-pdf";
-import { MAX_UPLOAD_BYTES, MAX_IMAGE_COUNT } from "@/lib/documents/upload-limits";
+import { MAX_UPLOAD_BYTES, MAX_IMAGE_COUNT, DRIVE_UPLOAD_CHUNK_BYTES } from "@/lib/documents/upload-limits";
 
 const STORAGE_PREFIX = "academic-assistant-upload:";
-const CHUNK_SIZE = 1024 * 1024;
 
 async function sha256Hex(bytes: Uint8Array) {
   const digest = await crypto.subtle.digest("SHA-256", bytes);
@@ -48,7 +47,7 @@ export function ResumableUploadForm({ disabled }: { disabled: boolean }) {
 
     try {
       const normalized = await normalizeFilesToPdf(files);
-      if (normalized.bytes.byteLength > MAX_UPLOAD_BYTES) throw new Error("The normalized PDF must be 100 MB or smaller.");
+      if (normalized.bytes.byteLength > MAX_UPLOAD_BYTES) throw new Error("The normalized PDF must be 50 MB or smaller.");
       const sha256 = await sha256Hex(normalized.bytes);
       const storageKey = STORAGE_PREFIX + sha256;
       activeStorageKey.current = storageKey;
@@ -86,7 +85,7 @@ export function ResumableUploadForm({ disabled }: { disabled: boolean }) {
       let complete = false;
       let retries = 0;
       while (!complete && offset < normalized.bytes.byteLength) {
-        const end = Math.min(offset + CHUNK_SIZE, normalized.bytes.byteLength);
+        const end = Math.min(offset + DRIVE_UPLOAD_CHUNK_BYTES, normalized.bytes.byteLength);
         const chunk = normalized.bytes.slice(offset, end);
         const response = await fetch("/api/documents/upload/resumable/chunk", {
           method: "POST",
@@ -169,7 +168,7 @@ export function ResumableUploadForm({ disabled }: { disabled: boolean }) {
         multiple
         disabled={disabled || busy}
       />
-      <p>PDFs up to 100 MB are uploaded in resumable 1 MB chunks. Multiple images become one multi-page PDF in selection order (up to 50 images). Re-select the same file after a connection failure to resume from the last confirmed byte.</p>
+      <p>PDFs up to 50 MB are uploaded in resumable 1 MB chunks. Multiple images become one multi-page PDF in selection order (up to 50 images). Re-select the same file after a connection failure to resume from the last confirmed byte.</p>
       <button className="primary-action" type="button" onClick={upload} disabled={disabled || busy}>
         {busy ? "Uploading…" : "Archive and queue for processing"} <span aria-hidden="true">→</span>
       </button>
