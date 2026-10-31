@@ -12,7 +12,7 @@ export function dateKeyInTimeZone(date: Date, timeZone: string): string {
 }
 
 export function dateFromKey(dateKey: string): Date {
-  const match = /^(\\d{4})-(\\d{2})-(\\d{2})$/.exec(dateKey);
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateKey);
   if (!match) throw new Error("Invalid calendar date");
   const date = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])));
   if (dateKeyInTimeZone(date, "UTC") !== dateKey) throw new Error("Invalid calendar date");
