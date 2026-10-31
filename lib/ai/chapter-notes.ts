@@ -126,6 +126,13 @@ export async function generateChapterNote(input: {
     if (usedLabels.some((label) => !/^S(?:[1-9]|1[0-2])$/.test(label) || !sourceLabels.has(label))) {
       throw new AIProviderError("CHAPTER_NOTE_UNKNOWN_CITATION");
     }
+    const hasCitation = (text: string) => /\\[S(?:[1-9]|1[0-2])\\]/.test(text);
+    if (
+      !hasCitation(result.summary) ||
+      [...result.concepts, ...result.formulas, ...result.workedExamples].some((item) => !hasCitation(item))
+    ) {
+      throw new AIProviderError("CHAPTER_NOTE_CITATION_INCOMPLETE");
+    }
     return result;
   } catch (error) {
     if (error instanceof AIProviderError) throw error;
