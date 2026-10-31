@@ -349,3 +349,6 @@ h2 { font-size: 24px; letter-spacing: -.04em; margin: 0; font-weight: 600; }
 .chapter-note-citation { margin: 9px 0 12px; padding: 9px 11px; border-left: 2px solid var(--accent); background: #0d151d; }
 .chapter-note-citation p { margin: 0; }
 .chapter-note-citation .chapter-note-source-preview { margin-top: 5px; color: #aab9c4; font-size: 10px; line-height: 1.65; white-space: pre-wrap; overflow-wrap: anywhere; }
+.chapter-note-source-full { margin-top: 8px; color: #aab9c4; font-size: 11px; }
+.chapter-note-source-full summary { color: var(--accent); cursor: pointer; }
+.chapter-note-source-full pre { max-height: 420px; overflow: auto; margin: 8px 0 0; padding: 10px; border: 1px solid var(--line); border-radius: 7px; background: #080e14; color: #d0dbe3; font: inherit; line-height: 1.65; white-space: pre-wrap; overflow-wrap: anywhere; }
