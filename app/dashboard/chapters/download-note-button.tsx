@@ -52,7 +52,7 @@ export default function DownloadChapterNoteButton({ title, content }: { title: s
     document.body.appendChild(anchor);
     anchor.click();
     anchor.remove();
-    URL.revokeObjectURL(url);
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
   return <button className="document-action" type="button" onClick={download}>Download note · Markdown</button>;
 }
