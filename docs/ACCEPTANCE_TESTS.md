@@ -5,7 +5,8 @@
 - [ ] Development server starts.
 - [x] Latest feature-branch CI commit `6c795325`: lint, application/Playwright type checks, production build and 121 unit tests across 23 files passed (Foundation run `41226216229`); Chromium smoke tests passed (7). Database run `41226216227` passed all 149 pgTAP assertions across six files. Authenticated browser acceptance remains skipped because dedicated non-production credentials are not configured.
 - [x] Protected routes redirect to login when authentication is not configured (Chromium smoke test).
-- [x] Baseline browser security response headers are configured and asserted in Chromium smoke tests; a CSP remains outstanding pending runtime/origin validation.
+- [x] Baseline browser security response headers are configured; nonce-based CSP is now enforced by middleware on pages and API routes.
+- [ ] Browser acceptance confirms Next.js nonce propagation, auth refresh, Google OAuth navigation and configured provider connections work without unexpected CSP violations.
 - [ ] Authenticated owner can sign in and sign out in a live browser test.
 - [x] Applied schema migrations are mirrored in timestamped repository files.
 - [x] RLS is enabled on current public application tables; owner and question-scoped teacher policies are present.
