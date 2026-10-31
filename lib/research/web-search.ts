@@ -76,7 +76,9 @@ export async function searchWebSources(
 
   let payload: unknown;
   try {
-    payload = await response.json();
+    const body = await response.text();
+    if (body.length > 1_000_000) throw new Error("RESPONSE_TOO_LARGE");
+    payload = JSON.parse(body) as unknown;
   } catch {
     throw new WebResearchProviderError("WEB_RESEARCH_INVALID_RESPONSE");
   }
