@@ -67,6 +67,7 @@ export default async function RevisionPage({ searchParams }: PageProps) {
         <div className="topbar-actions">
           <Link className="sign-in-link" href="/dashboard/questions">Questions</Link>
           <Link className="sign-in-link" href="/dashboard/chapters">Chapter notes</Link>
+          <Link className="sign-in-link" href="/dashboard/study-plan">Daily study plan</Link>
           <Link className="sign-in-link" href="/dashboard/revision/insights">Topic insights</Link>
           <Link className="sign-in-link" href="/dashboard/practice">Practice sets</Link>
           <Link className="sign-in-link" href="/dashboard/practice/insights">Practice insights</Link>
