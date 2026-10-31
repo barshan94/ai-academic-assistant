@@ -5,6 +5,7 @@ import { encryptDriveUploadSession } from "@/lib/drive/crypto";
 import { MAX_UPLOAD_BYTES, safeFileName } from "@/lib/documents/upload-limits";
 
 export const runtime = "nodejs";
+export const maxDuration = 60;
 
 export async function POST(request: NextRequest) {
   if (request.headers.get("origin") !== request.nextUrl.origin) {
