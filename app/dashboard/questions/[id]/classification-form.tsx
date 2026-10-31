@@ -169,7 +169,18 @@ export function ClassificationForm({
             <ul className="classification-suggestion-list">
               {chapterSuggestions.map((suggestion) => (
                 <li key={suggestion.id}>
-                  <div><strong>{suggestion.title}</strong><span>{suggestion.reasons.join(" · ")}</span></div>
+                  <div>
+                    <strong>{suggestion.title}</strong>
+                    <span>{suggestion.reasons.join(" · ")}</span>
+                    {evidence.filter((item) => item.chapter_id === suggestion.id && item.topic_id === null).length ? (
+                      <small>Source evidence: {evidence.filter((item) => item.chapter_id === suggestion.id && item.topic_id === null).map((item) => (
+                        <span key={item.id}>
+                          <a href={item.source_url} target="_blank" rel="noreferrer">{item.source_title} ↗</a>
+                          {item.source_locator ? " · " + item.source_locator : ""}
+                        </span>
+                      ))}</small>
+                    ) : <small>No chapter-level source evidence recorded; this remains a label-only suggestion.</small>}
+                  </div>
                   <button type="button" className="secondary-action" onClick={() => {
                     setSelectedChapterId(suggestion.id);
                     setSelectedTopicId("");
@@ -185,7 +196,18 @@ export function ClassificationForm({
                 <ul className="classification-suggestion-list">
                   {topicSuggestions.map((suggestion) => (
                     <li key={suggestion.id}>
-                      <div><strong>{suggestion.title}</strong><span>{suggestion.reasons.join(" · ")}</span></div>
+                      <div>
+                        <strong>{suggestion.title}</strong>
+                        <span>{suggestion.reasons.join(" · ")}</span>
+                        {evidence.filter((item) => item.topic_id === suggestion.id).length ? (
+                          <small>Source evidence: {evidence.filter((item) => item.topic_id === suggestion.id).map((item) => (
+                            <span key={item.id}>
+                              <a href={item.source_url} target="_blank" rel="noreferrer">{item.source_title} ↗</a>
+                              {item.source_locator ? " · " + item.source_locator : ""}
+                            </span>
+                          ))}</small>
+                        ) : <small>No topic-level source evidence recorded; this remains a label-only suggestion.</small>}
+                      </div>
                       <button type="button" className="secondary-action" onClick={() => setSelectedTopicId(suggestion.id)}>Select topic</button>
                     </li>
                   ))}
