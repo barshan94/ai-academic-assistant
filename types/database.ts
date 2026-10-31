@@ -682,6 +682,10 @@ export type Database = {
         Args: { payload: Json }
         Returns: Json
       }
+      bulk_update_question_classification_status: {
+        Args: { question_ids: string[]; target_status: string }
+        Returns: number
+      }
     }
     Enums: {
       [_ in never]: never
