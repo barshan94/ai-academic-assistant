@@ -70,6 +70,7 @@ describe("structured exam answer generation", () => {
     const body = JSON.parse(String(init?.body));
     expect(body.response_format).toEqual({ type: "json_object" });
     expect(body.messages[1].content).toContain("Edexcel");
+    expect(body.messages[1].content).toContain("No source page text was shared.");
   });
 
   it("includes explicitly supplied source text when opted in", async () => {
