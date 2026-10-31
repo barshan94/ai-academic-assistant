@@ -70,7 +70,7 @@ export default async function StudyPlanPage({ searchParams }: PageProps) {
       <section className="section">
         <div className="section-heading"><div><p className="eyebrow">WEEK OF {startKey}</p><h2>Your weekly workload</h2></div><span className="section-count">{plannedCount} planned · {completedCount} completed</span></div>
         <div className="module-grid revision-stats">
-          <article className="module-card"><span className="module-number">{totalMinutes}</span><h3>Planned minutes</h3><p>Estimated time across this week's saved sessions.</p></article>
+          <article className="module-card"><span className="module-number">{totalMinutes}</span><h3>Planned minutes</h3><p>Estimated time across this week&apos;s saved sessions.</p></article>
           <article className="module-card"><span className="module-number">{completedMinutes}</span><h3>Completed minutes</h3><p>Time estimates for sessions you marked complete.</p></article>
           <article className="module-card"><span className="module-number">{dueCount + unfinishedCount}</span><h3>Existing study tasks</h3><p>{dueCount} due revisions and {unfinishedCount} unfinished practice questions remain outside the calendar until you schedule them.</p></article>
         </div>
