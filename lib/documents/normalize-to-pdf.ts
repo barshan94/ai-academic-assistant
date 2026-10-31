@@ -1,16 +1,7 @@
 import { PDFDocument } from "pdf-lib";
-import { MAX_UPLOAD_BYTES, MAX_IMAGE_COUNT } from "./upload-limits";
+import { MAX_UPLOAD_BYTES, MAX_IMAGE_COUNT, safeFileName } from "./upload-limits";
 
-export { MAX_UPLOAD_BYTES, MAX_IMAGE_COUNT } from "./upload-limits";
-
-export function safeFileName(value: string) {
-  return value
-    .replaceAll("/", "_")
-    .replaceAll("\\", "_")
-    .replace(/[\x00-\x1f]/g, "_")
-    .trim()
-    .slice(0, 180) || "academic-document";
-}
+export { MAX_UPLOAD_BYTES, MAX_IMAGE_COUNT, safeFileName } from "./upload-limits";
 
 function validatePngDimensions(bytes: Uint8Array) {
   if (bytes.byteLength < 24) throw new Error("Invalid PNG image.");
