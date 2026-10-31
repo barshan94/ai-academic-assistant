@@ -52,7 +52,7 @@ function parseProviderConfig(value: unknown, env: Record<string, string | undefi
     (candidate.enabled !== undefined && typeof candidate.enabled !== "boolean")
   ) return null;
 
-  const baseUrl = candidate.baseUrl.replace(/\\/+$/, "");
+  const baseUrl = candidate.baseUrl.replace(/\/+$/, "");
   let parsedUrl: URL;
   try {
     parsedUrl = new URL(baseUrl);
@@ -111,7 +111,7 @@ export function getAIProviderConfigs(
   const model = env.AI_MODEL?.trim();
   if (!apiKey || !model) throw new AIConfigurationError();
 
-  const baseUrl = (env.AI_API_BASE_URL?.trim() || "https://api.openai.com/v1").replace(/\\/+$/, "");
+  const baseUrl = (env.AI_API_BASE_URL?.trim() || "https://api.openai.com/v1").replace(/\/+$/, "");
   let parsedUrl: URL;
   try {
     parsedUrl = new URL(baseUrl);
