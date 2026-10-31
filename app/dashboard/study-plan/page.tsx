@@ -66,7 +66,7 @@ export default async function StudyPlanPage({ searchParams }: PageProps) {
       </header>
       <section className="hero documents-hero">
         <p className="eyebrow">EXAM PREPARATION · WEEKLY PLANNING</p><h1>Plan the <span>week.</span></h1>
-        <p className="hero-copy">Schedule realistic study blocks, estimate the time required, and mark each block complete when you finish. Your saved sessions are private to your account.</p>
+        <p className="hero-copy">Schedule realistic study blocks, estimate the time required, and mark each block complete when you finish. Your saved sessions are private to your account. Queue counts below describe the records currently loaded, not guaranteed account-wide totals.</p>
         <div className="hero-actions"><Link className="primary-action" href="/dashboard/revision">Review {dueCount} due revisions →</Link><Link className="sign-in-link" href="/dashboard/practice">Continue {unfinishedCount} unfinished practice questions</Link></div>
       </section>
       {message ? <p className={params.calendar === "failed" || params.calendar === "invalid" ? "notice notice-error" : "notice"} role="status">{message}</p> : null}
@@ -112,8 +112,8 @@ export default async function StudyPlanPage({ searchParams }: PageProps) {
         </div>
       </section>
       <section className="section">
-        <div className="section-heading"><div><p className="eyebrow">UNSCHEDULED TASKS</p><h2>Study queue</h2></div><span className="section-count">{dueCount + unfinishedCount} open tasks</span></div>
-        <p className="question-card-meta">These tasks remain in their original revision and practice workflows. Add a calendar block above when you decide when to work on them.</p>
+        <div className="section-heading"><div><p className="eyebrow">UNSCHEDULED TASKS</p><h2>Study queue</h2></div><span className="section-count">{dueCount + unfinishedCount} loaded tasks</span></div>
+        <p className="question-card-meta">These tasks remain in their original revision and practice workflows. Add a calendar block above when you decide when to work on them. This queue is intentionally bounded: up to 500 due revision records, 100 active practice sets and 1,000 unfinished practice items are loaded. If you have more, the displayed counts and list are partial.</p>
         {dueRevisions.map((item) => {
           const question = questionById.get(item.question_id);
           if (!question) return null;
@@ -149,7 +149,7 @@ export default async function StudyPlanPage({ searchParams }: PageProps) {
         </article>)}
         {!dueCount && !unfinishedCount ? <div className="empty-state"><h3>No due or unfinished tasks</h3><p>Your current revision reviews and active practice sessions have no open tasks.</p></div> : null}
       </section>
-      <p className="question-card-meta">Calendar window: selected Monday–Sunday week; up to 200 saved sessions are displayed. Navigate up to 52 weeks backward or forward. Time values are estimates entered by you, not measured focus time.</p>
+      <p className="question-card-meta">Calendar window: selected Monday–Sunday week; up to 200 saved sessions are displayed. Navigate up to 52 weeks backward or forward. Queue limits: 500 due revision records, 100 active practice sets and 1,000 unfinished practice items. Time values are estimates entered by you, not measured focus time.</p>
     </main>
   );
 }
