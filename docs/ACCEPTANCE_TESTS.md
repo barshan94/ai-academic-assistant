@@ -147,3 +147,5 @@
 - [ ] Test verified-only read access and admin write restrictions with two real authenticated accounts; no test accounts or syllabus rows have been fabricated.
 
 - [ ] Replace or upgrade the legacy ESLint dependency chain so the full development dependency tree can pass `npm audit` without the minimatch v3 compatibility exception. Until then, production dependencies are audited with `npm audit --omit=dev`; the development-toolchain advisory remains documented and is not represented as resolved.
+
+- [ ] AI provider HTTP and empty-response errors exclude upstream response bodies and provider-supplied messages from application errors (status-only regression test added; CI pending).

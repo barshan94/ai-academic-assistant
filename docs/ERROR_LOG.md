@@ -397,3 +397,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Both paths now check document failure updates and require the owner-scoped running job transition to return the updated row. If failure state cannot be persisted, the manual route displays a distinct warning; the scheduled worker returns HTTP 500 and leaves the lease for stale recovery rather than claiming the failure was saved.
 - Verification: Foundation CI run `41222194720` passed lint, application/Playwright type-checks, 118 unit tests across 23 files and production build; Chromium smoke run passed 7 tests. Database authorization CI run `41222194715` passed all six pgTAP files. The latest CI validates compilation and regression suites, but does not inject authenticated database write failures into either route. Live stale-lease recovery remains outstanding.
 - Status: Code and automated CI verified; failure-injection and live worker acceptance remain outstanding.
+
+
+## ERR-037 — AI provider HTTP errors exposed response-body text
+
+- Date: 2026-10-31
+- Area: M3 AI provider error handling / privacy
+- Symptom: Non-success provider responses included the first 300 characters of the provider response body in the thrown application error. Provider bodies are untrusted and may echo prompt content or other request details.
+- Root cause: The adapter treated upstream error text as safe diagnostic information.
+- Fix: HTTP failures now expose only the numeric HTTP status in the application error. Empty provider responses use a stable generic error code; upstream error messages and bodies are not copied into application errors.
+- Verification: Added a regression unit test with a synthetic provider body containing private payload text. Feature-branch CI pending.
+- Status: Implemented; CI verification pending.
