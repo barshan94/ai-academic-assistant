@@ -128,10 +128,11 @@ export async function generateChapterNote(input: {
       noteText.matchAll(/\[\s*S[^\]]*(?:\]|$)|\bS\d+\]/g),
       (match) => match[0],
     );
-    const usedLabels = citationTokens.map((token) =>
-      token.startsWith("[") ? token.slice(1, token.endsWith("]") ? -1 : undefined) : token.slice(0, -1),
-    );
-    if (usedLabels.some((label) => !/^S(?:[1-9]|1[0-2])$/.test(label) || !sourceLabels.has(label))) {
+    const invalidCitation = citationTokens.some((token) => {
+      if (!/^\[S(?:[1-9]|1[0-2])\]$/.test(token)) return true;
+      return !sourceLabels.has(token.slice(1, -1));
+    });
+    if (invalidCitation) {
       throw new AIProviderError("CHAPTER_NOTE_UNKNOWN_CITATION");
     }
     const hasCitation = (text: string) => /\[S(?:[1-9]|1[0-2])\]/.test(text);
