@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     const fileSizeBytes = body.fileSizeBytes;
     const sha256 = body.sha256;
     if (!Number.isSafeInteger(fileSizeBytes) || !fileSizeBytes || fileSizeBytes < 1 || fileSizeBytes > MAX_UPLOAD_BYTES) {
-      return NextResponse.json({ error: "Files must be between 1 byte and 100 MB." }, { status: 400 });
+      return NextResponse.json({ error: "Files must be between 1 byte and 50 MB." }, { status: 400 });
     }
     if (typeof sha256 !== "string" || !/^[a-f0-9]{64}$/.test(sha256)) {
       return NextResponse.json({ error: "The file checksum is invalid." }, { status: 400 });
