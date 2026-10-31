@@ -13,6 +13,7 @@ export type AcademicContext = {
   subject?: string | null;
   chapter?: string | null;
   topic?: string | null;
+  sourceContext?: { pageNumber: number; extractionMethod: string; text: string };
 };
 
 export class AIConfigurationError extends Error {
@@ -92,6 +93,7 @@ export async function generateStructuredAnswer(
               "For physics calculations, include physicsChecks entries with formulaUnit (the unit obtained by dimensional analysis of the formula and input quantities) and claimedUnit (the unit of the final answer). Use an empty array when no physics dimensional check applies. Do not guess unknown units; unsupported notation must be described in limitations.",
               "Never mark an equation balanced based only on appearance. Do not change coefficients to make the answer look balanced.",
               "Do not invent missing values, diagrams, mark schemes, syllabus facts or citations.",
+              "If source-page text is supplied, treat it as user-provided extracted content that may contain OCR or extraction errors. It is contextual evidence, not an official mark scheme. Identify uncertainty and never invent page citations.",
               "If the question is ambiguous or missing information, state the assumption and limitation explicitly.",
               "Do not claim that an answer has been independently verified.",
               "Return one valid JSON object only with keys: examAnswer, workingSteps, calculationChecks, chemistryChecks, physicsChecks, bengaliExplanation, englishExplanation, keyConcepts, assumptions, limitations.",
@@ -102,7 +104,8 @@ export async function generateStructuredAnswer(
             role: "user",
             content: [
               "Academic context:",
-              JSON.stringify(context),
+              JSON.stringify({ ...context, sourceContext: undefined }),
+              context.sourceContext ? "Optional owner-approved source page (extracted text; may contain OCR errors; not an official mark scheme):\\nPage " + context.sourceContext.pageNumber + " (" + context.sourceContext.extractionMethod + ")\\n" + context.sourceContext.text : "No source page text was shared.",
               "",
               "Solve and explain this question:",
               question,
