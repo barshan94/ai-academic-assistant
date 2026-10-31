@@ -28,6 +28,7 @@ const notices: Record<string, { text: string; tone: "success" | "error" | "info"
   complete: { text: "Text extraction finished. Review every page before approving it.", tone: "success" },
   already_processed: { text: "This document has already been processed.", tone: "info" },
   already_processing: { text: "Another request is already processing this document.", tone: "info" },
+  recovery_failed: { text: "The previous processing attempt was stale, but its recovery state could not be saved. Nothing new was processed; retry after refreshing.", tone: "error" },
   not_found: { text: "Document not found or you do not have access to it.", tone: "error" },
   job_missing: { text: "No processing job was found for this document.", tone: "error" },
   retry_limit: { text: "The automatic retry limit has been reached. Review the file manually.", tone: "error" },
