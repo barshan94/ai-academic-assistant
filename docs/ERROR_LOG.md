@@ -339,3 +339,10 @@ This file records material implementation, CI, integration and release problems 
 - Root cause: The acceptance suite tested underlying RLS tables more thoroughly than the SECURITY DEFINER aggregate/query boundaries.
 - Fix: Extend the isolated study-feature pgTAP suite with eight outsider assertions across practice analytics, the consolidated study queue, and weekly calendar RPC results.
 - Verification: Database authorization CI run `41218501676` passed all five pgTAP files: 118 assertions total, including 37 study-feature assertions and the eight new outsider aggregate-RPC checks, on commit `937b52a`.
+
+
+## ERR-031 — AI provider actions had no account-scoped generation quota
+- Symptom: Authenticated users could repeatedly invoke expensive AI answer and chapter-note generation actions without an application-level per-account quota.
+- Root cause: Provider input bounds and server-side API-key handling existed, but no atomic cross-instance quota protected provider spend.
+- Fix: Add a database-backed, atomic 15-minute quota per authenticated account and AI action. Answer generation is limited to five calls per window; chapter-note generation is limited to three. Actions fail closed if the quota RPC is unavailable. The client cannot choose or raise the limits.
+- Verification: Pending isolated Supabase pgTAP, Foundation CI, and action type-checks.

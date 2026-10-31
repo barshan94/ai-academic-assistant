@@ -11,6 +11,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { DatabaseWithAISolutions } from "@/types/ai-database";
 import type { Json } from "@/types/database";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { consumeAIGenerationQuota } from "@/lib/security/ai-generation-quota";
 
 const questionIdSchema = z.string().uuid();
 
@@ -42,6 +43,11 @@ export async function generateQuestionSolution(formData: FormData) {
       redirect("/dashboard/questions/" + question.id + "?solve=not_configured");
     }
     throw error;
+  }
+
+  const quota = await consumeAIGenerationQuota(supabase, "ai-solution");
+  if (quota !== "allowed") {
+    redirect("/dashboard/questions/" + question.id + "?solve=" + (quota === "limited" ? "rate_limited" : "rate_limit_unavailable"));
   }
 
   const includeSource = formData.get("includeSourceContext") === "yes";

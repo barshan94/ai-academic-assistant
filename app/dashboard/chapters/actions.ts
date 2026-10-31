@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Json } from "@/types/database";
+import { consumeAIGenerationQuota } from "@/lib/security/ai-generation-quota";
 
 const noteSchema = z.object({
   catalogId: z.string().uuid(),
@@ -109,6 +110,11 @@ export async function generateChapterNoteDraft(formData: FormData) {
     : { data: [], error: null };
   if (pageError) redirect("/dashboard/chapters?ai=source_error");
   const pageMap = new Map((pages ?? []).map((page) => [page.id, page]));
+  const quota = await consumeAIGenerationQuota(supabase, "ai-chapter-note");
+  if (quota !== "allowed") {
+    redirect("/dashboard/chapters?ai=" + (quota === "limited" ? "rate_limited" : "rate_limit_unavailable"));
+  }
+
   const sources = questions.map((question, index) => {
     const page = question.document_page_id ? pageMap.get(question.document_page_id) : undefined;
     return {
