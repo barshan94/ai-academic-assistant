@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { cookies } from "next/headers";
+import { isDateKeyInWeek, isValidTimeZone } from "@/lib/study-plan-dates";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { DatabaseWithStudyPlan } from "@/types/study-plan-database";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -31,6 +33,13 @@ export async function createStudySession(formData: FormData) {
   const supabase = await createSupabaseServerClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) redirect("/login");
+
+  const cookieStore = await cookies();
+  const savedTimeZone = cookieStore.get("study-plan-timezone")?.value;
+  const timeZone = savedTimeZone && isValidTimeZone(savedTimeZone) ? savedTimeZone : "UTC";
+  if (!isDateKeyInWeek(parsed.data.sessionDate, new Date(), timeZone, parsed.data.weekOffset)) {
+    redirect("/dashboard/study-plan?calendar=invalid" + weekQuery);
+  }
 
   const db = supabase as unknown as SupabaseClient<DatabaseWithStudyPlan>;
   const { error } = await db.rpc("create_weekly_study_session", {
