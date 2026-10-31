@@ -66,7 +66,7 @@ M1 foundation, the core M2 document intake flow, M3 structured AI answer generat
 
 Implementation is not the same as release acceptance. The remaining work is tracked in `docs/ROADMAP.md` and `docs/ACCEPTANCE_TESTS.md`:
 
-- **M2:** resumable uploads up to 50 MB and a GitHub Actions scheduled processing worker are implemented in code. The GitHub Actions scheduler and setup guide are committed; repository secrets and deployed environment variables still require configuration, followed by live non-production processing, Google OAuth/Drive acceptance and document cross-account tests.
+- **M2:** resumable uploads up to 50 MB and a GitHub Actions scheduled processing worker are implemented in code. The GitHub Actions scheduler and setup guide are committed on this feature branch. Scheduled execution requires merging to the default branch (GitHub only runs scheduled workflows there); repository secrets and deployed environment variables must then be configured, followed by live non-production processing, Google OAuth/Drive acceptance and document cross-account tests.
 - **M3–M4:** live provider generation with explicit cost approval, a manually graded golden question set, stronger source/official mark-scheme grounding, and real two-account teacher acceptance. AI remains disabled until the owner configures provider credentials.
 - **M5:** the shared official-board reference library is intentionally empty until a real curator is appointed and current official sources are checked. Lexical suggestions are not calibrated confidence.
 - **M6:** live AI chapter-note evaluation, independent source-quality review, dedicated per-note downloads and automated print-layout checks remain.
