@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { generateQuestionSolution, reviewQuestionSolution, createQuestionTeacherInvite, revokeQuestionTeacherInvite } from "./actions";
+import { generateQuestionSolution, reviewQuestionSolution, createQuestionTeacherInvite, revokeQuestionTeacherInvite, searchQuestionWebSources } from "./actions";
 import { checkCalculations } from "@/lib/ai/math-check";
 import { checkChemicalEquations } from "@/lib/ai/chemistry-check";
 import { checkPhysicsUnits } from "@/lib/ai/physics-unit-check";
@@ -15,7 +15,7 @@ import { MarkSchemeEditor } from "./mark-scheme-editor";
 
 type PageProps = {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ solve?: string; solution?: string; review?: string; invite?: string; classification?: string; mark_scheme?: string }>;
+  searchParams: Promise<{ solve?: string; solution?: string; review?: string; invite?: string; classification?: string; mark_scheme?: string; research?: string }>;
 };
 
 const messages: Record<string, string> = {
@@ -147,7 +147,23 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
   const { data: teacherInvites, error: teacherInviteError } = isOwner
     ? await typedSupabase.from("question_teacher_invites").select("id,invited_email,accepted_by,revoked_at,created_at").eq("question_id", question.id).eq("owner_id", user.id).order("created_at", { ascending: false })
     : { data: [], error: null };
-  const message = query.invite === "created" ? "Invitation created. The teacher must sign in with this exact email address and accept it from Teacher invitations."
+  const { data: researchSources, error: researchError } = isOwner
+    ? await typedSupabase.from("question_web_research_sources")
+        .select("id,query,provider,title,source_url,snippet,result_rank,retrieved_at")
+        .eq("question_id", question.id).eq("owner_id", user.id)
+        .order("retrieved_at", { ascending: false }).order("result_rank").limit(30)
+    : { data: [], error: null };
+  const message = query.research === "saved" ? "Web search results were saved as unverified source leads. Check each publisher and document before relying on it."
+    : query.research === "not_configured" ? "Web research is not configured. Add an approved Brave Search API key to the server environment."
+    : query.research === "rate_limited" ? "You have reached the web research limit. Wait 15 minutes before searching again."
+    : query.research === "quota_unavailable" ? "Web research is temporarily blocked because the account quota service is unavailable. No search request was sent."
+    : query.research === "no_results" ? "The search provider returned no usable HTTPS sources for that query."
+    : query.research === "save_failed" ? "Search results were retrieved but could not be saved to the question record."
+    : query.research === "invalid" ? "Enter a search query between 3 and 500 characters."
+    : query.research === "not_found" ? "The question was not found in your account."
+    : query.research?.startsWith("WEB_RESEARCH_HTTP_") ? "The web search provider is temporarily unavailable."
+    : query.research ? "Web research could not be completed. Try again later."
+    : query.invite === "created" ? "Invitation created. The teacher must sign in with this exact email address and accept it from Teacher invitations."
     : query.invite === "accepted" ? "Teacher access accepted. You can now review the shared question and saved answers."
     : query.invite === "revoked" ? "Teacher access has been revoked."
     : query.invite === "exists" ? "An active invitation for this email and question already exists."
@@ -217,6 +233,32 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
             </form>
            ) : isOwner ? <p className="notice notice-info">This question needs teacher approval before it can be sent to the AI provider.</p> : <p className="notice notice-info">You have review access only. AI generation and question editing remain with the owner.</p>}
         </article>
+        {isOwner ? (
+          <section className="section web-research-panel">
+            <p className="eyebrow">OPTIONAL WEB RESEARCH · OWNER-INITIATED</p>
+            <h2>Find external source leads</h2>
+            <p className="question-card-meta">Only the query you type below is sent to Brave Search; the question text and uploaded documents are not sent. Results are unverified leads, not official syllabus documents or mark schemes. Check the publisher, exact document version and page before using a source. Limit: five searches per 15 minutes.</p>
+            <form action={searchQuestionWebSources} className="review-form">
+              <input type="hidden" name="questionId" value={question.id} />
+              <label htmlFor="web-research-query">Search the web for supporting sources</label>
+              <input id="web-research-query" name="query" required minLength={3} maxLength={500} placeholder="e.g. Cambridge O Level Physics 5054 official syllabus 2026" />
+              <button className="primary-action" type="submit">Search web sources →</button>
+            </form>
+            {researchError ? <p className="notice notice-error">Could not load saved web research sources.</p> : null}
+            {researchSources?.length ? (
+              <ul className="calculation-checks">
+                {researchSources.map((source) => (
+                  <li key={source.id}>
+                    <strong>UNVERIFIED SOURCE LEAD · {source.provider}</strong>
+                    <a href={source.source_url} target="_blank" rel="noreferrer noopener">{source.title}</a>
+                    <small>{source.snippet}</small>
+                    <small>Query: {source.query} · Retrieved {new Date(source.retrieved_at).toLocaleString()}</small>
+                  </li>
+                ))}
+              </ul>
+            ) : <p className="question-card-meta">No web research sources saved for this question.</p>}
+          </section>
+        ) : null}
         {isOwner ? (
           <div className="classification-panel">
             <p className="eyebrow">SYLLABUS INTELLIGENCE · M5</p>
