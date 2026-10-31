@@ -20,29 +20,29 @@ set local request.jwt.claims = '{"sub":"71000000-0000-4000-8000-000000000001","r
 select ok((select public.is_platform_admin()), 'provisioned curator is recognized as a platform admin');
 select lives_ok(
   $$insert into public.reference_syllabus_catalogs
-    (id, board, qualification, subject, version, source_url, source_title, source_checked_at)
-    values ('72000000-0000-4000-8000-000000000001', 'Example Board', 'A Level', 'Physics', '2026', 'https://example.test/physics', 'Official Physics specification', now())$$,
+    (board, qualification, subject, version, source_url, source_title, source_checked_at)
+    values ('Example Board', 'A Level', 'Physics', '2026', 'https://example.test/physics', 'Official Physics specification', now())$$,
   'platform admin can create a draft shared catalogue'
 );
 select is(
-  (select status from public.reference_syllabus_catalogs where id = '72000000-0000-4000-8000-000000000001'),
+  (select status from public.reference_syllabus_catalogs where board = 'Example Board' and qualification = 'A Level' and subject = 'Physics' and version = '2026'),
   'draft',
   'platform admin can read the draft catalogue they just created'
 );
 select lives_ok(
   $$insert into public.reference_syllabus_chapters (catalog_id, title, sort_order)
-    values ('72000000-0000-4000-8000-000000000001', 'Mechanics', 1)$$,
+    values ((select id from public.reference_syllabus_catalogs where board = 'Example Board' and qualification = 'A Level' and subject = 'Physics' and version = '2026'), 'Mechanics', 1)$$,
   'platform admin can add a chapter to a draft catalogue'
 );
 select lives_ok(
   $$insert into public.reference_syllabus_topics (chapter_id, title, sort_order)
-    values ((select id from public.reference_syllabus_chapters where catalog_id = '72000000-0000-4000-8000-000000000001' and title = 'Mechanics'), 'Newton laws', 1)$$,
+    values ((select id from public.reference_syllabus_chapters where catalog_id = (select id from public.reference_syllabus_catalogs where subject = 'Physics' and version = '2026') and title = 'Mechanics'), 'Newton laws', 1)$$,
   'platform admin can add a topic to a draft chapter'
 );
 select lives_ok(
   $$insert into public.reference_syllabus_evidence
     (catalog_id, chapter_id, topic_id, source_url, source_title, source_locator, evidence_excerpt)
-    values ('72000000-0000-4000-8000-000000000001', (select id from public.reference_syllabus_chapters where catalog_id = '72000000-0000-4000-8000-000000000001' and title = 'Mechanics'), null, 'https://example.test/physics', 'Official Physics specification', 'Section 2', 'Mechanics'),
+    values ('72000000-0000-4000-8000-000000000001', (select id from public.reference_syllabus_chapters where catalog_id = (select id from public.reference_syllabus_catalogs where subject = 'Physics' and version = '2026') and title = 'Mechanics'), null, 'https://example.test/physics', 'Official Physics specification', 'Section 2', 'Mechanics'),
            ('72000000-0000-4000-8000-000000000001', (select id from public.reference_syllabus_chapters where catalog_id = '72000000-0000-4000-8000-000000000001' and title = 'Mechanics'), (select id from public.reference_syllabus_topics where title = 'Newton laws'), 'https://example.test/physics', 'Official Physics specification', 'Section 2.1', 'Newton laws')$$,
   'platform admin can attach chapter and topic source evidence'
 );
