@@ -85,8 +85,8 @@ This file records material implementation, CI, integration and release problems 
 
 ## Known unverified areas
 - Live Google OAuth/Drive acceptance and upload/OCR with an authorized account.
-- Resumable uploads above the current 4 MB request limit.
-- Durable background worker with automatic retry scheduling and operational monitoring.
+- Live Google OAuth/Drive acceptance, including resumable uploads up to 100 MB, interruption recovery and session expiry.
+- Durable background worker with automatic retry scheduling and operational monitoring; code is implemented but live deployment acceptance is pending.
 - Live AI provider inference and cost-controlled golden-set grading.
 - Two-account teacher and cross-account database acceptance on a dedicated non-production Supabase project.
 - Real official syllabus curation and independent source validation.
@@ -111,3 +111,23 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Added an authenticated scheduled server route that uses a server-only Supabase service-role client, atomically claims one queued/failed/stale job at a time, refreshes the owning user's encrypted Google Drive token, processes OCR, records success/failure, retries within each row's max_attempts, and reclaims running jobs older than 15 minutes. Added a five-minute Vercel cron declaration and deployment/setup documentation.
 - Verification: Added unit tests for retry-budget and claim eligibility policy. Full CI and real deployment/integration verification are pending. The worker requires CRON_SECRET, SUPABASE_SERVICE_ROLE_KEY, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET and the same DRIVE_TOKEN_ENCRYPTION_KEY used for stored tokens.
 - Status: Implemented in code; not operationally verified. The deployment scheduler must support the configured five-minute cadence, and the non-production secrets plus live Google Drive acceptance must be configured before this can be marked complete.
+
+## ERR-011 — Protected-route browser smoke test contained an invalid regular expression
+
+- Date: 2026-10-31
+- Area: CI / Playwright smoke tests
+- Symptom: Foundation workflow failed at ESLint parsing `e2e/smoke.spec.ts` line 44 with an invalid-character parsing error.
+- Root cause: The route assertion used doubled backslashes inside a regular-expression literal, so the slash delimiter was not escaped correctly.
+- Fix: Corrected the expression to match the literal `/login?error=configuration` route.
+- Verification: The database authorization workflow passed on the same checkpoint; the corrected foundation workflow is pending on the newer branch head.
+- Status: Code fixed; final CI verification pending.
+
+## ERR-012 — Single-request document upload could not support larger PDFs reliably
+
+- Date: 2026-10-31
+- Area: M2 document intake / upload reliability
+- Symptom: The original upload sent the entire multipart document through one Next.js request and enforced a 4 MB combined limit, making larger PDFs and interrupted uploads unsupported.
+- Root cause: The archive route used a single multipart Google Drive upload and had no resumable session or chunk offset recovery.
+- Fix: Added browser-side normalization, a 100 MB file limit, Google Drive resumable session initiation, 1 MB chunk uploads (256 KB-aligned), AES-256-GCM encrypted owner-bound session tokens, server-side session validation and Google-confirmed byte offsets. The document and processing job are registered only after Drive reports completion. Added pure protocol tests for range parsing and chunk boundaries.
+- Verification: Unit tests and full CI for the implementation are pending. Live Drive upload, interrupted network recovery, session expiry and cross-account tests require a configured non-production Google/Supabase environment.
+- Status: Implemented in code; not yet verified against a live Google Drive account.
