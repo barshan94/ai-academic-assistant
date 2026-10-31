@@ -37,7 +37,7 @@ select is(
 );
 
 select throws_ok(
-  $update public.question_solution_mark_schemes
+  $$update public.question_solution_mark_schemes
     set title = 'Mutated scheme'
     where id = '50000000-0000-4000-8000-000000000001'$$,
   '42501',
@@ -46,7 +46,7 @@ select throws_ok(
 );
 
 select throws_ok(
-  $delete from public.question_solution_mark_schemes
+  $$delete from public.question_solution_mark_schemes
     where id = '50000000-0000-4000-8000-000000000001'$$,
   '42501',
   null,
