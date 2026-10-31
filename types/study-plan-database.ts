@@ -92,6 +92,10 @@ export type DatabaseWithStudyPlan = Omit<DatabaseWithPractice, "public"> & {
         Args: { p_revision_page?: number; p_practice_page?: number; p_page_size?: number };
         Returns: StudyQueuePage;
       };
+      update_planned_weekly_study_session: {
+        Args: { p_session_id: string; p_session_date: string; p_title: string; p_planned_minutes: number; p_notes?: string | null };
+        Returns: undefined;
+      };
       delete_planned_weekly_study_session: {
         Args: { p_session_id: string };
         Returns: undefined;
