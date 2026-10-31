@@ -460,3 +460,18 @@ h2 { font-size: 24px; letter-spacing: -.04em; margin: 0; font-weight: 600; }
   .practice-print-area .question-card * { color: #222 !important; }
   .practice-print-area .question-card-text { white-space: pre-wrap; }
 }
+
+
+/* Weekly self-reported practice trend */
+.practice-trend-list { display: grid; gap: 13px; margin-top: 18px; }
+.practice-trend-row { display: grid; grid-template-columns: minmax(105px, 150px) minmax(80px, 1fr) 48px; gap: 12px; align-items: center; }
+.practice-trend-label { display: grid; gap: 3px; min-width: 0; }
+.practice-trend-label strong { color: var(--text); font-size: 11px; }
+.practice-trend-label span { color: var(--muted); font-size: 9px; }
+.practice-trend-track { height: 9px; overflow: hidden; border-radius: 999px; background: #263541; }
+.practice-trend-fill { display: block; height: 100%; border-radius: inherit; background: var(--accent); transition: width .2s ease; }
+.practice-trend-value { color: var(--text); text-align: right; font-size: 11px; font-variant-numeric: tabular-nums; }
+@media (max-width: 520px) {
+  .practice-trend-row { grid-template-columns: 86px minmax(55px, 1fr) 38px; gap: 8px; }
+  .practice-trend-label span { font-size: 8px; }
+}
