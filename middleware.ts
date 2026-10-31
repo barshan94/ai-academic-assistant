@@ -16,17 +16,36 @@ function buildContentSecurityPolicy(nonce: string) {
     connectSources.push("ws://localhost:*", "http://localhost:*", "http://127.0.0.1:*");
   }
 
-  const configuredProvider = process.env.AI_API_BASE_URL?.trim();
-  const providerUrl = configuredProvider || "https://api.openai.com/v1";
-  try {
-    const providerOrigin = new URL(providerUrl).origin;
-    if (providerOrigin.startsWith("https://") ||
-      (process.env.NODE_ENV !== "production" && /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(providerOrigin))) {
-      connectSources.push(providerOrigin);
+  const configuredPool = process.env.AI_PROVIDER_POOL?.trim();
+  let providerBases: string[] = [];
+  if (configuredPool) {
+    try {
+      const parsed: unknown = JSON.parse(configuredPool);
+      if (Array.isArray(parsed) && parsed.length <= 8) {
+        providerBases = parsed.flatMap((item) =>
+          item && typeof item === "object" && typeof (item as { baseUrl?: unknown }).baseUrl === "string"
+            ? [(item as { baseUrl: string }).baseUrl]
+            : [],
+        );
+      }
+    } catch {
+      // Invalid provider-pool configuration is rejected by the server router.
     }
-  } catch {
-    // Invalid provider configuration is rejected by the server-side adapter.
-    // Do not weaken the browser policy to accommodate an invalid URL.
+  } else {
+    providerBases = [process.env.AI_API_BASE_URL?.trim() || "https://api.openai.com/v1"];
+  }
+
+  for (const providerBase of providerBases) {
+    try {
+      const providerOrigin = new URL(providerBase).origin;
+      if (providerOrigin.startsWith("https://") ||
+        (process.env.NODE_ENV !== "production" && /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(providerOrigin))) {
+        connectSources.push(providerOrigin);
+      }
+    } catch {
+      // Invalid provider URLs are rejected by the server-side adapter.
+      // Do not weaken the browser policy to accommodate an invalid URL.
+    }
   }
 
   const directives = [
