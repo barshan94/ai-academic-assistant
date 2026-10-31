@@ -9,6 +9,7 @@ import {
   createReferenceTopic,
   retireReferenceCatalog,
   verifyReferenceCatalog,
+  updateReferenceCatalogSource,
 } from "../actions";
 
 export const dynamic = "force-dynamic";
@@ -17,6 +18,7 @@ type PageProps = { searchParams: Promise<{ result?: string }> };
 
 const messages: Record<string, string> = {
   created: "Draft shared syllabus created.",
+  source_updated: "Draft source metadata updated.",
   chapter_added: "Chapter added.",
   topic_added: "Topic added.",
   evidence_added: "Source evidence recorded. Evidence entries are append-only.",
@@ -148,8 +150,14 @@ export default async function SharedSyllabusCuratorPage({ searchParams }: PagePr
                     <>
                       <details className="reference-admin-evidence">
                         <summary>Update draft source details</summary>
-                        <form action={createReferenceCatalog} className="review-form">
-                          <p className="question-card-meta">Source metadata is captured when the draft is created. If it needs correction, retire this draft and create a new version with the correct source.</p>
+                        <form action={updateReferenceCatalogSource} className="review-form">
+                          <input type="hidden" name="catalogId" value={catalog.id} />
+                          <div className="question-fields">
+                            <label>HTTPS source URL<input type="url" name="sourceUrl" maxLength={2048} defaultValue={catalog.source_url ?? ""} placeholder="https://..." /></label>
+                            <label>Source title<input name="sourceTitle" maxLength={200} defaultValue={catalog.source_title ?? ""} /></label>
+                            <label>Source checked on<input type="date" name="sourceCheckedAt" defaultValue={catalog.source_checked_at?.slice(0, 10) ?? ""} /></label>
+                          </div>
+                          <button className="document-action" type="submit">Save source details</button>
                         </form>
                       </details>
                       <form action={createReferenceChapter} className="review-form reference-admin-inline-form">
