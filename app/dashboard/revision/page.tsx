@@ -68,6 +68,8 @@ export default async function RevisionPage({ searchParams }: PageProps) {
           <Link className="sign-in-link" href="/dashboard/questions">Questions</Link>
           <Link className="sign-in-link" href="/dashboard/chapters">Chapter notes</Link>
           <Link className="sign-in-link" href="/dashboard/revision/insights">Topic insights</Link>
+          <Link className="sign-in-link" href="/dashboard/practice">Practice sets</Link>
+          <Link className="sign-in-link" href="/dashboard/practice/insights">Practice insights</Link>
           <Link className="sign-in-link" href="/dashboard">Dashboard</Link>
           <form action={signOut}><button className="signout-button" type="submit">Sign out</button></form>
         </div>
