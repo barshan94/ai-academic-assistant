@@ -30,6 +30,25 @@ export type StudyQueuePage = {
 };
 
 
+
+export type WeeklyStudySessionsPage = {
+  sessions_total: number;
+  planned_count: number;
+  completed_count: number;
+  planned_minutes: number;
+  completed_minutes: number;
+  sessions: Array<{
+    id: string;
+    session_date: string;
+    title: string;
+    planned_minutes: number;
+    notes: string | null;
+    status: "planned" | "completed";
+    completed_at: string | null;
+    created_at: string;
+  }>;
+};
+
 export type DatabaseWithStudyPlan = Omit<DatabaseWithPractice, "public"> & {
   public: Omit<DatabaseWithPractice["public"], "Tables" | "Functions"> & {
     Tables: DatabaseWithPractice["public"]["Tables"] & {
@@ -64,6 +83,10 @@ export type DatabaseWithStudyPlan = Omit<DatabaseWithPractice, "public"> & {
       create_weekly_study_session: {
         Args: { p_session_date: string; p_title: string; p_planned_minutes: number; p_notes?: string | null };
         Returns: string;
+      };
+      get_weekly_study_sessions_page: {
+        Args: { p_start_date: string; p_end_date: string; p_page?: number; p_page_size?: number };
+        Returns: WeeklyStudySessionsPage;
       };
       get_study_queue_page: {
         Args: { p_revision_page?: number; p_practice_page?: number; p_page_size?: number };
