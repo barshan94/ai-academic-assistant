@@ -20,9 +20,14 @@ type UploadSession = {
 async function saveCompletedUpload(
   supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
   session: UploadSession,
-  file: { id?: string; webViewLink?: string },
+  file: { id?: string; webViewLink?: string; mimeType?: string; size?: string },
 ) {
   if (!file.id) throw new Error("Google Drive completed the upload without returning a file ID.");
+  if (file.mimeType !== "application/pdf" || Number(file.size) !== session.fileSizeBytes) {
+    const accessToken = await getDriveAccessToken();
+    await deleteDriveFile(accessToken, file.id);
+    throw new Error("Google Drive returned a file with an unexpected type or size. The incomplete archive was removed.");
+  }
 
   const { data: existing, error: existingError } = await supabase.from("documents")
     .select("id,drive_file_id").eq("owner_id", session.ownerId).eq("sha256", session.sha256).maybeSingle();
@@ -113,6 +118,10 @@ export async function POST(request: NextRequest) {
     totalBytes: session.fileSizeBytes,
   })) {
     return NextResponse.json({ error: "Upload chunk size or byte range is invalid." }, { status: 400 });
+  }
+  if (!query && contentRange.startsWith("bytes 0-") &&
+      new TextDecoder().decode(bytes.subarray(0, 5)) !== "%PDF-") {
+    return NextResponse.json({ error: "The uploaded content does not have a valid PDF signature." }, { status: 400 });
   }
 
   try {
