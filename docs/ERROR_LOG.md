@@ -255,3 +255,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Use the database-generated catalogue ID throughout the fixture and resolve it by board, qualification, subject and version; repair the SQL delimiter. Production grants and RLS policies were not weakened.
 - Verification: Database authorization workflow run 41203734904 passed all 95 pgTAP assertions across four test files on commit 017ef50b.
 - Status: Fixed and verified in isolated local Supabase CI. Real curator provisioning and official syllabus source curation remain separate operational tasks.
+
+
+## ERR-022 — Acceptance checklist contained literal newline escape sequences
+
+- Date: 2026-10-31
+- Area: Project documentation / acceptance tracking
+- Symptom: Several checklist items were concatenated onto the previous Markdown line and visibly contained literal newline escape text.
+- Root cause: A documentation update inserted escaped newline text instead of actual line breaks.
+- Fix: Replaced the literal escape sequences with real Markdown line breaks. No application code, database schema or deployment configuration was changed.
+- Verification: Re-fetched the committed acceptance checklist and confirmed each affected item is on its own line; CI remains the authority for application validation.
+- Status: Documentation defect fixed and committed.
