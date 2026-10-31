@@ -76,7 +76,7 @@ M5 exit criteria still outstanding:
 - Unsupported verification is explicitly marked not checked.
 - Independent teacher feedback is tied to authenticated reviewer identity.
 - Corrections are retained as append-only events and never silently overwrite AI drafts.
-- Teacher verification status is only set through an independently authorized workflow.
+- Authenticated clients cannot self-assign machine-checked or teacher-verified statuses; generated drafts are the only client-insertable state.\n- Teacher verification status is only set through an independently authorized workflow.
 - Golden-set results are reviewed before release.
 
 ## Working rules
