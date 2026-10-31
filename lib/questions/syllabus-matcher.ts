@@ -44,14 +44,17 @@ export function rankSyllabusTextMatches(
 
   return candidates.map((candidate) => {
     const label = normalizeText(candidate.title);
+    const code = candidate.code ? normalizeText(candidate.code) : "";
     const labelTokens = meaningfulTokens(candidate.title);
     const matchedTerms = labelTokens.filter((token) => questionTokens.has(token));
     const exactPhrase = label.length >= 4 && question.includes(label);
+    const exactCode = code.length > 0 && question.includes(code);
     const coverage = labelTokens.length ? matchedTerms.length / labelTokens.length : 0;
-    const score = matchedTerms.length * 2 + coverage + (exactPhrase ? 3 : 0);
+    const score = matchedTerms.length * 2 + coverage + (exactPhrase ? 3 : 0) + (exactCode ? 4 : 0);
     const reasons: string[] = [];
     if (matchedTerms.length) reasons.push("Shared terms: " + matchedTerms.join(", "));
     if (exactPhrase) reasons.push("The full catalogue label appears in the question text");
+    if (exactCode) reasons.push("The syllabus section code appears in the question text");
     return { ...candidate, matchedTerms, score, reasons };
   })
     .filter((item) => item.score > 0)
