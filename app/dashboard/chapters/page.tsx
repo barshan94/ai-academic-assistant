@@ -11,6 +11,8 @@ type NoteContent = {
   formulas?: string[];
   workedExamples?: string[];
   revisionPrompts?: string[];
+  generatedBy?: string;
+  sourceReferences?: Array<{ ref: string; questionId: string; pageId: string | null; pageNumber: number | null }>;
 };
 
 function ContentList({ title, items }: { title: string; items?: string[] }) {
@@ -180,11 +182,13 @@ export default async function ChapterWorkspacePage({ searchParams }: PageProps) 
                       const noteSources = (sources ?? []).filter((source) => source.note_version_id === note.id);
                       return <article className="chapter-note-version" key={note.id}>
                         <div className="question-card-heading"><strong>v{note.version_number} · {note.title}</strong><span className="document-status">{note.status}</span></div>
+                        {content.generatedBy === "ai" ? <p className="question-card-meta">AI-generated draft · not independently verified · owner review required</p> : null}
                         {content.summary ? <p className="chapter-note-summary">{content.summary}</p> : null}
                         <ContentList title="Key concepts" items={content.concepts} />
                         <ContentList title="Formulas" items={content.formulas} />
                         <ContentList title="Worked examples" items={content.workedExamples} />
                         <ContentList title="Revision prompts" items={content.revisionPrompts} />
+                        {content.sourceReferences?.length ? <div className="chapter-note-sources"><strong>AI citation key</strong>{content.sourceReferences.map((reference) => { const question = questionMap.get(reference.questionId); const page = reference.pageId ? pageMap.get(reference.pageId) : null; const doc = page ? documentMap.get(page.document_id) : null; return <p key={reference.ref}><strong>[{reference.ref}]</strong> {question?.question_number ? "Question " + question.question_number : "Approved question"}{doc ? " · " + doc.file_name : ""}{reference.pageNumber ? " · page " + reference.pageNumber : ""}</p>; })}</div> : null}
                         <div className="chapter-note-sources"><strong>Sources ({noteSources.length})</strong>
                           {noteSources.map((source) => {
                             const question = source.question_id ? questionMap.get(source.question_id) : null;
