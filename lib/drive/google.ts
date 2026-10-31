@@ -217,9 +217,9 @@ export async function sendResumablePdfChunk(input: {
 
   const range = response.headers.get("Range");
   const text = response.status === 308 || response.status === 404 ? "" : await response.text();
-  let file: { id?: string; webViewLink?: string; name?: string } | null = null;
+  let file: { id?: string; webViewLink?: string; name?: string; mimeType?: string; size?: string } | null = null;
   if (text) {
-    try { file = JSON.parse(text) as { id?: string; webViewLink?: string; name?: string }; }
+    try { file = JSON.parse(text) as { id?: string; webViewLink?: string; name?: string; mimeType?: string; size?: string }; }
     catch { throw new Error("Google Drive returned an unreadable upload response."); }
   }
 
