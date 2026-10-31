@@ -82,9 +82,9 @@ M6 application status — first usable authoring slice implemented:
 - Owner-only chapter workspace lists the owner's syllabus chapters, linked questions and note versions.
 - Manual structured note authoring captures summaries, concepts, formulas, worked examples and revision prompts.
 - Draft creation and all source references are saved atomically through an authenticated, owner-scoped database function.
-- Owners can attach saved questions and their original document pages; cross-owner source IDs are rejected.
+- Owners can attach only owner-approved questions classified to the selected chapter and their original document pages; cross-owner or cross-chapter source IDs are rejected.
 - Version history is displayed, revisions can supersede a prior version, and draft approval requires at least one source.
-- Note content and source history remain immutable; only status transitions are exposed to clients.
+- Note content and source history remain immutable; approval rechecks that every source is still owner-approved and belongs to the selected chapter. Only status transitions are exposed to clients.
 
 M6 remaining:
 - Add automated AI drafting only after a provider is configured and evidence retrieval is validated.
