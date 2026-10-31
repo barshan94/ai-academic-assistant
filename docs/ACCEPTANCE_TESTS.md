@@ -107,3 +107,5 @@
 
 - [x] Authenticated clients cannot INSERT a solution with `machine_checked` or `teacher_verified`; only the generated-draft columns are insertable and the database default supplies `generated`.
 - [x] Authenticated clients cannot UPDATE solution verification status; future status promotion requires a separately authorized workflow.
+
+- [ ] Replace or upgrade the legacy ESLint dependency chain so the full development dependency tree can pass `npm audit` without the minimatch v3 compatibility exception. Until then, production dependencies are audited with `npm audit --omit=dev`; the development-toolchain advisory remains documented and is not represented as resolved.
