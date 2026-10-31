@@ -26,3 +26,22 @@ test("teacher invitations page is protected when auth is unconfigured", async ({
   await expect(page).toHaveURL(/\/login\?error=configuration$/);
   await expect(page.locator("p.auth-error")).toContainText(/authentication is not configured/i);
 });
+
+test("all workspace modules fail closed when Supabase auth is unconfigured", async ({ page }) => {
+  const protectedRoutes = [
+    "/dashboard/documents",
+    "/dashboard/questions",
+    "/dashboard/chapters",
+    "/dashboard/syllabus",
+    "/dashboard/revision",
+    "/dashboard/practice",
+    "/dashboard/study-plan",
+    "/dashboard/teacher-invites",
+  ];
+
+  for (const route of protectedRoutes) {
+    await page.goto(route);
+    await expect(page).toHaveURL(/\\/login\\?error=configuration$/);
+    await expect(page.locator("p.auth-error")).toContainText(/authentication is not configured/i);
+  }
+});
