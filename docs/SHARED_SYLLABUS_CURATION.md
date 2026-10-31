@@ -22,7 +22,7 @@ The shared reference library is separate from each teacher's private syllabus ca
 4. Ask the curator to sign out and sign back in so the application session is fresh.
 5. To revoke curator access, delete that membership row in the SQL editor. Do not add a self-service admin screen.
 
-No curator membership or sample syllabus content is seeded by migrations. This prevents a public user from inheriting a hard-coded administrator role and avoids publishing invented curriculum data.
+No curator membership is seeded by migrations; the project owner must appoint a curator out of band. The migrations do seed source-indexed, curator-only draft catalogues for Cambridge and Pearson Edexcel, but none is verified or visible to ordinary users. This prevents a public user from inheriting a hard-coded administrator role and avoids publishing unreviewed curriculum data.
 
 ## Publishing workflow
 1. Open **Dashboard → Syllabus → Shared syllabus library → Curator workspace**.
