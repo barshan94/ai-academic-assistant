@@ -50,7 +50,7 @@ const completeSchema = z.object({ sessionId: z.string().uuid(), weekOffset: z.co
 export async function completeStudySession(formData: FormData) {
   const parsed = completeSchema.safeParse({ sessionId: String(formData.get("sessionId") ?? ""), weekOffset: String(formData.get("weekOffset") ?? "0"), sessionPage: String(formData.get("sessionPage") ?? "1") });
   if (!parsed.success) redirect("/dashboard/study-plan?calendar=invalid");
-  const weekQuery = parsed.data.weekOffset ? "&week=" + parsed.data.weekOffset : "";
+  const weekQuery = (parsed.data.weekOffset ? "&week=" + parsed.data.weekOffset : "") + (parsed.data.sessionPage > 1 ? "&sessionPage=" + parsed.data.sessionPage : "");
 
   const supabase = await createSupabaseServerClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
