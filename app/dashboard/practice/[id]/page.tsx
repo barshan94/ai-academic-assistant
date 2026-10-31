@@ -49,7 +49,7 @@ export default async function PracticeDetailPage({ params, searchParams }: Props
           <form action={signOut}><button className="signout-button" type="submit">Sign out</button></form>
         </div>
       </header>
-      <section className="hero documents-hero">
+      <section className="hero documents-hero practice-print-header">
         <p className="eyebrow">PRACTICE SESSION · {set?.status.replace("_"," ").toUpperCase()}</p>
         <h1>{set?.title}</h1>
         <p className="hero-copy">{set?.question_count} saved questions · {completed} of {set?.question_count} marked. Record your own result after attempting each question; this is self-assessment, not automatic grading.</p>
