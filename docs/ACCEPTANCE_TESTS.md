@@ -89,8 +89,8 @@
 - [x] Batch status changes use a SECURITY INVOKER PostgreSQL function that locks and validates the complete owner-scoped batch in one transaction; stale or inaccessible selections roll back entirely. The database trigger records a before/after snapshot for each changed question.
 - [x] Stale or inaccessible selections and no-op selections are rejected atomically; every successful batch change produces a real state transition and an audit snapshot. Individual confirmation remains subject to verified catalogue and exact chapter/topic evidence.
 - [x] Shared reference schema, curator workspace and verified-only reader are implemented; pgTAP covers curator recognition, draft creation/read, chapter/topic/evidence authoring, provenance-gated verification, ordinary-user verified-only visibility, no self-promotion and immutable published provenance (19 assertions; combined database suite passed 95 assertions in run 41203734904).
-- [x] Add source-linked, owner-private topic-index import drafts for Cambridge O Level Physics 5054 and Chemistry 5070 (2026–2028); includes 63 Physics and 49 Chemistry numbered topic-section headings, schema validation and draft-only status. Detailed learning-objective coverage, curator review and shared verified publication remain outstanding.
-- [ ] Populate and maintain real official-board reference datasets with checked source evidence; no sample curriculum is fabricated.
+- [x] Add source-linked, owner-private topic-index import drafts for Cambridge O Level Physics 5054/Chemistry 5070 (2026–2028) and Pearson Edexcel International GCSE Physics 4PH1/Chemistry 4CH1 (2017 specs); includes 121 Physics/Chemistry numbered topic-section headings across four imports, schema validation and draft-only status. Detailed learning-objective coverage, curator review and shared verified publication remain outstanding.
+- [ ] Appoint a real curator to check the four seeded Cambridge/Pearson Edexcel drafts against the current official documents, confirm administrative-zone availability and verify/publish them; add further official-board datasets after source review.
 - [x] Record append-only owner citations for individual syllabus chapters and topics, including HTTPS URL, source title, page/section locator and short supporting excerpt.
 - [x] Structured mappings cannot be marked confirmed unless the catalogue is verified and a citation exists for the exact selected chapter or topic; database trigger enforces this beyond the UI.
 - [x] Source citations are owner-scoped, readable only by their owner, and cannot be edited or deleted by authenticated clients; the UI clearly says citations are not independently certified by the app.
@@ -144,7 +144,7 @@
 - [x] Curator writes are limited to draft catalogues; chapter/topic structure freezes after publication and source evidence is append-only.
 - [x] Database verification requires a checked HTTPS catalogue source and separate source evidence for every chapter and topic.
 - [x] Shared reference reader exposes only verified catalogues and their chapter/topic citations.
-- [x] Seed Cambridge O Level Physics 5054 and Chemistry 5070 (2026–2028) as curator-only shared drafts with 18 chapters, 112 numbered topic headings and chapter/topic evidence locators; both remain unverified and invisible to ordinary users.
+- [x] Seed Cambridge O Level Physics 5054/Chemistry 5070 and Pearson Edexcel International GCSE Physics 4PH1/Chemistry 4CH1 as curator-only shared drafts with 30 chapters, 170 numbered topic headings and 200 chapter/topic evidence locators; all remain unverified and invisible to ordinary users.
 - [ ] Appoint the first real platform curator, check every seeded heading against current official documents and administrative-zone availability, then explicitly verify/publish the catalogue.
 - [ ] Test verified-only read access and admin write restrictions with two real authenticated accounts; no test accounts or syllabus rows have been fabricated.
 

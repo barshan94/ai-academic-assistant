@@ -21,3 +21,16 @@ Use the signed-in user's syllabus catalogue import workflow and import one JSON 
 
 - Physics 5054: https://www.cambridgeinternational.org/Images/697324-2026-2028-syllabus.pdf
 - Chemistry 5070: https://www.cambridgeinternational.org/Images/697326-2026-2028-syllabus.pdf
+
+
+## Pearson Edexcel International GCSE (linear, 2017 specifications)
+
+- Physics 4PH1: 8 content chapters and 30 numbered sub-topic headings; Issue 4, September 2024.
+- Chemistry 4CH1: 4 content chapters and 28 numbered sub-topic headings; Issue 3, September 2024.
+
+Official sources:
+- [Physics 4PH1 specification](https://qualifications.pearson.com/content/dam/pdf/International%20GCSE/Physics/2017/specification-and-sample-assessments/international-gcse-physics-2017-specification.pdf)
+- [Chemistry 4CH1 specification](https://qualifications.pearson.com/content/dam/pdf/International%20GCSE/Chemistry/2017/specification-and-sample-assessments/international-gcse-chemistry-2017-specification.pdf)
+- [Pearson September 2026 update confirming the linear 2017 specifications remain unchanged for students starting September 2026](https://qualifications.pearson.com/en/news-policy/subject-updates/Science/september-2026-international-science-qualification-news.html)
+
+These remain topic indexes only. They do not include the specification's detailed learning-objective bullet points and must be checked by a real curator before publication.

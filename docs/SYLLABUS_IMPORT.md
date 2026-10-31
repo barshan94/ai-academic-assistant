@@ -68,3 +68,12 @@ The repository includes two illustrative-but-source-checked private import draft
 - Cambridge O Level Chemistry 5070, 2026–2028, Version 1.
 
 They contain the official top-level content chapters and numbered topic-section headings transcribed from the official syllabus PDFs. They do not reproduce the detailed learning objectives beneath each heading and are not a substitute for the complete syllabus. They do not constitute a centrally curated shared reference dataset, and must remain drafts until a curator checks every chapter and topic against the current official source and confirms qualification availability for the relevant administrative zone. Recheck the PDFs before each exam cycle.
+
+
+### Pearson Edexcel International GCSE draft imports
+
+Two additional owner-private topic-index drafts are available:
+- Physics 4PH1, linear 2017 specification, Issue 4 (September 2024).
+- Chemistry 4CH1, linear 2017 specification, Issue 3 (September 2024).
+
+Pearson's September 2026 update confirms that the linear 2017 International GCSE science specifications remain unchanged for students starting courses in September 2026. The imports contain topic-section headings only, not the detailed bullet-point learning objectives. Official PDFs are linked in the JSON metadata and in `data/syllabus-imports/README.md`.
