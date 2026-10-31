@@ -65,7 +65,7 @@ Implemented on feature/m3-ai-solver:
 M5 exit criteria still outstanding:
 - Build and maintain a shared, centrally curated reference dataset with official-board provenance; the current JSON importer is a personal catalogue import foundation, not a shared dataset.
 - Improve assisted classification with official source evidence and calibrated confidence; current lexical suggestions are only a navigation aid and must not be treated as evidence or probability. Never silently guess a syllabus version.
-- Add batch review actions after individual mapping workflows have been exercised.
+- Add conservative batch review actions for pending mappings: move selected questions between unreviewed and uncertain only; confirmation remains an individual, evidence-gated action.
 - Chapter notes cite contributing questions and source documents.
 - Reprocessing creates a new note version rather than overwriting teacher-approved content.
 
