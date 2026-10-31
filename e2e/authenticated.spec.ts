@@ -50,12 +50,20 @@ test("two-account teacher invitation, review, and revocation lifecycle", async (
     await teacher.goto(`${questionUrl}?solution=${config.solutionId}`);
     await expect(teacher.getByRole("heading", { name: "Answer draft" })).toBeVisible();
 
-    // Teacher records a correction; this must not overwrite the saved AI answer.
+    // An accepted teacher can approve a draft through the independent
+    // verification RPC; the saved answer must show teacher_verified.
+    await teacher.locator("#review-decision").selectOption("approved");
+    await teacher.getByRole("button", { name: /save review record/i }).click();
+    await expect(teacher).toHaveURL(/review=approved/);
+    await expect(teacher.getByText("teacher verified", { exact: true })).toBeVisible();
+
+    // A later correction review is append-only and removes the verification label.
     await teacher.locator("#review-decision").selectOption("needs_correction");
     await teacher.locator("#review-notes").fill("E2E review: explain the intermediate step more clearly.");
     await teacher.getByRole("button", { name: /save review record/i }).click();
     await expect(teacher).toHaveURL(/review=needs_correction/);
     await expect(teacher.getByRole("status")).toContainText(/correction feedback was saved/i);
+    await expect(teacher.getByText("generated", { exact: true })).toBeVisible();
 
     // Owner can see the independent teacher review and revoke access.
     await owner.goto(questionUrl);
