@@ -36,8 +36,6 @@ export default async function StudyPlanPage({ searchParams }: PageProps) {
   const queue = queueData;
   const dueRevisions = queue?.revision_items ?? [];
   const unfinishedItems = queue?.practice_items ?? [];
-  const dueCount = dueRevisions.length;
-  const unfinishedCount = unfinishedItems.length;
   const revisionTotal = queue?.revision_total ?? 0;
   const practiceTotal = queue?.practice_total ?? 0;
   const revisionPages = Math.max(1, Math.ceil(revisionTotal / 25));
