@@ -72,7 +72,7 @@ describe("structured exam answer generation", () => {
     expect(body.messages[1].content).toContain("Edexcel");
   });
 
-  it("does not accept malformed provider output", async () => {
+  it("includes explicitly supplied source text but never adds source text when omitted", async () => {\n    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({ choices: [{ message: { content: JSON.stringify(validAnswer) } }] }), { status: 200 }));\n    await generateStructuredAnswer("Question", config, fetcher, { sourceContext: { pageNumber: 4, extractionMethod: "ocr", text: "A corrected source passage." } });\n    const body = JSON.parse(String(fetcher.mock.calls[0][1]?.body));\n    expect(body.messages[1].content).toContain("Page 4 (ocr)");\n    expect(body.messages[1].content).toContain("A corrected source passage.");\n    expect(body.messages[0].content).toContain("may contain OCR or extraction errors");\n  });\n\n  it("does not accept malformed provider output", async () => {
     const fetcher = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({
       choices: [{ message: { content: "{not-json" } }],
     }), { status: 200 }));
