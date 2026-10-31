@@ -855,6 +855,39 @@ export type Database = {
           },
         ]
       }
+      chapter_note_versions: {
+        Row: {
+          id: string; owner_id: string; catalog_id: string; chapter_id: string;
+          version_number: number; title: string; content_json: Json; status: string;
+          supersedes_id: string | null; approved_by: string | null; approved_at: string | null; created_at: string;
+        }
+        Insert: {
+          id?: string; owner_id: string; catalog_id: string; chapter_id: string;
+          version_number: number; title: string; content_json: Json; status?: string;
+          supersedes_id?: string | null; approved_by?: string | null; approved_at?: string | null; created_at?: string;
+        }
+        Update: {
+          id?: string; owner_id?: string; catalog_id?: string; chapter_id?: string;
+          version_number?: number; title?: string; content_json?: Json; status?: string;
+          supersedes_id?: string | null; approved_by?: string | null; approved_at?: string | null; created_at?: string;
+        }
+        Relationships: []
+      }
+      chapter_note_sources: {
+        Row: {
+          id: string; owner_id: string; note_version_id: string; source_kind: string;
+          question_id: string | null; document_page_id: string | null; locator: string | null; created_at: string;
+        }
+        Insert: {
+          id?: string; owner_id: string; note_version_id: string; source_kind: string;
+          question_id?: string | null; document_page_id?: string | null; locator?: string | null; created_at?: string;
+        }
+        Update: {
+          id?: string; owner_id?: string; note_version_id?: string; source_kind?: string;
+          question_id?: string | null; document_page_id?: string | null; locator?: string | null; created_at?: string;
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -871,6 +904,18 @@ export type Database = {
       is_platform_admin: {
         Args: Record<PropertyKey, never>
         Returns: boolean
+      }
+      create_chapter_note_draft: {
+        Args: {
+          p_catalog_id: string;
+          p_chapter_id: string;
+          p_title: string;
+          p_content_json: Json;
+          p_question_ids: string[];
+          p_document_page_ids: string[];
+          p_supersedes_id: string | null;
+        };
+        Returns: string;
       }
     }
     Enums: {
