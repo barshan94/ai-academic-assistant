@@ -125,7 +125,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (result.status === 308) {
-      return NextResponse.json({ nextOffset: parseDriveUploadOffset(result.range), complete: false });
+      return NextResponse.json({ nextOffset: parseDriveUploadOffset(result.range, session.fileSizeBytes), complete: false });
     }
     if (result.status === 404 || result.status === 410) {
       return NextResponse.json({ error: "Google Drive upload session expired. Start again." }, { status: 410 });
@@ -134,7 +134,7 @@ export async function POST(request: NextRequest) {
       const saved = await saveCompletedUpload(supabase, session, result.file ?? {});
       return NextResponse.json({ nextOffset: session.fileSizeBytes, complete: true, ...saved });
     }
-    if (result.status >= 500) {
+    if (result.status === 429 || result.status >= 500) {
       return NextResponse.json({ error: "Google Drive is temporarily unavailable. Resume this upload shortly." }, { status: 503 });
     }
     return NextResponse.json({ error: "Google Drive rejected this upload chunk." }, { status: 502 });
