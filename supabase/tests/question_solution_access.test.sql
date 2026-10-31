@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(15);
+select plan(20);
 
 -- Isolated identities and records. This test runs inside a transaction and rolls back.
 insert into auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
@@ -104,11 +104,39 @@ select lives_ok(
 );
 
 select throws_ok(
-  $$insert into public.question_solution_reviews (solution_id, owner_id, reviewer_id, decision, correction_notes)
-    values ('40000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', 'approved', null)$$,
+  $insert into public.question_solution_reviews (solution_id, owner_id, reviewer_id, decision, correction_notes)
+    values ('40000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', 'approved', null)$,
   '42501',
   null,
   'teacher cannot impersonate the owner as reviewer'
+);
+
+-- Owner revokes access. Historical review remains visible to the owner, but the
+-- former teacher loses current question/solution visibility and cannot add reviews.
+set local request.jwt.claim.sub = '10000000-0000-4000-8000-000000000001';
+set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000001","role":"authenticated","email":"rls-owner@example.test"}';
+select lives_ok(
+  $update public.question_teacher_invites
+    set revoked_at = now()
+    where id = '60000000-0000-4000-8000-000000000001'$,
+  'owner can revoke an accepted teacher invitation'
+);
+select is(
+  (select count(*)::integer from public.question_solution_reviews),
+  1,
+  'owner retains the historical teacher review after revocation'
+);
+
+set local request.jwt.claim.sub = '10000000-0000-4000-8000-000000000002';
+set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000002","role":"authenticated","email":"rls-teacher@example.test"}';
+select is((select count(*)::integer from public.questions), 0, 'revoked teacher can no longer read the shared question');
+select is((select count(*)::integer from public.question_solutions), 0, 'revoked teacher can no longer read the saved solution');
+select throws_ok(
+  $insert into public.question_solution_reviews (solution_id, owner_id, reviewer_id, decision, correction_notes)
+    values ('40000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000002', 'approved', null)$,
+  '42501',
+  null,
+  'revoked teacher cannot append another solution review'
 );
 
 select * from finish();
