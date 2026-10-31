@@ -36,7 +36,9 @@ async function refreshDriveAccessToken(encryptedToken: string) {
   });
   const payload = await response.json() as { access_token?: string; error?: string; error_description?: string };
   if (!response.ok || !payload.access_token) {
-    throw new Error(payload.error_description || payload.error || "Google Drive token refresh failed.");
+    // Never persist or return Google-provided error text: upstream responses
+    // may echo credentials, document metadata or other sensitive context.
+    throw new Error("DRIVE_TOKEN_REFRESH_FAILED");
   }
   return payload.access_token;
 }
@@ -148,7 +150,10 @@ export async function GET(request: Request) {
       }
       return Response.json({ processed: true, job_id: jobId, page_count: pages.length });
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Document processing failed.";
+      // Keep provider/database exception text out of persistent job rows and
+      // HTTP responses. Detailed diagnostics belong in a separately reviewed,
+      // redacted observability channel, not owner-visible job metadata.
+      const message = "Document processing failed. Reconnect Google Drive if the problem persists.";
       const [{ error: failedDocumentError }, { data: failedJob, error: failedJobError }] = await Promise.all([
         supabase.from("documents").update({ status: "failed" }).eq("id", documentId).eq("owner_id", ownerId),
         supabase.from("processing_jobs").update({
@@ -166,7 +171,7 @@ export async function GET(request: Request) {
           error: "Processing failed and its failure state could not be persisted.",
         }, { status: 500 });
       }
-      return Response.json({ processed: true, job_id: jobId, failed: true, error: message.slice(0, 300) });
+      return Response.json({ processed: true, job_id: jobId, failed: true, error: message });
     }
   }
 
