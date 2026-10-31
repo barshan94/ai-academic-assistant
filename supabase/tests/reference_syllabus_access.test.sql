@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(18);
+select plan(19);
 
 insert into auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
 values
@@ -23,6 +23,11 @@ select lives_ok(
     (id, board, qualification, subject, version, source_url, source_title, source_checked_at)
     values ('72000000-0000-4000-8000-000000000001', 'Example Board', 'A Level', 'Physics', '2026', 'https://example.test/physics', 'Official Physics specification', now())$$,
   'platform admin can create a draft shared catalogue'
+);
+select is(
+  (select status from public.reference_syllabus_catalogs where id = '72000000-0000-4000-8000-000000000001'),
+  'draft',
+  'platform admin can read the draft catalogue they just created'
 );
 select lives_ok(
   $$insert into public.reference_syllabus_chapters (catalog_id, title, sort_order)
