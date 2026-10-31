@@ -70,8 +70,20 @@ M5 exit criteria still outstanding:
 - Populate and maintain the shared reference library with real official-board syllabus versions and citations. The shared schema and curator workflow now exist, but the library is intentionally empty until an appointed curator enters and checks real source material.
 - Improve assisted classification with official source evidence and calibrated confidence; current lexical suggestions are only a navigation aid and must not be treated as evidence or probability. Never silently guess a syllabus version.
 
-- Chapter notes cite contributing questions and source documents.
-- Reprocessing creates a new note version rather than overwriting teacher-approved content.
+### M6 status — foundation started
+Implemented on feature/m3-ai-solver:
+- Add owner-private, syllabus-chapter-scoped note version records with bounded structured JSON content.
+- Add immutable question/document-page source references; source records contain references and locators, not copied OCR text.
+- Require at least one source before owner approval; database triggers enforce draft-only creation and immutable note content.
+- Restrict updates to status transitions and prevent clients from editing or deleting source history.
+- Add same-owner foreign keys, RLS, explicit least-privilege grants and indexes for the new tables.
+
+M6 application work still outstanding:
+- Build the owner-only chapter workspace and version history UI.
+- Retrieve only approved questions and source pages for the selected chapter.
+- Generate structured concept summaries, formulas, worked examples and revision notes with explicit citations.
+- Require owner review before approval; reprocessing must create a new version rather than overwrite approved content.
+- Add citation completeness and supported formula-consistency checks.
 
 ## M4 exit criteria
 - Unsupported verification is explicitly marked not checked.
