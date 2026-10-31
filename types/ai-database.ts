@@ -44,8 +44,8 @@ export type DatabaseWithAISolutions = Omit<Database, "public"> & {
         }];
       };
       question_solution_mark_schemes: {
-        Row: { id: string; solution_id: string; owner_id: string; title: string; awarding_body: string; qualification: string; subject: string; paper_reference: string | null; source_url: string; points: Json; created_at: string };
-        Insert: { id?: string; solution_id: string; owner_id: string; title: string; awarding_body: string; qualification: string; subject: string; paper_reference?: string | null; source_url: string; points: Json; created_at?: string };
+        Row: { id: string; solution_id: string; owner_id: string; title: string; awarding_body: string; qualification: string; subject: string; paper_reference: string | null; source_url: string; source_locator: string | null; source_document_version: string | null; points: Json; created_at: string };
+        Insert: { id?: string; solution_id: string; owner_id: string; title: string; awarding_body: string; qualification: string; subject: string; paper_reference?: string | null; source_url: string; source_locator?: string | null; source_document_version?: string | null; points: Json; created_at?: string };
         Update: never;
         Relationships: [{
           foreignKeyName: "question_solution_mark_schemes_solution_owner_fk";
