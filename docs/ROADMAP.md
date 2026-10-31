@@ -102,7 +102,8 @@ M6 remaining:
 - Do not classify a topic as weak from unrated questions or a single rating; label groups with insufficient ratings accordingly. Analysis is limited to the latest 1,000 approved questions and excludes questions without chapter/topic metadata.
 - Add custom practice set creation using combined subject/chapter/topic filters and a requested set size; the server samples only owner-approved questions and the database function revalidates every selected ID.
 - Save immutable question text/metadata snapshots, owner-private set history, and self-marked outcomes (correct, partial, incorrect or skipped) with optional reflection notes. Session completion is derived from all items receiving an outcome; this is not automatic grading.
-- The confidence scale and practice outcomes are learner self-assessments, not validated measures of mastery. Exportable practice sheets and richer performance summaries remain outstanding.
+- Add browser Print / Save as PDF for clean practice sheets; saved question snapshots remain printable even if the source question is later edited or deleted.
+- The confidence scale and practice outcomes are learner self-assessments, not validated measures of mastery. Richer cross-session performance summaries remain outstanding.
 
 ## M4 exit criteria
 - Unsupported verification is explicitly marked not checked.
