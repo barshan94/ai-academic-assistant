@@ -31,7 +31,7 @@ set local role authenticated;
 set local request.jwt.claim.sub = '10000000-0000-4000-8000-000000000001';
 set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000001","role":"authenticated","email":"rls-owner@example.test"}';
 select throws_ok(
-  $select public.record_teacher_solution_review('40000000-0000-4000-8000-000000000001', 'approved', null)$,
+  $$select public.record_teacher_solution_review('40000000-0000-4000-8000-000000000001', 'approved', null)$$,
   '42501',
   'Owner cannot submit an independent teacher review',
   'owner cannot promote their own answer to teacher-verified'
@@ -63,7 +63,7 @@ select throws_ok(
 set local request.jwt.claim.sub = '10000000-0000-4000-8000-000000000003';
 set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000003","role":"authenticated","email":"rls-outsider@example.test"}';
 select throws_ok(
-  $select public.record_teacher_solution_review('40000000-0000-4000-8000-000000000001', 'approved', null)$,
+  $$select public.record_teacher_solution_review('40000000-0000-4000-8000-000000000001', 'approved', null)$$,
   '42501',
   'An active accepted teacher invitation is required',
   'uninvited account cannot promote an answer to teacher-verified'
@@ -111,7 +111,7 @@ select throws_ok(
 -- Teacher reviews use the authorized RPC. Direct table INSERT is no longer
 -- available to teachers, so the verification label cannot be bypassed.
 select lives_ok(
-  $select public.record_teacher_solution_review('40000000-0000-4000-8000-000000000001', 'approved', null)$,
+  $$select public.record_teacher_solution_review('40000000-0000-4000-8000-000000000001', 'approved', null)$$,
   'accepted teacher can append an independent review through the authorized workflow'
 );
 select is(
@@ -120,14 +120,14 @@ select is(
   'an approved active teacher review promotes the saved answer to teacher-verified'
 );
 select throws_ok(
-  $insert into public.question_solution_reviews (solution_id, owner_id, reviewer_id, decision, correction_notes)
-    values ('40000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000002', 'approved', null)$,
+  $$insert into public.question_solution_reviews (solution_id, owner_id, reviewer_id, decision, correction_notes)
+    values ('40000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000002', 'approved', null)$$,
   '42501',
   null,
   'teacher cannot bypass the authorized review RPC with direct table INSERT'
 );
 select lives_ok(
-  $select public.record_teacher_solution_review('40000000-0000-4000-8000-000000000001', 'needs_correction', 'Please correct the intermediate working.')$,
+  $$select public.record_teacher_solution_review('40000000-0000-4000-8000-000000000001', 'needs_correction', 'Please correct the intermediate working.')$$,
   'accepted teacher can append a correction review through the authorized workflow'
 );
 select is(
@@ -137,8 +137,8 @@ select is(
 );
 
 select throws_ok(
-  $insert into public.question_solution_reviews (solution_id, owner_id, reviewer_id, decision, correction_notes)
-    values ('40000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', 'approved', null)$,
+  $$insert into public.question_solution_reviews (solution_id, owner_id, reviewer_id, decision, correction_notes)
+    values ('40000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', 'approved', null)$$,
   '42501',
   null,
   'teacher cannot impersonate the owner as reviewer'
@@ -165,7 +165,7 @@ set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000002","r
 select is((select count(*)::integer from public.questions), 0, 'revoked teacher can no longer read the shared question');
 select is((select count(*)::integer from public.question_solutions), 0, 'revoked teacher can no longer read the saved solution');
 select throws_ok(
-  $select public.record_teacher_solution_review('40000000-0000-4000-8000-000000000001', 'approved', null)$,
+  $$select public.record_teacher_solution_review('40000000-0000-4000-8000-000000000001', 'approved', null)$$,
   '42501',
   'An active accepted teacher invitation is required',
   'revoked teacher cannot submit an independent verification review'
