@@ -75,16 +75,16 @@ export default async function StudyPlanPage({ searchParams }: PageProps) {
       <section className="hero documents-hero">
         <p className="eyebrow">EXAM PREPARATION · WEEKLY PLANNING</p><h1>Plan the <span>week.</span></h1>
         <p className="hero-copy">Schedule realistic study blocks, estimate the time required, and mark each block complete when you finish. Your saved sessions are private to your account. Queue counts below describe the records currently loaded, not guaranteed account-wide totals.</p>
-        <div className="hero-actions"><Link className="primary-action" href="/dashboard/revision">Review {dueCount} due revisions →</Link><Link className="sign-in-link" href="/dashboard/practice">Continue {unfinishedCount} unfinished practice questions</Link></div>
+        <div className="hero-actions"><Link className="primary-action" href="/dashboard/revision">Review {dueCount}{revisionQueueLimited ? "+" : ""} due revisions →</Link><Link className="sign-in-link" href="/dashboard/practice">Continue {unfinishedCount}{unfinishedQueueLimited ? "+" : ""} unfinished practice questions</Link></div>
       </section>
       {message ? <p className={params.calendar === "failed" || params.calendar === "invalid" ? "notice notice-error" : "notice"} role="status">{message}</p> : null}
       {hasError ? <p className="notice notice-error" role="status">Some calendar or workload data could not be loaded. The displayed totals may be incomplete.</p> : null}
       <section className="section">
-        <div className="section-heading"><div><p className="eyebrow">WEEK OF {startKey}</p><h2>Your weekly workload</h2></div><div className="study-week-navigation">{weekOffset > -52 ? <Link className="secondary-action" href={"/dashboard/study-plan?week=" + (weekOffset - 1)}>← Previous</Link> : <span className="section-count">Earliest week</span>}<span className="section-count">{plannedCount} planned · {completedCount} completed</span>{weekOffset !== 0 ? <Link className="secondary-action" href="/dashboard/study-plan">This week</Link> : null}{weekOffset < 52 ? <Link className="secondary-action" href={"/dashboard/study-plan?week=" + (weekOffset + 1)}>Next →</Link> : <span className="section-count">Latest week</span>}</div></div>
+        <div className="section-heading"><div><p className="eyebrow">WEEK OF {startKey}</p><h2>Your weekly workload</h2></div><div className="study-week-navigation">{weekOffset > -52 ? <Link className="secondary-action" href={"/dashboard/study-plan?week=" + (weekOffset - 1)}>← Previous</Link> : <span className="section-count">Earliest week</span>}<span className="section-count">{plannedCount} shown planned · {completedCount} shown completed{sessionsLimited ? " · more sessions exist" : ""}</span>{weekOffset !== 0 ? <Link className="secondary-action" href="/dashboard/study-plan">This week</Link> : null}{weekOffset < 52 ? <Link className="secondary-action" href={"/dashboard/study-plan?week=" + (weekOffset + 1)}>Next →</Link> : <span className="section-count">Latest week</span>}</div></div>
         <div className="module-grid revision-stats">
           <article className="module-card"><span className="module-number">{totalMinutes}</span><h3>Planned minutes</h3><p>Estimated time across this week&apos;s saved sessions.</p></article>
           <article className="module-card"><span className="module-number">{completedMinutes}</span><h3>Completed minutes</h3><p>Time estimates for sessions you marked complete.</p></article>
-          <article className="module-card"><span className="module-number">{dueCount + unfinishedCount}</span><h3>Existing study tasks</h3><p>{dueCount} due revisions and {unfinishedCount} unfinished practice questions remain outside the calendar until you schedule them.</p></article>
+          <article className="module-card"><span className="module-number">{dueCount + unfinishedCount}{revisionQueueLimited || unfinishedQueueLimited ? "+" : ""}</span><h3>Existing study tasks</h3><p>{dueCount} due revisions and {unfinishedCount} unfinished practice questions remain outside the calendar until you schedule them.</p></article>
         </div>
       </section>
       <section className="section">
@@ -120,7 +120,7 @@ export default async function StudyPlanPage({ searchParams }: PageProps) {
         </div>
       </section>
       <section className="section">
-        <div className="section-heading"><div><p className="eyebrow">UNSCHEDULED TASKS</p><h2>Study queue</h2></div><span className="section-count">{dueCount + unfinishedCount} loaded tasks</span></div>
+        <div className="section-heading"><div><p className="eyebrow">UNSCHEDULED TASKS</p><h2>Study queue</h2></div><span className="section-count">{dueCount + unfinishedCount}{revisionQueueLimited || unfinishedQueueLimited ? "+" : ""} loaded tasks</span></div>
         <p className="question-card-meta">These tasks remain in their original revision and practice workflows. Add a calendar block above when you decide when to work on them. This queue is intentionally bounded: up to 500 due revision records, 100 active practice sets and 1,000 unfinished practice items are loaded. A “+” means additional records exist beyond the displayed limit.</p>
         {dueRevisions.map((item) => {
           const question = questionById.get(item.question_id);
@@ -157,7 +157,7 @@ export default async function StudyPlanPage({ searchParams }: PageProps) {
         </article>)}
         {!dueCount && !unfinishedCount ? <div className="empty-state"><h3>No due or unfinished tasks</h3><p>Your current revision reviews and active practice sessions have no open tasks.</p></div> : null}
       </section>
-      <p className="question-card-meta">Calendar window: selected Monday–Sunday week; up to 200 saved sessions are displayed{sessionsLimited ? " (more exist)" : ""}. Navigate up to 52 weeks backward or forward. Queue limits: 500 due revision records{revisionQueueLimited ? " (more exist)" : ""}, 100 active practice sets{practiceSetsLimited ? " (more exist)" : ""} and 1,000 unfinished practice items{unfinishedQueueLimited ? " (more exist)" : ""}. Time values are estimates entered by you, not measured focus time.</p>
+      <p className="question-card-meta">Calendar window: selected Monday–Sunday week; up to 200 saved sessions are displayed{sessionsLimited ? " (more exist)" : ""}. Navigate up to 52 weeks backward or forward. Queue limits: 500 due revision records{revisionQueueLimited ? " (more exist)" : ""}, 100 most-recent active practice sets{practiceSetsLimited ? " (more exist)" : ""} and 1,000 unfinished practice items{unfinishedQueueLimited ? " (more exist)" : ""}. Time values are estimates entered by you, not measured focus time.</p>
     </main>
   );
 }
