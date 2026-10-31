@@ -44,16 +44,16 @@ select is((select count(*)::integer from public.question_solution_mark_schemes),
 select is((select count(*)::integer from public.question_teacher_invites), 0, 'uninvited account cannot read another user invite');
 
 select throws_ok(
-  $insert into public.question_solution_mark_schemes (solution_id, owner_id, title, awarding_body, qualification, subject, source_url, points)
-    values ('40000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', 'Forged scheme', 'Example Board', 'A Level', 'Physics', 'https://example.test/forged.pdf', '[]'::jsonb)$,
+  $$insert into public.question_solution_mark_schemes (solution_id, owner_id, title, awarding_body, qualification, subject, source_url, points)
+    values ('40000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', 'Forged scheme', 'Example Board', 'A Level', 'Physics', 'https://example.test/forged.pdf', '[]'::jsonb)$$,
   '42501',
   null,
   'uninvited account cannot insert a mark scheme for another owner'
 );
 
 select throws_ok(
-  $insert into public.question_solution_reviews (solution_id, owner_id, reviewer_id, decision, correction_notes)
-    values ('40000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000003', 'approved', null)$,
+  $$insert into public.question_solution_reviews (solution_id, owner_id, reviewer_id, decision, correction_notes)
+    values ('40000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000003', 'approved', null)$$,
   '42501',
   null,
   'uninvited account cannot add a review to another owner solution'
@@ -73,13 +73,13 @@ select is((select count(*)::integer from public.question_solution_mark_schemes),
 
 -- Teacher can append their own review, but cannot impersonate the owner.
 select lives_ok(
-  $$insert into public.question_solution_reviews (solution_id, owner_id, reviewer_id, decision, correction_notes)
+  $$$insert into public.question_solution_reviews (solution_id, owner_id, reviewer_id, decision, correction_notes)
     values ('40000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000002', 'approved', null)$$,
   'accepted teacher can append a review under their own identity'
 );
 
 select throws_ok(
-  $$insert into public.question_solution_reviews (solution_id, owner_id, reviewer_id, decision, correction_notes)
+  $$$insert into public.question_solution_reviews (solution_id, owner_id, reviewer_id, decision, correction_notes)
     values ('40000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', 'approved', null)$$,
   '42501',
   null,
