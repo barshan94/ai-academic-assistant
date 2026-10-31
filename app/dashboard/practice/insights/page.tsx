@@ -30,7 +30,7 @@ export default async function PracticeInsightsPage() {
     db.from("practice_set_items")
       .select("practice_set_id,subject,chapter,topic,outcome,answered_at")
       .eq("owner_id", user.id)
-      .order("answered_at", { ascending: false })
+      .order("answered_at", { ascending: false, nullsFirst: false })
       .limit(3000),
   ]);
 
