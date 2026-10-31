@@ -37,6 +37,8 @@
 - [x] Arithmetic, supported chemistry atom-count and physics dimensional checks are implemented with explicit limits.
 - [x] Owner and invited teacher review records are append-only.
 - [x] Teacher access is question-scoped and can be revoked by the owner.
+- [x] Authenticated clients cannot INSERT a solution with `machine_checked` or `teacher_verified`; only generated-draft columns are insertable and the database default supplies `generated`.
+- [x] Authenticated clients cannot UPDATE solution verification status; future status promotion requires a separately authorized workflow.
 - [ ] Live AI provider configured and tested with explicit cost approval.
 - [ ] Teacher invitation, acceptance, review and revocation tested against the chosen non-production Supabase project using the authenticated browser workflow (`docs/AUTHENTICATED_E2E_SETUP.md`).
 - [ ] Golden-set answer quality manually graded across subjects.
@@ -69,7 +71,8 @@
 - [ ] Automated database tests prove cross-account catalogue/chapter/topic isolation and reject mismatched reference IDs.
 - [x] Dedicated owner-only queue for unreviewed and uncertain mappings, sorted by missing/lowest confidence first.
 - [x] Batch review accepts 1–50 unique owner question IDs, rejects malformed/duplicate IDs and never offers bulk confirmation.
-- [x] Batch status changes use a SECURITY INVOKER PostgreSQL function that locks and validates the complete owner-scoped batch in one transaction; stale or inaccessible selections roll back entirely. The database trigger records a before/after snapshot for each changed question.\n- [x] Stale or inaccessible selections are rejected; individual confirmation remains subject to verified catalogue and exact chapter/topic evidence.
+- [x] Batch status changes use a SECURITY INVOKER PostgreSQL function that locks and validates the complete owner-scoped batch in one transaction; stale or inaccessible selections roll back entirely. The database trigger records a before/after snapshot for each changed question.
+- [x] Stale or inaccessible selections are rejected; individual confirmation remains subject to verified catalogue and exact chapter/topic evidence.
 - [ ] Shared, centrally curated reference dataset and import pipeline for boards, qualifications, subjects, chapters and topics.
 - [x] Record append-only owner citations for individual syllabus chapters and topics, including HTTPS URL, source title, page/section locator and short supporting excerpt.
 - [x] Structured mappings cannot be marked confirmed unless the catalogue is verified and a citation exists for the exact selected chapter or topic; database trigger enforces this beyond the UI.
@@ -104,8 +107,5 @@
 - [x] Shared reference reader exposes only verified catalogues and their chapter/topic citations.
 - [ ] Appoint the first real platform curator and seed a real official-board catalogue after checking the board's current source documents.
 - [ ] Test verified-only read access and admin write restrictions with two real authenticated accounts; no test accounts or syllabus rows have been fabricated.
-
-- [x] Authenticated clients cannot INSERT a solution with `machine_checked` or `teacher_verified`; only the generated-draft columns are insertable and the database default supplies `generated`.
-- [x] Authenticated clients cannot UPDATE solution verification status; future status promotion requires a separately authorized workflow.
 
 - [ ] Replace or upgrade the legacy ESLint dependency chain so the full development dependency tree can pass `npm audit` without the minimatch v3 compatibility exception. Until then, production dependencies are audited with `npm audit --omit=dev`; the development-toolchain advisory remains documented and is not represented as resolved.
