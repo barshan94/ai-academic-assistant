@@ -33,6 +33,7 @@ async function refreshDriveAccessToken(encryptedToken: string) {
       grant_type: "refresh_token",
     }),
     cache: "no-store",
+    signal: AbortSignal.timeout(15_000),
   });
   const payload = await response.json() as { access_token?: string; error?: string; error_description?: string };
   if (!response.ok || !payload.access_token) {
