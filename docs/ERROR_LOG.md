@@ -464,5 +464,5 @@ This file records material implementation, CI, integration and release problems 
 - Symptom: The new test intended to verify that a revoked teacher loses access to a question and solution failed to parse; pgTAP stopped after 14 of the planned 20 assertions.
 - Root cause: , which PostgreSQL rejected.
 - Fix: Normalized all test arguments to paired `$` delimiters; confirmed the file contains exactly 20 assertions for its `plan(20)`. The test retains assertions for owner revocation, preservation of the owner's historical review, loss of former-teacher read access, and denial of subsequent review writes.
-- Verification: Correction committed as `f14e61efbb4c0beed7c123bc4c0074fc25d378b1`; a fresh database CI run is pending. It is not yet marked passed.
+- Verification: The first correction left several original delimiters incomplete; CI caught that too. All SQL arguments were then normalized using exact paired delimiters and the file was checked for incomplete delimiter lines (20 assertions match `plan(20)`). Latest correction committed as `a693dfae14b44554765b324e5968b092b254775d`; fresh database CI is pending. It is not yet marked passed.
 - Status: Code corrected; fresh CI verification pending.
