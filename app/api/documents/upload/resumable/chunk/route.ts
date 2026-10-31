@@ -6,6 +6,7 @@ import { isValidDriveChunk, parseDriveUploadOffset, readDriveUploadChunk } from 
 import { MAX_UPLOAD_BYTES } from "@/lib/documents/upload-limits";
 
 export const runtime = "nodejs";
+export const maxDuration = 60;
 
 type UploadSession = {
   ownerId: string;
