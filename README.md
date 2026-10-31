@@ -56,7 +56,7 @@ A personal academic workspace for Edexcel O/A Level, SSC and HSC tutoring. It ac
 2. Copy .env.example to .env.local.
 3. Configure Supabase URL and publishable key for local auth/database access.
 4. Run npm run dev.
-5. Before a milestone is considered complete, run npm run lint, npm run typecheck, npm test and npm run build.
+5. Complete the implementation phase first when requested; run npm run lint, npm run typecheck, npm test and npm run build only during the separately approved testing phase.
 
 Never commit .env.local, service-role keys, OAuth tokens, student personal data or private source documents. Applied Supabase migrations are mirrored in supabase/migrations/.
 
