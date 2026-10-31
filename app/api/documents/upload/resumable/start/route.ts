@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { logSafeOperationalEvent } from "@/lib/observability/safe-log";
 import { getDriveAccessToken, initiateResumablePdfUpload } from "@/lib/drive/google";
 import { encryptDriveUploadSession } from "@/lib/drive/crypto";
 import { MAX_UPLOAD_BYTES, safeFileName } from "@/lib/documents/upload-limits";
@@ -68,6 +69,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ sessionToken, chunkSize: 1024 * 1024 });
   } catch {
+    logSafeOperationalEvent("upload_session_start_failed", { route: "/api/documents/upload/resumable/start", errorCode: "UPLOAD_SESSION_START_FAILED" });
     return NextResponse.json({ error: "Could not start the Google Drive upload. Check your connection and try again." }, { status: 500 });
   }
 }
