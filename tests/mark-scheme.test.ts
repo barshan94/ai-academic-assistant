@@ -25,6 +25,14 @@ describe("mark scheme review checklist", () => {
     expect(result).not.toHaveProperty("score");
   });
 
+  it("does not treat a phrase embedded inside a longer word as a match", () => {
+    const result = compareAnswerToMarkScheme("Newtonian mechanics is useful.", {
+      ...scheme,
+      points: [{ id: "B2", description: "Name the unit", keyPhrases: ["newton"] }],
+    });
+    expect(result[0].status).toBe("not_found");
+  });
+
   it("normalizes case, punctuation and Unicode compatibility", () => {
     const result = compareAnswerToMarkScheme("RESULTANT-FORCE is proportional.", scheme);
     expect(result[0].matchedPhrases).toContain("resultant force");
