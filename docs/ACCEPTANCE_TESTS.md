@@ -96,7 +96,8 @@
 - [x] Source citations are owner-scoped, readable only by their owner, and cannot be edited or deleted by authenticated clients; the UI clearly says citations are not independently certified by the app.
 - [x] Shared-reference database authorization regression tests cover curator/admin boundaries, evidence insertion, verified-only reads, and immutable provenance in isolated pgTAP CI.
 - [ ] Live non-production two-account acceptance and curator provisioning.
-- [ ] Assisted classification with source evidence and calibrated confidence.
+- [x] Display owner-recorded chapter/topic source evidence alongside lexical classification suggestions, and rank exact syllabus section-code matches with an explicit reason; scores remain non-probabilistic.
+- [ ] Calibrate classification confidence against a manually labelled, representative dataset; do not present lexical overlap scores as probabilities.
 - [x] Chapter notes retain contributing question/page source references and show citation keys for AI-generated notes.
 - [x] Chapter-note immutability, append-only source history, source-required approval, and second-account RLS/RPC isolation are covered by pgTAP; all 15 chapter-note assertions and 110 total database assertions passed in isolated CI run `41217592205` (branch head `a08f414`).
 - [x] Chapter-note source-integrity pgTAP coverage passes: reject unreviewed and wrong-chapter questions, revalidate question approval at note approval, and accept a mixed-chapter page when at least one approved question on that page matches the note chapter (isolated local Supabase CI run 41215912807, commit 19335bc).

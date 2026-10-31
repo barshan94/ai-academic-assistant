@@ -68,7 +68,7 @@ Implemented on feature/m3-ai-solver:
 
 M5 exit criteria still outstanding:
 - Populate and maintain the shared reference library with real official-board syllabus versions and citations. The shared schema and curator workflow now exist, and two Cambridge 2026–2028 shared catalogues have been seeded as curator-only drafts with chapter/topic evidence locators (Physics 5054: 63 topic headings; Chemistry 5070: 49). Separate owner-private JSON imports are also available. Neither shared draft is verified or visible to ordinary users. Detailed learning objectives are not imported; a curator must check every heading against the live official PDF and confirm administrative-zone availability before publication.
-- Improve assisted classification with official source evidence and calibrated confidence; current lexical suggestions are only a navigation aid and must not be treated as evidence or probability. Never silently guess a syllabus version.
+- Improve assisted classification with calibrated confidence; current lexical suggestions remain transparent navigation aids, not probabilities. Exact section-code matches receive an explicit reason, and chapter/topic suggestions now display their owner-recorded source evidence before selection. Never silently guess a syllabus version.
 
 ### M6 status — foundation started
 Implemented on feature/m3-ai-solver:
