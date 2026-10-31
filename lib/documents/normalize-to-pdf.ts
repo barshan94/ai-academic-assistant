@@ -1,7 +1,6 @@
 import { PDFDocument } from "pdf-lib";
 
-export const MAX_UPLOAD_BYTES = 100 * 1024 * 1024;\nexport const MAX_UPLOAD_CHUNK_BYTES = 1024 * 1024;
-export const MAX_IMAGE_COUNT = 50;
+export const MAX_UPLOAD_BYTES = 100 * 1024 * 1024;\nexport const MAX_IMAGE_COUNT = 50;
 
 export function safeFileName(value: string) {
   return value
