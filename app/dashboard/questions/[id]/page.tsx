@@ -50,6 +50,16 @@ function classificationSummary(state: Json | null): string {
   return parts.length ? parts.join(" · ") : "No syllabus labels recorded";
 }
 
+function knowledgeProvenanceSummary(value: Json | null): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.slice(0, 3).flatMap((item) => {
+    if (!item || typeof item !== "object" || Array.isArray(item)) return [];
+    const record = item as { [key: string]: Json | undefined };
+    if (typeof record.note_id !== "string" || typeof record.version_number !== "number" || typeof record.title !== "string") return [];
+    return [record.title + " · Version " + record.version_number + " · " + record.note_id.slice(0, 8)];
+  });
+}
+
 function sourceProvenanceSummary(value: Json | null): string | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   const metadata = value as { [key: string]: Json | undefined };
@@ -78,7 +88,7 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
 
   const typedSupabase = supabase as unknown as SupabaseClient<DatabaseWithAISolutions>;
   const { data: solutions, error: solutionError } = await typedSupabase.from("question_solutions")
-    .select("id,owner_id,provider,model,prompt_version,answer_json,source_context,verification_status,created_at")
+    .select("id,owner_id,provider,model,prompt_version,answer_json,source_context,knowledge_sources,verification_status,created_at")
     .eq("question_id", question.id)
     .order("created_at", { ascending: false })
     .limit(20);
@@ -117,6 +127,16 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
         .limit(20)
     : { data: [], error: null };
   const isOwner = question.owner_id === user.id;
+  const { data: approvedChapterNotes, error: approvedChapterNotesError } = isOwner &&
+    question.syllabus_chapter_id && question.classification_status === "confirmed"
+    ? await supabase.from("chapter_note_versions")
+        .select("id,title,version_number")
+        .eq("owner_id", user.id)
+        .eq("chapter_id", question.syllabus_chapter_id)
+        .eq("status", "approved")
+        .order("version_number", { ascending: false })
+        .limit(3)
+    : { data: [], error: null };
   const { data: sourcePage } = isOwner && question.document_page_id
     ? await supabase.from("document_pages").select("id,page_number,extracted_text,extraction_method,status").eq("id", question.document_page_id).eq("document_id", question.document_id).eq("owner_id", user.id).maybeSingle()
     : { data: null };
@@ -228,6 +248,11 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
                 <p className="question-card-meta">Optional. Only this page is shared, trimmed to 8,000 characters. Extraction method: {sourcePage.extraction_method ?? "unknown"}; page {sourcePage.page_number}. OCR and PDF extraction can contain mistakes. This text is not an official mark scheme.</p>
                 <details><summary>Preview the text that may be shared</summary><pre className="solution-prose">{sourcePage.extracted_text.trim().slice(0, 8000)}</pre></details>
               </div> : <p className="question-card-meta">No usable extracted source page is linked to this question. You can still generate an answer without source text.</p>}
+              {approvedChapterNotes?.length ? <div className="source-context-option">
+                <label><input type="checkbox" name="includeKnowledgeContext" value="yes" /> Include up to three approved notes from this exact syllabus chapter</label>
+                <p className="question-card-meta">Only approved versions owned by you and linked to this confirmed chapter are included. They are secondary study material, not official mark schemes. The selected note IDs and versions are recorded with the answer.</p>
+                <ul className="calculation-checks">{approvedChapterNotes.map((note) => <li key={note.id}><span>{note.title} · Version {note.version_number}</span></li>)}</ul>
+              </div> : approvedChapterNotesError ? <p className="question-card-meta">Could not load approved chapter notes for optional retrieval.</p> : null}
               <button className="primary-action" type="submit">Generate AI answer <span aria-hidden="true">→</span></button>
               <p className="question-card-meta">This action sends the question to your configured AI provider and may incur provider charges. Source text is sent only if you check the box above.</p>
             </form>
@@ -370,6 +395,9 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
             {answer.limitations.length ? <><h3>Limitations</h3><ul>{answer.limitations.map((item, index) => <li key={index}>{item}</li>)}</ul></> : null}
             <p className="question-card-meta">Provider: {selectedSolution?.provider} · Model: {selectedSolution?.model} · Prompt: {selectedSolution?.prompt_version}</p>
             {sourceProvenanceSummary(selectedSolution?.source_context ?? null) ? <p className="question-card-meta">Source context used: {sourceProvenanceSummary(selectedSolution?.source_context ?? null)}. The extracted text itself is not stored with this answer.</p> : null}
+            {knowledgeProvenanceSummary(selectedSolution?.knowledge_sources ?? null).length ? (
+              <p className="question-card-meta">Approved chapter notes used as secondary context: {knowledgeProvenanceSummary(selectedSolution?.knowledge_sources ?? null).join(" · ")}. The immutable note versions are referenced; their full text is not copied into this answer record.</p>
+            ) : null}
             <p className="notice notice-info">AI-generated draft. Review feedback is recorded separately and does not alter this answer. A teacher review is independent of the owner review, but it is not an official exam-board mark scheme.</p>
             <section className="section">
               <p className="eyebrow">MARK-SCHEME COMPARISON · OWNER-SUPPLIED SOURCE</p>
