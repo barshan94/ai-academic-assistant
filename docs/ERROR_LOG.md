@@ -308,5 +308,5 @@ This file records material implementation, CI, integration and release problems 
 - Symptom: A document page containing multiple captured questions could be rejected for a note even when at least one approved question on that page belonged to the selected chapter.
 - Root cause: The approval trigger joined every question on the page and rejected the page if any joined question was unapproved or classified to another chapter. A page can legitimately contain questions from more than one chapter.
 - Fix: Approval now requires at least one owner-matching, approved question on the page classified to the note's exact catalogue and chapter. Added a regression fixture with both matching and other-chapter questions on one page.
-- Verification: Updated pgTAP suite is awaiting feature-branch CI. No hosted Supabase migration was applied.
-- Status: Guard corrected; verification pending.
+- Verification: Isolated local Supabase migration and pgTAP workflow 41215912807 passed on commit 19335bc, including the mixed-chapter page regression. No hosted Supabase migration was applied.
+- Status: Fixed and verified in CI; live hosted migration and authenticated browser acceptance remain pending.
