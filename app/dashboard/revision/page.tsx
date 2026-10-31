@@ -11,7 +11,7 @@ type PageProps = {
 };
 
 const confidenceLabels: Record<number, string> = {
-  1: "I couldn't solve it",
+  1: "I could not solve it",
   2: "I needed major help",
   3: "I solved it with some effort",
   4: "I solved it confidently",
@@ -98,8 +98,8 @@ export default async function RevisionPage({ searchParams }: PageProps) {
         ) : (
           <div className="question-list">
             {rows.sort((a, b) => {
-              const aDue = a.progress ? new Date(a.progress.next_review_at).getTime() : Number.NEGATIVE_INFINITY;
-              const bDue = b.progress ? new Date(b.progress.next_review_at).getTime() : Number.NEGATIVE_INFINITY;
+              const aDue = a.progress ? new Date(a.progress.next_review_at).getTime() : now;
+              const bDue = b.progress ? new Date(b.progress.next_review_at).getTime() : now;
               return aDue - bDue;
             }).map(({ question, progress: item }) => {
               const due = !item || new Date(item.next_review_at).getTime() <= now;
