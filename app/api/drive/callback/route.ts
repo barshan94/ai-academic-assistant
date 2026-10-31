@@ -59,6 +59,12 @@ export async function GET(request: NextRequest) {
     const tokenData = await tokenResponse.json() as GoogleTokenResponse;
     if (!tokenResponse.ok) return finish("/dashboard/documents", "token_exchange_failed");
 
+    const requiredScope = "https://www.googleapis.com/auth/drive.file";
+    const grantedScopes = (tokenData.scope ?? requiredScope).split(/\\s+/).filter(Boolean);
+    if (grantedScopes.length !== 1 || grantedScopes[0] !== requiredScope) {
+      return finish("/dashboard/documents", "scope_mismatch");
+    }
+
     let encryptedToken: string | null = tokenData.refresh_token
       ? encryptRefreshToken(tokenData.refresh_token)
       : null;
@@ -77,7 +83,7 @@ export async function GET(request: NextRequest) {
     const { error } = await supabase.from("drive_connections").upsert({
       owner_id: user.id,
       encrypted_refresh_token: encryptedToken,
-      granted_scope: tokenData.scope ?? "https://www.googleapis.com/auth/drive.file",
+      granted_scope: requiredScope,
       updated_at: new Date().toISOString(),
     });
     return finish("/dashboard/documents", error ? "save_failed" : "connected");
