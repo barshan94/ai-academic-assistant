@@ -288,3 +288,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Restored the exact $$ delimiters for both statements. No production migration change was needed for this syntax failure.
 - Verification: A fresh database-authorization workflow was triggered on commit bbf7349; result pending. The earlier run had 97 database assertions across the suite but did not complete the new chapter-note test file.
 - Status: Test syntax corrected; CI re-run pending.
+
+
+## ERR-025 — Chapter-note approval trigger replacement initially omitted page-source validation
+
+- Date: 2026-10-31
+- Area: M6 chapter-note approval integrity
+- Symptom: While extending the approval trigger to revalidate question sources, the replacement body initially checked question references but omitted the existing document-page-to-approved-question validation.
+- Root cause: The trigger function was replaced wholesale without carrying forward the earlier page-source branch.
+- Fix: Restored a page-source validation branch. Every attached page must still exist for the same owner and be linked to an approved question classified to the same catalogue and chapter at approval time.
+- Verification: The updated migration is included in the latest feature-branch CI run; database pgTAP verification remains pending.
+- Status: Corrected in migration before any live deployment; hosted Supabase was not changed.
