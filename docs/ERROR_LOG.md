@@ -429,3 +429,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Update the expected draft-catalogue count from two to four and keep the 170-topic / 200-evidence assertions aligned with the four source-indexed drafts.
 - Verification: Initial failure occurred in database run `41226067515`; corrected branch commit `6c795325` passed all 149 pgTAP assertions across six files in run `41226216227`.
 - Status: Fixed and CI-verified.
+
+
+## ERR-040 — Teacher verification migration had an unterminated dollar-quoted function body
+
+- Date: 2026-11-01
+- Area: M4 teacher verification / database migration
+- Symptom: Clean local Supabase migration application failed at the SQL wrapper's `select` statement.
+- Root cause: The private PL/pgSQL function body ended with a single dollar sign instead of the matching `$$` delimiter, so PostgreSQL continued parsing the following SQL wrapper as part of the function body.
+- Fix: Restore the matching `$$` function-body terminator. No application behavior or authorization policy was weakened.
+- Verification: Corrected migration is committed in `74307a2f`; clean-database CI rerun is pending.
+- Status: Syntax fix committed; database migration and pgTAP verification pending.
