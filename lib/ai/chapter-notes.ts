@@ -33,6 +33,22 @@ export async function generateChapterNote(input: {
   if (!input.sources.length || input.sources.length > 12) {
     throw new AIProviderError("CHAPTER_NOTE_SOURCES_INVALID");
   }
+  const refs = new Set<string>();
+  for (const source of input.sources) {
+    if (
+      !/^S(?:[1-9]|1[0-2])$/.test(source.ref) ||
+      refs.has(source.ref) ||
+      !source.questionId.trim() ||
+      !source.questionText.trim() ||
+      source.questionText.length > 20000 ||
+      (source.pageNumber !== null && (!Number.isInteger(source.pageNumber) || source.pageNumber < 1)) ||
+      (source.pageText !== null && source.pageText.length > 100000) ||
+      (source.extractionMethod !== null && !["pdf_text", "ocr", "manual"].includes(source.extractionMethod))
+    ) {
+      throw new AIProviderError("CHAPTER_NOTE_SOURCE_INVALID");
+    }
+    refs.add(source.ref);
+  }
 
   const sourceText = input.sources.map((source) => [
     "[" + source.ref + "]",
