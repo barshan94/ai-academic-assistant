@@ -59,6 +59,10 @@ export function MarkSchemeEditor({ solutionId, board, qualification, subject }: 
       <input id="mark-scheme-paper" name="paperReference" maxLength={100} />
       <label htmlFor="mark-scheme-url">HTTPS source URL</label>
       <input id="mark-scheme-url" name="sourceUrl" type="url" required placeholder="https://..." />
+      <label htmlFor="mark-scheme-locator">Exact source locator</label>
+      <input id="mark-scheme-locator" name="sourceLocator" required maxLength={160} placeholder="e.g. page 4, question 2(b), marking point M1" />
+      <label htmlFor="mark-scheme-version">Exam series / document version (optional)</label>
+      <input id="mark-scheme-version" name="sourceDocumentVersion" maxLength={100} placeholder="e.g. June 2025, specification 2024–2026" />
       <input type="hidden" name="points" value={serializedPoints} />
       <div className="classification-suggestions">
         <h4>Mark points</h4>
