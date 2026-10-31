@@ -44,7 +44,7 @@ function parseProviderConfig(value: unknown, env: Record<string, string | undefi
   const candidate = value as Record<string, unknown>;
   if (
     typeof candidate.name !== "string" || !candidate.name.trim() || candidate.name.length > 60 ||
-    typeof candidate.baseUrl !== "string" ||
+    typeof candidate.baseUrl !== "string" || candidate.baseUrl.length > 500 ||
     typeof candidate.apiKey !== "string" || !candidate.apiKey.trim() || candidate.apiKey.length > 1000 ||
     typeof candidate.model !== "string" || !candidate.model.trim() || candidate.model.length > 160 ||
     !Array.isArray(candidate.tasks) || candidate.tasks.length < 1 ||
