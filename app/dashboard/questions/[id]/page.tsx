@@ -14,7 +14,7 @@ import { ClassificationForm } from "./classification-form";
 
 type PageProps = {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ solve?: string; solution?: string; review?: string; invite?: string; classification?: string }>;
+  searchParams: Promise<{ solve?: string; solution?: string; review?: string; invite?: string; classification?: string; mark_scheme?: string }>;
 };
 
 const messages: Record<string, string> = {
