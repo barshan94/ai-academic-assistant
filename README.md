@@ -60,17 +60,17 @@ A personal academic workspace for Edexcel O/A Level, SSC and HSC tutoring. It ac
 
 Never commit .env.local, service-role keys, OAuth tokens, student personal data or private source documents. Applied Supabase migrations are mirrored in supabase/migrations/.
 
-## Current status (31 October 2026)
+## Current status (1 November 2026)
 
-M1 foundation, the core M2 document intake flow, M3 structured AI answer generation, M4 deterministic checks and review history, M5 owner-scoped syllabus classification/catalogues, M6 source-linked chapter notes, and M7 revision/practice/study-planning experiences are implemented in code on the feature branch.
+M1–M7 application features are substantially implemented in code on `feature/m3-ai-solver`. Recent implementation work tightened Drive OAuth to the exact `drive.file` scope, added owner-scoped upload-session quotas, bounded provider requests, redacted upstream error details, and added exact source locators to saved mark-scheme references.
 
 Implementation is not the same as release acceptance. The remaining work is tracked in `docs/ROADMAP.md` and `docs/ACCEPTANCE_TESTS.md`:
 
-- **M2:** resumable uploads up to 50 MB and a GitHub Actions scheduled processing worker are implemented in code. The GitHub Actions scheduler and setup guide are committed on this feature branch. Scheduled execution requires merging to the default branch (GitHub only runs scheduled workflows there); repository secrets and deployed environment variables must then be configured, followed by live non-production processing, Google OAuth/Drive acceptance and document cross-account tests.
-- **M3–M4:** live provider generation with explicit cost approval, a manually graded golden question set, stronger source/official mark-scheme grounding, and real two-account teacher acceptance. AI remains disabled until the owner configures provider credentials.
+- **M2:** resumable uploads up to 50 MB, upload quotas of 10 new sessions/hour and 50/day per owner, and a one-job-per-invocation worker are implemented in code. Live Google OAuth/Drive, resumable interruption recovery, worker scheduling, deployment secrets and two-account isolation still require non-production acceptance.
+- **M3–M4:** live provider generation with explicit cost approval, a manually graded golden question set, independent source/mark-scheme review, and real two-account teacher acceptance remain. Mark-scheme references are owner-supplied evidence, not certified official schemes. AI remains disabled until the owner configures provider credentials.
 - **M5:** four Cambridge/Pearson Edexcel science draft catalogues are seeded for curator review (30 chapters, 170 numbered topic headings, 200 source-evidence locators). They are not verified or visible to ordinary users until a real curator checks and publishes them. Lexical suggestions are not calibrated confidence.
-- **M6:** live AI chapter-note evaluation, independent source-quality review, dedicated per-note downloads and automated print-layout checks remain.
-- **M7:** code and 29 new database authorization assertions are committed; the isolated Supabase migration/pgTAP workflow must pass before acceptance.
-- **M8:** backup/restore, operational recovery, security/privacy, accessibility, performance and release acceptance remain.
+- **M6:** live AI chapter-note evaluation, independent source-quality review, and browser acceptance of downloads/print layout remain.
+- **M7:** revision, practice, analytics and study planning are implemented in code. Isolated database authorization coverage previously passed 37 study-feature assertions; latest-branch acceptance is still pending.
+- **M8:** full backup/restore, operational recovery, redacted observability, CSP, accessibility, performance and release acceptance remain. Supabase Free backup limitations are documented; a full account-and-data restore is not claimed.
 
-GitHub Actions runs lint, type-check, unit tests, build, Chromium smoke tests and local Supabase database tests. Authenticated two-account tests remain separately gated by test-only credentials. The existing development Supabase project currently contains the M1–M6 schema; M7 migrations are committed but have not been applied to that project. No production merge or deployment is authorized.
+The branch's automated workflows may run automatically after commits, but this development phase is focused on implementation, not testing. The authenticated two-account workflow remains separately gated by dedicated non-production credentials. No production merge, hosted Supabase migration or deployment is authorized.
