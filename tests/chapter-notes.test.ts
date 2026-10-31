@@ -85,6 +85,30 @@ describe("AI chapter note generation", () => {
     expect(fetcher).not.toHaveBeenCalled();
   });
 
+  it("rejects duplicate or malformed source references before calling the provider", async () => {
+    const fetcher = vi.fn<typeof fetch>();
+    await expect(generateChapterNote({
+      board: "Cambridge",
+      qualification: "O Level",
+      subject: "Physics",
+      chapter: "Forces",
+      sources: [{ ...sources[0], ref: "S1" }, { ...sources[0], ref: "S1" }],
+    }, config, fetcher)).rejects.toMatchObject({ message: "CHAPTER_NOTE_SOURCE_INVALID" });
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
+  it("rejects invalid source page metadata", async () => {
+    const fetcher = vi.fn<typeof fetch>();
+    await expect(generateChapterNote({
+      board: "Cambridge",
+      qualification: "O Level",
+      subject: "Physics",
+      chapter: "Forces",
+      sources: [{ ...sources[0], pageNumber: 0 }],
+    }, config, fetcher)).rejects.toMatchObject({ message: "CHAPTER_NOTE_SOURCE_INVALID" });
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
   it("rejects malformed structured output", async () => {
     const fetcher = vi.fn<typeof fetch>().mockResolvedValue(responseWith("{not-json"));
     await expect(generateChapterNote({
