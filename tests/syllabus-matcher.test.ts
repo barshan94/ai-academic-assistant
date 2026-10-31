@@ -23,6 +23,15 @@ describe("syllabus text-match suggestions", () => {
     expect(result[0].reasons).toContain("The full catalogue label appears in the question text");
   });
 
+  it("prioritizes an exact syllabus section-code match and explains why", () => {
+    const result = rankSyllabusTextMatches("Use section 4.2.1 to answer the question.", [
+      { id: "wrong", title: "Electric circuits", code: "4.3.2" },
+      { id: "right", title: "Electrical charge", code: "4.2.1" },
+    ]);
+    expect(result[0]?.id).toBe("right");
+    expect(result[0]?.reasons).toContain("The syllabus section code appears in the question text");
+  });
+
   it("does not suggest a candidate from generic instruction words alone", () => {
     expect(rankSyllabusTextMatches("Explain and describe the answer.", candidates)).toEqual([]);
   });
