@@ -375,3 +375,8 @@ h2 { font-size: 24px; letter-spacing: -.04em; margin: 0; font-weight: 600; }
   .chapter-note-source-full > pre { display: block !important; }
   a { color: #111 !important; text-decoration: none !important; }
 }
+
+/* Formula syntax scan is advisory and never a correctness badge. */
+.formula-check-warnings { margin: 6px 0 8px !important; padding: 7px 10px 7px 26px !important; border-left: 2px solid #c58a45; background: #211b14; color: #e6bd8b !important; }
+.formula-check-ok { display: block; margin-top: 5px; color: var(--muted); font-size: 9px; line-height: 1.5; }
+@media print { .formula-check-warnings { background: #fff !important; border-left-color: #9a642b !important; } }
