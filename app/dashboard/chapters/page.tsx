@@ -4,6 +4,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { signOut } from "../actions";
 import { createChapterNoteDraft, generateChapterNoteDraft, updateChapterNoteStatus } from "./actions";
 import PrintNotesButton from "./print-notes-button";
+import DownloadChapterNoteButton from "./download-note-button";
 import { checkFormulaSyntax } from "@/lib/ai/formula-checks";
 
 type PageProps = { searchParams: Promise<{ create?: string; status?: string; ai?: string }> };
@@ -197,7 +198,7 @@ export default async function ChapterWorkspacePage({ searchParams }: PageProps) 
                       const content = note.content_json as unknown as NoteContent;
                       const noteSources = (sources ?? []).filter((source) => source.note_version_id === note.id);
                       return <article className="chapter-note-version" data-note-id={note.id} key={note.id}>
-                        <div className="question-card-heading"><strong>v{note.version_number} · {note.title}</strong><span className="document-status">{note.status}</span></div><div className="hero-actions"><PrintNotesButton noteId={note.id} /></div>
+                        <div className="question-card-heading"><strong>v{note.version_number} · {note.title}</strong><span className="document-status">{note.status}</span></div><div className="hero-actions"><PrintNotesButton noteId={note.id} /><DownloadChapterNoteButton title={note.title} content={content} /></div>
                         {content.generatedBy === "ai" ? <p className="question-card-meta">AI-generated draft · not independently verified · owner review required</p> : null}
                         {content.summary ? <p className="chapter-note-summary">{content.summary}</p> : null}
                         <ContentList title="Key concepts" items={content.concepts} />
