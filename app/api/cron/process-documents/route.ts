@@ -150,7 +150,7 @@ export async function GET(request: Request) {
         throw new Error("The document was processed but the worker could not finalize its job record.");
       }
       return Response.json({ processed: true, job_id: jobId, page_count: pages.length });
-    } catch (error) {
+    } catch {
       // Keep provider/database exception text out of persistent job rows and
       // HTTP responses. Detailed diagnostics belong in a separately reviewed,
       // redacted observability channel, not owner-visible job metadata.
