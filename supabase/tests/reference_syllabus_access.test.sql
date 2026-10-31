@@ -48,7 +48,7 @@ select lives_ok(
 );
 select lives_ok(
   $$update public.reference_syllabus_catalogs set status = 'verified'
-    where subject = 'Physics' and version = '2026'$,
+    where subject = 'Physics' and version = '2026'$$,
   'catalogue can be verified after chapter and topic evidence are recorded'
 );
 select is(
