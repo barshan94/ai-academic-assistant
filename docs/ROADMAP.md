@@ -139,6 +139,12 @@ M6 remaining:
 - Remaining: full backup/restore proof (Supabase Free limitations are documented), platform log dashboards and alert thresholds, development dependency audit remediation, CSP/auth/browser acceptance, accessibility/performance review and release readiness.
 - External setup still required: non-production Google OAuth credentials, worker bearer secret and default-branch schedule, approved AI provider credentials/budget, optional Brave Search key/budget, and isolated two-account test credentials. Feature-branch migrations have not been applied to the hosted development Supabase project.
 
+## M4 status — implemented in code, independent acceptance pending
+
+- Owner-scoped teacher invitations, expiring/revocable invitation tokens, independent review records, correction notes and append-only verification history are implemented.
+- The review RPC validates the teacher's accepted invitation and exact saved answer before recording a decision. The owner can see review history; the invited teacher cannot modify the owner's answer or mark-scheme records.
+- Remaining: real two-account acceptance with separate owner/teacher identities, invitation expiry/revocation cases, cross-account RLS and human review of the workflow.
+
 ## M4 exit criteria
 - Unsupported verification is explicitly marked not checked.
 - Independent teacher feedback is tied to authenticated reviewer identity.
