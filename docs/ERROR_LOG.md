@@ -1,0 +1,93 @@
+# Engineering Error Log
+
+This file records material implementation, CI, integration and release problems encountered in this project. Add new entries rather than erasing history. Never include credentials, private student data, OAuth tokens or sensitive payloads.
+
+## Error record format
+- ID / date
+- Area
+- Symptom
+- Root cause
+- Fix
+- Verification
+- Status / remaining limitation
+
+## ERR-001 — GitHub Actions database port collision
+- Date: 2026-10-30
+- Area: CI / local Supabase
+- Symptom: Database workflow could not start because default PostgreSQL port 54322 was already occupied on the GitHub runner.
+- Root cause: Workflow assumed the default local Supabase port was free.
+- Fix: Override database port to 55432 and shadow database port to 55430 after Supabase initialization.
+- Verification: Isolated database startup and migrations passed in https://github.com/barshan94/ai-academic-assistant/actions/runs/41189616384.
+- Status: Fixed and verified in CI.
+
+## ERR-002 — Malformed dollar-quote delimiters in authorization SQL
+- Date: 2026-10-30
+- Area: PostgreSQL / pgTAP
+- Symptom: Question-solution access test failed to parse SQL near invitation/solution mutation cases.
+- Root cause: Several SQL statements used malformed or mismatched dollar-quote delimiters, including $insert, $$$insert and inconsistent update/delete delimiters.
+- Fix: Normalized SQL delimiters to balanced $$ blocks and retained 15 authorization assertions.
+- Verification: Static delimiter/assertion checks passed; combined database workflow passed in https://github.com/barshan94/ai-academic-assistant/actions/runs/41189616384.
+- Status: Fixed and verified in CI.
+
+## ERR-003 — Practice queue expected-count mismatch
+- Date: 2026-10-30
+- Area: Database tests / M7
+- Symptom: Practice queue test expected a different count than the seeded fixture and query filters returned.
+- Root cause: Assertion expected count did not match fixture/query semantics.
+- Fix: Corrected expected count.
+- Verification: All 29 M7 study-feature pgTAP assertions passed in run 41189469872; latest combined database workflow also passed.
+- Status: Fixed and verified in CI.
+
+## ERR-004 — Interrupted document jobs remained marked running
+- Date: 2026-10-31
+- Area: M2 document processing / recovery
+- Symptom: A request/server interruption after claiming a job could leave it running indefinitely; later attempts returned already_processing.
+- Root cause: Job claiming existed without stale-running recovery.
+- Fix: Added 15-minute stale detection. Recovery updates only a job whose status is still running and whose started_at still matches the originally read value. The existing retry-limit and claim path then applies. The document list exposes a recovery/check action.
+- Verification: Unit tests cover stale, fresh, missing, invalid, future and custom-threshold timestamps. CI pending for this commit.
+- Status: Implemented; verification pending. This is user-triggered recovery, not a durable scheduled worker.
+
+## ERR-005 — Authenticated two-account acceptance skipped
+- Date: 2026-10-31
+- Area: Authenticated browser E2E
+- Symptom: Two-account Supabase acceptance workflow skipped.
+- Root cause: Dedicated non-production test-project credentials and enablement variable are not configured in GitHub Actions.
+- Fix: Exact setup and secret names are documented in docs/AUTHENTICATED_E2E_SETUP.md. No production credentials or fabricated accounts are used.
+- Verification: Workflow reports skipped when required environment is absent.
+- Status: Blocked on owner-provided non-production test project and accounts; not a passing test.
+
+## ERR-006 — Vercel deployment blocked by account deployment limit
+- Date: 2026-10-30
+- Area: Preview deployment
+- Symptom: Deployment could not start because account/team deployment limit was reached.
+- Root cause: Platform quota/rate limit, not an application build failure.
+- Fix: Continue GitHub CI validation; retry preview after quota resets or changes.
+- Verification: GitHub production build passed independently.
+- Status: External blocker; deployment not verified.
+
+## ERR-007 — Remote Supabase migration history version drift
+- Date: 2026-10-31
+- Area: Database migration operations
+- Symptom: Two shared-reference migration filenames have timestamp versions that differ from remote migration history entries.
+- Root cause: Local migration files and remote migration ledger use different timestamp identifiers.
+- Fix: Do not blindly apply migrations or rewrite remote history. Reconcile exact schema and ledger against a confirmed non-production environment before applying pending M7 migrations.
+- Verification: Isolated local Supabase migrations pass. Remote migration ledger was not modified.
+- Status: Open; remote schema alignment unverified.
+
+## ERR-008 — Chromium browser smoke test pending
+- Date: 2026-10-31
+- Area: Browser CI
+- Symptom: Chromium job was still installing Chromium at the checkpoint.
+- Root cause: No failure established; browser install/build/test had not completed.
+- Fix: Await workflow result and inspect logs if it fails. Never classify an in-progress job as a pass.
+- Verification: Pending.
+- Status: Pending CI result.
+
+## Known unverified areas
+- Live Google OAuth/Drive acceptance and upload/OCR with an authorized account.
+- Resumable uploads above the current 4 MB request limit.
+- Durable background worker with automatic retry scheduling and operational monitoring.
+- Live AI provider inference and cost-controlled golden-set grading.
+- Two-account teacher and cross-account database acceptance on a dedicated non-production Supabase project.
+- Real official syllabus curation and independent source validation.
+- Backup/restore, accessibility, mobile usability, performance and release acceptance.
