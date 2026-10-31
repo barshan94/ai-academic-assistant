@@ -11,8 +11,8 @@ const chemistry = readFileSync(
   "utf8",
 );
 
-describe("bundled Cambridge O Level syllabus chapter-index drafts", () => {
-  it("validates the Physics 5054 2026–2028 chapter index as a private draft import", () => {
+describe("bundled Cambridge O Level syllabus topic-index drafts", () => {
+  it("validates the Physics 5054 2026–2028 chapter and topic index as a private draft import", () => {
     const parsed = parseSyllabusImportText(physics);
     expect(parsed.success).toBe(true);
     if (!parsed.success) return;
@@ -29,10 +29,12 @@ describe("bundled Cambridge O Level syllabus chapter-index drafts", () => {
       "Nuclear physics",
       "Space physics",
     ]);
-    expect(parsed.data.chapters.every((chapter) => chapter.topics.length === 0)).toBe(true);
+    expect(parsed.data.chapters.map((chapter) => chapter.topics.length)).toEqual([17, 9, 7, 17, 8, 5]);
+    expect(parsed.data.chapters[0]?.topics[0]).toMatchObject({ code: "1.1", title: "Physical quantities and measurement techniques" });
+    expect(parsed.data.chapters[5]?.topics[4]).toMatchObject({ code: "6.2.3", title: "The Universe" });
   });
 
-  it("validates the Chemistry 5070 2026–2028 chapter index as a private draft import", () => {
+  it("validates the Chemistry 5070 2026–2028 chapter and topic index as a private draft import", () => {
     const parsed = parseSyllabusImportText(chemistry);
     expect(parsed.success).toBe(true);
     if (!parsed.success) return;
@@ -43,6 +45,8 @@ describe("bundled Cambridge O Level syllabus chapter-index drafts", () => {
     expect(parsed.data.chapters).toHaveLength(12);
     expect(parsed.data.chapters[0]?.title).toBe("States of matter");
     expect(parsed.data.chapters[11]?.title).toBe("Experimental techniques and chemical analysis");
-    expect(parsed.data.chapters.every((chapter) => chapter.topics.length === 0)).toBe(true);
+    expect(parsed.data.chapters.map((chapter) => chapter.topics.length)).toEqual([2, 7, 3, 2, 1, 4, 3, 5, 6, 3, 8, 5]);
+    expect(parsed.data.chapters[10]?.topics[7]).toMatchObject({ code: "11.8", title: "Polymers" });
+    expect(parsed.data.chapters[11]?.topics[4]).toMatchObject({ code: "12.5", title: "Identification of ions and gases" });
   });
 });
