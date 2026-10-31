@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createHash } from "node:crypto";
 import { prepareSourcePageContext } from "@/lib/ai/source-context";
+import { markSchemeSchema } from "@/lib/ai/mark-scheme";
 import { generateStructuredAnswer, getAIProviderConfig, AIConfigurationError, AIProviderError } from "@/lib/ai/provider";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { DatabaseWithAISolutions } from "@/types/ai-database";
@@ -100,6 +101,58 @@ export async function generateQuestionSolution(formData: FormData) {
   revalidatePath("/dashboard/questions");
   revalidatePath("/dashboard/questions/" + question.id);
   redirect("/dashboard/questions/" + question.id + "?solve=generated");
+}
+
+export async function saveQuestionSolutionMarkScheme(formData: FormData) {
+  const solutionId = z.string().uuid().safeParse(String(formData.get("solutionId") ?? ""));
+  let rawPoints: unknown;
+  try {
+    rawPoints = JSON.parse(String(formData.get("points") ?? ""));
+  } catch {
+    redirect("/dashboard/questions?mark_scheme=invalid_json");
+  }
+  const parsedScheme = markSchemeSchema.safeParse({
+    title: String(formData.get("title") ?? ""),
+    awardingBody: String(formData.get("awardingBody") ?? ""),
+    qualification: String(formData.get("qualification") ?? ""),
+    subject: String(formData.get("subject") ?? ""),
+    paperReference: String(formData.get("paperReference") ?? "") || undefined,
+    sourceUrl: String(formData.get("sourceUrl") ?? ""),
+    points: rawPoints,
+  });
+  if (!solutionId.success || !parsedScheme.success) {
+    redirect("/dashboard/questions?mark_scheme=invalid");
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) redirect("/login");
+
+  const typedSupabase = supabase as unknown as SupabaseClient<DatabaseWithAISolutions>;
+  const { data: solution, error: solutionError } = await typedSupabase
+    .from("question_solutions")
+    .select("id,question_id")
+    .eq("id", solutionId.data)
+    .eq("owner_id", user.id)
+    .maybeSingle();
+  if (solutionError || !solution) redirect("/dashboard/questions?mark_scheme=not_found");
+
+  const scheme = parsedScheme.data;
+  const { error: insertError } = await typedSupabase.from("question_solution_mark_schemes").insert({
+    solution_id: solution.id,
+    owner_id: user.id,
+    title: scheme.title,
+    awarding_body: scheme.awardingBody,
+    qualification: scheme.qualification,
+    subject: scheme.subject,
+    paper_reference: scheme.paperReference ?? null,
+    source_url: scheme.sourceUrl,
+    points: scheme.points as unknown as Json,
+  });
+  if (insertError) redirect("/dashboard/questions/" + solution.question_id + "?mark_scheme=save_failed");
+
+  revalidatePath("/dashboard/questions/" + solution.question_id);
+  redirect("/dashboard/questions/" + solution.question_id + "?solution=" + solution.id + "&mark_scheme=saved");
 }
 
 const solutionReviewSchema = z.object({
