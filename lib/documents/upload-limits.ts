@@ -1,0 +1,4 @@
+export const MAX_UPLOAD_BYTES = 100 * 1024 * 1024;
+export const MAX_IMAGE_COUNT = 50;
+export const DRIVE_UPLOAD_CHUNK_BYTES = 1024 * 1024;
+export const DRIVE_UPLOAD_GRANULARITY_BYTES = 256 * 1024;
