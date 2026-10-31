@@ -32,6 +32,7 @@ export default async function DashboardPage() {
           <Link className="sign-in-link" href="/dashboard/syllabus">Manage syllabus references</Link>
           <Link className="sign-in-link" href="/dashboard/chapters">Open chapter workspace</Link>
           <Link className="sign-in-link" href="/dashboard/revision">Open revision tracker</Link>
+          <Link className="sign-in-link" href="/dashboard/revision/insights">Topic revision insights</Link>
           <Link className="sign-in-link" href="/dashboard/syllabus/review">Classification review queue</Link>
           <Link className="sign-in-link" href="/dashboard/syllabus/references">Shared syllabus library</Link>
         </div>
@@ -48,6 +49,7 @@ export default async function DashboardPage() {
           <article className="module-card"><span className="module-number">04</span><h3>Syllabus catalogue</h3><p>Versioned board, qualification, subject, chapter and topic references with source review.</p><Link className="document-open" href="/dashboard/syllabus">Manage references ↗</Link></article>
           <article className="module-card"><span className="module-number">05</span><h3>Chapter intelligence</h3><p>Build structured, source-linked notes with immutable versions and owner approval.</p><Link className="document-open" href="/dashboard/chapters">Open workspace ↗</Link></article>
           <article className="module-card"><span className="module-number">06</span><h3>Revision tracker</h3><p>Rate your confidence on approved questions and schedule the next review using spaced intervals.</p><Link className="document-open" href="/dashboard/revision">Open revision queue ↗</Link></article>
+          <article className="module-card"><span className="module-number">07</span><h3>Topic gap insights</h3><p>Compare self-reported confidence across mapped syllabus topics and identify what needs another look.</p><Link className="document-open" href="/dashboard/revision/insights">View topic insights ↗</Link></article>
         </div>
       </section>
     </main>
