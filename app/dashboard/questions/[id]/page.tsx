@@ -89,7 +89,7 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
     : latest;
   const { data: savedMarkSchemes, error: markSchemeError } = selectedSolution
     ? await typedSupabase.from("question_solution_mark_schemes")
-        .select("id,title,awarding_body,qualification,subject,paper_reference,source_url,points,created_at")
+        .select("id,title,awarding_body,qualification,subject,paper_reference,source_url,source_locator,source_document_version,points,created_at")
         .eq("solution_id", selectedSolution.id)
         .order("created_at", { ascending: false })
         .limit(20)
@@ -342,6 +342,8 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
                   subject: saved.subject,
                   paperReference: saved.paper_reference ?? undefined,
                   sourceUrl: saved.source_url,
+                  sourceLocator: saved.source_locator ?? "Legacy reference — locator not recorded",
+                  sourceDocumentVersion: saved.source_document_version ?? undefined,
                   points: saved.points,
                 });
                 if (!parsedScheme.success) return <p className="notice notice-error" key={saved.id}>A saved mark scheme has an invalid structure and cannot be compared.</p>;
@@ -350,7 +352,7 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
                   <article className="question-card" key={saved.id}>
                     <h4>{saved.title}</h4>
                     <p className="question-card-meta">{saved.awarding_body} · {saved.qualification} · {saved.subject}{saved.paper_reference ? " · " + saved.paper_reference : ""}</p>
-                    <p className="question-card-meta">Source reference: <a href={saved.source_url} target="_blank" rel="noreferrer noopener">{saved.source_url}</a> · Saved {new Date(saved.created_at).toLocaleString()}</p>
+                    <p className="question-card-meta">Owner-supplied source (not independently verified): <a href={saved.source_url} target="_blank" rel="noreferrer noopener">{saved.source_url}</a> · Locator: {saved.source_locator ?? "Not recorded (legacy reference)"}{saved.source_document_version ? " · Version: " + saved.source_document_version : ""} · Saved {new Date(saved.created_at).toLocaleString()}</p>
                     <ul className="calculation-checks">
                       {comparison.map((point) => <li key={point.id}>
                         <strong>{point.status === "possible_match" ? "POSSIBLE PHRASE MATCH" : point.status === "not_found" ? "PHRASE NOT FOUND" : "MANUAL REVIEW REQUIRED"}</strong>
