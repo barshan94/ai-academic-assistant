@@ -68,7 +68,7 @@
 - [x] Retired catalogues reject new chapter/topic inserts at the RLS policy layer.
 - [ ] Automated database tests prove cross-account catalogue/chapter/topic isolation and reject mismatched reference IDs.
 - [x] Dedicated owner-only queue for unreviewed and uncertain mappings, sorted by missing/lowest confidence first.
-- [ ] Batch review actions with per-question validation and an auditable change history.
+- [x] Batch review accepts 1–50 unique owner question IDs, rejects malformed/duplicate IDs and never offers bulk confirmation.\n- [x] Batch status changes use one conditional SQL update scoped to the owner and pending states; the database trigger records a before/after snapshot for each changed question.\n- [x] Stale or inaccessible selections are rejected; individual confirmation remains subject to verified catalogue and exact chapter/topic evidence.
 - [ ] Shared, centrally curated reference dataset and import pipeline for boards, qualifications, subjects, chapters and topics.
 - [x] Record append-only owner citations for individual syllabus chapters and topics, including HTTPS URL, source title, page/section locator and short supporting excerpt.
 - [x] Structured mappings cannot be marked confirmed unless the catalogue is verified and a citation exists for the exact selected chapter or topic; database trigger enforces this beyond the UI.
