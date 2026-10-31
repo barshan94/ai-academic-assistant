@@ -26,6 +26,8 @@ const messages: Record<string, string> = {
   source_empty: "The selected source page has no usable extracted text. Correct or re-extract the page before opting in.",
   not_configured: "AI solving is not configured. Add an AI provider key and model to the server environment before generating answers.",
   needs_review: "Approve this question in your question library before generating an answer.",
+  knowledge_unavailable: "No approved chapter notes are available for this question\u2019s confirmed syllabus chapter, or their content could not be prepared.",
+  KNOWLEDGE_CONTEXT_INVALID: "The selected chapter-note context could not be prepared safely. Review the notes and try again.",
   save_failed: "The answer was generated but could not be saved. Check the database migration and try again.",
   AI_PROVIDER_UNAVAILABLE: "The AI provider could not be reached. Try again later.",
   AI_PROVIDER_INVALID_RESPONSE: "The AI provider returned an unreadable response.",
