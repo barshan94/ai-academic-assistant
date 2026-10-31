@@ -104,3 +104,6 @@
 - [x] Shared reference reader exposes only verified catalogues and their chapter/topic citations.
 - [ ] Appoint the first real platform curator and seed a real official-board catalogue after checking the board's current source documents.
 - [ ] Test verified-only read access and admin write restrictions with two real authenticated accounts; no test accounts or syllabus rows have been fabricated.
+
+- [x] Authenticated clients cannot INSERT a solution with `machine_checked` or `teacher_verified`; only the generated-draft columns are insertable and the database default supplies `generated`.
+- [x] Authenticated clients cannot UPDATE solution verification status; future status promotion requires a separately authorized workflow.
