@@ -4,13 +4,14 @@ import { isValidDriveChunk, parseDriveUploadOffset } from "./resumable-upload";
 describe("resumable Drive upload protocol", () => {
   it("parses the next byte offset from a confirmed Drive range", () => {
     expect(parseDriveUploadOffset(null)).toBe(0);
-    expect(parseDriveUploadOffset("bytes=0-1048575")).toBe(1048576);
+    expect(parseDriveUploadOffset("bytes=0-1048575", 2097152)).toBe(1048576);
     expect(parseDriveUploadOffset("bytes=0-262143")).toBe(262144);
   });
 
   it("rejects malformed or non-zero-based server ranges", () => {
     expect(() => parseDriveUploadOffset("bytes=10-100")).toThrow("invalid upload range");
     expect(() => parseDriveUploadOffset("0-100")).toThrow("invalid upload range");
+    expect(() => parseDriveUploadOffset("bytes=0-200", 100)).toThrow("out-of-bounds");
   });
 
   it("accepts a 1 MB aligned chunk and a final short chunk", () => {
@@ -41,6 +42,11 @@ describe("resumable Drive upload protocol", () => {
       contentRange: "bytes 0-262143/524289",
       byteLength: 262144,
       totalBytes: 524288,
+    })).toBe(false);
+    expect(isValidDriveChunk({
+      contentRange: "bytes 0-524287/262144",
+      byteLength: 524288,
+      totalBytes: 262144,
     })).toBe(false);
   });
 });
