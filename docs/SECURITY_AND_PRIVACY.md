@@ -32,6 +32,8 @@ Use .env.local for local secrets and keep it ignored by Git. Commit only placeho
 - Retain teacher corrections and version history.
 - Provide a documented backup/export and recovery process.
 - Avoid sending entire archives to AI providers; retrieve only the minimum relevant chunks.
+- Source-page text is excluded from AI requests by default. Only the question owner can explicitly opt in to sharing the single linked page; the excerpt is trimmed to 8,000 characters and OCR/extraction uncertainty is disclosed.
+- Saved answer provenance stores document/page identifiers, extraction method, excerpt hash and length, but not the source excerpt. A database trigger checks that the recorded page/document belongs to the same owner and question; teacher accounts cannot read the original document page.
 
 ## Public repository warning
 Anyone can read source code and documentation. Public visibility does not expose secrets that were never committed, but any secret committed historically must be rotated immediately even if later deleted from Git history.
