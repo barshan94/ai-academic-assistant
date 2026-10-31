@@ -4,6 +4,8 @@ The application includes a server-side worker at `GET /api/cron/process-document
 
 ## GitHub Actions scheduler
 
+**Important:** GitHub scheduled workflows run from the repository's default branch, not an unmerged feature branch. This workflow is committed on the feature branch but will not run on its five-minute schedule until the change is merged into the default branch. A manual `workflow_dispatch` can be used on the feature branch after configuring secrets, but only against a non-production target until acceptance is complete.
+
 The repository workflow `.github/workflows/document-worker.yml` invokes the worker every five minutes and can also be run manually from the Actions tab.
 
 Configure these repository Actions secrets before enabling real processing:
