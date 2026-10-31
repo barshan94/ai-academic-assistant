@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { signOut } from "../actions";
 import { disconnectDrive } from "./actions";
+import { ResumableUploadForm } from "./ResumableUploadForm";
 
 type DocumentsPageProps = {
   searchParams: Promise<{ drive?: string; upload?: string; process?: string }>;
@@ -33,6 +34,7 @@ const notices: Record<string, { text: string; tone: "success" | "error" | "info"
   reprocess_blocked: { text: "This document already has saved questions or chapter-note sources. Reprocessing is blocked to protect those linked records; upload a new document version instead.", tone: "error" },
   reprocess_check_failed: { text: "We could not verify whether existing academic records depend on this document. Nothing was reprocessed. Refresh and try again.", tone: "error" },
   queue_failed: { text: "The processing job could not be queued. The uploaded file was rolled back.", tone: "error" },
+  duplicate: { text: "This exact PDF is already in your library.", tone: "info" },
 };
 
 export default async function DocumentsPage({ searchParams }: DocumentsPageProps) {
@@ -73,7 +75,7 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
       </section>
 
       <section className="section">
-        <div className="section-heading"><div><p className="eyebrow">NEW SOURCE</p><h2>Upload a question paper</h2></div><span className="section-count">4 MB total</span></div>
+        <div className="section-heading"><div><p className="eyebrow">NEW SOURCE</p><h2>Upload a question paper</h2></div><span className="section-count">100 MB maximum</span></div>
         <form className="upload-panel" action="/api/documents/upload" method="post" encType="multipart/form-data">
           <label htmlFor="document-files">Choose one PDF or multiple JPEG/PNG images</label>
           <input id="document-files" name="files" type="file" accept="application/pdf,image/jpeg,image/png" multiple required disabled={!connection} />
