@@ -151,13 +151,21 @@ export async function extractTextFromDrivePdf(input: {
 
 
 export async function revokeDriveRefreshToken(refreshToken: string) {
-  const response = await fetch("https://oauth2.googleapis.com/revoke", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({ token: refreshToken }),
-    cache: "no-store",
-  });
-  return response.ok || response.status === 400;
+  try {
+    const response = await fetch("https://oauth2.googleapis.com/revoke", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ token: refreshToken }),
+      cache: "no-store",
+    });
+
+    // Google returns 400 when a token is invalid or already revoked. Treat that
+    // response as idempotent success; transient server errors remain retryable.
+    return response.ok || response.status === 400;
+  } catch {
+    // Network failures must not be mistaken for a successful revocation.
+    return false;
+  }
 }
 
 export async function initiateResumablePdfUpload(input: {
