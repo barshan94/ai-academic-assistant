@@ -340,3 +340,8 @@ h2 { font-size: 24px; letter-spacing: -.04em; margin: 0; font-weight: 600; }
   .chapter-workspace-card { padding: 14px; }
   .chapter-note-version { padding: 12px; }
 }
+
+.chapter-ai-generate-form { display: grid; justify-items: start; gap: 8px; margin: 14px 0 18px; padding: 14px; border: 1px solid var(--line); border-radius: 9px; background: #0d151d; }
+.chapter-ai-generate-form .question-card-meta { margin: 0; line-height: 1.6; }
+.chapter-ai-generate-form button:disabled { opacity: .45; cursor: not-allowed; }
+.chapter-note-sources p strong { color: var(--accent); margin-right: 5px; }
