@@ -279,3 +279,14 @@ h2 { font-size: 24px; letter-spacing: -.04em; margin: 0; font-weight: 600; }
 .syllabus-evidence-form .review-form { margin-top: 10px; }
 .syllabus-evidence-form textarea { width: 100%; }
 .syllabus-topic-list > li { display: grid; gap: 7px; margin-bottom: 10px; }
+
+
+/* Conservative batch classification review */
+.bulk-review-form { display: grid; gap: 14px; }
+.bulk-review-toolbar { display: grid; grid-template-columns: minmax(0, 1fr) minmax(180px, 230px) auto; align-items: end; gap: 12px; padding: 16px; border: 1px solid var(--line); border-radius: 10px; background: #101821; }
+.bulk-review-toolbar .question-card-meta { margin: 0; line-height: 1.7; }
+.bulk-review-toolbar label { color: #c5d0d9; font-size: 11px; font-weight: 650; }
+.bulk-review-toolbar select { width: 100%; border: 1px solid #354451; border-radius: 7px; background: #0b1219; color: var(--text); padding: 9px; font: inherit; font-size: 11px; }
+.bulk-review-select { display: inline-flex; align-items: center; gap: 7px; color: var(--muted); font-size: 10px; cursor: pointer; }
+.bulk-review-select input { width: 16px; height: 16px; accent-color: var(--accent); }
+@media (max-width: 700px) { .bulk-review-toolbar { grid-template-columns: 1fr; align-items: stretch; } }
