@@ -442,7 +442,7 @@ h2 { font-size: 24px; letter-spacing: -.04em; margin: 0; font-weight: 600; }
 
 
 @media print {
-  .practice-print-control, .practice-print-area .revision-rating-form,
+  .documents-hero.practice-print-header { display: block !important; color: #111 !important; margin-bottom: 14px !important; }\n  .practice-print-header * { color: #111 !important; }\n  .practice-result-summary { display: none !important; }\n  .practice-print-control, .practice-print-area .revision-rating-form,
   .practice-print-area .question-card-footer { display: none !important; }
   .practice-print-area { display: block !important; }
   .practice-print-area .question-card {
