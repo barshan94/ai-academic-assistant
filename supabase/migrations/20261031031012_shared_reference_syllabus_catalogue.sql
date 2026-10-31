@@ -421,7 +421,8 @@ grant select, insert (
   source_locator, evidence_excerpt
 ) on public.reference_syllabus_evidence to authenticated;
 
-grant all on public.platform_admins,
+grant select, insert, update, delete on
+  public.platform_admins,
   public.reference_syllabus_catalogs,
   public.reference_syllabus_chapters,
   public.reference_syllabus_topics,
