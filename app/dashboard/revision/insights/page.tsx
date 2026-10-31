@@ -27,15 +27,13 @@ export default async function RevisionInsightsPage() {
   if (authError || !user) redirect("/login");
 
   const db = supabase as unknown as SupabaseClient<DatabaseWithRevision>;
-  const [{ data: questions, error: questionError }, { data: progress, error: progressError }] = await Promise.all([
-    db.from("questions")
+  const { data: questions, error: questionError, count: approvedQuestionCount } = await db.from("questions")
       .select("id,subject,chapter,topic,created_at", { count: "exact" })
       .eq("owner_id", user.id)
       .eq("review_status", "approved")
       .order("created_at", { ascending: false })
       .order("id", { ascending: false })
-      .limit(1001),
-  ]);
+      .limit(1001);
 
   const questionsLimited = (questions ?? []).length > 1000;
   const visibleQuestions = (questions ?? []).slice(0, 1000);
