@@ -15,7 +15,7 @@
 - [ ] No secrets are committed to Git.
 
 ## Document intake (M2)
-- [x] Reject unsupported file signatures and files over the current 4 MB request limit.
+- [x] Reject unsupported file signatures and enforce a 100 MB normalized-document limit before buffering.
 - [x] Preserve existing PDF bytes unchanged in the normalization helper.
 - [x] Convert one JPEG/PNG image into a single-page PDF.
 - [x] Combine multiple JPEG/PNG images into a PDF with stable selection order.
@@ -26,7 +26,8 @@
 - [ ] Live Google OAuth, PDF upload, image upload, Drive OCR and review workflow tested with the owner's Google account.
 - [x] Manually capture an individual question from a reviewed source page with board/qualification/subject/chapter metadata.
 - [x] Search the source-linked question library and approve/reject captured questions.
-- [ ] Resumable uploads for files larger than 4 MB.
+- [x] Implement resumable 1 MB chunks for PDFs up to 100 MB with AES-256-GCM encrypted session tokens, owner-bound sessions and Google-confirmed resume offsets.
+- [ ] Live Google Drive acceptance for uploads above 4 MB, network interruption/recovery, expired sessions, duplicate handling and final document/job persistence.
 - [x] Implement scheduled server-side document worker with conditional atomic claims, stale-running recovery, per-job retry limits, and one-job-per-invocation processing.
 - [ ] Configure worker secrets and scheduler in a non-production deployment; verify wrong-secret rejection, single-job processing, concurrent claim safety, retry exhaustion and stale recovery.
 - [ ] Durable background processing worker and automatic retries proven in live integration tests.
