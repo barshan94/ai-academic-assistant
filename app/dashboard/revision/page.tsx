@@ -94,7 +94,7 @@ export default async function RevisionPage({ searchParams }: PageProps) {
       <section className="section">
         <div className="section-heading"><div><p className="eyebrow">PRIORITIZED PRACTICE</p><h2>What to revise</h2></div><span className="section-count">{dueCount} due now</span></div>
         {rows.length === 0 ? (
-          <div className="empty-state"><h3>Your revision queue is empty</h3><p>Approve questions in your question library first. They'll appear here for confidence tracking.</p><Link className="primary-action" href="/dashboard/questions">Open question library →</Link></div>
+          <div className="empty-state"><h3>Your revision queue is empty</h3><p>Approve questions in your question library first. They will appear here for confidence tracking.</p><Link className="primary-action" href="/dashboard/questions">Open question library →</Link></div>
         ) : (
           <div className="question-list">
             {rows.sort((a, b) => {
