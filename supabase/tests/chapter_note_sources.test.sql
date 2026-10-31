@@ -1,9 +1,12 @@
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(8);
+select plan(11);
 
 insert into auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
 values ('11000000-0000-4000-8000-000000000011', 'authenticated', 'authenticated', 'chapter-note-owner@example.test', '', now(), '{}'::jsonb, '{}'::jsonb, now(), now());
+
+insert into auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
+values ('11000000-0000-4000-8000-000000000012', 'authenticated', 'authenticated', 'chapter-note-other@example.test', '', now(), '{}'::jsonb, '{}'::jsonb, now(), now());
 
 insert into public.syllabus_catalogs (id, owner_id, board, qualification, subject, version)
 values ('41000000-0000-4000-8000-000000000011', '11000000-0000-4000-8000-000000000011', 'Example Board', 'O Level', 'Physics', '2026');
@@ -126,6 +129,36 @@ select throws_ok(
   'P0001',
   'Every document page source must remain linked to an approved question in this chapter',
   'approval is blocked when a page belongs to a question classified to another chapter'
+);
+
+-- Switch to a second authenticated account and prove that note data and
+-- chapter-scoped draft creation remain isolated at the database boundary.
+set local request.jwt.claim.sub = '11000000-0000-4000-8000-000000000012';
+set local request.jwt.claims = '{"sub":"11000000-0000-4000-8000-000000000012","role":"authenticated","email":"chapter-note-other@example.test"}';
+
+select is(
+  (select count(*) from public.chapter_note_versions),
+  0::bigint,
+  'a second account cannot read another owner chapter-note versions'
+);
+select is(
+  (select count(*) from public.chapter_note_sources),
+  0::bigint,
+  'a second account cannot read another owner chapter-note source history'
+);
+select throws_ok(
+  $$select public.create_chapter_note_draft(
+    '41000000-0000-4000-8000-000000000011',
+    '42000000-0000-4000-8000-000000000011',
+    'Cross-owner note attempt',
+    '{"summary":"Must reject"}'::jsonb,
+    array['31000000-0000-4000-8000-000000000011'::uuid],
+    '{}'::uuid[],
+    null
+  )$$,
+  'P0001',
+  'Chapter does not belong to this account and syllabus',
+  'a second account cannot create a note in another owner chapter'
 );
 
 select * from finish();
