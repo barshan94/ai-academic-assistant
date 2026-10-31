@@ -324,4 +324,4 @@ This file records material implementation, CI, integration and release problems 
 - Symptom: The expanded chapter-note database test stopped parsing at a statement beginning with `$update`; the test runner reported only 8 of 15 planned assertions.
 - Root cause: The test fixture was inserted using JavaScript string replacement. Replacement-string semantics converted each SQL `$$` delimiter to a single `$`.
 - Fix: Restored paired dollar delimiters around all newly added SQL statements. Future scripted edits must use a replacement callback when replacement text contains `$$`.
-- Verification: Corrected fixture committed as `2a927ae`; the new isolated database workflow must pass all 15 chapter-note assertions before this is marked verified.
+- Verification: The first correction was incomplete: eight triple-dollar delimiters remained, and authenticated grants correctly blocked direct content/source mutation before the triggers. Commit `46b3f24` replaces the remaining malformed delimiters and temporarily uses the database role only for trigger-level integrity assertions, then restores the authenticated role for cross-account RLS checks. Awaiting CI.
