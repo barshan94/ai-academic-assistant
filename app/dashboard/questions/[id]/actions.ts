@@ -6,7 +6,7 @@ import { z } from "zod";
 import { createHash } from "node:crypto";
 import { prepareSourcePageContext } from "@/lib/ai/source-context";
 import { markSchemeSchema } from "@/lib/ai/mark-scheme";
-import { generateStructuredAnswer, getAIProviderConfig, AIConfigurationError, AIProviderError } from "@/lib/ai/provider";
+import { generateStructuredAnswerWithRouting, getAIProviderConfigs, AIConfigurationError, AIProviderError } from "@/lib/ai/provider";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { DatabaseWithAISolutions } from "@/types/ai-database";
 import type { Json } from "@/types/database";
@@ -37,7 +37,7 @@ export async function generateQuestionSolution(formData: FormData) {
 
   let config;
   try {
-    config = getAIProviderConfig();
+    getAIProviderConfigs("answer");
   } catch (error) {
     if (error instanceof AIConfigurationError) {
       redirect("/dashboard/questions/" + question.id + "?solve=not_configured");
@@ -78,8 +78,9 @@ export async function generateQuestionSolution(formData: FormData) {
   }
 
   let answer;
+  let selectedProvider;
   try {
-    answer = await generateStructuredAnswer(question.question_text, config, fetch, {
+    const routed = await generateStructuredAnswerWithRouting(question.question_text, fetch, {
       board: question.board,
       qualification: question.qualification,
       subject: question.subject,
@@ -87,6 +88,8 @@ export async function generateQuestionSolution(formData: FormData) {
       topic: question.topic,
       ...(sourceContext ? { sourceContext } : {}),
     });
+    answer = routed.answer;
+    selectedProvider = routed.config;
   } catch (error) {
     const code = error instanceof AIProviderError ? error.message.split(":")[0] : "AI_PROVIDER_ERROR";
     redirect("/dashboard/questions/" + question.id + "?solve=" + encodeURIComponent(code.slice(0, 80)));
@@ -96,8 +99,8 @@ export async function generateQuestionSolution(formData: FormData) {
   const { error: saveError } = await typedSupabase.from("question_solutions").insert({
     owner_id: user.id,
     question_id: question.id,
-    provider: config.provider,
-    model: config.model,
+    provider: selectedProvider.provider,
+    model: selectedProvider.model,
     prompt_version: sourceContext ? "academic-answer-v3-source-context" : "academic-answer-v2-math-checks",
     answer_json: answer,
     source_context: sourceProvenance,
