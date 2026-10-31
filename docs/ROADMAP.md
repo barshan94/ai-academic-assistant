@@ -107,6 +107,7 @@ M6 remaining:
 - Skipped items count toward session completion but are excluded from the correct-rate denominator. A recurring practice signal requires at least three scored attempts and at least half partial/incorrect; it is not presented as an objective weakness or mastery score.
 - Add an eight-week longitudinal practice trend using timestamped outcomes, weekly self-marked correct rates, and a comparison only when at least two weeks each contain three scored attempts. Sparse weeks are shown without interpretation; skipped answers are excluded from the rate.
 - Allow a learner to add a completed practice question to the revision queue through a separate, explicit confidence rating. The practice outcome is never converted into confidence automatically; the server resolves the linked question from the authenticated owner's saved practice item and the revision RPC rechecks approval and ownership.
+- Add a consolidated study planner that combines due spaced-revision questions with unfinished items from active practice sessions. Keep both task types distinct, link each to its existing workflow, and bound the queue to the latest 500 revision records, 100 active sessions and 1,000 unfinished practice items.
 - The confidence scale and practice outcomes are learner self-assessments, not validated measures of mastery.
 
 ## M4 exit criteria
