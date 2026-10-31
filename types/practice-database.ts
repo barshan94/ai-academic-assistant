@@ -17,7 +17,7 @@ export type DatabaseWithPractice = Omit<DatabaseWithRevision, "public"> & {
       };
     };
     Functions: DatabaseWithRevision["public"]["Functions"] & {
-      create_practice_set: { Args: { p_title: string; p_question_ids: string[] }; Returns: string };
+      create_practice_set: { Args: { p_title: string; p_question_ids: string[]; p_subject?: string | null; p_chapter?: string | null; p_topic?: string | null }; Returns: string };
       record_practice_answer: { Args: { p_item_id: string; p_outcome: string; p_response_notes?: string | null }; Returns: undefined };
     };
   };
