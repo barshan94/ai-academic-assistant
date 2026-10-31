@@ -31,7 +31,8 @@
 - [x] Implement scheduled server-side document worker with conditional atomic claims, stale-running recovery, per-job retry limits, and one-job-per-invocation processing.
 - [ ] Configure worker secrets and scheduler in a non-production deployment; verify wrong-secret rejection, single-job processing, concurrent claim safety, retry exhaustion and stale recovery.
 - [ ] Durable background processing worker and automatic retries proven in live integration tests.
-- [ ] Cross-account integration test for every document-related table.
+- [x] Add transaction-scoped pgTAP tests for owner isolation across documents, Drive connections, extracted pages, processing jobs and linked questions.
+- [ ] Run the document-intake pgTAP suite successfully in clean local Supabase CI and add authenticated cross-account browser acceptance.
 
 ## Solver and verification (M3-M4)
 - [x] Structured answer schema includes exam answer, working, Bengali and English explanations, concepts, assumptions and limitations.
