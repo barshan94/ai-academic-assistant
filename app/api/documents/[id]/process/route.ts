@@ -78,7 +78,9 @@ export async function POST(request: NextRequest, context: RouteContext) {
       : recoveryQuery.is("started_at", null);
     const { data: recoveredJob, error: recoveryError } = await recoveryQuery.select("id").maybeSingle();
     if (recoveryError || !recoveredJob) return redirectToDocument(request, id, "already_processing");
-    await supabase.from("documents").update({ status: "failed" }).eq("id", id).eq("owner_id", user.id);
+    const { error: recoveredDocumentError } = await supabase
+      .from("documents").update({ status: "failed" }).eq("id", id).eq("owner_id", user.id);
+    if (recoveredDocumentError) return redirectToDocument(request, id, "recovery_failed");
   }
   if (job.attempt_count >= job.max_attempts) return redirectToDocument(request, id, "retry_limit");
 
@@ -93,7 +95,18 @@ export async function POST(request: NextRequest, context: RouteContext) {
   }).eq("id", job.id).eq("owner_id", user.id).in("status", ["queued", "failed"]).select("id").maybeSingle();
   if (claimError || !claimedJob) return redirectToDocument(request, id, "already_processing");
 
-  await supabase.from("documents").update({ status: "processing" }).eq("id", id).eq("owner_id", user.id);
+  const { data: processingDocument, error: processingDocumentError } = await supabase
+    .from("documents").update({ status: "processing" })
+    .eq("id", id).eq("owner_id", user.id)
+    .select("id").maybeSingle();
+  if (processingDocumentError || !processingDocument) {
+    await supabase.from("processing_jobs").update({
+      status: "failed",
+      error_code: "DOCUMENT_STATE_UPDATE_FAILED",
+      error_message: "Could not mark the document as processing.",
+    }).eq("id", job.id).eq("owner_id", user.id).eq("status", "running");
+    return redirectToDocument(request, id, "processing_failed");
+  }
 
   try {
     const accessToken = await getDriveAccessToken();
@@ -115,14 +128,19 @@ export async function POST(request: NextRequest, context: RouteContext) {
       throw new Error("Could not atomically replace extracted document pages.");
     }
 
-    await supabase.from("processing_jobs").update({
-      status: "completed",
-      stage: "ocr",
-      progress: 100,
-      completed_at: new Date().toISOString(),
-      error_code: null,
-      error_message: null,
-    }).eq("id", job.id).eq("owner_id", user.id);
+    const { data: completedJob, error: completionError } = await supabase
+      .from("processing_jobs").update({
+        status: "completed",
+        stage: "ocr",
+        progress: 100,
+        completed_at: new Date().toISOString(),
+        error_code: null,
+        error_message: null,
+      }).eq("id", job.id).eq("owner_id", user.id).eq("status", "running")
+      .select("id").maybeSingle();
+    if (completionError || !completedJob) {
+      throw new Error("The document was processed but the job could not be finalized.");
+    }
 
     return redirectToDocument(request, id, "complete");
   } catch (error) {
