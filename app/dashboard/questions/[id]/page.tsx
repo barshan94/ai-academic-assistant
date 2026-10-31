@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { generateQuestionSolution, reviewQuestionSolution, createQuestionTeacherInvite, revokeQuestionTeacherInvite, saveQuestionSolutionMarkScheme } from "./actions";
+import { generateQuestionSolution, reviewQuestionSolution, createQuestionTeacherInvite, revokeQuestionTeacherInvite } from "./actions";
 import { checkCalculations } from "@/lib/ai/math-check";
 import { checkChemicalEquations } from "@/lib/ai/chemistry-check";
 import { checkPhysicsUnits } from "@/lib/ai/physics-unit-check";
@@ -11,6 +11,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { examAnswerSchema } from "@/lib/ai/answer-schema";
 import { compareAnswerToMarkScheme, markSchemeSchema } from "@/lib/ai/mark-scheme";
 import { ClassificationForm } from "./classification-form";
+import { MarkSchemeEditor } from "./mark-scheme-editor";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -354,25 +355,12 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
                 );
               })}
               {isOwner ? (
-                <form action={saveQuestionSolutionMarkScheme} className="review-form">
-                  <input type="hidden" name="solutionId" value={selectedSolution?.id ?? ""} />
-                  <label htmlFor="mark-scheme-title">Mark scheme title</label>
-                  <input id="mark-scheme-title" name="title" required maxLength={200} placeholder="Exact title from your source" />
-                  <label htmlFor="mark-scheme-board">Awarding body</label>
-                  <input id="mark-scheme-board" name="awardingBody" required maxLength={100} defaultValue={question.board ?? ""} />
-                  <label htmlFor="mark-scheme-qualification">Qualification</label>
-                  <input id="mark-scheme-qualification" name="qualification" required maxLength={100} defaultValue={question.qualification ?? ""} />
-                  <label htmlFor="mark-scheme-subject">Subject</label>
-                  <input id="mark-scheme-subject" name="subject" required maxLength={100} defaultValue={question.subject ?? ""} />
-                  <label htmlFor="mark-scheme-paper">Paper reference (optional)</label>
-                  <input id="mark-scheme-paper" name="paperReference" maxLength={100} />
-                  <label htmlFor="mark-scheme-url">HTTPS source URL</label>
-                  <input id="mark-scheme-url" name="sourceUrl" type="url" required placeholder="https://..." />
-                  <label htmlFor="mark-scheme-points">Mark points (JSON array)</label>
-                  <textarea id="mark-scheme-points" name="points" rows={8} required placeholder={'[{"id":"M1","description":"Describe the required point","keyPhrases":["phrase from the source"],"marks":1}]'} />
-                  <p className="question-card-meta">Use only wording and marks you transcribed from the actual source. Empty keyPhrases deliberately produce a manual-review status.</p>
-                  <button className="primary-action" type="submit">Save mark scheme reference →</button>
-                </form>
+                <MarkSchemeEditor
+                  solutionId={selectedSolution?.id ?? ""}
+                  board={question.board ?? ""}
+                  qualification={question.qualification ?? ""}
+                  subject={question.subject ?? ""}
+                />         </form>
               ) : <p className="question-card-meta">Only the question owner can attach a mark scheme reference.</p>}
             </section>
             <section className="section">
