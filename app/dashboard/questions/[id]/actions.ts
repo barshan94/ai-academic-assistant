@@ -60,6 +60,7 @@ export async function generateQuestionSolution(formData: FormData) {
     }
     sourceProvenance = {
       document_id: document.id,
+      page_id: page.id,
       document_name: document.file_name,
       page_number: sourceContext.pageNumber,
       extraction_method: sourceContext.extractionMethod,
