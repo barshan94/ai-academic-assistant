@@ -122,6 +122,14 @@ export default async function StudyPlanPage({ searchParams }: PageProps) {
             <p className="question-card-text">{question.question_number ? question.question_number + ". " : ""}{question.question_text}</p>
             <p className="question-card-meta">{[question.chapter, question.topic].filter(Boolean).join(" · ") || "No chapter/topic mapping"} · Previous confidence {item.confidence}/5 · {item.review_count} reviews</p>
             <div className="question-card-footer"><Link className="document-open" href="/dashboard/revision">Rate confidence & schedule next review ↗</Link><Link className="document-open" href={"/dashboard/questions/" + question.id}>Open question ↗</Link></div>
+            <form action={createStudySession} className="study-queue-schedule-form">
+              <input type="hidden" name="sessionDate" value={dateKey(formDefaultDate)} />
+              <input type="hidden" name="weekOffset" value={weekOffset} />
+              <input type="hidden" name="title" value={"Revision: " + (question.subject ?? "Question") + (question.chapter ? " — " + question.chapter : "")} />
+              <input type="hidden" name="plannedMinutes" value="30" />
+              <input type="hidden" name="notes" value={"Review question " + (question.question_number ?? question.id) + ". Rate confidence in the revision tracker after solving."} />
+              <button className="secondary-action" type="submit">Schedule 30-minute revision ↗</button>
+            </form>
           </article>;
         })}
         {unfinishedItems.map((item) => <article className="question-card" key={item.id}>
@@ -130,6 +138,14 @@ export default async function StudyPlanPage({ searchParams }: PageProps) {
           <p className="question-card-text">{item.question_number ? item.question_number + ". " : ""}{item.question_text}</p>
           <p className="question-card-meta">{[item.chapter, item.topic].filter(Boolean).join(" · ") || "No chapter/topic mapping"}</p>
           <div className="question-card-footer"><Link className="document-open" href={"/dashboard/practice/" + item.practice_set_id}>Continue session & record result ↗</Link></div>
+          <form action={createStudySession} className="study-queue-schedule-form">
+            <input type="hidden" name="sessionDate" value={dateKey(formDefaultDate)} />
+            <input type="hidden" name="weekOffset" value={weekOffset} />
+            <input type="hidden" name="title" value={"Practice: " + (item.subject ?? "Question") + (item.chapter ? " — " + item.chapter : "")} />
+            <input type="hidden" name="plannedMinutes" value="45" />
+            <input type="hidden" name="notes" value={"Continue practice set: " + (setById.get(item.practice_set_id)?.title ?? "Practice session") + ". Record the result in the practice workspace."} />
+            <button className="secondary-action" type="submit">Schedule 45-minute practice ↗</button>
+          </form>
         </article>)}
         {!dueCount && !unfinishedCount ? <div className="empty-state"><h3>No due or unfinished tasks</h3><p>Your current revision reviews and active practice sessions have no open tasks.</p></div> : null}
       </section>
