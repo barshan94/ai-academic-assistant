@@ -92,7 +92,9 @@
 - [x] Shared-reference database authorization regression tests cover curator/admin boundaries, evidence insertion, verified-only reads, and immutable provenance in isolated pgTAP CI.
 - [ ] Live non-production two-account acceptance and curator provisioning.
 - [ ] Assisted classification with source evidence and calibrated confidence.
-- [ ] Chapter notes cite contributing questions and source documents.
+- [x] Chapter notes retain contributing question/page source references and show citation keys for AI-generated notes.
+- [x] Each chapter note can be downloaded as standalone Markdown with its source-reference metadata and unverified-AI warning preserved.
+- [ ] Browser acceptance validates per-note Markdown download contents and print layout.
 - [ ] Reprocessing creates a new note version rather than overwriting teacher-approved content.
 
 ## Exam preparation (M7)
