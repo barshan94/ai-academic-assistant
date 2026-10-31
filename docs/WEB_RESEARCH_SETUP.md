@@ -8,4 +8,4 @@ The app stores up to ten HTTPS results per search: title, URL, snippet, rank, pr
 
 Configuration: set `WEB_SEARCH_PROVIDER=brave` and `BRAVE_SEARCH_API_KEY` in the server environment. Never use a public-prefixed variable or commit the key.
 
-Limits: five searches per owner per 15-minute window; ten results per search; 12-second request timeout. Non-HTTPS, malformed, duplicate and empty results are discarded. Provider response bodies and keys are not shown in errors. Search results are not automatically added to AI prompts.
+Limits: five searches per owner per 15-minute window and 20 per UTC day; ten results per search; 12-second request timeout. Non-HTTPS, malformed, duplicate and empty results are discarded. Provider response bodies and keys are not shown in errors. Search results are not automatically added to AI prompts.
