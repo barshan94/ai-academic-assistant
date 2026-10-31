@@ -30,13 +30,14 @@ Implemented on feature/m3-ai-solver:
 - OpenAI-compatible server-side provider adapter with bounded input/output and HTTPS enforcement.
 - Subject/qualification/board/chapter context passed into prompts; missing syllabus context is not guessed.
 - Saved answer versions and safe schema validation.
+- Owner-opt-in source-page context: one linked page only, explicit checkbox, 8,000-character bound, OCR caveat, and deterministic source provenance stored without retaining the excerpt.
 - Arithmetic, supported chemistry atom-count and physics dimensional checks.
 - Owner review history and question-scoped teacher invitations/review history.
 
 M3 exit criteria still outstanding:
 - Configure a provider key/model securely and test live generation with explicit cost approval.
 - Build a golden question set across subjects and manually grade output quality.
-- Add citation/source-grounding and mark-scheme comparison workflows.
+- Complete citation/source-grounding checks and mark-scheme comparison workflows. Current source-page context is opt-in and traceable, but does not yet provide verified quotations or official mark-scheme matching.
 - Test teacher invitation, acceptance, review and revocation using two real accounts.
 - Add automated database authorization tests for cross-account isolation.
 
