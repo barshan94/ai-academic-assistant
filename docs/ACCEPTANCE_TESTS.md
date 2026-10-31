@@ -4,7 +4,7 @@
 - [ ] Fresh install succeeds from documented steps.
 - [ ] Development server starts.
 - [x] Lint, type-check, unit tests and production build passed on the latest fully verified M3 baseline; current feature branch CI is tracked in PR #1.
-- [x] Protected routes redirect to login when authentication is not configured (Chromium smoke test).
+- [x] Protected routes redirect to login when authentication is not configured (Chromium smoke test).\n- [x] Baseline browser security response headers are configured and asserted in Chromium smoke tests; a CSP remains outstanding pending runtime/origin validation.
 - [ ] Authenticated owner can sign in and sign out in a live browser test.
 - [x] Applied schema migrations are mirrored in timestamped repository files.
 - [x] RLS is enabled on current public application tables; owner and question-scoped teacher policies are present.
