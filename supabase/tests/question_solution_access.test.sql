@@ -31,14 +31,14 @@ set local role authenticated;
 set local request.jwt.claim.sub = '10000000-0000-4000-8000-000000000001';
 set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000001","role":"authenticated","email":"rls-owner@example.test"}';
 select throws_ok(
-  $select public.record_teacher_solution_review('40000000-0000-4000-8000-000000000001', 'approved', null)$,
+  $$select public.record_teacher_solution_review('40000000-0000-4000-8000-000000000001', 'approved', null)$$,
   '42501',
   'Owner cannot submit an independent teacher review',
   'owner cannot promote their own answer to teacher-verified'
 );
 select lives_ok(
-  $insert into public.question_solution_reviews (solution_id, owner_id, reviewer_id, decision, correction_notes)
-    values ('40000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', 'approved', null)$,
+  $$insert into public.question_solution_reviews (solution_id, owner_id, reviewer_id, decision, correction_notes)
+    values ('40000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', 'approved', null)$$,
   'owner can append a separate owner review record'
 );
 select is(
