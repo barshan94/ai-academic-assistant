@@ -73,21 +73,25 @@ select throws_ok(
   '42501', null, 'another account cannot add questions to the owner document'
 );
 
+update public.documents
+set file_name = 'tampered.pdf'
+where id = '21000000-0000-4000-8000-000000000001';
+
 select is(
-  (with changed as (
-    update public.documents set file_name = 'tampered.pdf'
-    where id = '21000000-0000-4000-8000-000000000001' returning id
-  ) select count(*)::integer from changed),
+  (select count(*)::integer from public.documents
+   where id = '21000000-0000-4000-8000-000000000001'
+     and file_name = 'tampered.pdf'),
   0,
   'another account cannot update the owner document'
 );
 
+delete from public.document_pages
+where id = '22000000-0000-4000-8000-000000000001';
+
 select is(
-  (with removed as (
-    delete from public.document_pages
-    where id = '22000000-0000-4000-8000-000000000001' returning id
-  ) select count(*)::integer from removed),
-  0,
+  (select count(*)::integer from public.document_pages
+   where id = '22000000-0000-4000-8000-000000000001'),
+  1,
   'another account cannot delete the owner extracted page'
 );
 
