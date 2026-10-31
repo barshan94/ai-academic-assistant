@@ -12,7 +12,7 @@ Use a modular monolith for the web application and API, with durable background 
 6. AI router selecting among owner-configured OpenAI-compatible provider/model endpoints by task capability and owner-defined priority; optional fallback is disabled by default. Dynamic quality/cost/latency scoring remains a future capability and is not claimed as implemented.
 7. Solver services for mathematics, physics, ICT and computer science.
 8. Verification services using SymPy or equivalent deterministic checks where appropriate.
-9. Retrieval and research service that prioritizes the user's library and uses web research only when necessary.
+9. Retrieval and research service that prioritizes the user's library; optional owner-initiated Brave web search is available when needed. Only the manually entered query is sent, and returned leads remain unverified until the owner checks the publisher and source document.
 10. Background job orchestration with idempotency, bounded retries, checkpoints and progress.
 
 ## Processing flow
