@@ -1,2 +1,2 @@
-revoke all on function public.create_chapter_note_draft(uuid, uuid, text, jsonb, uuid[], uuid[], uuid[]) from public, anon;
-grant execute on function public.create_chapter_note_draft(uuid, uuid, text, jsonb, uuid[], uuid[], uuid[]) to authenticated;
+revoke all on function public.create_chapter_note_draft(uuid, uuid, text, jsonb, uuid[], uuid[], uuid) from public, anon;
+grant execute on function public.create_chapter_note_draft(uuid, uuid, text, jsonb, uuid[], uuid[], uuid) to authenticated;
