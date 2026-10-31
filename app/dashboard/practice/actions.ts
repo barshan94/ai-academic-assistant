@@ -95,14 +95,14 @@ export async function recordPracticeAnswer(formData: FormData) {
 
 
 const practiceRevisionSchema = z.object({
-  questionId: z.string().uuid(),
+  itemId: z.string().uuid(),
   setId: z.string().uuid(),
   confidence: z.coerce.number().int().min(1).max(5),
 });
 
 export async function schedulePracticeQuestionRevision(formData: FormData) {
   const parsed = practiceRevisionSchema.safeParse({
-    questionId: String(formData.get("questionId") ?? ""),
+    itemId: String(formData.get("itemId") ?? ""),
     setId: String(formData.get("setId") ?? ""),
     confidence: String(formData.get("confidence") ?? ""),
   });
@@ -113,9 +113,21 @@ export async function schedulePracticeQuestionRevision(formData: FormData) {
   if (authError || !user) redirect("/login");
 
   const db = supabase as unknown as SupabaseClient<DatabaseWithPractice>;
+  // Resolve the question from the owner-scoped saved item, never from a client-supplied question ID.
+  const { data: item, error: itemError } = await db.from("practice_set_items")
+    .select("question_id,outcome")
+    .eq("id", parsed.data.itemId)
+    .eq("practice_set_id", parsed.data.setId)
+    .eq("owner_id", user.id)
+    .maybeSingle();
+
+  if (itemError || !item?.question_id || !item.outcome) {
+    redirect("/dashboard/practice/" + parsed.data.setId + "?revision=failed");
+  }
+
   // This is an explicit learner choice. Practice outcomes never set confidence automatically.
   const { error } = await db.rpc("record_question_revision", {
-    p_question_id: parsed.data.questionId,
+    p_question_id: item.question_id,
     p_confidence: parsed.data.confidence,
   });
   if (error) redirect("/dashboard/practice/" + parsed.data.setId + "?revision=failed");
