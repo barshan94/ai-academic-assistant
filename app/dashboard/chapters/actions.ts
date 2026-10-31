@@ -132,15 +132,18 @@ export async function generateChapterNoteDraft(formData: FormData) {
   });
 
   let generated;
+  let generationMetadata: { provider: string; model: string } | null = null;
   try {
-    const { generateChapterNote } = await import("@/lib/ai/chapter-notes");
-    generated = await generateChapterNote({
+    const { generateChapterNoteWithRouting } = await import("@/lib/ai/chapter-notes");
+    const routed = await generateChapterNoteWithRouting({
       board: catalog.board,
       qualification: catalog.qualification,
       subject: catalog.subject,
       chapter: chapter.title,
       sources,
     });
+    generated = routed.note;
+    generationMetadata = { provider: routed.config.provider, model: routed.config.model };
   } catch (error) {
     const message = error instanceof Error ? error.message : "AI_GENERATION_FAILED";
     redirect("/dashboard/chapters?ai=" + (message === "AI_NOT_CONFIGURED" ? "not_configured" : "failed"));
@@ -161,7 +164,8 @@ export async function generateChapterNoteDraft(formData: FormData) {
       pageNumber: source.pageNumber,
       extractionMethod: source.extractionMethod,
     })),
-    generationModel: "configured-ai-provider",
+    generationProvider: generationMetadata?.provider ?? "unknown",
+    generationModel: generationMetadata?.model ?? "unknown",
     verificationStatus: "not_independently_verified",
   };
 
