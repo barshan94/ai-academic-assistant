@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
     if (!tokenResponse.ok) return finish("/dashboard/documents", "token_exchange_failed");
 
     const requiredScope = "https://www.googleapis.com/auth/drive.file";
-    const grantedScopes = (tokenData.scope ?? requiredScope).split(/\\s+/).filter(Boolean);
+    const grantedScopes = (tokenData.scope ?? requiredScope).split(/\s+/).filter(Boolean);
     if (grantedScopes.length !== 1 || grantedScopes[0] !== requiredScope) {
       return finish("/dashboard/documents", "scope_mismatch");
     }
