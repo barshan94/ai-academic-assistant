@@ -35,10 +35,11 @@
 - [ ] Configure `APP_BASE_URL` and `CRON_SECRET` GitHub Actions secrets plus deployed Supabase/Google environment variables; manually invoke against a non-production deployment.
 - [ ] Verify wrong-secret rejection, single-job processing, concurrent claim safety, retry exhaustion and stale recovery against a live non-production database.
 - [ ] Durable background processing worker and automatic retries proven in live integration tests (scheduler is best-effort; queue persistence and subsequent invocations must recover delayed runs).
-- [x] Background worker rejects failed document-processing and job-completion state transitions (feature CI run 41220481144; 116 unit tests passed). Manual-route persistence hardening is tracked under ERR-035 and awaits CI.
-- [x] Automated unit coverage for Google token-revocation outcomes and worker stale-lease/retry policy passes in feature-branch CI (run 41220481144; 116 unit tests passed).
+- [x] Background worker and user-triggered processing route check document-processing and job-completion state transitions before reporting success (Foundation CI run `41221378201`; 116 unit tests passed, build/type-check passed; route's authenticated transitions still need live E2E).
+- [x] Automated unit coverage for Google token-revocation outcomes and worker stale-lease/retry policy passes in feature-branch CI (run `41221378201`; 116 tests across 22 files passed).
 - [x] Add transaction-scoped pgTAP tests for owner isolation across documents, Drive connections, extracted pages, processing jobs and linked questions.
-- [ ] Run the document-intake pgTAP suite successfully in clean local Supabase CI and add authenticated cross-account browser acceptance.
+- [x] Run the document-intake and other database authorization pgTAP suites in clean local Supabase CI (run `41221378160`; all 133 assertions across 6 files passed).
+- [ ] Add authenticated cross-account browser acceptance for document intake and processing.
 
 ## Solver and verification (M3-M4)
 - [x] Structured answer schema includes exam answer, working, Bengali and English explanations, concepts, assumptions and limitations.
