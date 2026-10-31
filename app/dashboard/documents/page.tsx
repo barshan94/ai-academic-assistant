@@ -14,6 +14,7 @@ const notices: Record<string, { text: string; tone: "success" | "error" | "info"
   not_configured: { text: "Google Drive credentials are not configured yet. Follow the setup guide.", tone: "error" },
   invalid_callback: { text: "Google Drive connection could not be verified. Try connecting again.", tone: "error" },
   token_exchange_failed: { text: "Google rejected the OAuth exchange. Check the Google Cloud OAuth configuration.", tone: "error" },
+  scope_mismatch: { text: "Google returned broader permissions than requested. Revoke the app in your Google Account and reconnect using the file-only permission.", tone: "error" },
   missing_refresh_token: { text: "Google did not return a refresh token. Disconnect the app in Google Account permissions, then connect again.", tone: "error" },
   save_failed: { text: "The Drive connection could not be saved securely.", tone: "error" },
   disconnected: { text: "Google Drive was disconnected and the stored refresh token was revoked.", tone: "success" },
