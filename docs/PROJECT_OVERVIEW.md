@@ -33,7 +33,7 @@ Generated output, machine checks and teacher review remain separate. Passing one
 | File archive | User-authorized Google Drive |
 | Image intake | Convert images into optimized PDF after validation |
 | Existing PDFs | Preserve as PDFs; do not needlessly reconvert |
-| AI | Provider-neutral server-side adapters and task-based routing |
+| AI | Provider-neutral OpenAI-compatible server-side adapter pool with task capability routing and owner-defined priority |
 | Retrieval | Own library first; web research only when needed |
 | Processing | Chunked, resumable background jobs planned |
 | Users | One owner; invited teachers get access only to explicitly shared questions |
