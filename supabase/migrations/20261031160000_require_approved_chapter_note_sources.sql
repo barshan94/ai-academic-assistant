@@ -103,17 +103,20 @@ begin
       from public.chapter_note_sources as source
       left join public.document_pages as page
         on page.id = source.document_page_id and page.owner_id = source.owner_id
-      left join public.questions as question
-        on question.document_page_id = page.id and question.owner_id = page.owner_id
       where source.note_version_id = old.id
         and source.owner_id = old.owner_id
         and source.source_kind = 'document_page'
         and (
           page.id is null
-          or question.id is null
-          or question.review_status <> 'approved'
-          or question.syllabus_catalog_id is distinct from old.catalog_id
-          or question.syllabus_chapter_id is distinct from old.chapter_id
+          or not exists (
+            select 1
+            from public.questions as question
+            where question.document_page_id = page.id
+              and question.owner_id = page.owner_id
+              and question.review_status = 'approved'
+              and question.syllabus_catalog_id = old.catalog_id
+              and question.syllabus_chapter_id = old.chapter_id
+          )
         )
     ) then
       raise exception 'Every document page source must remain linked to an approved question in this chapter';
