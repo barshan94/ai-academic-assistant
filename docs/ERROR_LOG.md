@@ -85,7 +85,7 @@ This file records material implementation, CI, integration and release problems 
 
 ## Known unverified areas
 - Live Google OAuth/Drive acceptance and upload/OCR with an authorized account.
-- Live Google OAuth/Drive acceptance, including resumable uploads up to 100 MB, interruption recovery and session expiry.
+- Live Google OAuth/Drive acceptance, including resumable uploads up to 50 MB, interruption recovery and session expiry.
 - Durable background worker with automatic retry scheduling and operational monitoring; code is implemented but live deployment acceptance is pending.
 - Live AI provider inference and cost-controlled golden-set grading.
 - Two-account teacher and cross-account database acceptance on a dedicated non-production Supabase project.
@@ -128,6 +128,6 @@ This file records material implementation, CI, integration and release problems 
 - Area: M2 document intake / upload reliability
 - Symptom: The original upload sent the entire multipart document through one Next.js request and enforced a 4 MB combined limit, making larger PDFs and interrupted uploads unsupported.
 - Root cause: The archive route used a single multipart Google Drive upload and had no resumable session or chunk offset recovery.
-- Fix: Added browser-side normalization, a 100 MB file limit, Google Drive resumable session initiation, 1 MB chunk uploads (256 KB-aligned), AES-256-GCM encrypted owner-bound session tokens, server-side session validation and Google-confirmed byte offsets. The document and processing job are registered only after Drive reports completion. Added pure protocol tests for range parsing and chunk boundaries.
+- Fix: Added browser-side normalization, a 50 MB file limit, Google Drive resumable session initiation, 1 MB chunk uploads (256 KB-aligned), AES-256-GCM encrypted owner-bound session tokens, server-side session validation and Google-confirmed byte offsets. The document and processing job are registered only after Drive reports completion. Added pure protocol tests for range parsing and chunk boundaries.
 - Verification: Unit tests and full CI for the implementation are pending. Live Drive upload, interrupted network recovery, session expiry and cross-account tests require a configured non-production Google/Supabase environment.
 - Status: Implemented in code; not yet verified against a live Google Drive account.
