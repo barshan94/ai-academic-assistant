@@ -29,7 +29,7 @@ function readTextList(value: unknown, maxItems: number, maxLength: number): stri
 export function prepareApprovedChapterKnowledge(
   notes: ApprovedChapterNoteRecord[],
 ): PreparedKnowledgeSource[] {
-  return notes.slice(0, 3).flatMap((note, index) => {
+  const prepared = notes.slice(0, 3).flatMap((note) => {
     if (!note.id || !Number.isInteger(note.version_number) || note.version_number < 1) return [];
     if (!note.content_json || typeof note.content_json !== "object" || Array.isArray(note.content_json)) return [];
 
@@ -54,13 +54,14 @@ export function prepareApprovedChapterKnowledge(
     if (!text) return [];
 
     return [{
-      sourceRef: "K" + (index + 1),
+      sourceRef: "",
       noteVersionId: note.id,
       versionNumber: note.version_number,
       title: note.title.trim().slice(0, 200),
       text,
     }];
   });
+  return prepared.map((source, index) => ({ ...source, sourceRef: "K" + (index + 1) }));
 }
 
 export function knowledgeSourceProvenance(sources: PreparedKnowledgeSource[]) {
