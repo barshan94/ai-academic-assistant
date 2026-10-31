@@ -149,7 +149,7 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
     : { data: [], error: null };
   const { data: researchSources, error: researchError } = isOwner
     ? await typedSupabase.from("question_web_research_sources")
-        .select("id,query,provider,title,source_url,snippet,result_rank,retrieved_at")
+        .select("id,query,provider,title,source_url,snippet,result_rank,published_at,retrieved_at")
         .eq("question_id", question.id).eq("owner_id", user.id)
         .order("retrieved_at", { ascending: false }).order("result_rank").limit(30)
     : { data: [], error: null };
@@ -252,7 +252,7 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
                     <strong>UNVERIFIED SOURCE LEAD · {source.provider}</strong>
                     <a href={source.source_url} target="_blank" rel="noreferrer noopener">{source.title}</a>
                     <small>{source.snippet}</small>
-                    <small>Query: {source.query} · Retrieved {new Date(source.retrieved_at).toLocaleString()}</small>
+                    <small>Query: {source.query} · {source.published_at ? "Publisher date: " + new Date(source.published_at).toLocaleDateString() + " · " : ""}Retrieved {new Date(source.retrieved_at).toLocaleString()}</small>
                   </li>
                 ))}
               </ul>
