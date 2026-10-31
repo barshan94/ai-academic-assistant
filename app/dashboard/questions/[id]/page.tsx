@@ -167,6 +167,7 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
     : query.review === "notes_required" ? "Please add correction notes when marking an answer as needing correction."
     : query.review === "invalid" ? "The review details were invalid. Check the decision and try again."
     : query.review === "not_found" ? "The selected answer draft could not be found."
+    : query.review === "not_authorized" ? "An active, accepted teacher invitation is required to submit an independent teacher review."
     : undefined;
 
   return (

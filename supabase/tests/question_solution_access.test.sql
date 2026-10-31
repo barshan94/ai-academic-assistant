@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(20);
+select plan(28);
 
 -- Isolated identities and records. This test runs inside a transaction and rolls back.
 insert into auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
@@ -30,6 +30,12 @@ values ('60000000-0000-4000-8000-000000000001', '30000000-0000-4000-8000-0000000
 set local role authenticated;
 set local request.jwt.claim.sub = '10000000-0000-4000-8000-000000000001';
 set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000001","role":"authenticated","email":"rls-owner@example.test"}';
+select throws_ok(
+  $select public.record_teacher_solution_review('40000000-0000-4000-8000-000000000001', 'approved', null)$,
+  '42501',
+  'Owner cannot submit an independent teacher review',
+  'owner cannot promote their own answer to teacher-verified'
+);
 select is(
   (select count(*)::integer from public.question_solution_mark_schemes),
   1,
@@ -56,6 +62,12 @@ select throws_ok(
 -- An unrelated authenticated account cannot read owner records or accept another user's invite.
 set local request.jwt.claim.sub = '10000000-0000-4000-8000-000000000003';
 set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000003","role":"authenticated","email":"rls-outsider@example.test"}';
+select throws_ok(
+  $select public.record_teacher_solution_review('40000000-0000-4000-8000-000000000001', 'approved', null)$,
+  '42501',
+  'An active accepted teacher invitation is required',
+  'uninvited account cannot promote an answer to teacher-verified'
+);
 select is((select count(*)::integer from public.question_solutions), 0, 'uninvited account cannot read saved solutions');
 select is((select count(*)::integer from public.question_solution_mark_schemes), 0, 'uninvited account cannot read mark schemes');
 select is((select count(*)::integer from public.question_teacher_invites), 0, 'uninvited account cannot read another user invite');
@@ -96,16 +108,37 @@ select throws_ok(
   'accepted teacher cannot insert an owner-private mark scheme'
 );
 
--- Teacher can append their own review, but cannot impersonate the owner.
+-- Teacher reviews use the authorized RPC. Direct table INSERT is no longer
+-- available to teachers, so the verification label cannot be bypassed.
 select lives_ok(
-  $$insert into public.question_solution_reviews (solution_id, owner_id, reviewer_id, decision, correction_notes)
-    values ('40000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000002', 'approved', null)$$,
-  'accepted teacher can append a review under their own identity'
+  $select public.record_teacher_solution_review('40000000-0000-4000-8000-000000000001', 'approved', null)$,
+  'accepted teacher can append an independent review through the authorized workflow'
+);
+select is(
+  (select verification_status from public.question_solutions where id = '40000000-0000-4000-8000-000000000001'),
+  'teacher_verified',
+  'an approved active teacher review promotes the saved answer to teacher-verified'
+);
+select throws_ok(
+  $insert into public.question_solution_reviews (solution_id, owner_id, reviewer_id, decision, correction_notes)
+    values ('40000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000002', 'approved', null)$,
+  '42501',
+  null,
+  'teacher cannot bypass the authorized review RPC with direct table INSERT'
+);
+select lives_ok(
+  $select public.record_teacher_solution_review('40000000-0000-4000-8000-000000000001', 'needs_correction', 'Please correct the intermediate working.')$,
+  'accepted teacher can append a correction review through the authorized workflow'
+);
+select is(
+  (select verification_status from public.question_solutions where id = '40000000-0000-4000-8000-000000000001'),
+  'generated',
+  'a later correction review removes the teacher-verified label'
 );
 
 select throws_ok(
-  $$insert into public.question_solution_reviews (solution_id, owner_id, reviewer_id, decision, correction_notes)
-    values ('40000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', 'approved', null)$$,
+  $insert into public.question_solution_reviews (solution_id, owner_id, reviewer_id, decision, correction_notes)
+    values ('40000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', 'approved', null)$,
   '42501',
   null,
   'teacher cannot impersonate the owner as reviewer'
@@ -123,14 +156,20 @@ select lives_ok(
 );
 select is(
   (select count(*)::integer from public.question_solution_reviews),
-  1,
-  'owner retains the historical teacher review after revocation'
+  2,
+  'owner retains the historical teacher reviews after revocation'
 );
 
 set local request.jwt.claim.sub = '10000000-0000-4000-8000-000000000002';
 set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000002","role":"authenticated","email":"rls-teacher@example.test"}';
 select is((select count(*)::integer from public.questions), 0, 'revoked teacher can no longer read the shared question');
 select is((select count(*)::integer from public.question_solutions), 0, 'revoked teacher can no longer read the saved solution');
+select throws_ok(
+  $select public.record_teacher_solution_review('40000000-0000-4000-8000-000000000001', 'approved', null)$,
+  '42501',
+  'An active accepted teacher invitation is required',
+  'revoked teacher cannot submit an independent verification review'
+);
 select throws_ok(
   $$insert into public.question_solution_reviews (solution_id, owner_id, reviewer_id, decision, correction_notes)
     values ('40000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000002', 'approved', null)$$,

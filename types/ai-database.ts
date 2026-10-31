@@ -1,7 +1,7 @@
 import type { Database, Json } from "./database";
 
 export type DatabaseWithAISolutions = Omit<Database, "public"> & {
-  public: Omit<Database["public"], "Tables"> & {
+  public: Omit<Database["public"], "Tables" | "Functions"> & {
     Tables: Database["public"]["Tables"] & {
       question_teacher_invites: {
         Row: { id: string; question_id: string; owner_id: string; invited_email: string; accepted_by: string | null; accepted_at: string | null; revoked_at: string | null; created_at: string };
@@ -89,6 +89,16 @@ export type DatabaseWithAISolutions = Omit<Database, "public"> & {
           referencedRelation: "questions";
           referencedColumns: ["id", "owner_id"];
         }];
+      };
+    };
+    Functions: Database["public"]["Functions"] & {
+      record_teacher_solution_review: {
+        Args: {
+          p_solution_id: string;
+          p_decision: "approved" | "needs_correction";
+          p_correction_notes: string | null;
+        };
+        Returns: string;
       };
     };
   };

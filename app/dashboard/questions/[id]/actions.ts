@@ -193,17 +193,29 @@ export async function reviewQuestionSolution(formData: FormData) {
 
   if (solutionError || !solution) redirect("/dashboard/questions?review=not_found");
 
-  const { error: insertError } = await typedSupabase
-    .from("question_solution_reviews")
-    .insert({
-      solution_id: solution.id,
-      owner_id: solution.owner_id,
-      reviewer_id: user.id,
-      decision: parsed.data.decision,
-      correction_notes: parsed.data.correctionNotes || null,
+  if (solution.owner_id !== user.id) {
+    // Teacher reviews go through a SECURITY DEFINER RPC that revalidates the
+    // active invitation and alone may promote/demote the verification label.
+    const { error: teacherReviewError } = await typedSupabase.rpc("record_teacher_solution_review", {
+      p_solution_id: solution.id,
+      p_decision: parsed.data.decision,
+      p_correction_notes: parsed.data.correctionNotes || null,
     });
-
-  if (insertError) redirect("/dashboard/questions/" + solution.question_id + "?review=save_failed");
+    if (teacherReviewError) {
+      redirect("/dashboard/questions/" + solution.question_id + "?review=not_authorized");
+    }
+  } else {
+    const { error: ownerReviewError } = await typedSupabase
+      .from("question_solution_reviews")
+      .insert({
+        solution_id: solution.id,
+        owner_id: solution.owner_id,
+        reviewer_id: user.id,
+        decision: parsed.data.decision,
+        correction_notes: parsed.data.correctionNotes || null,
+      });
+    if (ownerReviewError) redirect("/dashboard/questions/" + solution.question_id + "?review=save_failed");
+  }
 
   revalidatePath("/dashboard/questions/" + solution.question_id);
   redirect(
