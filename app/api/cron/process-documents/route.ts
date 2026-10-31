@@ -118,7 +118,13 @@ export async function GET(request: Request) {
         })) throw new Error("Reprocessing was blocked to protect saved questions or chapter notes.");
       }
 
-      await supabase.from("documents").update({ status: "processing" }).eq("id", documentId).eq("owner_id", ownerId);
+      const { data: processingDocument, error: processingDocumentError } = await supabase
+        .from("documents").update({ status: "processing" })
+        .eq("id", documentId).eq("owner_id", ownerId)
+        .select("id").maybeSingle();
+      if (processingDocumentError || !processingDocument) {
+        throw new Error("Could not mark the source document as processing.");
+      }
       const accessToken = await refreshDriveAccessToken(connection.encrypted_refresh_token);
       const extractedText = await extractTextFromDrivePdf({ accessToken, driveFileId: document.drive_file_id });
       const pages = splitExtractedText(extractedText);
@@ -133,10 +139,13 @@ export async function GET(request: Request) {
       if (replaceError || replacedPageCount !== pages.length) {
         throw new Error("Could not atomically replace extracted document pages.");
       }
-      await supabase.from("processing_jobs").update({
+      const { data: completedJob, error: completionError } = await supabase.from("processing_jobs").update({
         status: "completed", stage: "ocr", progress: 100, completed_at: new Date().toISOString(),
         error_code: null, error_message: null,
-      }).eq("id", jobId).eq("owner_id", ownerId);
+      }).eq("id", jobId).eq("owner_id", ownerId).eq("status", "running").select("id").maybeSingle();
+      if (completionError || !completedJob) {
+        throw new Error("The document was processed but the worker could not finalize its job record.");
+      }
       return Response.json({ processed: true, job_id: jobId, page_count: pages.length });
     } catch (error) {
       const message = error instanceof Error ? error.message : "Document processing failed.";
