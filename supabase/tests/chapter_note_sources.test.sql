@@ -1,6 +1,6 @@
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(3);
+select plan(4);
 
 insert into auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
 values ('11000000-0000-4000-8000-000000000011', 'authenticated', 'authenticated', 'chapter-note-owner@example.test', '', now(), '{}'::jsonb, '{}'::jsonb, now(), now());
@@ -50,8 +50,21 @@ select throws_ok(
   'Every question source must be approved and classified to this chapter',
   'owner cannot attach an unreviewed question to a chapter note'
 );
+update public.questions
+set review_status = 'needs_review'
+where id = '31000000-0000-4000-8000-000000000011';
+
 select throws_ok(
-  $$select public.create_chapter_note_draft(
+  $update public.chapter_note_versions
+    set status = 'approved'
+    where title = 'Valid Forces note'$,
+  'P0001',
+  'Every question source must remain approved and classified to this chapter',
+  'approval is blocked if a linked question is no longer approved'
+);
+
+select throws_ok(
+  $select public.create_chapter_note_draft(
     '41000000-0000-4000-8000-000000000011',
     '42000000-0000-4000-8000-000000000011',
     'Wrong chapter source note',
