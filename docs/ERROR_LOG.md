@@ -483,3 +483,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: The callback now rejects a broader-than-requested returned scope. Token refresh checks the stored grant is exactly `https://www.googleapis.com/auth/drive.file`; connections with a broader or unknown scope must be reconnected. The UI explains the scope mismatch.
 - Verification: Implementation-only source review; OAuth consent and revocation behavior remain for the later non-production acceptance phase.
 - Status: Code and setup documentation updated; tests and real Google OAuth acceptance pending.
+
+
+## ERR-045 — Literal escaped newline sequences remained in the global stylesheet
+
+- Date: 2026-11-01
+- Area: M7 study planner / responsive and print CSS
+- Symptom: Two stylesheet locations contained the literal characters `\\n` instead of actual line breaks, potentially causing the following CSS selectors to be parsed incorrectly.
+- Root cause: A previous source edit inserted escaped newline text into the CSS file.
+- Fix: Replaced both literal escape sequences with real line breaks without changing the declarations or selectors.
+- Verification: Static source inspection only; no browser or build tests were run in this implementation phase.
+- Status: Source corrected; visual/browser acceptance remains pending.
