@@ -189,8 +189,8 @@ export default async function ChapterWorkspacePage({ searchParams }: PageProps) 
                     {chapterNotes.map((note) => {
                       const content = note.content_json as unknown as NoteContent;
                       const noteSources = (sources ?? []).filter((source) => source.note_version_id === note.id);
-                      return <article className="chapter-note-version" key={note.id}>
-                        <div className="question-card-heading"><strong>v{note.version_number} · {note.title}</strong><span className="document-status">{note.status}</span></div>
+                      return <article className="chapter-note-version" data-note-id={note.id} key={note.id}>
+                        <div className="question-card-heading"><strong>v{note.version_number} · {note.title}</strong><span className="document-status">{note.status}</span></div><div className="hero-actions"><PrintNotesButton noteId={note.id} /></div>
                         {content.generatedBy === "ai" ? <p className="question-card-meta">AI-generated draft · not independently verified · owner review required</p> : null}
                         {content.summary ? <p className="chapter-note-summary">{content.summary}</p> : null}
                         <ContentList title="Key concepts" items={content.concepts} />
