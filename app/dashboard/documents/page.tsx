@@ -25,6 +25,7 @@ const notices: Record<string, { text: string; tone: "success" | "error" | "info"
   missing_file: { text: "Choose one PDF or at least one JPEG/PNG image.", tone: "error" },
   failed: { text: "Upload failed. Check file format, combined size and Google Drive permissions.", tone: "error" },
   processing_failed: { text: "Text extraction failed. Check the source PDF and try again if attempts remain.", tone: "error" },
+  failure_state_unpersisted: { text: "Processing failed, and the failure state could not be saved. The job may remain in progress until stale-job recovery runs. Refresh before retrying.", tone: "error" },
   complete: { text: "Text extraction finished. Review every page before approving it.", tone: "success" },
   already_processed: { text: "This document has already been processed.", tone: "info" },
   already_processing: { text: "Another request is already processing this document.", tone: "info" },
