@@ -117,6 +117,7 @@
 - [ ] Backup and restore process tested.
 - [ ] OAuth token handling and revocation tested.
 - [ ] Rate limits, retries and job recovery tested.
+- [x] AI generation is protected by atomic account-scoped database quotas: five answer generations and three chapter-note generations per 15-minute window; the server fails closed if quota enforcement is unavailable. Fifteen pgTAP assertions passed in isolated CI run `41219394217` (133 assertions across six files, commit `e43816b`).
 - [ ] Error reporting excludes secrets and sensitive payloads.
 - [ ] Mobile usability and accessibility smoke tests pass.
 

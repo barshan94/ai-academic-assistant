@@ -345,11 +345,11 @@ This file records material implementation, CI, integration and release problems 
 - Symptom: Authenticated users could repeatedly invoke expensive AI answer and chapter-note generation actions without an application-level per-account quota.
 - Root cause: Provider input bounds and server-side API-key handling existed, but no atomic cross-instance quota protected provider spend.
 - Fix: Add a database-backed, atomic 15-minute quota per authenticated account and AI action. Answer generation is limited to five calls per window; chapter-note generation is limited to three. Actions fail closed if the quota RPC is unavailable. The client cannot choose or raise the limits.
-- Verification: Pending isolated Supabase pgTAP, Foundation CI, and action type-checks.
+- Verification: Isolated Supabase CI run `41219394217` passed all 133 pgTAP assertions across six files, including all 15 quota assertions. Foundation CI run `41219394202` passed ESLint, application/Playwright type-checks, unit tests and production build; Chromium smoke tests passed 7 tests with the authenticated test skipped. The quota integration is present in branch commit `e43816b`.
 
 
 ## ERR-032 — AI quota pgTAP exception assertions lost dollar-quote delimiters
 - Symptom: The new quota database test executed its first 13 assertions but pgTAP reported a bad plan because the final two exception assertions were not parsed as intended.
 - Root cause: JavaScript replacement-string semantics converted the `$$` delimiters in the inserted SQL block to single-dollar delimiters.
 - Fix: Rebuild both exception assertion delimiters with replacement callbacks; avoid replacement strings containing SQL `$$` delimiters.
-- Verification: Pending rerun of the isolated Supabase database workflow.
+- Verification: Corrected in commit `e43816b`. Isolated Supabase CI run `41219394217` passed all 15 quota assertions and 133 total database assertions across six test files.
