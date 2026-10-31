@@ -15,6 +15,18 @@ export type DatabaseWithAISolutions = Omit<Database, "public"> & {
           referencedColumns: ["id", "owner_id"];
         }];
       };
+      question_web_research_sources: {
+        Row: { id: string; owner_id: string; question_id: string; query: string; provider: string; title: string; source_url: string; snippet: string; result_rank: number; retrieved_at: string };
+        Insert: { id?: string; owner_id: string; question_id: string; query: string; provider: string; title: string; source_url: string; snippet: string; result_rank: number; retrieved_at?: string };
+        Update: never;
+        Relationships: [{
+          foreignKeyName: "question_web_research_sources_question_owner_fk";
+          columns: ["question_id", "owner_id"];
+          isOneToOne: false;
+          referencedRelation: "questions";
+          referencedColumns: ["id", "owner_id"];
+        }];
+      };
       question_solution_reviews: {
         Row: {
           id: string;
@@ -92,6 +104,10 @@ export type DatabaseWithAISolutions = Omit<Database, "public"> & {
       };
     };
     Functions: Database["public"]["Functions"] & {
+      consume_question_web_research_quota: {
+        Args: Record<PropertyKey, never>;
+        Returns: boolean;
+      };
       record_teacher_solution_review: {
         Args: {
           p_solution_id: string;
