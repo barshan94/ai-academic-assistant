@@ -114,6 +114,7 @@ export default async function SyllabusPage({ searchParams }: PageProps) {
         <div className="hero-actions">
           <Link className="sign-in-link" href="/dashboard/questions">Back to question bank</Link>
           <Link className="sign-in-link" href="/dashboard/syllabus/review">Open classification review queue</Link>
+          <Link className="sign-in-link" href="/dashboard/syllabus/references">Browse shared references</Link>
         </div>
       </section>
 
