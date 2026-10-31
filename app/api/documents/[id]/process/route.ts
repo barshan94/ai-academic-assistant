@@ -100,11 +100,16 @@ export async function POST(request: NextRequest, context: RouteContext) {
     .eq("id", id).eq("owner_id", user.id)
     .select("id").maybeSingle();
   if (processingDocumentError || !processingDocument) {
-    await supabase.from("processing_jobs").update({
-      status: "failed",
-      error_code: "DOCUMENT_STATE_UPDATE_FAILED",
-      error_message: "Could not mark the document as processing.",
-    }).eq("id", job.id).eq("owner_id", user.id).eq("status", "running");
+    const { data: failedJob, error: failedJobError } = await supabase
+      .from("processing_jobs").update({
+        status: "failed",
+        error_code: "DOCUMENT_STATE_UPDATE_FAILED",
+        error_message: "Could not mark the document as processing.",
+      }).eq("id", job.id).eq("owner_id", user.id).eq("status", "running")
+      .select("id").maybeSingle();
+    if (failedJobError || !failedJob) {
+      return redirectToDocument(request, id, "failure_state_unpersisted");
+    }
     return redirectToDocument(request, id, "processing_failed");
   }
 
@@ -145,12 +150,17 @@ export async function POST(request: NextRequest, context: RouteContext) {
     return redirectToDocument(request, id, "complete");
   } catch (error) {
     const message = error instanceof Error ? error.message : "Document processing failed.";
-    await supabase.from("documents").update({ status: "failed" }).eq("id", id).eq("owner_id", user.id);
-    await supabase.from("processing_jobs").update({
-      status: "failed",
-      error_code: "DOCUMENT_PROCESSING_FAILED",
-      error_message: message.slice(0, 500),
-    }).eq("id", job.id).eq("owner_id", user.id);
+    const [{ error: failedDocumentError }, { data: failedJob, error: failedJobError }] = await Promise.all([
+      supabase.from("documents").update({ status: "failed" }).eq("id", id).eq("owner_id", user.id),
+      supabase.from("processing_jobs").update({
+        status: "failed",
+        error_code: "DOCUMENT_PROCESSING_FAILED",
+        error_message: message.slice(0, 500),
+      }).eq("id", job.id).eq("owner_id", user.id).eq("status", "running").select("id").maybeSingle(),
+    ]);
+    if (failedDocumentError || failedJobError || !failedJob) {
+      return redirectToDocument(request, id, "failure_state_unpersisted");
+    }
     return redirectToDocument(request, id, "processing_failed");
   }
 }
