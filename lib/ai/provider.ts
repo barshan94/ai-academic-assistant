@@ -115,6 +115,7 @@ export function getAIProviderConfigs(
   if (!apiKey || apiKey.length > 1000 || !model || model.length > 160 || providerName.length > 60) throw new AIConfigurationError();
 
   const baseUrl = (env.AI_API_BASE_URL?.trim() || "https://api.openai.com/v1").replace(/\/+$/, "");
+  if (baseUrl.length > 500) throw new AIConfigurationError();
   let parsedUrl: URL;
   try {
     parsedUrl = new URL(baseUrl);
