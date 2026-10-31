@@ -120,16 +120,16 @@ select is(
   'an approved active teacher review promotes the saved answer to teacher-verified'
 );
 select throws_ok(
-  $insert into public.question_solution_reviews (solution_id, owner_id, reviewer_id, decision, correction_notes)
-    values ('40000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000002', 'approved', null)$,
+  $$insert into public.question_solution_reviews (solution_id, owner_id, reviewer_id, decision, correction_notes)
+    values ('40000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000002', 'approved', null)$$,
   '42501',
   null,
   'teacher cannot bypass the authorized review RPC with direct table INSERT'
 );
 select throws_ok(
-  $update public.question_solutions
+  $$update public.question_solutions
     set verification_status = 'teacher_verified'
-    where id = '40000000-0000-4000-8000-000000000001'$,
+    where id = '40000000-0000-4000-8000-000000000001'$$,
   '42501',
   null,
   'teacher cannot directly update the verification label'
