@@ -36,3 +36,31 @@ export function isValidDriveChunk(input: {
     && start % DRIVE_UPLOAD_GRANULARITY === 0
     && (end + 1 === total || input.byteLength % DRIVE_UPLOAD_GRANULARITY === 0);
 }
+
+export async function readDriveUploadChunk(body: ReadableStream<Uint8Array> | null) {
+  if (!body) return new Uint8Array();
+  const reader = body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  try {
+    while (true) {
+      const result = await reader.read();
+      if (result.done) break;
+      total += result.value.byteLength;
+      if (total > DRIVE_UPLOAD_CHUNK_SIZE) {
+        await reader.cancel();
+        throw new Error("Upload chunk exceeds the 1 MB server limit.");
+      }
+      chunks.push(result.value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  const output = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    output.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return output;
+}
