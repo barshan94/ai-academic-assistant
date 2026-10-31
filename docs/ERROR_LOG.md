@@ -451,3 +451,24 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Pending the dedicated final testing/fixing phase: update unit and pgTAP fixtures with realistic source locators, and add explicit rejection coverage for missing/blank locators.
 - Verification: Automatic feature-branch CI run `41228589729` reached type-check and failed on stale unit fixtures; database run `41228589810` applied every migration successfully, then failed in `question_solution_access.test.sql` on its legacy INSERT before the remaining assertions could run.
 - Status: Implementation and migration apply; test-fixture updates remain pending. No hosted Supabase project was changed.
+
+
+## ERR-042 — Document upload screen advertised an incorrect 100 MB limit
+
+- Date: 2026-11-01
+- Area: M2 document upload UI
+- Symptom: The upload section displayed a 100 MB maximum while both the client and server enforce a 50 MB normalized-PDF limit.
+- Root cause: The visible section-count label was not updated when resumable upload limits were reduced to 50 MB.
+- Fix: Updated the visible limit to 50 MB. Corrected the Google Drive setup guide, which also incorrectly described the older 4 MB upload flow and claimed resumable uploads were not implemented.
+- Verification: Implementation-only source review; no tests were run for this change.
+- Status: Code and documentation corrected; test phase pending.
+
+## ERR-043 — Google Drive provider errors could leak upstream details into application diagnostics
+
+- Date: 2026-11-01
+- Area: M2 Drive OAuth, upload and OCR; background worker; privacy
+- Symptom: Google OAuth/Drive response messages could be copied into application exceptions, processing-job error fields or upload/worker HTTP responses. Upstream text is untrusted and could contain sensitive request or document context.
+- Root cause: Provider response bodies and exception messages were treated as safe diagnostics.
+- Fix: Replaced upstream error text with stable generic errors, bounded Google network requests with timeouts, and stopped persisting/returning raw worker, OCR and resumable-upload exceptions. Job metadata now stores a generic owner-safe failure message.
+- Verification: Implementation-only source review; no tests were run for this change.
+- Status: Code updated; redaction regression tests and operational observability review remain in the later testing phase.
