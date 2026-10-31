@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { logSafeOperationalEvent } from "@/lib/observability/safe-log";
 import { extractTextFromDrivePdf, getDriveAccessToken } from "@/lib/drive/google";
 import { splitExtractedText } from "@/lib/documents/split-extracted-text";
 import { isProcessingJobStale } from "@/lib/documents/processing-state";
@@ -153,6 +154,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     // Persist only a stable, owner-safe status message. Provider and database
     // exceptions can contain upstream details or sensitive document metadata.
     const message = "Document processing failed. Review the source file and reconnect Google Drive if needed.";
+    logSafeOperationalEvent("document_processing_failed", { route: "/api/documents/[id]/process", errorCode: "DOCUMENT_PROCESSING_FAILED" });
     const [{ error: failedDocumentError }, { data: failedJob, error: failedJobError }] = await Promise.all([
       supabase.from("documents").update({ status: "failed" }).eq("id", id).eq("owner_id", user.id),
       supabase.from("processing_jobs").update({
