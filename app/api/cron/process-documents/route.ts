@@ -149,12 +149,23 @@ export async function GET(request: Request) {
       return Response.json({ processed: true, job_id: jobId, page_count: pages.length });
     } catch (error) {
       const message = error instanceof Error ? error.message : "Document processing failed.";
-      await supabase.from("documents").update({ status: "failed" }).eq("id", documentId).eq("owner_id", ownerId);
-      await supabase.from("processing_jobs").update({
-        status: "failed",
-        error_code: "BACKGROUND_PROCESSING_FAILED",
-        error_message: message.slice(0, 500),
-      }).eq("id", jobId).eq("owner_id", ownerId);
+      const [{ error: failedDocumentError }, { data: failedJob, error: failedJobError }] = await Promise.all([
+        supabase.from("documents").update({ status: "failed" }).eq("id", documentId).eq("owner_id", ownerId),
+        supabase.from("processing_jobs").update({
+          status: "failed",
+          error_code: "BACKGROUND_PROCESSING_FAILED",
+          error_message: message.slice(0, 500),
+        }).eq("id", jobId).eq("owner_id", ownerId).eq("status", "running").select("id").maybeSingle(),
+      ]);
+      if (failedDocumentError || failedJobError || !failedJob) {
+        // Leave the lease in place if failure state cannot be persisted. The
+        // stale-job policy can safely reclaim it after the lease expires.
+        return Response.json({
+          processed: false,
+          job_id: jobId,
+          error: "Processing failed and its failure state could not be persisted.",
+        }, { status: 500 });
+      }
       return Response.json({ processed: true, job_id: jobId, failed: true, error: message.slice(0, 300) });
     }
   }
