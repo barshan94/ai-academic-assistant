@@ -496,3 +496,9 @@ h2 { font-size: 24px; letter-spacing: -.04em; margin: 0; font-weight: 600; }
 .study-week-navigation { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 10px; }
 .study-week-navigation .secondary-action { white-space: nowrap; }
 @media (max-width: 640px) { .study-week-navigation { justify-content: flex-start; } }
+
+
+/* Quick actions for scheduling existing revision and practice tasks. */
+.study-queue-schedule-form { display: flex; justify-content: flex-start; margin-top: 10px; }
+.study-queue-schedule-form button { white-space: normal; }
+@media (max-width: 560px) { .study-queue-schedule-form button { width: 100%; } }
