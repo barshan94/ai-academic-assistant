@@ -6,6 +6,7 @@ import { z } from "zod";
 import { createHash } from "node:crypto";
 import { prepareSourcePageContext } from "@/lib/ai/source-context";
 import { knowledgeSourceProvenance, prepareApprovedChapterKnowledge } from "@/lib/ai/knowledge-context";
+import { logSafeOperationalEvent } from "@/lib/observability/safe-log";
 import { markSchemeSchema } from "@/lib/ai/mark-scheme";
 import { generateStructuredAnswerWithRouting, getAIProviderConfigs, AIConfigurationError, AIProviderError } from "@/lib/ai/provider";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -120,6 +121,7 @@ export async function generateQuestionSolution(formData: FormData) {
     selectedProvider = routed.config;
   } catch (error) {
     const code = error instanceof AIProviderError ? error.message.split(":")[0] : "AI_PROVIDER_ERROR";
+    logSafeOperationalEvent("ai_generation_failed", { route: "/dashboard/questions/[id]", errorCode: code });
     redirect("/dashboard/questions/" + question.id + "?solve=" + encodeURIComponent(code.slice(0, 80)));
   }
 
@@ -137,7 +139,10 @@ export async function generateQuestionSolution(formData: FormData) {
     knowledge_sources: knowledgeProvenance,
   });
 
-  if (saveError) redirect("/dashboard/questions/" + question.id + "?solve=save_failed");
+  if (saveError) {
+    logSafeOperationalEvent("ai_generation_failed", { route: "/dashboard/questions/[id]", errorCode: "AI_SOLUTION_SAVE_FAILED" });
+    redirect("/dashboard/questions/" + question.id + "?solve=save_failed");
+  }
 
   revalidatePath("/dashboard/questions");
   revalidatePath("/dashboard/questions/" + question.id);
@@ -359,6 +364,7 @@ export async function searchQuestionWebSources(formData: FormData) {
     const status = error instanceof WebResearchProviderError
       ? error.message
       : "WEB_RESEARCH_FAILED";
+    logSafeOperationalEvent("web_research_failed", { route: "/dashboard/questions/[id]", errorCode: status });
     redirect("/dashboard/questions/" + question.id + "?research=" + encodeURIComponent(status.slice(0, 80)));
   }
 
