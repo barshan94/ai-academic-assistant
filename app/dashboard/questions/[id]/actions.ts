@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createHash } from "node:crypto";
 import { prepareSourcePageContext } from "@/lib/ai/source-context";
+import { knowledgeSourceProvenance, prepareApprovedChapterKnowledge } from "@/lib/ai/knowledge-context";
 import { markSchemeSchema } from "@/lib/ai/mark-scheme";
 import { generateStructuredAnswerWithRouting, getAIProviderConfigs, AIConfigurationError, AIProviderError } from "@/lib/ai/provider";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -26,7 +27,7 @@ export async function generateQuestionSolution(formData: FormData) {
 
   const { data: question, error: questionError } = await supabase
     .from("questions")
-    .select("id,document_id,document_page_id,question_text,review_status,board,qualification,subject,chapter,topic")
+    .select("id,document_id,document_page_id,question_text,review_status,board,qualification,subject,chapter,topic,syllabus_chapter_id,classification_status")
     .eq("id", questionId.data)
     .eq("owner_id", user.id)
     .maybeSingle();
@@ -72,6 +73,32 @@ export async function generateQuestionSolution(formData: FormData) {
     };
   }
 
+  let relatedKnowledge: { sourceRef: string; title: string; versionNumber: number; text: string }[] | undefined;
+  let knowledgeProvenance: Json | null = null;
+  if (formData.get("includeKnowledgeContext") === "yes") {
+    if (!question.syllabus_chapter_id || question.classification_status !== "confirmed") {
+      redirect("/dashboard/questions/" + question.id + "?solve=knowledge_unavailable");
+    }
+    const { data: approvedNotes, error: notesError } = await supabase.from("chapter_note_versions")
+      .select("id,version_number,title,content_json")
+      .eq("owner_id", user.id)
+      .eq("chapter_id", question.syllabus_chapter_id)
+      .eq("status", "approved")
+      .order("version_number", { ascending: false })
+      .limit(3);
+    if (notesError || !approvedNotes?.length) {
+      redirect("/dashboard/questions/" + question.id + "?solve=knowledge_unavailable");
+    }
+    const preparedKnowledge = prepareApprovedChapterKnowledge(approvedNotes);
+    if (!preparedKnowledge.length) {
+      redirect("/dashboard/questions/" + question.id + "?solve=knowledge_unavailable");
+    }
+    relatedKnowledge = preparedKnowledge.map(({ sourceRef, title, versionNumber, text }) => ({
+      sourceRef, title, versionNumber, text,
+    }));
+    knowledgeProvenance = knowledgeSourceProvenance(preparedKnowledge) as unknown as Json;
+  }
+
   const quota = await consumeAIGenerationQuota(supabase, "ai-solution");
   if (quota !== "allowed") {
     redirect("/dashboard/questions/" + question.id + "?solve=" + (quota === "limited" ? "rate_limited" : "rate_limit_unavailable"));
@@ -87,6 +114,7 @@ export async function generateQuestionSolution(formData: FormData) {
       chapter: question.chapter,
       topic: question.topic,
       ...(sourceContext ? { sourceContext } : {}),
+      ...(relatedKnowledge ? { relatedKnowledge } : {}),
     });
     answer = routed.answer;
     selectedProvider = routed.config;
@@ -106,6 +134,7 @@ export async function generateQuestionSolution(formData: FormData) {
     prompt_version: sourceContext ? "academic-answer-v3-source-context" : "academic-answer-v2-math-checks",
     answer_json: answer,
     source_context: sourceProvenance,
+    knowledge_sources: knowledgeProvenance,
   });
 
   if (saveError) redirect("/dashboard/questions/" + question.id + "?solve=save_failed");
