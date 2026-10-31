@@ -917,6 +917,14 @@ export type Database = {
         };
         Returns: string;
       }
+      replace_document_pages: {
+        Args: {
+          p_document_id: string;
+          p_owner_id: string;
+          p_pages: Json;
+        };
+        Returns: number;
+      }
     }
     Enums: {
       [_ in never]: never
