@@ -125,7 +125,7 @@ export async function generateChapterNote(input: {
     // Detect complete and malformed citation-like tokens. Do not silently
     // accept truncated labels such as "[S1" or spaced variants "[ S1 ]".
     const citationTokens = Array.from(
-      noteText.matchAll(/\[\s*S[^\]]*(?:\]|$)|\bS\d+\]/g),
+      noteText.matchAll(/\[\s*S[^\]]*(?:\]|$)|\bS\d+\]/gi),
       (match) => match[0],
     );
     const invalidCitation = citationTokens.some((token) => {

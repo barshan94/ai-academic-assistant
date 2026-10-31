@@ -325,3 +325,10 @@ This file records material implementation, CI, integration and release problems 
 - Root cause: The test fixture was inserted using JavaScript string replacement. Replacement-string semantics converted each SQL `$$` delimiter to a single `$`.
 - Fix: Restored paired dollar delimiters around all newly added SQL statements. Future scripted edits must use a replacement callback when replacement text contains `$$`.
 - Verification: Fixed in commit `46b3f24`. Isolated Supabase CI run `41217592205` on branch head `a08f414` passed all 15 chapter-note assertions and all 110 database authorization assertions across five test files. Marked fixed and CI-verified.
+
+
+## ERR-029 — Lowercase malformed chapter-note citations escaped token detection
+- Symptom: A lowercase malformed citation such as `[s1]` could be ignored when the same note also contained a valid uppercase citation.
+- Root cause: Citation-like token discovery was case-sensitive, although the accepted citation format is intentionally uppercase.
+- Fix: Make token discovery case-insensitive while retaining the strict uppercase exact-format validator; add a regression test where `[s1]` coexists with valid `[S1]`.
+- Verification: Pending Foundation CI on the commit containing this change.
