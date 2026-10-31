@@ -103,8 +103,8 @@ export default async function StudyPlanPage({ searchParams }: PageProps) {
         </div>
         {sessionsTotal > 50 ? <div className="study-week-navigation">
           <span className="section-count">Calendar page {sessionPage} of {sessionPages}</span>
-          {sessionPage > 1 ? <Link className="secondary-action" href={"/dashboard/study-plan?week=" + weekOffset + "&sessionPage=" + (sessionPage - 1) + "&revisionPage=" + revisionPage + "&practicePage=" + practicePage + "&revisionPage=" + revisionPage}>Previous sessions</Link> : null}
-          {sessionPage < sessionPages ? <Link className="secondary-action" href={"/dashboard/study-plan?week=" + weekOffset + "&sessionPage=" + (sessionPage + 1) + "&revisionPage=" + revisionPage + "&practicePage=" + practicePage + "&revisionPage=" + revisionPage}>More sessions</Link> : null}
+          {sessionPage > 1 ? <Link className="secondary-action" href={"/dashboard/study-plan?week=" + weekOffset + "&sessionPage=" + (sessionPage - 1) + "&revisionPage=" + revisionPage + "&practicePage=" + practicePage}>Previous sessions</Link> : null}
+          {sessionPage < sessionPages ? <Link className="secondary-action" href={"/dashboard/study-plan?week=" + weekOffset + "&sessionPage=" + (sessionPage + 1) + "&revisionPage=" + revisionPage + "&practicePage=" + practicePage}>More sessions</Link> : null}
         </div> : null}
       </section>
       <section className="section">
