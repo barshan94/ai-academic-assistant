@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getDriveAccessToken, initiateResumablePdfUpload } from "@/lib/drive/google";
 import { encryptDriveUploadSession } from "@/lib/drive/crypto";
-import { MAX_UPLOAD_BYTES } from "@/lib/documents/upload-limits";
-import { safeFileName } from "@/lib/documents/normalize-to-pdf";
+import { MAX_UPLOAD_BYTES, safeFileName } from "@/lib/documents/upload-limits";
 
 export const runtime = "nodejs";
 
