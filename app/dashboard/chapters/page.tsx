@@ -141,6 +141,13 @@ export default async function ChapterWorkspacePage({ searchParams }: PageProps) 
                   <h3>{chapter.chapter_code ? chapter.chapter_code + " · " : ""}{chapter.title}</h3>
                   <p className="question-card-meta">{chapterQuestions.length} linked questions · {chapterNotes.length} note versions</p>
 
+                  <form action={generateChapterNoteDraft} className="chapter-ai-generate-form">
+                    <input type="hidden" name="catalogId" value={chapter.catalog_id} />
+                    <input type="hidden" name="chapterId" value={chapter.id} />
+                    <button className="document-action" type="submit">Generate AI chapter-note draft from approved questions</button>
+                    <p className="question-card-meta">Uses up to 12 of your approved, chapter-linked questions and their source pages. Provider usage may incur costs. The result is an unverified draft and requires your review.</p>
+                  </form>
+
                   <details className="chapter-note-author">
                     <summary>Create a source-linked note or revision</summary>
                     <form action={createChapterNoteDraft} className="review-form">
