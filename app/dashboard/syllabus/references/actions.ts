@@ -10,7 +10,7 @@ const httpsUrl = z.string().trim().max(2048).refine((value) => {
   catch { return false; }
 }, "A valid HTTPS source URL is required.");
 
-const catalogSchema = z.object({
+const dateOnly = z.string().trim().max(10).refine((value) => !value || /^\\d{4}-\\d{2}-\\d{2}$/.test(value) && !Number.isNaN(Date.parse(value + "T00:00:00.000Z")));\n\nconst catalogSchema = z.object({
   board: z.string().trim().min(1).max(100),
   qualification: z.string().trim().min(1).max(100),
   subject: z.string().trim().min(1).max(120),
@@ -21,7 +21,16 @@ const catalogSchema = z.object({
     try { return new URL(value).protocol === "https:"; } catch { return false; }
   })()),
   sourceTitle: z.string().trim().max(200),
-  sourceCheckedAt: z.string().trim().max(10),
+  sourceCheckedAt: dateOnly,
+});
+
+const sourceUpdateSchema = z.object({
+  catalogId: z.string().uuid(),
+  sourceUrl: z.string().trim().max(2048).refine((value) => !value || (() => {
+    try { return new URL(value).protocol === "https:"; } catch { return false; }
+  })()),
+  sourceTitle: z.string().trim().max(200),
+  sourceCheckedAt: dateOnly,
 });
 
 const chapterSchema = z.object({
@@ -94,6 +103,28 @@ export async function createReferenceCatalog(formData: FormData) {
   if (error) redirect("/dashboard/syllabus/references/manage?result=" + (error.code === "23505" ? "duplicate" : "save_failed"));
   refreshReferencePages();
   redirect("/dashboard/syllabus/references/manage?result=created");
+}
+
+export async function updateReferenceCatalogSource(formData: FormData) {
+  const parsed = sourceUpdateSchema.safeParse({
+    catalogId: String(formData.get("catalogId") ?? ""),
+    sourceUrl: String(formData.get("sourceUrl") ?? ""),
+    sourceTitle: String(formData.get("sourceTitle") ?? ""),
+    sourceCheckedAt: String(formData.get("sourceCheckedAt") ?? ""),
+  });
+  if (!parsed.success) redirect("/dashboard/syllabus/references/manage?result=invalid");
+  const supabase = await requirePlatformAdmin();
+  const value = parsed.data;
+  const { data, error } = await supabase.from("reference_syllabus_catalogs")
+    .update({
+      source_url: value.sourceUrl || null,
+      source_title: value.sourceTitle || null,
+      source_checked_at: value.sourceCheckedAt ? new Date(value.sourceCheckedAt + "T00:00:00.000Z").toISOString() : null,
+    })
+    .eq("id", value.catalogId).eq("status", "draft").select("id").maybeSingle();
+  if (error || !data) redirect("/dashboard/syllabus/references/manage?result=save_failed");
+  refreshReferencePages(value.catalogId);
+  redirect("/dashboard/syllabus/references/manage?result=source_updated");
 }
 
 export async function createReferenceChapter(formData: FormData) {
