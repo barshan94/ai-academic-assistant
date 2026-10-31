@@ -78,12 +78,19 @@ Implemented on feature/m3-ai-solver:
 - Restrict updates to status transitions and prevent clients from editing or deleting source history.
 - Add same-owner foreign keys, RLS, explicit least-privilege grants and indexes for the new tables.
 
-M6 application work still outstanding:
-- Build the owner-only chapter workspace and version history UI.
-- Retrieve only approved questions and source pages for the selected chapter.
-- Generate structured concept summaries, formulas, worked examples and revision notes with explicit citations.
-- Require owner review before approval; reprocessing must create a new version rather than overwrite approved content.
+M6 application status — first usable authoring slice implemented:
+- Owner-only chapter workspace lists the owner's syllabus chapters, linked questions and note versions.
+- Manual structured note authoring captures summaries, concepts, formulas, worked examples and revision prompts.
+- Draft creation and all source references are saved atomically through an authenticated, owner-scoped database function.
+- Owners can attach saved questions and their original document pages; cross-owner source IDs are rejected.
+- Version history is displayed, revisions can supersede a prior version, and draft approval requires at least one source.
+- Note content and source history remain immutable; only status transitions are exposed to clients.
+
+M6 remaining:
+- Add automated AI drafting only after a provider is configured and evidence retrieval is validated.
 - Add citation completeness and supported formula-consistency checks.
+- Add richer source preview and export/print support.
+- Add automated owner-isolation and approval-transition tests.
 
 ## M4 exit criteria
 - Unsupported verification is explicitly marked not checked.
