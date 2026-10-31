@@ -94,11 +94,13 @@ M6 remaining:
 - Add authenticated end-to-end coverage for AI generation, provider-not-configured behavior, owner isolation and approval transitions. Existing two-account teacher invitation/review/revocation acceptance is configured to skip unless a dedicated non-production Supabase environment is supplied.
 - Add automated owner-isolation and approval-transition tests.
 
-### M7 status — first revision workflow implemented
+### M7 status — revision tracking and topic insights implemented
 - Add owner-private confidence tracking for approved questions, with a server-side revision scheduler and a five-level self-reported confidence scale.
 - Schedule the next review at 1, 2, 4, 7 or 14 days based on the latest confidence rating; show due, untracked, learning and confident counts.
 - Restrict direct table writes and use an authenticated, owner-checked database function; revision data is private and cascades with its question.
-- The confidence scale is a learner reminder, not a validated measure of mastery. Topic-gap analytics and generated practice sets remain outstanding.
+- Add topic-level revision insights grouped by the question's subject, chapter and topic metadata; show rated-question counts, low-confidence counts, due counts and average latest confidence.
+- Do not classify a topic as weak from unrated questions or a single rating; label groups with insufficient ratings accordingly. Analysis is limited to the latest 1,000 approved questions and excludes questions without chapter/topic metadata.
+- The confidence scale is a learner reminder, not a validated measure of mastery. Generated practice sets, practice history and performance summaries remain outstanding.
 
 ## M4 exit criteria
 - Unsupported verification is explicitly marked not checked.
