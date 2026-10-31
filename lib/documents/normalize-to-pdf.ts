@@ -19,12 +19,12 @@ export async function normalizeFilesToPdf(files: File[]) {
 
   const declaredBytes = files.reduce((sum, file) => sum + file.size, 0);
   if (!declaredBytes || declaredBytes > MAX_UPLOAD_BYTES) {
-    throw new Error("The combined upload must be 100 MB or smaller.");
+    throw new Error("The combined upload must be 50 MB or smaller.");
   }
   const buffers = await Promise.all(files.map(async (file) => new Uint8Array(await file.arrayBuffer())));
   const totalBytes = buffers.reduce((sum, bytes) => sum + bytes.byteLength, 0);
   if (!totalBytes || totalBytes > MAX_UPLOAD_BYTES) {
-    throw new Error("The combined upload must be 100 MB or smaller.");
+    throw new Error("The combined upload must be 50 MB or smaller.");
   }
 
   if (files.length === 1 && files[0].type === "application/pdf") {
@@ -62,7 +62,7 @@ export async function normalizeFilesToPdf(files: File[]) {
 
   const output = await pdf.save();
   if (output.byteLength > MAX_UPLOAD_BYTES) {
-    throw new Error("Converted PDF exceeds the 100 MB upload limit.");
+    throw new Error("Converted PDF exceeds the 50 MB upload limit.");
   }
 
   const firstName = files[0].name.replace(/\.[^.]+$/, "");
