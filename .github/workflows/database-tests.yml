@@ -31,7 +31,13 @@ jobs:
       # The repository already contains migrations and pgTAP tests. init adds
       # the missing local config without linking to or modifying a hosted project.
       - name: Initialize local Supabase configuration
-        run: supabase init
+        run: |
+          supabase init
+          # GitHub-hosted runners can already occupy Supabase CLI's default
+          # PostgreSQL host port (54322). Use dedicated high ports for the
+          # isolated database and shadow database in this job.
+          sed -i '/^\[db\]$/,/^\[/ s/^port = 54322$/port = 55432/' supabase/config.toml
+          sed -i '/^\[db\]$/,/^\[/ s/^shadow_port = 54320$/shadow_port = 55430/' supabase/config.toml
 
       - name: Start isolated local database and apply migrations
         run: supabase db start
