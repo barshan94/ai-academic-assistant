@@ -245,3 +245,13 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Changed the fixtures to omit generated chapter/topic/catalogue IDs and resolve their generated IDs by their unique fixture keys. Updated the expected SQLSTATE and message to match the guard trigger's actual behavior.
 - Verification: Pending a fresh local Supabase migration and pgTAP run on the corrected test.
 - Status: Test fixture corrected; CI verification pending.
+
+
+## ERR-021 — Shared syllabus authorization fixture used a forbidden explicit ID
+- Date: 2026-10-31
+- Area: M5 shared reference syllabus / pgTAP
+- Symptom: Curator catalogue creation failed with permission denied; dependent chapter/topic/evidence/publication assertions then failed. Subsequent fixture edits briefly introduced an unbalanced dollar-quote delimiter.
+- Root cause: The least-privilege INSERT grant intentionally excludes the generated catalogue primary key, but the test supplied that ID explicitly. The fixture also needed to resolve the generated ID by its unique catalogue identity. A later editing pass left one SQL dollar-quote terminator unbalanced.
+- Fix: Use the database-generated catalogue ID throughout the fixture and resolve it by board, qualification, subject and version; repair the SQL delimiter. Production grants and RLS policies were not weakened.
+- Verification: Database authorization workflow run 41203734904 passed all 95 pgTAP assertions across four test files on commit 017ef50b.
+- Status: Fixed and verified in isolated local Supabase CI. Real curator provisioning and official syllabus source curation remain separate operational tasks.
