@@ -30,28 +30,139 @@ export class AIProviderError extends Error {
   }
 }
 
-export function getAIProviderConfig(env: Record<string, string | undefined> = process.env): AIProviderConfig {
+export type AIProviderTask = "answer" | "chapter-note";
+
+type ConfiguredProvider = AIProviderConfig & {
+  tasks: AIProviderTask[];
+  priority: number;
+  enabled: boolean;
+};
+
+function parseProviderConfig(value: unknown, env: Record<string, string | undefined>): ConfiguredProvider | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const candidate = value as Record<string, unknown>;
+  if (
+    typeof candidate.name !== "string" || !candidate.name.trim() || candidate.name.length > 60 ||
+    typeof candidate.baseUrl !== "string" ||
+    typeof candidate.apiKey !== "string" || !candidate.apiKey.trim() || candidate.apiKey.length > 1000 ||
+    typeof candidate.model !== "string" || !candidate.model.trim() || candidate.model.length > 160 ||
+    !Array.isArray(candidate.tasks) || candidate.tasks.length < 1 ||
+    candidate.tasks.some((task) => task !== "answer" && task !== "chapter-note") ||
+    (candidate.priority !== undefined && (!Number.isInteger(candidate.priority) || (candidate.priority as number) < 0 || (candidate.priority as number) > 1000)) ||
+    (candidate.enabled !== undefined && typeof candidate.enabled !== "boolean")
+  ) return null;
+
+  const baseUrl = candidate.baseUrl.replace(/\\/+$/, "");
+  let parsedUrl: URL;
+  try {
+    parsedUrl = new URL(baseUrl);
+  } catch {
+    return null;
+  }
+  const localDevelopmentOrigin = env.NODE_ENV !== "production" &&
+    (parsedUrl.hostname === "localhost" || parsedUrl.hostname === "127.0.0.1");
+  if (
+    (parsedUrl.protocol !== "https:" && !(parsedUrl.protocol === "http:" && localDevelopmentOrigin)) ||
+    parsedUrl.username || parsedUrl.password || parsedUrl.search || parsedUrl.hash
+  ) return null;
+
+  return {
+    provider: candidate.name.trim(),
+    baseUrl,
+    apiKey: candidate.apiKey.trim(),
+    model: candidate.model.trim(),
+    tasks: candidate.tasks as AIProviderTask[],
+    priority: typeof candidate.priority === "number" ? candidate.priority : 100,
+    enabled: candidate.enabled !== false,
+  };
+}
+
+/**
+ * Selects configured OpenAI-compatible providers by task capability and
+ * owner-defined priority. The legacy single-provider environment remains
+ * supported for a minimal one-provider deployment.
+ */
+export function getAIProviderConfigs(
+  task: AIProviderTask,
+  env: Record<string, string | undefined> = process.env,
+): AIProviderConfig[] {
+  const rawPool = env.AI_PROVIDER_POOL?.trim();
+  if (rawPool) {
+    if (rawPool.length > 20_000) throw new AIConfigurationError();
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(rawPool);
+    } catch {
+      throw new AIConfigurationError();
+    }
+    if (!Array.isArray(parsed) || parsed.length < 1 || parsed.length > 8) {
+      throw new AIConfigurationError();
+    }
+    const providers = parsed.map((candidate) => parseProviderConfig(candidate, env));
+    if (providers.some((provider) => provider === null)) throw new AIConfigurationError();
+    const selected = (providers as ConfiguredProvider[])
+      .filter((provider) => provider.enabled && provider.tasks.includes(task))
+      .sort((a, b) => a.priority - b.priority);
+    if (!selected.length) throw new AIConfigurationError();
+    return selected.map(({ provider, baseUrl, apiKey, model }) => ({ provider, baseUrl, apiKey, model }));
+  }
+
   const apiKey = env.AI_API_KEY?.trim();
   const model = env.AI_MODEL?.trim();
   if (!apiKey || !model) throw new AIConfigurationError();
 
-  const baseUrl = (env.AI_API_BASE_URL?.trim() || "https://api.openai.com/v1").replace(/\/+$/, "");
+  const baseUrl = (env.AI_API_BASE_URL?.trim() || "https://api.openai.com/v1").replace(/\\/+$/, "");
   let parsedUrl: URL;
   try {
     parsedUrl = new URL(baseUrl);
   } catch {
     throw new AIConfigurationError();
   }
-  if (parsedUrl.protocol !== "https:" && parsedUrl.hostname !== "localhost" && parsedUrl.hostname !== "127.0.0.1") {
-    throw new AIConfigurationError();
-  }
+  const localDevelopmentOrigin = env.NODE_ENV !== "production" &&
+    (parsedUrl.hostname === "localhost" || parsedUrl.hostname === "127.0.0.1");
+  if (
+    (parsedUrl.protocol !== "https:" && !(parsedUrl.protocol === "http:" && localDevelopmentOrigin)) ||
+    parsedUrl.username || parsedUrl.password || parsedUrl.search || parsedUrl.hash
+  ) throw new AIConfigurationError();
 
-  return {
+  return [{
     provider: env.AI_PROVIDER_NAME?.trim() || "openai-compatible",
     baseUrl,
     apiKey,
     model,
-  };
+  }];
+}
+
+export function getAIProviderConfig(env: Record<string, string | undefined> = process.env): AIProviderConfig {
+  return getAIProviderConfigs("answer", env)[0];
+}
+
+export async function generateStructuredAnswerWithRouting(
+  questionText: string,
+  fetcher: typeof fetch = fetch,
+  context: AcademicContext = {},
+  env: Record<string, string | undefined> = process.env,
+): Promise<{ answer: ExamAnswer; config: AIProviderConfig }> {
+  const providers = getAIProviderConfigs("answer", env);
+  const candidates = env.AI_ALLOW_PROVIDER_FALLBACKS === "true" ? providers : providers.slice(0, 1);
+  let lastError: unknown;
+
+  for (const config of candidates) {
+    try {
+      const answer = await generateStructuredAnswer(questionText, config, fetcher, context);
+      return { answer, config };
+    } catch (error) {
+      lastError = error;
+      if (
+        !(error instanceof AIProviderError) ||
+        error.message === "QUESTION_INVALID" ||
+        error.message === "SOURCE_CONTEXT_INVALID" ||
+        env.AI_ALLOW_PROVIDER_FALLBACKS !== "true"
+      ) throw error;
+    }
+  }
+
+  throw lastError ?? new AIProviderError("AI_PROVIDER_UNAVAILABLE");
 }
 
 type ChatCompletionResponse = {
