@@ -25,6 +25,9 @@ export async function bulkUpdateClassificationStatus(formData: FormData) {
       target_status: parsed.data.targetStatus,
     },
   );
+  if (error?.message.includes("BULK_REVIEW_NO_CHANGE")) {
+    redirect("/dashboard/syllabus/review?bulk=noop");
+  }
   if (error || typeof updatedCount !== "number") {
     redirect("/dashboard/syllabus/review?bulk=failed");
   }
