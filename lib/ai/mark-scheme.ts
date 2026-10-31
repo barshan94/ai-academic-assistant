@@ -44,7 +44,7 @@ export function compareAnswerToMarkScheme(answer: string, scheme: MarkScheme): M
     }
     const matchedPhrases = point.keyPhrases.filter((phrase) => {
       const normalizedPhrase = normalize(phrase);
-      return normalizedPhrase.length > 0 && normalizedAnswer.includes(normalizedPhrase);
+      return normalizedPhrase.length > 0 && (` ${normalizedAnswer} `).includes(` ${normalizedPhrase} `);
     });
     return {
       id: point.id,
