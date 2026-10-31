@@ -34,7 +34,7 @@ A personal academic workspace for Edexcel O/A Level, SSC and HSC tutoring. It ac
 - Owner-recorded append-only HTTPS citations at chapter/topic level, with page/section locators and short supporting notes; structured mappings require a citation before owner confirmation, and the UI does not misrepresent citations as independently certified.
 - Structured AI answer schema with English exam answer, Bengali/English explanations, working steps, concepts, assumptions and limitations.
 - Task-aware OpenAI-compatible provider routing with owner-defined priority, opt-in fallback and server-only credentials.
-- Optional owner-initiated Brave web research that sends only a manually entered query, stores owner-private HTTPS source leads and never labels search results as verified curriculum evidence.
+- Optional owner-initiated Brave web research that sends only a manually entered query, stores owner-private HTTPS source leads and never labels search results as verified curriculum evidence. Setup, privacy and cost controls are documented in `docs/WEB_RESEARCH_SETUP.md`.
 - AI chapter-note drafting from up to 12 owner-approved, chapter-classified questions and linked extracted source pages; generated notes retain source-reference metadata, validate citation labels, and remain unverified drafts requiring owner review.
 - Deterministic arithmetic, supported neutral chemistry equation atom-count, and SI dimensional-consistency checks. These are narrow checks, not proof of a fully correct answer.
 - Saved answer versions and safe schema validation before rendering.
