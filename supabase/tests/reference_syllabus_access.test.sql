@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(19);
+select plan(21);
 
 insert into auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
 values
@@ -18,6 +18,21 @@ set local request.jwt.claim.sub = '71000000-0000-4000-8000-000000000001';
 set local request.jwt.claims = '{"sub":"71000000-0000-4000-8000-000000000001","role":"authenticated","email":"reference-admin@example.test"}';
 
 select ok((select public.is_platform_admin()), 'provisioned curator is recognized as a platform admin');
+select is(
+  (select count(*)::integer from public.reference_syllabus_catalogs
+   where board = 'Cambridge International' and status = 'draft'),
+  2,
+  'official Cambridge Physics and Chemistry syllabus indexes are seeded as curator-only drafts'
+);
+select is(
+  (select count(*)::integer
+   from public.reference_syllabus_topics topic
+   join public.reference_syllabus_chapters chapter on chapter.id = topic.chapter_id
+   join public.reference_syllabus_catalogs catalog on catalog.id = chapter.catalog_id
+   where catalog.board = 'Cambridge International'),
+  112,
+  'all 112 Cambridge numbered topic-section headings are available for curator review'
+);
 select lives_ok(
   $$insert into public.reference_syllabus_catalogs
     (board, qualification, subject, version, source_url, source_title, source_checked_at)
