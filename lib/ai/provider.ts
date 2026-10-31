@@ -1,4 +1,5 @@
 import { parseExamAnswer, type ExamAnswer } from "./answer-schema";
+import { readLimitedResponseText } from "@/lib/http/read-limited-response";
 
 export type AIProviderConfig = {
   provider: string;
@@ -259,8 +260,7 @@ export async function generateStructuredAnswer(
 
   let payload: ChatCompletionResponse;
   try {
-    const body = await response.text();
-    if (body.length > 500_000) throw new Error("AI_RESPONSE_TOO_LARGE");
+    const body = await readLimitedResponseText(response, 500_000);
     payload = JSON.parse(body) as ChatCompletionResponse;
   } catch {
     throw new AIProviderError("AI_PROVIDER_INVALID_RESPONSE");
