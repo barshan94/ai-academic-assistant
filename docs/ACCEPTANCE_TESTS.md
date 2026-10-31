@@ -143,7 +143,8 @@
 - [x] Curator writes are limited to draft catalogues; chapter/topic structure freezes after publication and source evidence is append-only.
 - [x] Database verification requires a checked HTTPS catalogue source and separate source evidence for every chapter and topic.
 - [x] Shared reference reader exposes only verified catalogues and their chapter/topic citations.
-- [ ] Appoint the first real platform curator and seed a real official-board catalogue after checking the board's current source documents.
+- [x] Seed Cambridge O Level Physics 5054 and Chemistry 5070 (2026–2028) as curator-only shared drafts with 18 chapters, 112 numbered topic headings and chapter/topic evidence locators; both remain unverified and invisible to ordinary users.
+- [ ] Appoint the first real platform curator, check every seeded heading against current official documents and administrative-zone availability, then explicitly verify/publish the catalogue.
 - [ ] Test verified-only read access and admin write restrictions with two real authenticated accounts; no test accounts or syllabus rows have been fabricated.
 
 - [ ] Replace or upgrade the legacy ESLint dependency chain so the full development dependency tree can pass `npm audit` without the minimatch v3 compatibility exception. Until then, production dependencies are audited with `npm audit --omit=dev`; the development-toolchain advisory remains documented and is not represented as resolved.
