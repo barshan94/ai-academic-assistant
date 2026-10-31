@@ -163,7 +163,7 @@ select is(
 );
 
 select throws_ok(
-  $delete from public.document_pages where id = '22000000-0000-4000-8000-000000000001'$,
+  $sql$delete from public.document_pages where id = '22000000-0000-4000-8000-000000000001'$sql$,
   '23503', null,
   'database foreign key prevents deleting a page referenced by a saved question'
 );
