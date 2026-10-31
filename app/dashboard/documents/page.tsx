@@ -90,8 +90,8 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
                 <div className="document-icon">PDF</div>
                 <div className="document-details"><h3>{document.file_name}</h3><p>{(document.file_size_bytes / 1024 / 1024).toFixed(2)} MB · {new Date(document.created_at).toLocaleDateString("en-GB")}</p></div>
                 <span className={"document-status status-" + document.status}>{document.status.replace("_", " ")}</span>
-                {document.status === "queued" || document.status === "failed" ? (
-                  <form action={"/api/documents/" + document.id + "/process"} method="post"><button className="document-action" type="submit">Extract text</button></form>
+                {document.status === "queued" || document.status === "failed" || document.status === "processing" ? (
+                  <form action={"/api/documents/" + document.id + "/process"} method="post"><button className="document-action" type="submit">{document.status === "processing" ? "Check / recover processing" : "Extract text"}</button></form>
                 ) : <Link className="document-open" href={"/dashboard/documents/" + document.id}>Review ↗</Link>}
                 {document.drive_web_view_link ? <a className="document-open" href={document.drive_web_view_link} target="_blank" rel="noreferrer">Drive ↗</a> : null}
               </article>
