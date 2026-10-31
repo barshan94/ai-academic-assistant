@@ -45,11 +45,12 @@ export async function getDriveAccessToken() {
       grant_type: "refresh_token",
     }),
     cache: "no-store",
+    signal: AbortSignal.timeout(20_000),
   });
 
-  const payload = await response.json() as { access_token?: string; error?: string; error_description?: string };
+  const payload = await response.json() as { access_token?: string };
   if (!response.ok || !payload.access_token) {
-    throw new Error(payload.error_description || payload.error || "Google Drive token refresh failed.");
+    throw new Error("Google Drive authorization failed. Reconnect your account and try again.");
   }
   return payload.access_token;
 }
@@ -76,11 +77,12 @@ export async function uploadPdfToDrive(input: {
     },
     body,
     cache: "no-store",
+    signal: AbortSignal.timeout(30_000),
   });
 
-  const result = await response.json() as { id?: string; webViewLink?: string; error?: { message?: string } };
+  const result = await response.json() as { id?: string; webViewLink?: string };
   if (!response.ok || !result.id) {
-    throw new Error(result.error?.message || "Google Drive upload failed.");
+    throw new Error("Google Drive could not save the PDF. Check your connection and available Drive storage.");
   }
   return { id: result.id, webViewLink: result.webViewLink ?? null };
 }
@@ -90,6 +92,7 @@ export async function deleteDriveFile(accessToken: string, fileId: string) {
     method: "DELETE",
     headers: { Authorization: `Bearer ${accessToken}` },
     cache: "no-store",
+    signal: AbortSignal.timeout(15_000),
   });
   if (!response.ok && response.status !== 404) {
     throw new Error("Could not remove the orphaned Google Drive file.");
@@ -103,7 +106,7 @@ export async function extractTextFromDrivePdf(input: {
 }) {
   const sourceResponse = await fetch(
     "https://www.googleapis.com/drive/v3/files/" + encodeURIComponent(input.driveFileId) + "?alt=media",
-    { headers: { Authorization: "Bearer " + input.accessToken }, cache: "no-store" },
+    { headers: { Authorization: "Bearer " + input.accessToken }, cache: "no-store", signal: AbortSignal.timeout(30_000) },
   );
   if (!sourceResponse.ok) throw new Error("Could not download the archived PDF from Google Drive.");
   const sourceBytes = Buffer.from(await sourceResponse.arrayBuffer());
@@ -130,17 +133,18 @@ export async function extractTextFromDrivePdf(input: {
       },
       body,
       cache: "no-store",
+      signal: AbortSignal.timeout(30_000),
     },
   );
-  const converted = await convertResponse.json() as { id?: string; error?: { message?: string } };
+  const converted = await convertResponse.json() as { id?: string };
   if (!convertResponse.ok || !converted.id) {
-    throw new Error(converted.error?.message || "Google Drive could not extract text from this PDF.");
+    throw new Error("Google Drive could not extract text from this PDF. The file may be unreadable or unsupported.");
   }
 
   try {
     const exportResponse = await fetch(
       "https://www.googleapis.com/drive/v3/files/" + encodeURIComponent(converted.id) + "/export?mimeType=text%2Fplain",
-      { headers: { Authorization: "Bearer " + input.accessToken }, cache: "no-store" },
+      { headers: { Authorization: "Bearer " + input.accessToken }, cache: "no-store", signal: AbortSignal.timeout(20_000) },
     );
     if (!exportResponse.ok) throw new Error("Google Drive OCR export failed.");
     return await exportResponse.text();
@@ -185,6 +189,7 @@ export async function initiateResumablePdfUpload(input: {
       },
       body: JSON.stringify({ name: input.fileName, mimeType: "application/pdf" }),
       cache: "no-store",
+      signal: AbortSignal.timeout(20_000),
     },
   );
   const sessionUri = response.headers.get("Location");
@@ -220,6 +225,7 @@ export async function sendResumablePdfChunk(input: {
     },
     body: input.bytes.byteLength ? Buffer.from(input.bytes) : undefined,
     cache: "no-store",
+    signal: AbortSignal.timeout(30_000),
     redirect: "manual",
   });
 
