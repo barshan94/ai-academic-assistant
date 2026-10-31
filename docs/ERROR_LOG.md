@@ -318,3 +318,10 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Detect complete and malformed citation-like tokens across the generated note and require exact source-label syntax and membership in the supplied source set. Added a regression test covering both spaced and truncated labels.
 - Verification: Feature-branch CI is running for commits `7f1280f` and `5fd17ba`; do not consider this fixed-and-verified until the unit tests and build pass.
 - Scope: This is structural validation only. It does not prove that cited source material actually supports the adjacent claim.
+
+## ERR-028 — Chapter-note pgTAP fixture lost SQL dollar-quote delimiters
+
+- Symptom: The expanded chapter-note database test stopped parsing at a statement beginning with `$update`; the test runner reported only 8 of 15 planned assertions.
+- Root cause: The test fixture was inserted using JavaScript string replacement. Replacement-string semantics converted each SQL `$$` delimiter to a single `$`.
+- Fix: Restored paired dollar delimiters around all newly added SQL statements. Future scripted edits must use a replacement callback when replacement text contains `$$`.
+- Verification: Corrected fixture committed as `2a927ae`; the new isolated database workflow must pass all 15 chapter-note assertions before this is marked verified.
