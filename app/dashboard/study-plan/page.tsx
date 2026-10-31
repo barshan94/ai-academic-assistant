@@ -23,7 +23,7 @@ export default async function StudyPlanPage({ searchParams }: PageProps) {
   const startKey = dateKey(weekStart), endKey = dateKey(weekEnd);
   const [{ data: sessions, error: sessionsError }, { data: revisionRows, error: revisionError }, { data: sets, error: setsError }] = await Promise.all([
     db.from("weekly_study_sessions").select("id,session_date,title,planned_minutes,notes,status,completed_at").eq("owner_id", user.id).gte("session_date", startKey).lte("session_date", endKey).order("session_date", { ascending: true }).order("created_at", { ascending: true }).limit(200),
-    db.from("question_revision_progress").select("question_id,next_review_at").eq("owner_id", user.id).lte("next_review_at", new Date().toISOString()).limit(500),
+    db.from("question_revision_progress").select("question_id,confidence,status,next_review_at,review_count").eq("owner_id", user.id).lte("next_review_at", new Date().toISOString()).order("next_review_at", { ascending: true }).limit(500),
     db.from("practice_sets").select("id").eq("owner_id", user.id).eq("status", "in_progress").limit(100),
   ]);
   const dueCount = revisionRows?.length ?? 0;
@@ -38,7 +38,7 @@ export default async function StudyPlanPage({ searchParams }: PageProps) {
   const completedCount = (sessions ?? []).filter((session) => session.status === "completed").length;
   const plannedCount = (sessions ?? []).length - completedCount;
   const message = params.calendar === "created" ? "Study session added to this week's calendar." : params.calendar === "completed" ? "Session marked as completed." : params.calendar === "invalid" ? "Check the date, title and planned duration." : params.calendar === "failed" ? "The session could not be saved. Refresh and try again." : undefined;
-  const hasError = Boolean(sessionsError || revisionError || setsError || itemsError);
+  const hasError = Boolean(sessionsError || revisionError || setsError || questionError || itemsError);
 
   return (
     <main className="shell">
@@ -91,6 +91,27 @@ export default async function StudyPlanPage({ searchParams }: PageProps) {
             </section>;
           })}
         </div>
+      </section>
+      <section className="section">
+        <div className="section-heading"><div><p className="eyebrow">UNSCHEDULED TASKS</p><h2>Study queue</h2></div><span className="section-count">{dueCount + unfinishedCount} open tasks</span></div>
+        <p className="question-card-meta">These tasks remain in their original revision and practice workflows. Add a calendar block above when you decide when to work on them.</p>
+        {!dueCount && !unfinishedCount ? <div className="empty-state"><h3>No due or unfinished tasks</h3><p>Your current revision reviews and active practice sessions have no open tasks.</p></div> : null}
+        {dueRevisions.map((item) => {
+          const question = questionById.get(item.question_id)!;
+          return <article className="question-card revision-card" key={item.question_id}>
+            <div className="question-card-heading"><span className="document-status">Revision due · {item.status}</span><span className="question-subject">{question.subject ?? "Subject not set"}</span></div>
+            <p className="question-card-text">{question.question_number ? question.question_number + ". " : ""}{question.question_text}</p>
+            <p className="question-card-meta">{[question.chapter, question.topic].filter(Boolean).join(" · ") || "No chapter/topic mapping"} · Previous confidence {item.confidence}/5 · {item.review_count} reviews</p>
+            <div className="question-card-footer"><Link className="document-open" href="/dashboard/revision">Rate confidence & schedule next review ↗</Link><Link className="document-open" href={"/dashboard/questions/" + question.id}>Open question ↗</Link></div>
+          </article>;
+        })}
+        {unfinishedItems.map((item) => <article className="question-card" key={item.id}>
+          <div className="question-card-heading"><span className="document-status">Practice awaiting result · Question {item.position}</span><span className="question-subject">{item.subject ?? "Subject not set"}</span></div>
+          <h3>{setById.get(item.practice_set_id)?.title ?? "Practice session"}</h3>
+          <p className="question-card-text">{item.question_number ? item.question_number + ". " : ""}{item.question_text}</p>
+          <p className="question-card-meta">{[item.chapter, item.topic].filter(Boolean).join(" · ") || "No chapter/topic mapping"}</p>
+          <div className="question-card-footer"><Link className="document-open" href={"/dashboard/practice/" + item.practice_set_id}>Continue session & record result ↗</Link></div>
+        </article>)}
       </section>
       <p className="question-card-meta">Calendar window: current Monday–Sunday only; up to 200 saved sessions are displayed. Time values are estimates entered by you, not measured focus time.</p>
     </main>
