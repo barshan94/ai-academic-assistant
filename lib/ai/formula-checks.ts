@@ -20,7 +20,7 @@ export function checkFormulaSyntax(formula: string): FormulaCheckResult {
       escaped = false;
       continue;
     }
-    if (character === "\\\\") {
+    if (character === "\\") {
       escaped = true;
       continue;
     }
