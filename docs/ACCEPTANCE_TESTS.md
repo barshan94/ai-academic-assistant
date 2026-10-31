@@ -35,8 +35,8 @@
 - [ ] Configure `APP_BASE_URL` and `CRON_SECRET` GitHub Actions secrets plus deployed Supabase/Google environment variables; manually invoke against a non-production deployment.
 - [ ] Verify wrong-secret rejection, single-job processing, concurrent claim safety, retry exhaustion and stale recovery against a live non-production database.
 - [ ] Durable background processing worker and automatic retries proven in live integration tests (scheduler is best-effort; queue persistence and subsequent invocations must recover delayed runs).
-- [ ] Worker must fail the invocation if document-processing or job-completion state transitions do not persist.
-- [ ] Automated unit coverage for Google token-revocation outcomes and worker stale-lease/retry policy passes in feature-branch CI.
+- [x] Background worker rejects failed document-processing and job-completion state transitions (feature CI run 41220481144; 116 unit tests passed). Manual-route persistence hardening is tracked under ERR-035 and awaits CI.
+- [x] Automated unit coverage for Google token-revocation outcomes and worker stale-lease/retry policy passes in feature-branch CI (run 41220481144; 116 unit tests passed).
 - [x] Add transaction-scoped pgTAP tests for owner isolation across documents, Drive connections, extracted pages, processing jobs and linked questions.
 - [ ] Run the document-intake pgTAP suite successfully in clean local Supabase CI and add authenticated cross-account browser acceptance.
 
