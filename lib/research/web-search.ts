@@ -1,3 +1,4 @@
+import { readLimitedResponseText } from "@/lib/http/read-limited-response";
 import "server-only";
 
 export type WebResearchSource = {
@@ -76,8 +77,7 @@ export async function searchWebSources(
 
   let payload: unknown;
   try {
-    const body = await response.text();
-    if (body.length > 1_000_000) throw new Error("RESPONSE_TOO_LARGE");
+    const body = await readLimitedResponseText(response, 1_000_000);
     payload = JSON.parse(body) as unknown;
   } catch {
     throw new WebResearchProviderError("WEB_RESEARCH_INVALID_RESPONSE");
