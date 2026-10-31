@@ -406,5 +406,26 @@ This file records material implementation, CI, integration and release problems 
 - Symptom: Non-success provider responses included the first 300 characters of the provider response body in the thrown application error. Provider bodies are untrusted and may echo prompt content or other request details.
 - Root cause: The adapter treated upstream error text as safe diagnostic information.
 - Fix: HTTP failures now expose only the numeric HTTP status in the application error. Empty provider responses use a stable generic error code; upstream error messages and bodies are not copied into application errors.
-- Verification: Added a regression unit test with a synthetic provider body containing private payload text. Feature-branch CI pending.
-- Status: Implemented; CI verification pending.
+- Verification: Foundation CI run `41226216229` passed the provider regression test as part of 121 unit tests across 23 files, plus lint, type checks and production build.
+- Status: Code and automated regression coverage verified; live provider error behavior remains untested.
+
+
+## ERR-038 — Edexcel dataset tests were accidentally nested inside the Cambridge Chemistry test
+
+- Date: 2026-10-31
+- Area: M5 syllabus import dataset regression tests
+- Symptom: Vitest reported that a test function was called inside another test function; one syllabus dataset test failed to collect.
+- Root cause: The Pearson Edexcel test cases were inserted before the Cambridge Chemistry test callback was closed, leaving an extra closing block at the end of the file.
+- Fix: Close the Cambridge Chemistry test before declaring the two Edexcel cases, and remove the now-redundant trailing closure.
+- Verification: Initial failure occurred in Foundation run `41225811672`. Corrected branch commit `6c795325` passed 121 unit tests across 23 files, lint, type checks and production build in run `41226216229`; Chromium smoke tests also passed 7 tests.
+- Status: Fixed and CI-verified.
+
+## ERR-039 — Shared syllabus seed-count assertion still expected only two catalogues after Edexcel drafts were added
+
+- Date: 2026-10-31
+- Area: M5 shared syllabus reference database tests
+- Symptom: The reference-syllabus pgTAP suite expected two draft catalogues but the migration correctly seeded four Cambridge and Pearson Edexcel drafts.
+- Root cause: The database test expectation was not updated when the two Pearson Edexcel catalogues were added.
+- Fix: Update the expected draft-catalogue count from two to four and keep the 170-topic / 200-evidence assertions aligned with the four source-indexed drafts.
+- Verification: Initial failure occurred in database run `41226067515`; corrected branch commit `6c795325` passed all 149 pgTAP assertions across six files in run `41226216227`.
+- Status: Fixed and CI-verified.

@@ -3,7 +3,7 @@
 ## Foundation (M1)
 - [ ] Fresh install succeeds from documented steps.
 - [ ] Development server starts.
-- [x] Lint, type-check, unit tests and production build passed on the latest fully verified M3 baseline; current feature branch CI is tracked in PR #1.
+- [x] Latest feature-branch CI commit `6c795325`: lint, application/Playwright type checks, production build and 121 unit tests across 23 files passed (Foundation run `41226216229`); Chromium smoke tests passed (7). Database run `41226216227` passed all 149 pgTAP assertions across six files. Authenticated browser acceptance remains skipped because dedicated non-production credentials are not configured.
 - [x] Protected routes redirect to login when authentication is not configured (Chromium smoke test).
 - [x] Baseline browser security response headers are configured and asserted in Chromium smoke tests; a CSP remains outstanding pending runtime/origin validation.
 - [ ] Authenticated owner can sign in and sign out in a live browser test.
@@ -58,7 +58,7 @@
 - [x] Source-page context is limited to the question\u2019s owner-linked page and 8,000 characters; empty/invalid context is rejected and OCR/extraction uncertainty is disclosed.
 - [x] Saved answers store deterministic document/page/extraction/hash/length provenance, not the source excerpt itself.
 - [ ] Official mark-scheme/source grounding and citation checks.
-- [ ] Teacher verification status is only set through an independently authorized workflow (implementation and 28 pgTAP assertions added; latest CI pending).
+- [x] Teacher verification status is only set through the invitation-scoped review RPC; owners, uninvited accounts, revoked teachers and direct table writes are rejected. Approved review promotes the label; a correction review demotes it. Verified by 30 assertions in the question-solution authorization suite and the full 149-assertion database CI run `41226216227`.
 
 ## Syllabus and chapter intelligence (M5-M6)
 - [x] Store board, qualification, subject, syllabus version, chapter and topic separately.
