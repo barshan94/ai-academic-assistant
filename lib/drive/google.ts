@@ -25,16 +25,24 @@ export async function getDriveAccessToken() {
 
   const { data, error } = await supabase
     .from("drive_connections")
-    .select("encrypted_refresh_token")
+    .select("encrypted_refresh_token,granted_scope")
     .eq("owner_id", user.id)
     .maybeSingle();
 
   if (error || !data?.encrypted_refresh_token) {
     throw new Error("Connect Google Drive before uploading documents.");
   }
+  if (data.granted_scope !== DRIVE_FILE_SCOPE) {
+    throw new Error("Reconnect Google Drive and grant only the requested file access.");
+  }
 
   const { clientId, clientSecret } = getGoogleConfig();
-  const refreshToken = decryptRefreshToken(data.encrypted_refresh_token);
+  let refreshToken: string;
+  try {
+    refreshToken = decryptRefreshToken(data.encrypted_refresh_token);
+  } catch {
+    throw new Error("The stored Google Drive connection cannot be opened. Reconnect Google Drive.");
+  }
   const response = await fetch("https://oauth2.googleapis.com/token", {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
