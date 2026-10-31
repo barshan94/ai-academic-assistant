@@ -400,3 +400,42 @@ h2 { font-size: 24px; letter-spacing: -.04em; margin: 0; font-weight: 600; }
   .revision-rating-form { grid-template-columns: 1fr; }
   .revision-rating-form button { width: 100%; }
 }
+
+
+/* Custom practice sets */
+.document-filter-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 14px;
+  align-items: end;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface, #111a22);
+}
+.document-filter-form label {
+  display: grid;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 650;
+}
+.document-filter-form input,
+.document-filter-form select,
+.revision-rating-form textarea {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #354451;
+  border-radius: 7px;
+  background: #0b1219;
+  color: var(--text);
+  padding: 10px;
+  font: inherit;
+  font-size: 12px;
+}
+.document-filter-form button { justify-self: start; }
+.revision-rating-form textarea { grid-column: 1 / -1; resize: vertical; }
+@media (max-width: 560px) {
+  .document-filter-form { grid-template-columns: 1fr; }
+  .document-filter-form button { width: 100%; }
+}
