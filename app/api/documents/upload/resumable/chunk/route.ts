@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
 
   if (session.ownerId !== user.id) return NextResponse.json({ error: "This upload belongs to another account." }, { status: 403 });
   if (!Number.isSafeInteger(session.fileSizeBytes) || session.fileSizeBytes < 1 ||
-      session.fileSizeBytes > 100 * 1024 * 1024 || session.expiresAt < Date.now()) {
+      session.fileSizeBytes > 50 * 1024 * 1024 || session.expiresAt < Date.now()) {
     return NextResponse.json({ error: "Upload session has expired. Start the upload again." }, { status: 410 });
   }
 
