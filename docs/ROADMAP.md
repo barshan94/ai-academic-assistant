@@ -87,9 +87,9 @@ M6 application status — first usable authoring slice implemented:
 - Note content and source history remain immutable; approval rechecks that every source is still owner-approved and belongs to the selected chapter. Only status transitions are exposed to clients.
 
 M6 remaining:
-- Add automated AI drafting through the configured OpenAI-compatible provider. The current first slice uses up to 12 owner-approved, chapter-classified questions and linked extracted pages, validates structured output and supplied citation labels, and saves an unverified owner-review draft. A live provider call and source-quality evaluation remain outstanding.
+- AI drafting is implemented through the configured OpenAI-compatible provider. It uses up to 12 owner-approved, chapter-classified questions and linked extracted pages, validates structured output, source metadata and supplied citation labels, and saves an unverified owner-review draft. Live provider execution and source-quality evaluation remain outstanding.
 - Add citation completeness enforcement across every note section and supported formula-consistency checks.
-- Add richer source preview and export/print support.
+- Add richer source preview and export/print support. Basic extracted-text previews are now shown beside each AI citation; a full source viewer remains outstanding.
 - Add authenticated end-to-end coverage for AI generation, provider-not-configured behavior, owner isolation and approval transitions.
 - Add automated owner-isolation and approval-transition tests.
 
