@@ -83,9 +83,11 @@ export async function generateChapterNoteDraft(formData: FormData) {
   const parsed = z.object({
     catalogId: z.string().uuid(),
     chapterId: z.string().uuid(),
+    supersedesId: z.union([z.string().uuid(), z.literal("")]),
   }).safeParse({
     catalogId: String(formData.get("catalogId") ?? ""),
     chapterId: String(formData.get("chapterId") ?? ""),
+    supersedesId: String(formData.get("supersedesId") ?? ""),
   });
   if (!parsed.success) redirect("/dashboard/chapters?ai=invalid");
 
@@ -170,7 +172,7 @@ export async function generateChapterNoteDraft(formData: FormData) {
     p_content_json: content,
     p_question_ids: questions.map((question) => question.id),
     p_document_page_ids: pageIds,
-    p_supersedes_id: null,
+    p_supersedes_id: parsed.data.supersedesId || null,
   });
   if (saveError || !noteId) redirect("/dashboard/chapters?ai=save_failed");
 
