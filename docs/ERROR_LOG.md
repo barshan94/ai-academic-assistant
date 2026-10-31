@@ -362,8 +362,8 @@ This file records material implementation, CI, integration and release problems 
 - Symptom: A fetch/network exception from Google's token-revocation endpoint propagated to the caller, while transient HTTP failures returned false.
 - Root cause: The revocation helper handled HTTP statuses but did not normalize transport failures into its boolean retry contract.
 - Fix: Catch transport failures and return false. Preserve idempotent success for HTTP 200 and Google's HTTP 400 invalid/already-revoked-token response; transient server errors remain false. The disconnect action now retains the encrypted connection when revocation fails so the user can retry, and the UI explicitly states that Drive is still connected. Add tests for request method, endpoint, no-store behavior, encoded token body, HTTP outcomes and network rejection.
-- Verification: New Vitest coverage is committed; feature-branch CI is pending. Do not treat this as verified until the unit suite, type-check and build pass.
-- Status: Implemented; CI verification pending. Live Google OAuth revocation remains untested.
+- Verification: Foundation CI run `41221378201` passed lint, application/Playwright type-checks, all 116 unit tests across 22 files, and production build. The revocation-specific tests are included in that suite. Live Google OAuth revocation remains untested.
+- Status: Code and automated unit coverage verified; live Google OAuth revocation remains outstanding.
 
 
 ## ERR-034 — Document worker ignored failed database state-transition writes
@@ -373,8 +373,8 @@ This file records material implementation, CI, integration and release problems 
 - Symptom: The worker awaited document and job status updates but ignored Supabase errors. It could return a successful response even if the document never entered processing state or the job remained running after page extraction completed.
 - Root cause: Database update calls were treated as best-effort even though their state transitions are part of the durable queue contract.
 - Fix: Require the owner-scoped document processing transition to return the expected row. Require the running job's completion transition to return the expected row before reporting success. If finalization fails, the existing catch path marks the job failed for a later bounded retry; page replacement remains atomic.
-- Verification: Feature-branch CI pending. Live concurrent-claim, retry-exhaustion and stale-recovery acceptance remains outstanding.
-- Status: Implemented; CI verification pending.
+- Verification: Foundation CI run `41221378201` passed lint, type-checks, 116 unit tests and production build. Database authorization run `41221378160` passed 133 pgTAP assertions. Live concurrent-claim, retry-exhaustion and stale-recovery acceptance remains outstanding.
+- Status: Code and automated checks verified; live worker acceptance remains outstanding.
 
 
 ## ERR-035 — User-triggered document processing ignored persistence failures
@@ -384,5 +384,5 @@ This file records material implementation, CI, integration and release problems 
 - Symptom: The authenticated processing route ignored errors when marking a document as processing, recovering a stale document, and marking a processing job complete. It could report completion while the durable job state remained running, or continue after stale recovery failed to persist.
 - Root cause: State-changing Supabase writes were awaited but their returned errors/rows were not checked.
 - Fix: Require stale-document recovery to persist, require the owner-scoped processing transition to return the updated document, and require the running job completion transition to return the updated job. If completion persistence fails, route through the existing failure/retry path. Added a user-facing recovery failure notice.
-- Verification: Feature-branch CI pending. Live Drive and authenticated route acceptance remains outstanding.
-- Status: Implemented; CI verification pending.
+- Verification: Foundation CI run `41221378201` passed lint, type-checks, 116 unit tests and production build; Chromium smoke tests passed 7 tests. This confirms the route compiles and the suite passes, but does not exercise the authenticated manual-processing state transitions. Live Drive and authenticated route acceptance remains outstanding.
+- Status: Code and CI checks verified; authenticated route acceptance remains outstanding.
