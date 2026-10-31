@@ -266,3 +266,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Replaced the literal escape sequences with real Markdown line breaks. No application code, database schema or deployment configuration was changed.
 - Verification: Re-fetched the committed acceptance checklist and confirmed each affected item is on its own line; CI remains the authority for application validation.
 - Status: Documentation defect fixed and committed.
+
+
+## ERR-023 — Chapter-note RPC accepted unreviewed or misclassified question sources
+
+- Date: 2026-10-31
+- Area: M6 chapter-note source integrity / database authorization
+- Symptom: The chapter workspace filtered source questions to approved questions assigned to the selected chapter, but the database draft-creation RPC checked only account ownership. A direct authenticated RPC call could therefore attach an unreviewed or unrelated approved question to a chapter note. A source could also lose approved status after draft creation and still pass the previous approval trigger.
+- Root cause: Source eligibility was enforced by the UI query and not repeated by the database function; the approval trigger checked only that at least one source row existed.
+- Fix: Added a migration that requires every question source to remain owner-approved and explicitly classified to the note's catalogue/chapter at draft creation. The approval trigger now rechecks those conditions immediately before approval. Added pgTAP cases for valid sources, unreviewed sources, wrong-chapter sources and source status changing after draft creation.
+- Verification: Pending the isolated local Supabase migration and pgTAP workflow on the feature branch.
+- Status: Implemented in code; CI verification pending. Live hosted migration has not been applied.
