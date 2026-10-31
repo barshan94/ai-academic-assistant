@@ -86,6 +86,17 @@ describe("structured exam answer generation", () => {
     expect(body.messages[0].content).toContain("may contain OCR or extraction errors");
   });
 
+  it("rejects invalid source context before contacting the provider", async () => {
+    const fetcher = vi.fn<typeof fetch>();
+    await expect(generateStructuredAnswer("Question", config, fetcher, {
+      sourceContext: { pageNumber: 1, extractionMethod: "ocr", text: " " },
+    })).rejects.toThrow("SOURCE_CONTEXT_INVALID");
+    await expect(generateStructuredAnswer("Question", config, fetcher, {
+      sourceContext: { pageNumber: 1, extractionMethod: "ocr", text: "x".repeat(8001) },
+    })).rejects.toThrow("SOURCE_CONTEXT_INVALID");
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
   it("does not accept malformed provider output", async () => {
     const fetcher = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({
       choices: [{ message: { content: "{not-json" } }],
