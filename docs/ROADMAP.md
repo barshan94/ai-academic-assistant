@@ -116,6 +116,7 @@ M6 remaining:
 - Add previous/next week navigation up to 52 weeks in either direction, constrain the date picker to the selected week, default to that week’s Monday when today is outside it, and preserve the selected week after adding or completing a session.
 - Resolve the planner's current date from the browser's IANA timezone (stored in a non-sensitive, one-year device cookie), use UTC-backed date-only arithmetic for Monday–Sunday navigation and formatting, and display completion timestamps in that same timezone. Invalid or missing timezone cookies safely fall back to UTC; no timezone is hardcoded and no database migration is required. Server actions also validate that submitted date-only values are real calendar dates inside the selected week in that timezone; malformed or out-of-week form submissions are rejected before the database RPC.
 - The confidence scale and practice outcomes are learner self-assessments, not validated measures of mastery.
+- Isolated database authorization coverage for revision, practice, aggregate analytics, the consolidated study queue and weekly calendar passed 37 study-feature pgTAP assertions, including cross-account RPC isolation (CI run `41218501676`, commit `937b52a`).
 
 ## M4 exit criteria
 - Unsupported verification is explicitly marked not checked.

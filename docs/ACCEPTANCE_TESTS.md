@@ -109,7 +109,7 @@
 - [x] The consolidated study queue combines due revisions and unfinished practice items with independent pagination.
 - [x] Weekly calendar supports owner-scoped create, edit, complete and planned-session deletion; completed history is retained.
 - [x] Calendar date handling uses the browser IANA timezone and validates selected-week boundaries server-side.
-- [ ] Database authorization tests pass against a clean local Supabase stack, including cross-account isolation for revision, practice and calendar data.
+- [x] Database authorization tests pass against a clean local Supabase stack, including cross-account isolation for revision, practice and calendar data. Run `41218501676` passed 118 assertions across five pgTAP files; the study-feature suite covers 37 assertions, including eight aggregate analytics, queue and calendar outsider checks (commit `937b52a`).
 - [ ] Browser acceptance covers practice creation, outcome recording, insights, revision scheduling and calendar interactions.
 - [ ] Authenticated end-to-end acceptance is executed against a dedicated non-production Supabase project.
 
