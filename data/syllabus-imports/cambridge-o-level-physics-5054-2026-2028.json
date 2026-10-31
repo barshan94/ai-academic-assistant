@@ -48,7 +48,7 @@
         },
         {
           "code": "1.5.3",
-          "title": "Deformation",
+          "title": "Elastic deformation",
           "sortOrder": 7
         },
         {
@@ -264,7 +264,7 @@
         },
         {
           "code": "4.5.3",
-          "title": "The magnetic effect of a current",
+          "title": "Magnetic effect of a current",
           "sortOrder": 13
         },
         {
