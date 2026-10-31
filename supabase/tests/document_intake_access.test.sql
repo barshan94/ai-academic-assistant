@@ -30,18 +30,18 @@ set local role authenticated;
 set local request.jwt.claim.sub = '11000000-0000-4000-8000-000000000001';
 set local request.jwt.claims = '{"sub":"11000000-0000-4000-8000-000000000001","role":"authenticated","email":"intake-owner@example.test"}';
 
-select is((select count(*)::integer from public.documents), 1, 'document owner can read their archived document');
+select is((select count(*)::integer from public.documents where id = '21000000-0000-4000-8000-000000000001'), 1, 'document owner can read their archived document');
 select is((select count(*)::integer from public.drive_connections), 1, 'document owner can read their Drive connection');
 select is((select count(*)::integer from public.document_pages), 1, 'document owner can read extracted pages');
 select is((select count(*)::integer from public.processing_jobs), 1, 'document owner can read processing jobs');
 select is((select count(*)::integer from public.questions), 1, 'document owner can read linked questions');
 
 select throws_ok(
-  $select public.replace_document_pages(
+  $sql$select public.replace_document_pages(
     '21000000-0000-4000-8000-000000000001',
     '11000000-0000-4000-8000-000000000001',
     '["replacement text"]'::jsonb
-  )$,
+  )$sql$,
   'P0001', null,
   'atomic page replacement refuses to remove pages referenced by saved questions'
 );
@@ -69,11 +69,11 @@ select is(
 );
 
 select throws_ok(
-  $select public.replace_document_pages(
+  $sql$select public.replace_document_pages(
     '21000000-0000-4000-8000-000000000002',
     '11000000-0000-4000-8000-000000000001',
     '["valid page",""]'::jsonb
-  )$,
+  )$sql$,
   'P0001', null,
   'atomic replacement rejects empty extracted page text'
 );
@@ -94,11 +94,11 @@ select is((select count(*)::integer from public.processing_jobs), 0, 'another ac
 select is((select count(*)::integer from public.questions), 0, 'another account cannot read linked questions');
 
 select throws_ok(
-  $select public.replace_document_pages(
+  $sql$select public.replace_document_pages(
     '21000000-0000-4000-8000-000000000002',
     '11000000-0000-4000-8000-000000000001',
     '["forged page"]'::jsonb
-  )$,
+  )$sql$,
   '42501', null,
   'another account cannot replace pages for a different owner'
 );
