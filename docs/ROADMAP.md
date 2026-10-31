@@ -30,7 +30,7 @@ Implemented on feature/m3-ai-solver:
 - OpenAI-compatible server-side provider adapter with bounded input/output and HTTPS enforcement.
 - Add an optional task-aware pool of up to eight OpenAI-compatible providers, filtered by answer/chapter-note capability and owner-defined priority. Fallback calls are disabled unless explicitly enabled; actual provider/model is retained in answer and note provenance.
 - Add opt-in retrieval of up to three owner-approved chapter-note versions from the question's exact confirmed syllabus chapter. The prompt treats notes as secondary untrusted study context; immutable note IDs, versions and titles are stored with the answer and revalidated by a database trigger.
-- Add optional owner-initiated Brave web research. Only the manually entered query is sent; HTTPS result leads are stored privately with snippets and publication dates, clearly marked unverified, and protected by a five-search/15-minute owner quota.
+- Add optional owner-initiated Brave web research. Only the manually entered query is sent; HTTPS result leads are stored privately with snippets and publication dates, clearly marked unverified, and protected by five-search/15-minute and 20-search/daily owner quotas.
 - Subject/qualification/board/chapter context passed into prompts; missing syllabus context is not guessed.
 - Saved answer versions and safe schema validation.
 - Owner-opt-in source-page context: one linked page only, explicit checkbox, 8,000-character bound, OCR caveat, and deterministic source provenance stored without retaining the excerpt.
