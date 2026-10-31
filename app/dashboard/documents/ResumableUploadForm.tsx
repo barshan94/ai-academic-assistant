@@ -141,8 +141,14 @@ export function ResumableUploadForm({ disabled }: { disabled: boolean }) {
       if (inputRef.current) inputRef.current.value = "";
       router.refresh();
     } catch (uploadError) {
-      setError(uploadError instanceof Error ? uploadError.message : "Upload failed.");
-      setMessage("Your upload session is kept when it can be resumed. Re-select the same file to continue.");
+      const errorMessage = uploadError instanceof Error ? uploadError.message : "Upload failed.";
+      if (/session expired/i.test(errorMessage) && activeStorageKey.current) {
+        localStorage.removeItem(activeStorageKey.current);
+      }
+      setError(errorMessage);
+      setMessage(/session expired/i.test(errorMessage)
+        ? "The previous session expired. Re-select the file and start a new upload."
+        : "Your upload session is kept when it can be resumed. Re-select the same file to continue.");
     } finally {
       setBusy(false);
     }
