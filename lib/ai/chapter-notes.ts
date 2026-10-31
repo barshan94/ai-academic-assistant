@@ -122,7 +122,7 @@ export async function generateChapterNote(input: {
       ...result.workedExamples,
       ...result.revisionPrompts,
     ].join("\n");
-    const usedLabels = Array.from(noteText.matchAll(/\\[(S[^\\]]*)\\]/g), (match) => match[1].trim());
+    const usedLabels = Array.from(noteText.matchAll(/\[(S[^\]]*)\]/g), (match) => match[1].trim());
     if (usedLabels.some((label) => !/^S(?:[1-9]|1[0-2])$/.test(label) || !sourceLabels.has(label))) {
       throw new AIProviderError("CHAPTER_NOTE_UNKNOWN_CITATION");
     }
