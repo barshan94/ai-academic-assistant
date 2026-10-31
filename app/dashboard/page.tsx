@@ -31,6 +31,7 @@ export default async function DashboardPage() {
           <Link className="sign-in-link" href="/dashboard/questions">Open question library</Link>
           <Link className="sign-in-link" href="/dashboard/syllabus">Manage syllabus references</Link>
           <Link className="sign-in-link" href="/dashboard/syllabus/review">Classification review queue</Link>
+          <Link className="sign-in-link" href="/dashboard/syllabus/references">Shared syllabus library</Link>
         </div>
       </section>
       <section className="section">
