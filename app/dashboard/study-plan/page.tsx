@@ -6,7 +6,7 @@ import { createStudySession, completeStudySession } from "./actions";
 import type { DatabaseWithStudyPlan } from "@/types/study-plan-database";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-type PageProps = { searchParams: Promise<{ calendar?: string; week?: string; revisionPage?: string; practicePage?: string }> };
+type PageProps = { searchParams: Promise<{ calendar?: string; week?: string; revisionPage?: string; practicePage?: string; sessionPage?: string }> };
 function dateKey(date: Date) { return date.getFullYear() + "-" + String(date.getMonth() + 1).padStart(2, "0") + "-" + String(date.getDate()).padStart(2, "0"); }
 function mondayOf(date: Date) { const result = new Date(date.getFullYear(), date.getMonth(), date.getDate()); result.setDate(result.getDate() - ((result.getDay() + 6) % 7)); return result; }
 function formatDay(date: Date) { return new Intl.DateTimeFormat("en", { weekday: "long", month: "short", day: "numeric" }).format(date); }
@@ -27,12 +27,14 @@ export default async function StudyPlanPage({ searchParams }: PageProps) {
   const startKey = dateKey(weekStart), endKey = dateKey(weekEnd);
   const revisionPage = Math.max(1, Math.min(10000, Number.parseInt(params.revisionPage ?? "1", 10) || 1));
   const practicePage = Math.max(1, Math.min(10000, Number.parseInt(params.practicePage ?? "1", 10) || 1));
-  const [{ data: sessions, error: sessionsError }, { data: queueData, error: queueError }] = await Promise.all([
-    db.from("weekly_study_sessions").select("id,session_date,title,planned_minutes,notes,status,completed_at").eq("owner_id", user.id).gte("session_date", startKey).lte("session_date", endKey).order("session_date", { ascending: true }).order("created_at", { ascending: true }).limit(201),
+  const sessionPage = Math.max(1, Math.min(10000, Number.parseInt(params.sessionPage ?? "1", 10) || 1));
+  const [{ data: calendarData, error: calendarError }, { data: queueData, error: queueError }] = await Promise.all([
+    db.rpc("get_weekly_study_sessions_page", { p_start_date: startKey, p_end_date: endKey, p_page: sessionPage, p_page_size: 50 }),
     db.rpc("get_study_queue_page", { p_revision_page: revisionPage, p_practice_page: practicePage, p_page_size: 25 }),
   ]);
-  const sessionsLimited = (sessions ?? []).length > 200;
-  const visibleSessions = (sessions ?? []).slice(0, 200);
+  const visibleSessions = calendarData?.sessions ?? [];
+  const sessionsTotal = calendarData?.sessions_total ?? 0;
+  const sessionPages = Math.max(1, Math.ceil(sessionsTotal / 50));
   const queue = queueData;
   const dueRevisions = queue?.revision_items ?? [];
   const unfinishedItems = queue?.practice_items ?? [];
@@ -40,12 +42,12 @@ export default async function StudyPlanPage({ searchParams }: PageProps) {
   const practiceTotal = queue?.practice_total ?? 0;
   const revisionPages = Math.max(1, Math.ceil(revisionTotal / 25));
   const practicePages = Math.max(1, Math.ceil(practiceTotal / 25));
-  const totalMinutes = visibleSessions.reduce((sum, session) => sum + session.planned_minutes, 0);
-  const completedMinutes = visibleSessions.filter((session) => session.status === "completed").reduce((sum, session) => sum + session.planned_minutes, 0);
-  const completedCount = visibleSessions.filter((session) => session.status === "completed").length;
-  const plannedCount = visibleSessions.length - completedCount;
+  const totalMinutes = calendarData?.planned_minutes ?? 0;
+  const completedMinutes = calendarData?.completed_minutes ?? 0;
+  const completedCount = calendarData?.completed_count ?? 0;
+  const plannedCount = calendarData?.planned_count ?? 0;
   const message = params.calendar === "created" ? "Study session added to this week's calendar." : params.calendar === "completed" ? "Session marked as completed." : params.calendar === "invalid" ? "Check the date, title and planned duration." : params.calendar === "failed" ? "The session could not be saved. Refresh and try again." : undefined;
-  const hasError = Boolean(sessionsError || queueError);
+  const hasError = Boolean(calendarError || queueError);
 
   return (
     <main className="shell">
@@ -61,7 +63,7 @@ export default async function StudyPlanPage({ searchParams }: PageProps) {
       {message ? <p className={params.calendar === "failed" || params.calendar === "invalid" ? "notice notice-error" : "notice"} role="status">{message}</p> : null}
       {hasError ? <p className="notice notice-error" role="status">Some calendar or workload data could not be loaded. The displayed totals may be incomplete.</p> : null}
       <section className="section">
-        <div className="section-heading"><div><p className="eyebrow">WEEK OF {startKey}</p><h2>Your weekly workload</h2></div><div className="study-week-navigation">{weekOffset > -52 ? <Link className="secondary-action" href={"/dashboard/study-plan?week=" + (weekOffset - 1)}>← Previous</Link> : <span className="section-count">Earliest week</span>}<span className="section-count">{plannedCount} shown planned · {completedCount} shown completed{sessionsLimited ? " · more sessions exist" : ""}</span>{weekOffset !== 0 ? <Link className="secondary-action" href="/dashboard/study-plan">This week</Link> : null}{weekOffset < 52 ? <Link className="secondary-action" href={"/dashboard/study-plan?week=" + (weekOffset + 1)}>Next →</Link> : <span className="section-count">Latest week</span>}</div></div>
+        <div className="section-heading"><div><p className="eyebrow">WEEK OF {startKey}</p><h2>Your weekly workload</h2></div><div className="study-week-navigation">{weekOffset > -52 ? <Link className="secondary-action" href={"/dashboard/study-plan?week=" + (weekOffset - 1)}>← Previous</Link> : <span className="section-count">Earliest week</span>}<span className="section-count">{plannedCount} planned · {completedCount} completed · {sessionsTotal} total sessions</span>{weekOffset !== 0 ? <Link className="secondary-action" href="/dashboard/study-plan">This week</Link> : null}{weekOffset < 52 ? <Link className="secondary-action" href={"/dashboard/study-plan?week=" + (weekOffset + 1)}>Next →</Link> : <span className="section-count">Latest week</span>}</div></div>
         <div className="module-grid revision-stats">
           <article className="module-card"><span className="module-number">{totalMinutes}</span><h3>Planned minutes</h3><p>Estimated time across this week&apos;s saved sessions.</p></article>
           <article className="module-card"><span className="module-number">{completedMinutes}</span><h3>Completed minutes</h3><p>Time estimates for sessions you marked complete.</p></article>
@@ -81,7 +83,7 @@ export default async function StudyPlanPage({ searchParams }: PageProps) {
         <p className="question-card-meta">Sessions are personal plans, not automatically generated assignments. Due revision and practice tasks remain separate until you choose to schedule them.</p>
       </section>
       <section className="section">
-        <div className="section-heading"><div><p className="eyebrow">MONDAY–SUNDAY</p><h2>Weekly calendar</h2></div><span className="section-count">{visibleSessions.length}{sessionsLimited ? "+" : ""} sessions</span></div>
+        <div className="section-heading"><div><p className="eyebrow">MONDAY–SUNDAY</p><h2>Weekly calendar</h2></div><span className="section-count">{sessionsTotal} total sessions</span></div>
         <div className="study-calendar">
           {Array.from({ length: 7 }, (_, index) => {
             const day = new Date(weekStart); day.setDate(day.getDate() + index);
@@ -99,6 +101,11 @@ export default async function StudyPlanPage({ searchParams }: PageProps) {
             </section>;
           })}
         </div>
+        {sessionsTotal > 50 ? <div className="study-week-navigation">
+          <span className="section-count">Calendar page {sessionPage} of {sessionPages}</span>
+          {sessionPage > 1 ? <Link className="secondary-action" href={"/dashboard/study-plan?week=" + weekOffset + "&sessionPage=" + (sessionPage - 1) + "&revisionPage=" + revisionPage + "&practicePage=" + practicePage}>Previous sessions</Link> : null}
+          {sessionPage < sessionPages ? <Link className="secondary-action" href={"/dashboard/study-plan?week=" + weekOffset + "&sessionPage=" + (sessionPage + 1) + "&revisionPage=" + revisionPage + "&practicePage=" + practicePage}>More sessions</Link> : null}
+        </div> : null}
       </section>
       <section className="section">
         <div className="section-heading"><div><p className="eyebrow">UNSCHEDULED TASKS</p><h2>Study queue</h2></div><span className="section-count">{revisionTotal + practiceTotal} total tasks</span></div>
@@ -142,7 +149,7 @@ export default async function StudyPlanPage({ searchParams }: PageProps) {
         </div> : null}
 
       </section>
-      <p className="question-card-meta">Calendar window: selected Monday–Sunday week; up to 200 saved sessions are displayed{sessionsLimited ? " (more exist)" : ""}. Navigate up to 52 weeks backward or forward. Study queue: all due revisions and unfinished practice items are counted; 25 of each are loaded per page. Time values are estimates entered by you, not measured focus time.</p>
+      <p className="question-card-meta">Calendar window: selected Monday–Sunday week; all sessions are counted and 50 are displayed per page. Study queue: all due revisions and unfinished practice items are counted; 25 of each are loaded per page. Time values are estimates entered by you, not measured focus time.</p>
     </main>
   );
 }
