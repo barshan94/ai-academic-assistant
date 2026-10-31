@@ -347,7 +347,7 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
                   points: saved.points,
                 });
                 if (!parsedScheme.success) return <p className="notice notice-error" key={saved.id}>A saved mark scheme has an invalid structure and cannot be compared.</p>;
-                const comparison = compareAnswerToMarkScheme(answer.examAnswer + "\n" + answer.workingSteps.map((step) => step.explanation).join("\n"), parsedScheme.data);
+                const comparison = compareAnswerToMarkScheme(answer.examAnswer + "\n" + answer.workingSteps.flatMap((step) => [step.step, step.explanation]).join("\n"), parsedScheme.data);
                 return (
                   <article className="question-card" key={saved.id}>
                     <h4>{saved.title}</h4>
