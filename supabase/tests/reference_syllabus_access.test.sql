@@ -42,17 +42,17 @@ select lives_ok(
 select lives_ok(
   $$insert into public.reference_syllabus_evidence
     (catalog_id, chapter_id, topic_id, source_url, source_title, source_locator, evidence_excerpt)
-    values ('72000000-0000-4000-8000-000000000001', (select id from public.reference_syllabus_chapters where catalog_id = (select id from public.reference_syllabus_catalogs where subject = 'Physics' and version = '2026') and title = 'Mechanics'), null, 'https://example.test/physics', 'Official Physics specification', 'Section 2', 'Mechanics'),
-           ('72000000-0000-4000-8000-000000000001', (select id from public.reference_syllabus_chapters where catalog_id = '72000000-0000-4000-8000-000000000001' and title = 'Mechanics'), (select id from public.reference_syllabus_topics where title = 'Newton laws'), 'https://example.test/physics', 'Official Physics specification', 'Section 2.1', 'Newton laws')$$,
+    values ((select id from public.reference_syllabus_catalogs where subject = 'Physics' and version = '2026'), (select id from public.reference_syllabus_chapters where catalog_id = (select id from public.reference_syllabus_catalogs where subject = 'Physics' and version = '2026') and title = 'Mechanics'), null, 'https://example.test/physics', 'Official Physics specification', 'Section 2', 'Mechanics'),
+           ((select id from public.reference_syllabus_catalogs where subject = 'Physics' and version = '2026'), (select id from public.reference_syllabus_chapters where catalog_id = (select id from public.reference_syllabus_catalogs where subject = 'Physics' and version = '2026') and title = 'Mechanics'), (select id from public.reference_syllabus_topics where title = 'Newton laws'), 'https://example.test/physics', 'Official Physics specification', 'Section 2.1', 'Newton laws')$$,
   'platform admin can attach chapter and topic source evidence'
 );
 select lives_ok(
   $$update public.reference_syllabus_catalogs set status = 'verified'
-    where id = '72000000-0000-4000-8000-000000000001'$$,
+    where subject = 'Physics' and version = '2026'$,
   'catalogue can be verified after chapter and topic evidence are recorded'
 );
 select is(
-  (select verified_by from public.reference_syllabus_catalogs where id = '72000000-0000-4000-8000-000000000001'),
+  (select verified_by from public.reference_syllabus_catalogs where id = (select id from public.reference_syllabus_catalogs where subject = 'Physics' and version = '2026')),
   '71000000-0000-4000-8000-000000000001'::uuid,
   'verification identity is set from the authenticated curator'
 );
@@ -98,7 +98,7 @@ set local request.jwt.claim.sub = '71000000-0000-4000-8000-000000000001';
 set local request.jwt.claims = '{"sub":"71000000-0000-4000-8000-000000000001","role":"authenticated","email":"reference-admin@example.test"}';
 select throws_ok(
   $$update public.reference_syllabus_catalogs set source_title = 'Changed after verification'
-    where id = '72000000-0000-4000-8000-000000000001'$$,
+    where id = (select id from public.reference_syllabus_catalogs where subject = 'Physics' and version = '2026')$$,
   'P0001',
   'Verified catalogue identity and provenance are immutable; publish a new version',
   'verified catalogue provenance cannot be silently changed'
