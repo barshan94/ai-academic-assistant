@@ -2,9 +2,9 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { signOut } from "../actions";
-import { createChapterNoteDraft, updateChapterNoteStatus } from "./actions";
+import { createChapterNoteDraft, generateChapterNoteDraft, updateChapterNoteStatus } from "./actions";
 
-type PageProps = { searchParams: Promise<{ create?: string; status?: string }> };
+type PageProps = { searchParams: Promise<{ create?: string; status?: string; ai?: string }> };
 type NoteContent = {
   summary?: string;
   concepts?: string[];
@@ -70,6 +70,13 @@ export default async function ChapterWorkspacePage({ searchParams }: PageProps) 
     : params.create === "source_required" ? "Select at least one question or source page."
     : params.create === "invalid" ? "Some fields were invalid or exceeded their limits."
     : params.create === "save_failed" ? "The draft could not be saved. Check that the chapter and every selected source belong to your account."
+    : params.ai === "generated" ? "AI draft generated and saved. Review every claim and source citation before approval."
+    : params.ai === "not_configured" ? "AI generation is unavailable: configure AI_API_KEY and AI_MODEL in the server environment."
+    : params.ai === "no_sources" ? "No approved questions are available for this chapter. Approve and classify source questions first."
+    : params.ai === "source_error" ? "The approved source pages could not be loaded."
+    : params.ai === "save_failed" ? "The generated note could not be saved. No draft was created."
+    : params.ai === "failed" ? "AI generation failed or returned an invalid note. Check provider configuration and try again."
+    : params.ai === "invalid" ? "The chapter selection was invalid."
     : params.status === "updated" ? "Note status updated."
     : params.status === "blocked" ? "The status change was blocked. Approval requires at least one saved source."
     : params.status === "invalid" ? "The requested status change was invalid."
@@ -161,7 +168,7 @@ export default async function ChapterWorkspacePage({ searchParams }: PageProps) 
                         })}
                       </div> : null}
 
-                      <p className="question-card-meta">At least one source question or page is required. This workspace stores owner-authored drafts; automatic AI generation will be added after provider configuration and evidence-quality checks.</p>
+                      <p className="question-card-meta">At least one source question or page is required. Manual drafts remain available alongside AI-generated drafts.</p>
                       <button className="primary-action" type="submit">Save chapter note draft →</button>
                     </form>
                   </details>
