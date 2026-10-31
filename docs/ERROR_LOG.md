@@ -108,7 +108,7 @@ This file records material implementation, CI, integration and release problems 
 - Area: M2 background processing / reliability
 - Symptom: Document processing was initiated through a user-facing POST request and could be interrupted by browser navigation, request timeouts or serverless execution limits.
 - Root cause: The durable job table existed, but there was no scheduled worker independently consuming it.
-- Fix: Added an authenticated scheduled server route that uses a server-only Supabase service-role client, atomically claims one queued/failed/stale job at a time, refreshes the owning user's encrypted Google Drive token, processes OCR, records success/failure, retries within each row's max_attempts, and reclaims running jobs older than 15 minutes. Added a five-minute Vercel cron declaration and deployment/setup documentation.
+- Fix: Added an authenticated scheduled server route that uses a server-only Supabase service-role client, atomically claims one queued/failed/stale job at a time, refreshes the owning user's encrypted Google Drive token, processes OCR, records success/failure, retries within each row's max_attempts, and reclaims running jobs older than 15 minutes. Added a five-minute GitHub Actions scheduled workflow and deployment/setup documentation. The initial Vercel cron expression was removed after checking current plan limits: Vercel Hobby supports only daily cron execution, while more frequent schedules require Pro or Enterprise.
 - Verification: Added unit tests for retry-budget and claim eligibility policy. Full CI and real deployment/integration verification are pending. The worker requires CRON_SECRET, SUPABASE_SERVICE_ROLE_KEY, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET and the same DRIVE_TOKEN_ENCRYPTION_KEY used for stored tokens.
 - Status: Implemented in code; not operationally verified. The deployment scheduler must support the configured five-minute cadence, and the non-production secrets plus live Google Drive acceptance must be configured before this can be marked complete.
 
@@ -161,3 +161,13 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Replaced the old form with the resumable client component and updated the legacy test to assert the 50 MB limit. Added a bounded request-body reader so the server rejects chunks larger than 1 MB before allocating the full request body.
 - Verification: Earlier CI established ESLint and both TypeScript checks pass; the unit-test failure was isolated to the stale assertion (101 tests passed, 1 failed). The corrected test, page wiring and bounded-body tests await a fresh full CI run.
 - Status: Code corrected; final CI verification pending.
+
+## ERR-015 — Five-minute Vercel cron is incompatible with Hobby plan limits
+
+- Date: 2026-10-31
+- Area: M2 background worker scheduling / deployment compatibility
+- Symptom: The initial worker schedule used a five-minute Vercel cron expression, which would fail deployment on Vercel Hobby.
+- Root cause: Vercel Hobby cron jobs are limited to once per day; schedules more frequent than daily require Pro or Enterprise.
+- Fix: Removed the Vercel cron configuration and added a GitHub Actions workflow scheduled every five minutes. The workflow calls the same authenticated worker endpoint using repository secrets DOCUMENT_WORKER_URL and CRON_SECRET. Updated setup documentation to explain that scheduled workflows activate only from the default branch.
+- Verification: Workflow syntax and live scheduled execution remain pending; it cannot run on a schedule from this feature branch before an authorized merge to the default branch.
+- Status: Code implemented; activation awaits default-branch merge and non-production/production scheduler secrets. No deployment or merge was performed.
