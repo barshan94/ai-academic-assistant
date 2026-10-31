@@ -3,6 +3,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { decryptDriveUploadSession } from "@/lib/drive/crypto";
 import { getDriveAccessToken, sendResumablePdfChunk, deleteDriveFile } from "@/lib/drive/google";
 import { isValidDriveChunk, parseDriveUploadOffset } from "@/lib/drive/resumable-upload";
+import { MAX_UPLOAD_BYTES } from "@/lib/documents/upload-limits";
 
 export const runtime = "nodejs";
 
@@ -91,7 +92,7 @@ export async function POST(request: NextRequest) {
 
   if (session.ownerId !== user.id) return NextResponse.json({ error: "This upload belongs to another account." }, { status: 403 });
   if (!Number.isSafeInteger(session.fileSizeBytes) || session.fileSizeBytes < 1 ||
-      session.fileSizeBytes > 50 * 1024 * 1024 || session.expiresAt < Date.now()) {
+      session.fileSizeBytes > MAX_UPLOAD_BYTES || session.expiresAt < Date.now()) {
     return NextResponse.json({ error: "Upload session has expired. Start the upload again." }, { status: 410 });
   }
 
