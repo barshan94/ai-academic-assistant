@@ -34,6 +34,6 @@ Generated output, machine checks and teacher review remain separate. Passing one
 | Image intake | Convert images into optimized PDF after validation |
 | Existing PDFs | Preserve as PDFs; do not needlessly reconvert |
 | AI | Provider-neutral OpenAI-compatible server-side adapter pool with task capability routing and owner-defined priority |
-| Retrieval | Own library first; web research only when needed |
+| Retrieval | Own library first; optional owner-initiated web search when needed |
 | Processing | Chunked, resumable background jobs planned |
 | Users | One owner; invited teachers get access only to explicitly shared questions |
