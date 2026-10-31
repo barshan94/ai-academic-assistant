@@ -59,6 +59,7 @@
 - [x] Source-page context is limited to the question\u2019s owner-linked page and 8,000 characters; empty/invalid context is rejected and OCR/extraction uncertainty is disclosed.
 - [x] Saved answers store deterministic document/page/extraction/hash/length provenance, not the source excerpt itself.
 - [x] Owner-supplied mark-scheme references record an HTTPS URL, exact page/section locator, optional exam-series/document version and structured mark points; a database trigger requires locators for new references. They remain unverified owner evidence, not certified official schemes, and phrase matching never awards marks.
+- [ ] Web research sends only the manually entered query, enforces owner quotas and owner-only source access, rejects non-HTTPS results, and labels all results as unverified source leads.
 - [ ] Provider routing selects only endpoints configured for the requested task and respects owner-defined priority.
 - [ ] Provider fallback is disabled by default and only tries additional configured endpoints when explicitly enabled; the actual selected provider/model is retained in solution/note provenance.
 - [ ] Official mark-scheme/source grounding and citation checks.
