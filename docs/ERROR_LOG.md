@@ -171,3 +171,13 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Removed the Vercel cron configuration and added a GitHub Actions workflow scheduled every five minutes. The workflow calls the same authenticated worker endpoint using repository secrets DOCUMENT_WORKER_URL and CRON_SECRET. Updated setup documentation to explain that scheduled workflows activate only from the default branch.
 - Verification: Workflow syntax and live scheduled execution remain pending; it cannot run on a schedule from this feature branch before an authorized merge to the default branch.
 - Status: Code implemented; activation awaits default-branch merge and non-production/production scheduler secrets. No deployment or merge was performed.
+
+## ERR-014 — Vercel Hobby cron frequency was unsupported
+
+- Date: 2026-10-31
+- Area: M2 background processing / scheduler
+- Symptom: The initial Vercel cron configuration attempted to invoke the document worker every five minutes, a frequency unsupported by the project's Vercel Hobby plan.
+- Root cause: The chosen hosting plan does not support the requested frequent cron schedule.
+- Fix: Removed the unsupported Vercel cron configuration and added a GitHub Actions scheduled/manual workflow. It calls the HTTPS worker endpoint with a bearer secret, serializes scheduled invocations, bounds request duration and retries transient network failures. Added a deployment setup guide.
+- Verification: Workflow YAML and end-to-end invocation are awaiting CI and configured non-production secrets. No live worker invocation has been claimed.
+- Status: Scheduler implementation committed; operational activation remains blocked on APP_BASE_URL, CRON_SECRET, and deployed Supabase/Google environment configuration.
