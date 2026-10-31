@@ -223,3 +223,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Standardized the new SQL literals on the explicit $sql$...$sql$ delimiter and scoped the owner-document assertion to its fixture ID. Added direct FK protection and question-preservation assertions.
 - Verification: All 27 document-intake assertions and all 44 existing question-solution/study-feature assertions passed (71 total) in database run 41193654822.
 - Status: Fixed and verified.
+
+
+## ERR-020 — Teacher-revocation regression test used malformed SQL delimiters
+
+- Date: 2026-10-31
+- Area: M4 teacher review permissions / pgTAP
+- Symptom: The new test intended to verify that a revoked teacher loses access to a question and solution failed to parse; pgTAP stopped after 14 of the planned 20 assertions.
+- Root cause: Three new `throws_ok`/`lives_ok` SQL arguments used single-dollar delimiters instead of PostgreSQL's paired `$$` delimiters.
+- Fix: Corrected the SQL delimiters and retained the new assertions for owner revocation, preservation of the owner's historical review, loss of the former teacher's read access, and denial of subsequent review writes.
+- Verification: The corrected test is queued for a fresh database CI run on commit 836b27599867d80d80e0e2ca5c8ca3ead5ff465e. It is not yet marked passed.
+- Status: Code corrected; fresh CI verification pending.
