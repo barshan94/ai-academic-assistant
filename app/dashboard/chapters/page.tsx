@@ -12,7 +12,7 @@ type NoteContent = {
   workedExamples?: string[];
   revisionPrompts?: string[];
   generatedBy?: string;
-  sourceReferences?: Array<{ ref: string; questionId: string; pageId: string | null; pageNumber: number | null }>;
+  sourceReferences?: Array<{ ref: string; questionId: string; pageId: string | null; pageNumber: number | null; extractionMethod: string | null }>;
 };
 
 function ContentList({ title, items }: { title: string; items?: string[] }) {
@@ -43,9 +43,9 @@ export default async function ChapterWorkspacePage({ searchParams }: PageProps) 
 
   const pageIds = Array.from(new Set((questions ?? []).map((item) => item.document_page_id).filter((id): id is string => Boolean(id))));
   const { data: pages } = pageIds.length
-    ? await supabase.from("document_pages").select("id,document_id,page_number,extracted_text")
+    ? await supabase.from("document_pages").select("id,document_id,page_number,extracted_text,extraction_method")
       .eq("owner_id", user.id).in("id", pageIds)
-    : { data: [] as { id: string; document_id: string; page_number: number; extracted_text: string | null }[] };
+    : { data: [] as { id: string; document_id: string; page_number: number; extracted_text: string | null; extraction_method: string | null }[] };
   const documentIds = Array.from(new Set((pages ?? []).map((item) => item.document_id)));
   const { data: documents } = documentIds.length
     ? await supabase.from("documents").select("id,file_name,drive_web_view_link")
@@ -188,7 +188,7 @@ export default async function ChapterWorkspacePage({ searchParams }: PageProps) 
                         <ContentList title="Formulas" items={content.formulas} />
                         <ContentList title="Worked examples" items={content.workedExamples} />
                         <ContentList title="Revision prompts" items={content.revisionPrompts} />
-                        {content.sourceReferences?.length ? <div className="chapter-note-sources"><strong>AI citation key</strong>{content.sourceReferences.map((reference) => { const question = questionMap.get(reference.questionId); const page = reference.pageId ? pageMap.get(reference.pageId) : null; const doc = page ? documentMap.get(page.document_id) : null; return <p key={reference.ref}><strong>[{reference.ref}]</strong> {question?.question_number ? "Question " + question.question_number : "Approved question"}{doc ? " · " + doc.file_name : ""}{reference.pageNumber ? " · page " + reference.pageNumber : ""}</p>; })}</div> : null}
+                        {content.sourceReferences?.length ? <div className="chapter-note-sources"><strong>AI citation key</strong>{content.sourceReferences.map((reference) => { const question = questionMap.get(reference.questionId); const page = reference.pageId ? pageMap.get(reference.pageId) : null; const doc = page ? documentMap.get(page.document_id) : null; return <div className="chapter-note-citation" key={reference.ref}><p><strong>[{reference.ref}]</strong> {question?.question_number ? "Question " + question.question_number : "Approved question"}{doc ? " · " + doc.file_name : ""}{reference.pageNumber ? " · page " + reference.pageNumber : ""}{reference.extractionMethod ? " · " + reference.extractionMethod : ""}</p>{page?.extracted_text ? <p className="chapter-note-source-preview">{page.extracted_text.slice(0, 360)}{page.extracted_text.length > 360 ? "…" : ""}</p> : <p className="chapter-note-source-preview">No extracted page text was available for this source.</p>}</div>; })}</div> : null}
                         <div className="chapter-note-sources"><strong>Sources ({noteSources.length})</strong>
                           {noteSources.map((source) => {
                             const question = source.question_id ? questionMap.get(source.question_id) : null;
