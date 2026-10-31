@@ -12,7 +12,8 @@ const validPng = Buffer.from(
 );
 
 function file(bytes: Uint8Array | Buffer, name: string, type: string) {
-  return new File([bytes], name, { type });
+  const copy = Uint8Array.from(bytes);
+  return new File([copy.buffer], name, { type });
 }
 
 describe("normalizeFilesToPdf", () => {
