@@ -12,35 +12,24 @@ export async function bulkUpdateClassificationStatus(formData: FormData) {
   });
   if (!parsed.success) redirect("/dashboard/syllabus/review?bulk=invalid");
 
-  const { questionIds, targetStatus } = parsed.data;
   const supabase = await createSupabaseServerClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) redirect("/login");
 
-  const { data: eligible, error: lookupError } = await supabase.from("questions")
-    .select("id")
-    .eq("owner_id", user.id)
-    .in("id", questionIds)
-    .in("classification_status", ["unreviewed", "uncertain"]);
-  if (lookupError) redirect("/dashboard/syllabus/review?bulk=failed");
-  if (!eligible || eligible.length !== questionIds.length) {
-    redirect("/dashboard/syllabus/review?bulk=stale");
-  }
-
-  // A single conditional SQL UPDATE prevents partial batch writes. The existing
-  // database trigger records a separate before/after history row per question.
-  const { data: updated, error: updateError } = await supabase.from("questions")
-    .update({ classification_status: targetStatus })
-    .eq("owner_id", user.id)
-    .in("id", questionIds)
-    .in("classification_status", ["unreviewed", "uncertain"])
-    .select("id");
-  if (updateError) redirect("/dashboard/syllabus/review?bulk=failed");
-  if (!updated || updated.length !== questionIds.length) {
-    redirect("/dashboard/syllabus/review?bulk=stale");
+  // The SECURITY INVOKER RPC locks and validates the entire owner-scoped batch
+  // inside one transaction; any stale/inaccessible ID rolls the whole call back.
+  const { data: updatedCount, error } = await supabase.rpc(
+    "bulk_update_question_classification_status",
+    {
+      question_ids: parsed.data.questionIds,
+      target_status: parsed.data.targetStatus,
+    },
+  );
+  if (error || typeof updatedCount !== "number") {
+    redirect("/dashboard/syllabus/review?bulk=failed");
   }
 
   revalidatePath("/dashboard/syllabus/review");
   revalidatePath("/dashboard/questions");
-  redirect("/dashboard/syllabus/review?bulk=updated&count=" + updated.length);
+  redirect("/dashboard/syllabus/review?bulk=updated&count=" + updatedCount);
 }
