@@ -189,7 +189,7 @@ create policy "chapter_note_sources_owner_insert"
   on public.chapter_note_sources for insert to authenticated
   with check ((select auth.uid()) = owner_id);
 
-revoke all on public.chapter_note_versions, public.chapter_note_sources from anon, public;
+revoke all on public.chapter_note_versions, public.chapter_note_sources from anon, public, authenticated;
 grant select, insert on public.chapter_note_versions to authenticated;
 grant update (status) on public.chapter_note_versions to authenticated;
 grant select, insert on public.chapter_note_sources to authenticated;
