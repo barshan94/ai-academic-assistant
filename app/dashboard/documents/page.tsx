@@ -30,6 +30,8 @@ const notices: Record<string, { text: string; tone: "success" | "error" | "info"
   not_found: { text: "Document not found or you do not have access to it.", tone: "error" },
   job_missing: { text: "No processing job was found for this document.", tone: "error" },
   retry_limit: { text: "The automatic retry limit has been reached. Review the file manually.", tone: "error" },
+  reprocess_blocked: { text: "This document already has saved questions or chapter-note sources. Reprocessing is blocked to protect those linked records; upload a new document version instead.", tone: "error" },
+  reprocess_check_failed: { text: "We could not verify whether existing academic records depend on this document. Nothing was reprocessed. Refresh and try again.", tone: "error" },
   queue_failed: { text: "The processing job could not be queued. The uploaded file was rolled back.", tone: "error" },
 };
 
