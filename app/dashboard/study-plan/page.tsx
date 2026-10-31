@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { signOut } from "../actions";
-import { createStudySession, completeStudySession } from "./actions";
+import { createStudySession, completeStudySession, deletePlannedStudySession } from "./actions";
 import type { DatabaseWithStudyPlan } from "@/types/study-plan-database";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
@@ -55,7 +55,7 @@ export default async function StudyPlanPage({ searchParams }: PageProps) {
   const completedMinutes = calendarData?.completed_minutes ?? 0;
   const completedCount = calendarData?.completed_count ?? 0;
   const plannedCount = calendarData?.planned_count ?? 0;
-  const message = params.calendar === "created" ? "Study session added to this week's calendar." : params.calendar === "completed" ? "Session marked as completed." : params.calendar === "invalid" ? "Check the date, title and planned duration." : params.calendar === "failed" ? "The session could not be saved. Refresh and try again." : undefined;
+  const message = params.calendar === "created" ? "Study session added to this week's calendar." : params.calendar === "completed" ? "Session marked as completed." : params.calendar === "deleted" ? "Planned session removed from your calendar." : params.calendar === "invalid" ? "Check the date, title and planned duration." : params.calendar === "failed" ? "The session could not be saved. Refresh and try again." : undefined;
   const hasError = Boolean(calendarError || queueError);
 
   return (
@@ -105,7 +105,7 @@ export default async function StudyPlanPage({ searchParams }: PageProps) {
                 <article className={"study-session-card " + (session.status === "completed" ? "is-complete" : "")} key={session.id}>
                   <div className="question-card-heading"><span className="document-status">{session.status === "completed" ? "Completed" : "Planned"}</span><span className="question-subject">{session.planned_minutes} min</span></div>
                   <h4>{session.title}</h4>{session.notes ? <p className="question-card-meta">{session.notes}</p> : null}
-                  {session.status === "planned" ? <form action={completeStudySession}><input type="hidden" name="sessionId" value={session.id} /><input type="hidden" name="weekOffset" value={weekOffset} /><input type="hidden" name="sessionPage" value={sessionPage} /><button className="secondary-action" type="submit">Mark complete ✓</button></form> : <p className="study-complete-note">Completed {session.completed_at ? new Intl.DateTimeFormat("en", { timeZone, month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }).format(new Date(session.completed_at)) : ""}</p>}
+                  {session.status === "planned" ? <div className="study-week-navigation"><form action={completeStudySession}><input type="hidden" name="sessionId" value={session.id} /><input type="hidden" name="weekOffset" value={weekOffset} /><input type="hidden" name="sessionPage" value={sessionPage} /><button className="secondary-action" type="submit">Mark complete ✓</button></form><form action={deletePlannedStudySession}><input type="hidden" name="sessionId" value={session.id} /><input type="hidden" name="weekOffset" value={weekOffset} /><input type="hidden" name="sessionPage" value={sessionPage} /><button className="secondary-action" type="submit">Remove planned session</button></form></div> : <p className="study-complete-note">Completed {session.completed_at ? new Intl.DateTimeFormat("en", { timeZone, month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }).format(new Date(session.completed_at)) : ""}</p>}
                 </article>
               )}
             </section>;
