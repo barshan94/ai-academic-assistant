@@ -62,7 +62,6 @@ export async function generateQuestionSolution(formData: FormData) {
     model: config.model,
     prompt_version: "academic-answer-v2-math-checks",
     answer_json: answer,
-    verification_status: "generated",
   });
 
   if (saveError) redirect("/dashboard/questions/" + question.id + "?solve=save_failed");
