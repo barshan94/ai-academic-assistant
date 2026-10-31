@@ -10,13 +10,15 @@ const httpsUrl = z.string().trim().max(2048).refine((value) => {
   catch { return false; }
 }, "A valid HTTPS source URL is required.");
 
-const dateOnly = z.string().trim().max(10).refine((value) => !value || /^\\d{4}-\\d{2}-\\d{2}$/.test(value) && !Number.isNaN(Date.parse(value + "T00:00:00.000Z")));\n\nconst catalogSchema = z.object({
+const dateOnly = z.string().trim().max(10).refine((value) => !value || /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(value + "T00:00:00.000Z")));
+
+const catalogSchema = z.object({
   board: z.string().trim().min(1).max(100),
   qualification: z.string().trim().min(1).max(100),
   subject: z.string().trim().min(1).max(120),
   version: z.string().trim().min(1).max(80),
-  effectiveFrom: z.string().trim().max(10),
-  effectiveTo: z.string().trim().max(10),
+  effectiveFrom: dateOnly,
+  effectiveTo: dateOnly,
   sourceUrl: z.string().trim().max(2048).refine((value) => !value || (() => {
     try { return new URL(value).protocol === "https:"; } catch { return false; }
   })()),
