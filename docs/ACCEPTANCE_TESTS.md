@@ -27,7 +27,9 @@
 - [x] Manually capture an individual question from a reviewed source page with board/qualification/subject/chapter metadata.
 - [x] Search the source-linked question library and approve/reject captured questions.
 - [ ] Resumable uploads for files larger than 4 MB.
-- [ ] Durable background processing worker and automatic retries.
+- [x] Implement scheduled server-side document worker with conditional atomic claims, stale-running recovery, per-job retry limits, and one-job-per-invocation processing.
+- [ ] Configure worker secrets and scheduler in a non-production deployment; verify wrong-secret rejection, single-job processing, concurrent claim safety, retry exhaustion and stale recovery.
+- [ ] Durable background processing worker and automatic retries proven in live integration tests.
 - [ ] Cross-account integration test for every document-related table.
 
 ## Solver and verification (M3-M4)
