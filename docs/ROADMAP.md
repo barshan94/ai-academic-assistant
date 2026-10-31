@@ -67,7 +67,7 @@ Implemented on feature/m3-ai-solver:
 - Add a read-only shared reference library and admin-only curator workspace; platform-admin membership is provisioned out of band and no sample curriculum is seeded.
 
 M5 exit criteria still outstanding:
-- Populate and maintain the shared reference library with real official-board syllabus versions and citations. The shared schema and curator workflow now exist, but the library is intentionally empty until an appointed curator enters and checks real source material.
+- Populate and maintain the shared reference library with real official-board syllabus versions and citations. The shared schema and curator workflow now exist, but the library is intentionally empty until an appointed curator enters and checks real source material. In addition, two owner-private Cambridge 2026–2028 draft imports now include the official chapter headings and numbered topic-section headings (Physics 5054: 63; Chemistry 5070: 49). These are topic indexes only: detailed learning objectives are not imported, neither draft is published or verified, and a curator must check every heading against the live official PDF and confirm administrative-zone availability before shared publication.
 - Improve assisted classification with official source evidence and calibrated confidence; current lexical suggestions are only a navigation aid and must not be treated as evidence or probability. Never silently guess a syllabus version.
 
 ### M6 status — foundation started
