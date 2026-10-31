@@ -82,7 +82,7 @@ M6 application status — first usable authoring slice implemented:
 - Owner-only chapter workspace lists the owner's syllabus chapters, linked questions and note versions.
 - Manual structured note authoring captures summaries, concepts, formulas, worked examples and revision prompts.
 - Draft creation and all source references are saved atomically through an authenticated, owner-scoped database function.
-- Owners can attach only owner-approved questions classified to the selected chapter and their original document pages; cross-owner or cross-chapter source IDs are rejected.
+- Owners can attach only owner-approved questions classified to the selected chapter and their original document pages; cross-owner or cross-chapter source IDs are rejected. The database RPC independently enforces approved status and exact catalogue/chapter classification, and approval revalidates those question sources in case their review state or classification changed after draft creation.
 - Version history is displayed, revisions can supersede a prior version, and draft approval requires at least one source.
 - Note content and source history remain immutable; approval rechecks that every source is still owner-approved and belongs to the selected chapter. Only status transitions are exposed to clients.
 
