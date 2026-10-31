@@ -323,7 +323,7 @@ export async function searchQuestionWebSources(formData: FormData) {
   if (quotaError) redirect("/dashboard/questions/" + question.id + "?research=quota_unavailable");
   if (!allowed) redirect("/dashboard/questions/" + question.id + "?research=rate_limited");
 
-  let sources;
+  let sources: Awaited<ReturnType<typeof searchWebSources>>;
   try {
     sources = await searchWebSources(parsed.data.query);
   } catch (error) {
