@@ -45,11 +45,6 @@ export async function generateQuestionSolution(formData: FormData) {
     throw error;
   }
 
-  const quota = await consumeAIGenerationQuota(supabase, "ai-solution");
-  if (quota !== "allowed") {
-    redirect("/dashboard/questions/" + question.id + "?solve=" + (quota === "limited" ? "rate_limited" : "rate_limit_unavailable"));
-  }
-
   const includeSource = formData.get("includeSourceContext") === "yes";
   let sourceContext;
   let sourceProvenance = null;
@@ -75,6 +70,11 @@ export async function generateQuestionSolution(formData: FormData) {
       excerpt_sha256: createHash("sha256").update(sourceContext.text, "utf8").digest("hex"),
       excerpt_length: sourceContext.text.length,
     };
+  }
+
+  const quota = await consumeAIGenerationQuota(supabase, "ai-solution");
+  if (quota !== "allowed") {
+    redirect("/dashboard/questions/" + question.id + "?solve=" + (quota === "limited" ? "rate_limited" : "rate_limit_unavailable"));
   }
 
   let answer;

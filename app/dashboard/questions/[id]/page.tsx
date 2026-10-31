@@ -20,6 +20,8 @@ type PageProps = {
 
 const messages: Record<string, string> = {
   generated: "An AI-generated answer was saved. It has not been independently verified.",
+  rate_limited: "You have reached the AI answer-generation limit. Wait 15 minutes before trying again.",
+  rate_limit_unavailable: "AI generation is temporarily blocked because the account quota service is unavailable. No provider request was sent.",
   source_unavailable: "The original source page is unavailable to this account, so no source text was sent.",
   source_empty: "The selected source page has no usable extracted text. Correct or re-extract the page before opting in.",
   not_configured: "AI solving is not configured. Add an AI provider key and model to the server environment before generating answers.",

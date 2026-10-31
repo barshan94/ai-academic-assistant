@@ -83,6 +83,8 @@ export default async function ChapterWorkspacePage({ searchParams }: PageProps) 
     : params.create === "invalid" ? "Some fields were invalid or exceeded their limits."
     : params.create === "save_failed" ? "The draft could not be saved. Check that the chapter and every selected source belong to your account."
     : params.ai === "generated" ? "AI draft generated and saved. Review every claim and source citation before approval."
+    : params.ai === "rate_limited" ? "You have reached the chapter-note AI generation limit. Wait 15 minutes before trying again."
+    : params.ai === "rate_limit_unavailable" ? "AI generation is temporarily blocked because the account quota service is unavailable. No provider request was sent."
     : params.ai === "not_configured" ? "AI generation is unavailable: configure AI_API_KEY and AI_MODEL in the server environment."
     : params.ai === "no_sources" ? "No approved questions are available for this chapter. Approve and classify source questions first."
     : params.ai === "source_error" ? "The approved source pages could not be loaded."
