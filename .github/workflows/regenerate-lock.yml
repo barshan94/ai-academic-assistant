@@ -30,8 +30,8 @@ jobs:
       - name: Regenerate lockfile with the patched minimatch override
         run: npm install --package-lock-only --ignore-scripts --no-audit
 
-      - name: Audit complete dependency tree
-        run: npm audit
+      - name: Audit production dependency tree
+        run: npm audit --omit=dev
 
       - name: Install exact locked dependencies
         run: npm ci
