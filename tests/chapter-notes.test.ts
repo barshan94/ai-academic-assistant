@@ -109,6 +109,25 @@ describe("AI chapter note generation", () => {
     expect(fetcher).not.toHaveBeenCalled();
   });
 
+  it("rejects malformed or fabricated citation tokens in every note field", async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(responseWith(JSON.stringify({
+      title: "Newton's first law [S9]",
+      summary: "An object maintains its state of motion.",
+      concepts: [],
+      formulas: [],
+      workedExamples: [],
+      revisionPrompts: [],
+    })));
+
+    await expect(generateChapterNote({
+      board: "Cambridge",
+      qualification: "O Level",
+      subject: "Physics",
+      chapter: "Forces",
+      sources,
+    }, config, fetcher)).rejects.toMatchObject({ message: "CHAPTER_NOTE_UNKNOWN_CITATION" });
+  });
+
   it("rejects malformed structured output", async () => {
     const fetcher = vi.fn<typeof fetch>().mockResolvedValue(responseWith("{not-json"));
     await expect(generateChapterNote({
