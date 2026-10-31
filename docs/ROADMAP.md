@@ -61,7 +61,7 @@ Implemented on feature/m3-ai-solver:
 - Add deterministic, owner-catalogue-only text-match suggestions for chapters and topics; show matched terms and require explicit owner selection (not calibrated confidence or automatic confirmation).
 - Add an append-only database audit trail for question classification creation and changes, including before/after snapshots, owner-only visibility and baseline snapshots for existing questions.
 - Record owner-only, append-only HTTPS source citations at chapter/topic level and enforce citation presence at the database layer before structured mappings can be confirmed; citations are not independently certified by the app.
-- Add conservative batch review for up to 50 pending mappings, with atomic owner-scoped validation, individual audit snapshots and no bulk-confirm action.
+- Add conservative batch review for up to 50 pending mappings, with atomic owner-scoped validation, no-op/stale batch rejection, individual audit snapshots and no bulk-confirm action.
 - Add a centrally curated shared syllabus reference schema with separate platform-admin membership, verified-only public reading, draft-only structure editing, append-only chapter/topic evidence and database-enforced publication checks.
 - Add a read-only shared reference library and admin-only curator workspace; platform-admin membership is provisioned out of band and no sample curriculum is seeded.
 
