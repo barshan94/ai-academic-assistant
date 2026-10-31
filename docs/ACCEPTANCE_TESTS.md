@@ -4,7 +4,8 @@
 - [ ] Fresh install succeeds from documented steps.
 - [ ] Development server starts.
 - [x] Lint, type-check, unit tests and production build passed on the latest fully verified M3 baseline; current feature branch CI is tracked in PR #1.
-- [x] Protected routes redirect to login when authentication is not configured (Chromium smoke test).\n- [x] Baseline browser security response headers are configured and asserted in Chromium smoke tests; a CSP remains outstanding pending runtime/origin validation.
+- [x] Protected routes redirect to login when authentication is not configured (Chromium smoke test).
+- [x] Baseline browser security response headers are configured and asserted in Chromium smoke tests; a CSP remains outstanding pending runtime/origin validation.
 - [ ] Authenticated owner can sign in and sign out in a live browser test.
 - [x] Applied schema migrations are mirrored in timestamped repository files.
 - [x] RLS is enabled on current public application tables; owner and question-scoped teacher policies are present.
@@ -83,11 +84,13 @@
 - [x] Batch review accepts 1–50 unique owner question IDs, rejects malformed/duplicate IDs and never offers bulk confirmation.
 - [x] Batch status changes use a SECURITY INVOKER PostgreSQL function that locks and validates the complete owner-scoped batch in one transaction; stale or inaccessible selections roll back entirely. The database trigger records a before/after snapshot for each changed question.
 - [x] Stale or inaccessible selections and no-op selections are rejected atomically; every successful batch change produces a real state transition and an audit snapshot. Individual confirmation remains subject to verified catalogue and exact chapter/topic evidence.
-- [x] Shared reference schema, curator workspace and verified-only reader are implemented; pgTAP covers curator recognition, draft creation/read, chapter/topic/evidence authoring, provenance-gated verification, ordinary-user verified-only visibility, no self-promotion and immutable published provenance (19 assertions; combined database suite passed 95 assertions in run 41203734904).\n- [ ] Populate and maintain real official-board reference datasets with checked source evidence; no sample curriculum is fabricated.
+- [x] Shared reference schema, curator workspace and verified-only reader are implemented; pgTAP covers curator recognition, draft creation/read, chapter/topic/evidence authoring, provenance-gated verification, ordinary-user verified-only visibility, no self-promotion and immutable published provenance (19 assertions; combined database suite passed 95 assertions in run 41203734904).
+- [ ] Populate and maintain real official-board reference datasets with checked source evidence; no sample curriculum is fabricated.
 - [x] Record append-only owner citations for individual syllabus chapters and topics, including HTTPS URL, source title, page/section locator and short supporting excerpt.
 - [x] Structured mappings cannot be marked confirmed unless the catalogue is verified and a citation exists for the exact selected chapter or topic; database trigger enforces this beyond the UI.
 - [x] Source citations are owner-scoped, readable only by their owner, and cannot be edited or deleted by authenticated clients; the UI clearly says citations are not independently certified by the app.
-- [x] Shared-reference database authorization regression tests cover curator/admin boundaries, evidence insertion, verified-only reads, and immutable provenance in isolated pgTAP CI.\n- [ ] Live non-production two-account acceptance and curator provisioning.
+- [x] Shared-reference database authorization regression tests cover curator/admin boundaries, evidence insertion, verified-only reads, and immutable provenance in isolated pgTAP CI.
+- [ ] Live non-production two-account acceptance and curator provisioning.
 - [ ] Assisted classification with source evidence and calibrated confidence.
 - [ ] Chapter notes cite contributing questions and source documents.
 - [ ] Reprocessing creates a new note version rather than overwriting teacher-approved content.
