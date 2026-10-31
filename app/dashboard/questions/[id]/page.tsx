@@ -360,7 +360,7 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
                   board={question.board ?? ""}
                   qualification={question.qualification ?? ""}
                   subject={question.subject ?? ""}
-                />         </form>
+                />
               ) : <p className="question-card-meta">Only the question owner can attach a mark scheme reference.</p>}
             </section>
             <section className="section">
