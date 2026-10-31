@@ -34,7 +34,7 @@ const notices: Record<string, { text: string; tone: "success" | "error" | "info"
   reprocess_blocked: { text: "This document already has saved questions or chapter-note sources. Reprocessing is blocked to protect those linked records; upload a new document version instead.", tone: "error" },
   reprocess_check_failed: { text: "We could not verify whether existing academic records depend on this document. Nothing was reprocessed. Refresh and try again.", tone: "error" },
   queue_failed: { text: "The processing job could not be queued. The uploaded file was rolled back.", tone: "error" },
-  duplicate: { text: "This exact PDF is already in your library.", tone: "info" },
+
 };
 
 export default async function DocumentsPage({ searchParams }: DocumentsPageProps) {
