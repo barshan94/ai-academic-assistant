@@ -147,8 +147,14 @@ export default async function ChapterWorkspacePage({ searchParams }: PageProps) 
                   <form action={generateChapterNoteDraft} className="chapter-ai-generate-form">
                     <input type="hidden" name="catalogId" value={chapter.catalog_id} />
                     <input type="hidden" name="chapterId" value={chapter.id} />
+                    <label>AI draft version
+                      <select name="supersedesId" defaultValue="">
+                        <option value="">Start a new note series</option>
+                        {chapterNotes.map((note) => <option key={note.id} value={note.id}>Revise v{note.version_number} · {note.title}</option>)}
+                      </select>
+                    </label>
                     <button className="document-action" type="submit">Generate AI chapter-note draft from approved questions</button>
-                    <p className="question-card-meta">Uses up to 12 of your approved, chapter-linked questions and their source pages. Provider usage may incur costs. The result is an unverified draft and requires your review.</p>
+                    <p className="question-card-meta">Uses up to 12 of your approved, chapter-linked questions and their source pages. Choose an existing version to create a linked revision instead of a separate series. Provider usage may incur costs. The result is an unverified draft and requires your review.</p>
                   </form>
 
                   <details className="chapter-note-author">
