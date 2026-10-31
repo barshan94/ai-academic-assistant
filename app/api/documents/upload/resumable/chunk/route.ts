@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { decryptDriveUploadSession } from "@/lib/drive/crypto";
 import { getDriveAccessToken, sendResumablePdfChunk, deleteDriveFile } from "@/lib/drive/google";
-import { isValidDriveChunk, parseDriveUploadOffset } from "@/lib/drive/resumable-upload";
+import { isValidDriveChunk, parseDriveUploadOffset, readDriveUploadChunk } from "@/lib/drive/resumable-upload";
 import { MAX_UPLOAD_BYTES } from "@/lib/documents/upload-limits";
 
 export const runtime = "nodejs";
@@ -106,9 +106,10 @@ export async function POST(request: NextRequest) {
 
   let bytes: Uint8Array;
   try {
-    bytes = new Uint8Array(await request.arrayBuffer());
-  } catch {
-    return NextResponse.json({ error: "Could not read this upload chunk." }, { status: 400 });
+    bytes = await readDriveUploadChunk(request.body);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Could not read this upload chunk.";
+    return NextResponse.json({ error: message }, { status: 413 });
   }
 
   const query = contentRange === "bytes */" + session.fileSizeBytes && bytes.byteLength === 0;
