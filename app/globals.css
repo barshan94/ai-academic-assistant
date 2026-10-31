@@ -501,4 +501,8 @@ h2 { font-size: 24px; letter-spacing: -.04em; margin: 0; font-weight: 600; }
 /* Quick actions for scheduling existing revision and practice tasks. */
 .study-queue-schedule-form { display: flex; justify-content: flex-start; margin-top: 10px; }
 .study-queue-schedule-form button { white-space: normal; }
-@media (max-width: 560px) { .study-queue-schedule-form button { width: 100%; } }
+@media (max-width: 560px) { .study-queue-schedule-form button { width: 100%; } }\n
+.upload-progress { width: 100%; max-width: 520px; }
+.upload-progress-track { height: 7px; overflow: hidden; border-radius: 20px; background: #26333e; }
+.upload-progress-track span { display: block; height: 100%; border-radius: inherit; background: var(--accent); transition: width .18s ease; }
+.upload-progress p { margin-top: 9px; }
