@@ -2,7 +2,8 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { normalizeFilesToPdf, MAX_UPLOAD_BYTES, MAX_IMAGE_COUNT } from "@/lib/documents/normalize-to-pdf";
+import { normalizeFilesToPdf } from "@/lib/documents/normalize-to-pdf";
+import { MAX_UPLOAD_BYTES, MAX_IMAGE_COUNT } from "@/lib/documents/upload-limits";
 
 const STORAGE_PREFIX = "academic-assistant-upload:";
 const CHUNK_SIZE = 1024 * 1024;
