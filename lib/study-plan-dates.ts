@@ -34,3 +34,18 @@ export function formatCalendarDay(date: Date): string {
     timeZone: "UTC", weekday: "long", month: "short", day: "numeric",
   }).format(date);
 }
+
+export function isDateKeyInWeek(
+  selectedDateKey: string,
+  now: Date,
+  timeZone: string,
+  weekOffset: number,
+): boolean {
+  let selectedDate: Date;
+  try { selectedDate = dateFromKey(selectedDateKey); }
+  catch { return false; }
+  const today = dateFromKey(dateKeyInTimeZone(now, timeZone));
+  const weekStart = addCalendarDays(mondayOf(today), weekOffset * 7);
+  const weekEnd = addCalendarDays(weekStart, 6);
+  return selectedDate >= weekStart && selectedDate <= weekEnd;
+}
