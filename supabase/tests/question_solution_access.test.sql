@@ -37,9 +37,9 @@ select is(
 );
 
 select throws_ok(
-  $$update public.question_solution_mark_schemes
+  $$$update public.question_solution_mark_schemes
     set title = 'Mutated scheme'
-    where id = '50000000-0000-4000-8000-000000000001'$$,
+    where id = '50000000-0000-4000-8000-000000000001'$$$,
   '42501',
   null,
   'owner cannot update an append-only saved mark scheme'
@@ -61,7 +61,7 @@ select is((select count(*)::integer from public.question_solution_mark_schemes),
 select is((select count(*)::integer from public.question_teacher_invites), 0, 'uninvited account cannot read another user invite');
 
 select throws_ok(
-  $$insert into public.question_solution_mark_schemes (solution_id, owner_id, title, awarding_body, qualification, subject, source_url, points)
+  $$$insert into public.question_solution_mark_schemes (solution_id, owner_id, title, awarding_body, qualification, subject, source_url, points)
     values ('40000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', 'Forged scheme', 'Example Board', 'A Level', 'Physics', 'https://example.test/forged.pdf', '[]'::jsonb)$$,
   '42501',
   null,
@@ -69,8 +69,8 @@ select throws_ok(
 );
 
 select throws_ok(
-  $$insert into public.question_solution_reviews (solution_id, owner_id, reviewer_id, decision, correction_notes)
-    values ('40000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000003', 'approved', null)$$,
+  $$$insert into public.question_solution_reviews (solution_id, owner_id, reviewer_id, decision, correction_notes)
+    values ('40000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000003', 'approved', null)$$$,
   '42501',
   null,
   'uninvited account cannot add a review to another owner solution'
@@ -89,7 +89,7 @@ select is((select count(*)::integer from public.question_solutions), 1, 'accepte
 select is((select count(*)::integer from public.question_solution_mark_schemes), 0, 'teacher cannot read owner-private mark scheme');
 
 select throws_ok(
-  $$insert into public.question_solution_mark_schemes (solution_id, owner_id, title, awarding_body, qualification, subject, source_url, points)
+  $$$insert into public.question_solution_mark_schemes (solution_id, owner_id, title, awarding_body, qualification, subject, source_url, points)
     values ('40000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', 'Teacher forged scheme', 'Example Board', 'A Level', 'Physics', 'https://example.test/teacher-forged.pdf', '[{"id":"M1","description":"Fixture point","keyPhrases":["fixture"]}]'::jsonb)$$,
   '42501',
   null,
@@ -98,14 +98,14 @@ select throws_ok(
 
 -- Teacher can append their own review, but cannot impersonate the owner.
 select lives_ok(
-  $$insert into public.question_solution_reviews (solution_id, owner_id, reviewer_id, decision, correction_notes)
-    values ('40000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000002', 'approved', null)$$,
+  $$$insert into public.question_solution_reviews (solution_id, owner_id, reviewer_id, decision, correction_notes)
+    values ('40000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000002', 'approved', null)$$$,
   'accepted teacher can append a review under their own identity'
 );
 
 select throws_ok(
-  $insert into public.question_solution_reviews (solution_id, owner_id, reviewer_id, decision, correction_notes)
-    values ('40000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', 'approved', null)$,
+  $$insert into public.question_solution_reviews (solution_id, owner_id, reviewer_id, decision, correction_notes)
+    values ('40000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', 'approved', null)$$,
   '42501',
   null,
   'teacher cannot impersonate the owner as reviewer'
@@ -116,7 +116,7 @@ select throws_ok(
 set local request.jwt.claim.sub = '10000000-0000-4000-8000-000000000001';
 set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000001","role":"authenticated","email":"rls-owner@example.test"}';
 select lives_ok(
-  $update public.question_teacher_invites
+  $$update public.question_teacher_invites
     set revoked_at = now()
     where id = '60000000-0000-4000-8000-000000000001'$,
   'owner can revoke an accepted teacher invitation'
@@ -132,8 +132,8 @@ set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000002","r
 select is((select count(*)::integer from public.questions), 0, 'revoked teacher can no longer read the shared question');
 select is((select count(*)::integer from public.question_solutions), 0, 'revoked teacher can no longer read the saved solution');
 select throws_ok(
-  $insert into public.question_solution_reviews (solution_id, owner_id, reviewer_id, decision, correction_notes)
-    values ('40000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000002', 'approved', null)$,
+  $$insert into public.question_solution_reviews (solution_id, owner_id, reviewer_id, decision, correction_notes)
+    values ('40000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000002', 'approved', null)$$,
   '42501',
   null,
   'revoked teacher cannot append another solution review'
