@@ -388,3 +388,15 @@ h2 { font-size: 24px; letter-spacing: -.04em; margin: 0; font-weight: 600; }
   body[data-print-note] .chapter-note-version { display: none !important; }
   body[data-print-note] .chapter-note-version.print-selected-note { display: block !important; }
 }
+
+
+/* Exam revision tracker */
+.revision-stats { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
+.revision-rating-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 9px 12px; margin-top: 14px; padding-top: 13px; border-top: 1px solid var(--line); }
+.revision-rating-form label { grid-column: 1 / -1; color: var(--muted); font-size: 10px; font-weight: 650; }
+.revision-rating-form select { min-width: 0; width: 100%; border: 1px solid #354451; border-radius: 7px; background: #0b1219; color: var(--text); padding: 10px; font: inherit; font-size: 10px; }
+.revision-rating-form button { white-space: normal; }
+@media (max-width: 560px) {
+  .revision-rating-form { grid-template-columns: 1fr; }
+  .revision-rating-form button { width: 100%; }
+}
