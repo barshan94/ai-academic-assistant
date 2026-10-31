@@ -112,7 +112,8 @@ export default async function ChapterWorkspacePage({ searchParams }: PageProps) 
               const catalog = catalogMap.get(chapter.catalog_id);
               const chapterQuestions = (questions ?? []).filter((item) => item.syllabus_chapter_id === chapter.id);
               const chapterNotes = (notes ?? []).filter((item) => item.chapter_id === chapter.id);
-              const chapterPages = Array.from(new Map(chapterQuestions.map((q) => q.document_page_id).filter((id): id is string => Boolean(id)).map((id) => [id, pageMap.get(id)]).filter((entry): entry is [string, NonNullable<typeof entry[1]>] => Boolean(entry[1]))).values());
+              const chapterPageIds = new Set(chapterQuestions.map((q) => q.document_page_id).filter((id): id is string => Boolean(id)));
+              const chapterPages = (pages ?? []).filter((page) => chapterPageIds.has(page.id));
               return (
                 <article className="chapter-workspace-card" key={chapter.id}>
                   <div className="question-card-heading">
