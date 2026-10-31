@@ -28,8 +28,6 @@ returns uuid
 language plpgsql
 security definer
 set search_path = ''
-security definer
-set search_path = ''
 as $$
 declare
   v_reviewer_id uuid := (select auth.uid());
@@ -108,7 +106,7 @@ begin
 
   return v_review_id;
 end;
-$$;;
+$;
 
 revoke all on function private.record_teacher_solution_review(uuid, text, text)
   from public, anon;
