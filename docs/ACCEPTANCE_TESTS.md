@@ -93,7 +93,7 @@
 - [ ] Live non-production two-account acceptance and curator provisioning.
 - [ ] Assisted classification with source evidence and calibrated confidence.
 - [x] Chapter notes retain contributing question/page source references and show citation keys for AI-generated notes.
-- [x] Chapter-note creation rejects question sources that are unreviewed or classified to another chapter at the database boundary; approval revalidates source approval and chapter classification after draft creation.
+- [ ] Chapter-note source-integrity pgTAP coverage passes: reject unreviewed and wrong-chapter questions, and block approval if a linked question later becomes unapproved.
 - [x] Each chapter note can be downloaded as standalone Markdown with its source-reference metadata and unverified-AI warning preserved.
 - [x] Unit tests validate exported note sections, AI/manual provenance warnings, source-reference metadata, empty-section handling and safe filenames.
 - [ ] Browser acceptance validates actual per-note download behavior and print layout.
