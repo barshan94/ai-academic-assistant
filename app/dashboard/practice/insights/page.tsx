@@ -45,6 +45,41 @@ export default async function PracticeInsightsPage() {
   const completionRate = items.length ? Math.round((answered.length / items.length) * 100) : 0;
   const successRate = scored ? Math.round((correct / scored) * 100) : null;
 
+  // Weekly trend is based only on saved outcomes with timestamps. A week with
+  // fewer than three scored answers is displayed but not interpreted.
+  const now = new Date();
+  const currentMonday = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  currentMonday.setUTCDate(currentMonday.getUTCDate() - ((currentMonday.getUTCDay() + 6) % 7));
+  const weeklyTrend = Array.from({ length: 8 }, (_, index) => {
+    const start = new Date(currentMonday);
+    start.setUTCDate(start.getUTCDate() - (7 * (7 - index)));
+    const end = new Date(start);
+    end.setUTCDate(end.getUTCDate() + 7);
+    const weekItems = answered.filter((item) => {
+      if (!item.answered_at) return false;
+      const timestamp = new Date(item.answered_at).getTime();
+      return Number.isFinite(timestamp) && timestamp >= start.getTime() && timestamp < end.getTime();
+    });
+    const weekCorrect = weekItems.filter((item) => item.outcome === "correct").length;
+    const weekPartial = weekItems.filter((item) => item.outcome === "partial").length;
+    const weekIncorrect = weekItems.filter((item) => item.outcome === "incorrect").length;
+    const weekScored = weekCorrect + weekPartial + weekIncorrect;
+    return {
+      key: start.toISOString().slice(0, 10),
+      label: start.toLocaleDateString("en", { month: "short", day: "numeric", timeZone: "UTC" }),
+      total: weekItems.length,
+      scored: weekScored,
+      correctRate: weekScored ? Math.round((weekCorrect / weekScored) * 100) : null,
+      needsMoreData: weekScored < 3,
+    };
+  });
+  const trendWeeksWithData = weeklyTrend.filter((week) => week.scored >= 3);
+  const trendFirst = trendWeeksWithData[0];
+  const trendLast = trendWeeksWithData[trendWeeksWithData.length - 1];
+  const trendChange = trendFirst && trendLast && trendFirst.key !== trendLast.key
+    ? trendLast.correctRate! - trendFirst.correctRate!
+    : null;
+
   const groups = new Map<string, { subject: string; chapter: string; topic: string; total: number; correct: number; partial: number; incorrect: number; skipped: number }>();
   for (const item of answered) {
     const subject = item.subject?.trim() || "Unmapped subject";
@@ -91,6 +126,27 @@ export default async function PracticeInsightsPage() {
           <div className="question-card-heading"><strong>Outcome breakdown</strong><span className="question-subject">{scored} scored attempts</span></div>
           <p className="question-card-meta">Correct: {correct} · Partial: {partial} · Incorrect: {incorrect} · Skipped: {skipped}</p>
           <p className="question-card-meta">Skipped questions count as marked for session completion, but are excluded from the self-marked correct percentage.</p>
+        </div>
+      </section>
+      <section className="section">
+        <div className="section-heading"><div><p className="eyebrow">PROGRESS OVER TIME</p><h2>Weekly practice trend</h2></div><span className="section-count">Last 8 weeks</span></div>
+        <div className="question-card">
+          <div className="question-card-heading"><strong>Self-marked correct rate</strong><span className="question-subject">{trendChange === null ? "Not enough comparable weeks" : `${trendChange > 0 ? "+" : ""}${trendChange} percentage points`}</span></div>
+          <p className="question-card-meta">Each week uses correct ÷ (correct + partial + incorrect). Skipped answers are excluded. A week needs at least three scored answers before its rate is interpreted.</p>
+          <div className="practice-trend-list">
+            {weeklyTrend.map((week) => (
+              <div className="practice-trend-row" key={week.key}>
+                <div className="practice-trend-label"><strong>{week.label}</strong><span>{week.total} marked · {week.scored} scored</span></div>
+                <div className="practice-trend-track" role="img" aria-label={week.needsMoreData ? `${week.label}: fewer than three scored answers` : `${week.label}: ${week.correctRate}% self-marked correct`}>
+                  <span className="practice-trend-fill" style={{ width: `${week.correctRate ?? 0}%` }} />
+                </div>
+                <strong className="practice-trend-value">{week.needsMoreData ? "—" : `${week.correctRate}%`}</strong>
+              </div>
+            ))}
+          </div>
+          {trendChange === null
+            ? <p className="question-card-meta">There are not yet two separate weeks with enough scored attempts to compare. Keep recording results; no trend will be inferred from sparse data.</p>
+            : <p className="question-card-meta">The displayed change compares the earliest and latest weeks with at least three scored attempts in this eight-week window. It is descriptive, not a prediction of future performance.</p>}
         </div>
       </section>
       <section className="section">
