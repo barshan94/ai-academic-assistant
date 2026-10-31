@@ -38,7 +38,7 @@ set local request.jwt.claim.sub = '11000000-0000-4000-8000-000000000011';
 set local request.jwt.claims = '{"sub":"11000000-0000-4000-8000-000000000011","role":"authenticated","email":"chapter-note-owner@example.test"}';
 
 select lives_ok(
-  $$$select public.create_chapter_note_draft(
+  $$select public.create_chapter_note_draft(
     '41000000-0000-4000-8000-000000000011',
     '42000000-0000-4000-8000-000000000011',
     'Valid Forces note',
@@ -50,7 +50,7 @@ select lives_ok(
   'owner can create a note from an approved question classified to the selected chapter'
 );
 select throws_ok(
-  $$$select public.create_chapter_note_draft(
+  $$select public.create_chapter_note_draft(
     '41000000-0000-4000-8000-000000000011',
     '42000000-0000-4000-8000-000000000011',
     'Unreviewed source note',
@@ -68,7 +68,7 @@ set review_status = 'needs_review'
 where id = '31000000-0000-4000-8000-000000000011';
 
 select throws_ok(
-  $$$update public.chapter_note_versions
+  $$update public.chapter_note_versions
     set status = 'approved'
     where title = 'Valid Forces note'$$,
   'P0001',
@@ -77,7 +77,7 @@ select throws_ok(
 );
 
 select throws_ok(
-  $$$select public.create_chapter_note_draft(
+  $$select public.create_chapter_note_draft(
     '41000000-0000-4000-8000-000000000011',
     '42000000-0000-4000-8000-000000000011',
     'Wrong chapter source note',
@@ -93,7 +93,7 @@ select throws_ok(
 
 
 select lives_ok(
-  $$$select public.create_chapter_note_draft(
+  $$select public.create_chapter_note_draft(
     '41000000-0000-4000-8000-000000000011',
     '42000000-0000-4000-8000-000000000011',
     'Valid page-source note',
@@ -105,13 +105,13 @@ select lives_ok(
   'owner can create a note with a page linked to an approved question in the selected chapter'
 );
 select lives_ok(
-  $$$update public.chapter_note_versions
+  $$update public.chapter_note_versions
     set status = 'approved'
     where title = 'Valid page-source note'$$,
   'a page source linked to an approved question in the same chapter can be approved'
 );
 select lives_ok(
-  $$$select public.create_chapter_note_draft(
+  $$select public.create_chapter_note_draft(
     '41000000-0000-4000-8000-000000000011',
     '42000000-0000-4000-8000-000000000011',
     'Wrong chapter page-source note',
@@ -123,7 +123,7 @@ select lives_ok(
   'draft creation preserves an owned page as a draft source before approval checks'
 );
 select throws_ok(
-  $$$update public.chapter_note_versions
+  $$update public.chapter_note_versions
     set status = 'approved'
     where title = 'Wrong chapter page-source note'$$,
   'P0001',
@@ -132,6 +132,9 @@ select throws_ok(
 );
 
 -- Note content and source history are immutable after creation.
+-- Run trigger assertions as the database role: authenticated grants intentionally
+-- prevent direct content/source mutations before row triggers are reached.
+set local role postgres;
 select throws_ok(
   $$update public.chapter_note_versions
     set title = 'Tampered title'
@@ -178,6 +181,8 @@ select throws_ok(
   'A chapter note needs at least one source before approval',
   'owner cannot approve a chapter note without a source reference'
 );
+
+set local role authenticated;
 
 -- Switch to a second authenticated account and prove that note data and
 -- chapter-scoped draft creation remain isolated at the database boundary.
