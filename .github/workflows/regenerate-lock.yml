@@ -1,0 +1,75 @@
+name: Regenerate dependency lockfile
+
+on:
+  push:
+    branches: [feature/m3-ai-solver]
+
+permissions:
+  contents: write
+
+jobs:
+  regenerate:
+    if: contains(github.event.head_commit.message, '[regenerate-lock]')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Check out development branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          persist-credentials: true
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set up pinned npm CLI
+        run: npm install --global npm@11.21.1
+
+      - name: Regenerate lockfile with the patched minimatch override
+        run: npm install --package-lock-only --ignore-scripts --no-audit
+
+      - name: Audit complete dependency tree
+        run: npm audit
+
+      - name: Install exact locked dependencies
+        run: npm ci
+
+      - name: Install temporary Playwright runner
+        run: npm install --no-save --package-lock=false @playwright/test@1.56.1
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Type-check application
+        run: npm run typecheck
+
+      - name: Type-check Playwright configuration
+        run: npx tsc --noEmit --target ES2017 --module esnext --moduleResolution bundler --types node playwright.config.ts
+
+      - name: Type-check authenticated browser acceptance
+        run: npx tsc --noEmit --target ES2017 --module esnext --moduleResolution bundler --types node --skipLibCheck playwright.auth.config.ts e2e/authenticated.spec.ts
+
+      - name: Run unit tests
+        run: npm test
+
+      - name: Build application
+        run: npm run build
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run browser smoke tests
+        run: npx playwright test
+        env:
+          CI: "true"
+
+      - name: Commit regenerated lockfile
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package-lock.json
+          git diff --cached --quiet && exit 0
+          git commit -m "chore: patch vulnerable minimatch dependency"
+          git push origin "HEAD:${{ github.ref_name }}"
