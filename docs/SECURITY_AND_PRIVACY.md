@@ -25,7 +25,7 @@ Use .env.local for local secrets and keep it ignored by Git. Commit only placeho
 - Validate PDF/JPEG/PNG file signatures, normalize uploads to a 50 MB maximum, transfer in resumable 1 MB chunks, and use owner-derived IDs for database writes.
 - Treat OCR output as unverified until the owner reviews and approves it.
 - Use CSRF-safe OAuth state, secure cookies, and strict redirect URI validation.
-- Apply bounded input sizes, request timeouts and bounded retries to AI and document-processing operations. AI answer and chapter-note generation use atomic owner-scoped database quotas; upload and worker abuse controls still require operational acceptance. Provider error bodies and document-processing exceptions are redacted from persisted job metadata and user-facing upload/worker responses.
+- Apply bounded input sizes, request timeouts and bounded retries to AI and document-processing operations. AI answer and chapter-note generation use atomic owner-scoped database quotas. New document-upload sessions are limited atomically to 10 per UTC hour and 50 per UTC day per owner; worker invocation remains protected by a shared secret and one-job-per-invocation claim. Abuse monitoring and operational acceptance remain outstanding. Provider error bodies and document-processing exceptions are redacted from persisted job metadata and user-facing upload/worker responses.
 - Route-level and root-level error boundaries show generic messages only; they do not render exception messages, stacks, provider response bodies or submitted academic content. They warn that a failed action may not have been saved.
 
 ## Browser response protections
