@@ -290,3 +290,20 @@ h2 { font-size: 24px; letter-spacing: -.04em; margin: 0; font-weight: 600; }
 .bulk-review-select { display: inline-flex; align-items: center; gap: 7px; color: var(--muted); font-size: 10px; cursor: pointer; }
 .bulk-review-select input { width: 16px; height: 16px; accent-color: var(--accent); }
 @media (max-width: 700px) { .bulk-review-toolbar { grid-template-columns: 1fr; align-items: stretch; } }
+
+
+/* Centrally curated syllabus reference library */
+.reference-catalog-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+.reference-catalog-card, .reference-chapter-card { display: grid; gap: 12px; padding: 18px; border: 1px solid var(--line); border-radius: 12px; background: #101821; }
+.reference-catalog-card h3, .reference-chapter-card h3 { margin: 0; font-size: 18px; }
+.reference-card-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; color: var(--muted); font-size: 10px; }
+.reference-card-stats { display: flex; flex-wrap: wrap; gap: 12px; color: var(--muted); font-size: 10px; }
+.reference-provenance { display: grid; gap: 8px; padding: 18px; border: 1px solid var(--line); border-radius: 10px; background: #101821; overflow-wrap: anywhere; }
+.reference-provenance p { margin: 0; }
+.reference-provenance a, .reference-evidence-item a { color: var(--accent); font-size: 11px; }
+.reference-chapter-list { display: grid; gap: 12px; }
+.reference-topic-list { display: grid; gap: 10px; padding-left: 14px; border-left: 1px solid var(--line); }
+.reference-topic-item { display: grid; gap: 8px; padding: 10px 0; }
+.reference-evidence-item { display: grid; gap: 5px; padding: 10px 12px; border-radius: 8px; background: #0b1219; }
+.reference-evidence-item p { margin: 0; font-size: 11px; }
+.reference-evidence-item .question-card-meta { color: var(--muted); line-height: 1.6; }
