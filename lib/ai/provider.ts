@@ -259,7 +259,9 @@ export async function generateStructuredAnswer(
 
   let payload: ChatCompletionResponse;
   try {
-    payload = await response.json() as ChatCompletionResponse;
+    const body = await response.text();
+    if (body.length > 500_000) throw new Error("AI_RESPONSE_TOO_LARGE");
+    payload = JSON.parse(body) as ChatCompletionResponse;
   } catch {
     throw new AIProviderError("AI_PROVIDER_INVALID_RESPONSE");
   }
