@@ -149,7 +149,9 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
     return redirectToDocument(request, id, "complete");
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Document processing failed.";
+    // Persist only a stable, owner-safe status message. Provider and database
+    // exceptions can contain upstream details or sensitive document metadata.
+    const message = "Document processing failed. Review the source file and reconnect Google Drive if needed.";
     const [{ error: failedDocumentError }, { data: failedJob, error: failedJobError }] = await Promise.all([
       supabase.from("documents").update({ status: "failed" }).eq("id", id).eq("owner_id", user.id),
       supabase.from("processing_jobs").update({
