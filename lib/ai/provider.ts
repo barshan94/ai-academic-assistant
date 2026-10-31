@@ -236,7 +236,7 @@ export async function generateStructuredAnswer(
               "Academic context:",
               JSON.stringify({ ...context, sourceContext: undefined, relatedKnowledge: undefined }),
               context.sourceContext ? "Optional owner-approved source page (extracted text; may contain OCR errors; not an official mark scheme):\nPage " + context.sourceContext.pageNumber + " (" + context.sourceContext.extractionMethod + ")\n" + context.sourceContext.text : "No source page text was shared.",
-              context.relatedKnowledge?.length ? "Optional owner-approved chapter notes (secondary, unverified study context):\\n" + context.relatedKnowledge.map((item) => "[" + item.sourceRef + "] " + item.title + " (version " + item.versionNumber + ")\\n" + item.text).join("\\n\\n") : "No approved chapter-note context was supplied.",
+              context.relatedKnowledge?.length ? "Optional owner-approved chapter notes (secondary, unverified study context):\n" + context.relatedKnowledge.map((item) => "[" + item.sourceRef + "] " + item.title + " (version " + item.versionNumber + ")\n" + item.text).join("\n\n") : "No approved chapter-note context was supplied.",
               "",
               "Solve and explain this question:",
               question,
