@@ -18,10 +18,10 @@ export default async function PracticePage({ searchParams }: PracticePageProps) 
   if (authError || !user) redirect("/login");
   const db = supabase as unknown as SupabaseClient<DatabaseWithPractice>;
 
-  const [{ data: questions, error: questionError }, { data: sets, error: setsError }, { count: totalSets, error: countError }] = await Promise.all([
-    supabase.from("questions").select("id,subject,chapter,topic")
-      .eq("owner_id", user.id).eq("review_status", "approved")
-      .order("created_at", { ascending: false }).limit(501),
+  const [{ data: filterOptions, error: filterError }, { count: approvedCount, error: questionCountError }, { data: sets, error: setsError }, { count: totalSets, error: countError }] = await Promise.all([
+    db.rpc("get_practice_filter_options"),
+    supabase.from("questions").select("id", { count: "exact", head: true })
+      .eq("owner_id", user.id).eq("review_status", "approved"),
     db.from("practice_sets").select("id,title,subject,chapter,topic,question_count,status,created_at,completed_at")
       .eq("owner_id", user.id).order("created_at", { ascending: false })
       .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1),
@@ -31,11 +31,12 @@ export default async function PracticePage({ searchParams }: PracticePageProps) 
   const totalPages = Math.max(1, Math.ceil((totalSets ?? 0) / PAGE_SIZE));
   if (page > totalPages) redirect(totalPages === 1 ? "/dashboard/practice" : "/dashboard/practice?page=" + totalPages);
 
-  const unique = (values: (string | null)[]) => [...new Set(values.filter((value): value is string => Boolean(value?.trim())))].sort((a,b) => a.localeCompare(b));
-  const subjects = unique((questions ?? []).map((q) => q.subject));
-  const chapters = unique((questions ?? []).map((q) => q.chapter));
-  const topics = unique((questions ?? []).map((q) => q.topic));
-  const selectorOverflow = (questions?.length ?? 0) > 500;
+  const options = (kind: string) => (filterOptions ?? [])
+    .filter((item) => item.option_type === kind)
+    .map((item) => item.option_value);
+  const subjects = options("subject");
+  const chapters = options("chapter");
+  const topics = options("topic");
   const message = params.create === "invalid" ? "Check the title and choose between 1 and 50 questions."
     : params.create === "no-questions" ? "No approved questions match those filters."
     : params.create === "not-enough" ? "There are fewer matching approved questions than the requested set size."
@@ -61,19 +62,18 @@ export default async function PracticePage({ searchParams }: PracticePageProps) 
         <div className="hero-actions"><Link className="primary-action" href="/dashboard/practice/insights">View cross-session insights →</Link></div>
       </section>
       {message ? <p className="notice notice-error" role="status">{message}</p> : null}
-      {questionError || setsError || countError ? <p className="notice notice-error">Some practice data could not be loaded. The displayed lists may be incomplete.</p> : null}
+      {filterError || questionCountError || setsError || countError ? <p className="notice notice-error">Some practice data could not be loaded. The displayed lists may be incomplete.</p> : null}
       <section className="section">
-        <div className="section-heading"><div><p className="eyebrow">NEW SESSION</p><h2>Choose your focus</h2></div><span className="section-count">{selectorOverflow ? "500+" : questions?.length ?? 0} approved questions in filter list</span></div>
+        <div className="section-heading"><div><p className="eyebrow">NEW SESSION</p><h2>Choose your focus</h2></div><span className="section-count">{approvedCount ?? 0} approved questions available</span></div>
         <form action={createPracticeSet} className="document-filter-form">
           <label>Practice set name<input name="title" required maxLength={120} defaultValue="Focused practice" /></label>
           <label>Subject<select name="subject" defaultValue=""><option value="">Any subject</option>{subjects.map((value)=><option key={value} value={value}>{value}</option>)}</select></label>
           <label>Chapter<select name="chapter" defaultValue=""><option value="">Any chapter</option>{chapters.map((value)=><option key={value} value={value}>{value}</option>)}</select></label>
           <label>Topic<select name="topic" defaultValue=""><option value="">Any topic</option>{topics.map((value)=><option key={value} value={value}>{value}</option>)}</select></label>
           <label>Number of questions<select name="count" defaultValue="10">{[5,10,15,20,30,50].map((value)=><option key={value} value={value}>{value}</option>)}</select></label>
-          <button className="primary-action" type="submit" disabled={!questions?.length}>Generate practice set →</button>
+          <button className="primary-action" type="submit" disabled={(approvedCount ?? 0) === 0 || Boolean(filterError)}>Generate practice set →</button>
         </form>
-        <p className="question-card-meta">Filters are applied together. Only your approved questions are eligible. The selector lists are based on the latest 500 approved questions.</p>
-        {selectorOverflow ? <p className="notice notice-error" role="status">Your question bank exceeds 500 approved questions. Older questions are not represented in these filter options yet; practice creation currently selects from a maximum of 500 matching questions.</p> : null}
+        <p className="question-card-meta">Filters are applied together. Only your approved questions are eligible. Filter options are distinct values from your full approved question bank. The server selects the requested questions directly, so the browser does not download the question bank.</p>
       </section>
       <section className="section">
         <div className="section-heading"><div><p className="eyebrow">SAVED WORK</p><h2>Practice history</h2></div><span className="section-count">{totalSets ?? 0} total sets · Page {page} of {totalPages}</span></div>
