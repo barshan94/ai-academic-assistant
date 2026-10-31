@@ -44,3 +44,77 @@ begin
   return v_note_id;
 end;
 $$;
+
+-- Source status/classification can change after a draft is created. Revalidate
+-- every question source at the approval boundary as well.
+create or replace function public.guard_chapter_note_version()
+returns trigger
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+begin
+  if tg_op = 'INSERT' then
+    if new.status <> 'draft' or new.approved_by is not null or new.approved_at is not null then
+      raise exception 'Chapter notes must be created as unapproved drafts';
+    end if;
+    if new.owner_id <> (select auth.uid()) then
+      raise exception 'Chapter note owner must match the authenticated user';
+    end if;
+    return new;
+  end if;
+
+  if row(
+    new.owner_id, new.catalog_id, new.chapter_id, new.version_number,
+    new.title, new.content_json, new.supersedes_id, new.created_at
+  ) is distinct from row(
+    old.owner_id, old.catalog_id, old.chapter_id, old.version_number,
+    old.title, old.content_json, old.supersedes_id, old.created_at
+  ) then
+    raise exception 'Chapter note content is immutable; create a new version instead';
+  end if;
+
+  if old.status = 'draft' and new.status = 'approved' then
+    if not exists (
+      select 1 from public.chapter_note_sources as source
+      where source.note_version_id = old.id and source.owner_id = old.owner_id
+    ) then
+      raise exception 'A chapter note needs at least one source before approval';
+    end if;
+    if exists (
+      select 1
+      from public.chapter_note_sources as source
+      left join public.questions as question
+        on question.id = source.question_id and question.owner_id = source.owner_id
+      where source.note_version_id = old.id
+        and source.owner_id = old.owner_id
+        and source.source_kind = 'question'
+        and (
+          question.id is null
+          or question.review_status <> 'approved'
+          or question.syllabus_catalog_id is distinct from old.catalog_id
+          or question.syllabus_chapter_id is distinct from old.chapter_id
+        )
+    ) then
+      raise exception 'Every question source must remain approved and classified to this chapter';
+    end if;
+    new.approved_by := (select auth.uid());
+    new.approved_at := now();
+    return new;
+  end if;
+
+  if old.status in ('draft', 'approved') and new.status = 'archived' then
+    new.approved_by := old.approved_by;
+    new.approved_at := old.approved_at;
+    return new;
+  end if;
+
+  if new.status is distinct from old.status then
+    raise exception 'Invalid chapter note status transition';
+  end if;
+
+  new.approved_by := old.approved_by;
+  new.approved_at := old.approved_at;
+  return new;
+end;
+$$;
