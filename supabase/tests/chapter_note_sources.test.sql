@@ -38,7 +38,7 @@ set local request.jwt.claim.sub = '11000000-0000-4000-8000-000000000011';
 set local request.jwt.claims = '{"sub":"11000000-0000-4000-8000-000000000011","role":"authenticated","email":"chapter-note-owner@example.test"}';
 
 select lives_ok(
-  $$select public.create_chapter_note_draft(
+  $$$select public.create_chapter_note_draft(
     '41000000-0000-4000-8000-000000000011',
     '42000000-0000-4000-8000-000000000011',
     'Valid Forces note',
@@ -50,7 +50,7 @@ select lives_ok(
   'owner can create a note from an approved question classified to the selected chapter'
 );
 select throws_ok(
-  $$select public.create_chapter_note_draft(
+  $$$select public.create_chapter_note_draft(
     '41000000-0000-4000-8000-000000000011',
     '42000000-0000-4000-8000-000000000011',
     'Unreviewed source note',
@@ -68,7 +68,7 @@ set review_status = 'needs_review'
 where id = '31000000-0000-4000-8000-000000000011';
 
 select throws_ok(
-  $$update public.chapter_note_versions
+  $$$update public.chapter_note_versions
     set status = 'approved'
     where title = 'Valid Forces note'$$,
   'P0001',
@@ -77,7 +77,7 @@ select throws_ok(
 );
 
 select throws_ok(
-  $$select public.create_chapter_note_draft(
+  $$$select public.create_chapter_note_draft(
     '41000000-0000-4000-8000-000000000011',
     '42000000-0000-4000-8000-000000000011',
     'Wrong chapter source note',
@@ -93,7 +93,7 @@ select throws_ok(
 
 
 select lives_ok(
-  $$select public.create_chapter_note_draft(
+  $$$select public.create_chapter_note_draft(
     '41000000-0000-4000-8000-000000000011',
     '42000000-0000-4000-8000-000000000011',
     'Valid page-source note',
@@ -105,13 +105,13 @@ select lives_ok(
   'owner can create a note with a page linked to an approved question in the selected chapter'
 );
 select lives_ok(
-  $$update public.chapter_note_versions
+  $$$update public.chapter_note_versions
     set status = 'approved'
     where title = 'Valid page-source note'$$,
   'a page source linked to an approved question in the same chapter can be approved'
 );
 select lives_ok(
-  $$select public.create_chapter_note_draft(
+  $$$select public.create_chapter_note_draft(
     '41000000-0000-4000-8000-000000000011',
     '42000000-0000-4000-8000-000000000011',
     'Wrong chapter page-source note',
@@ -123,7 +123,7 @@ select lives_ok(
   'draft creation preserves an owned page as a draft source before approval checks'
 );
 select throws_ok(
-  $$update public.chapter_note_versions
+  $$$update public.chapter_note_versions
     set status = 'approved'
     where title = 'Wrong chapter page-source note'$$,
   'P0001',
@@ -133,7 +133,7 @@ select throws_ok(
 
 -- Note content and source history are immutable after creation.
 select throws_ok(
-  $update public.chapter_note_versions
+  $$update public.chapter_note_versions
     set title = 'Tampered title'
     where title = 'Valid page-source note'$,
   'P0001',
@@ -141,7 +141,7 @@ select throws_ok(
   'owner cannot edit an existing chapter note instead of creating a revision'
 );
 select throws_ok(
-  $update public.chapter_note_sources
+  $$update public.chapter_note_sources
     set locator = 'tampered locator'
     where note_version_id = (
       select id from public.chapter_note_versions where title = 'Valid page-source note'
@@ -151,7 +151,7 @@ select throws_ok(
   'owner cannot edit an existing chapter note source reference'
 );
 select throws_ok(
-  $delete from public.chapter_note_sources
+  $$delete from public.chapter_note_sources
     where note_version_id = (
       select id from public.chapter_note_versions where title = 'Valid page-source note'
     )$,
@@ -171,7 +171,7 @@ insert into public.chapter_note_versions (
   'draft'
 );
 select throws_ok(
-  $update public.chapter_note_versions
+  $$update public.chapter_note_versions
     set status = 'approved'
     where title = 'No source note'$,
   'P0001',
@@ -195,7 +195,7 @@ select is(
   'a second account cannot read another owner chapter-note source history'
 );
 select throws_ok(
-  $$select public.create_chapter_note_draft(
+  $$$select public.create_chapter_note_draft(
     '41000000-0000-4000-8000-000000000011',
     '42000000-0000-4000-8000-000000000011',
     'Cross-owner note attempt',
