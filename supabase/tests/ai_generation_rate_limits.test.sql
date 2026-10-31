@@ -37,7 +37,7 @@ select ok(
   'authenticated users cannot read or alter raw quota records'
 );
 select throws_ok(
-  $select public.consume_ai_generation_quota('unsupported')$,
+  $$select public.consume_ai_generation_quota('unsupported')$$,
   'P0001',
   'Unsupported AI generation bucket',
   'clients cannot create arbitrary quota buckets'
@@ -46,7 +46,7 @@ select throws_ok(
 set local request.jwt.claim.sub = '';
 set local request.jwt.claims = '{}';
 select throws_ok(
-  $select public.consume_ai_generation_quota('ai-solution')$,
+  $$select public.consume_ai_generation_quota('ai-solution')$$,
   'P0001',
   'Authentication required',
   'unauthenticated requests cannot consume or create quotas'
