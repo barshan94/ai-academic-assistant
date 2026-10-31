@@ -90,8 +90,8 @@ export default async function StudyPlanPage({ searchParams }: PageProps) {
             const key = dateKey(day), daySessions = visibleSessions.filter((session) => session.session_date === key);
             const dayMinutes = daySessions.reduce((sum, session) => sum + session.planned_minutes, 0);
             return <section className="study-calendar-day" key={key}>
-              <header><div><h3>{formatDay(day)}</h3><span>{key === dateKey(today) ? "Today" : key}</span></div><strong>{dayMinutes} min</strong></header>
-              {!daySessions.length ? <p className="study-calendar-empty">No sessions planned</p> : daySessions.map((session) =>
+              <header><div><h3>{formatDay(day)}</h3><span>{key === dateKey(today) ? "Today" : key}</span></div><strong>{dayMinutes} min shown</strong></header>
+              {!daySessions.length ? <p className="study-calendar-empty">{sessionsTotal === 0 ? "No sessions planned" : "No sessions on this page"}</p> : daySessions.map((session) =>
                 <article className={"study-session-card " + (session.status === "completed" ? "is-complete" : "")} key={session.id}>
                   <div className="question-card-heading"><span className="document-status">{session.status === "completed" ? "Completed" : "Planned"}</span><span className="question-subject">{session.planned_minutes} min</span></div>
                   <h4>{session.title}</h4>{session.notes ? <p className="question-card-meta">{session.notes}</p> : null}
