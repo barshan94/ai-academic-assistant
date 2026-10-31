@@ -18,6 +18,8 @@ type PageProps = {
 
 const messages: Record<string, string> = {
   generated: "An AI-generated answer was saved. It has not been independently verified.",
+  source_unavailable: "The original source page is unavailable to this account, so no source text was sent.",
+  source_empty: "The selected source page has no usable extracted text. Correct or re-extract the page before opting in.",
   not_configured: "AI solving is not configured. Add an AI provider key and model to the server environment before generating answers.",
   needs_review: "Approve this question in your question library before generating an answer.",
   save_failed: "The answer was generated but could not be saved. Check the database migration and try again.",
@@ -52,7 +54,7 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
   if (authError || !user) redirect("/login");
 
   const { data: question, error } = await supabase.from("questions")
-    .select("id,owner_id,question_text,question_number,board,qualification,subject,syllabus_version,chapter,topic,syllabus_catalog_id,syllabus_chapter_id,syllabus_topic_id,classification_status,classification_confidence,review_status,created_at")
+    .select("id,owner_id,question_text,question_number,board,qualification,subject,syllabus_version,chapter,topic,syllabus_catalog_id,syllabus_chapter_id,syllabus_topic_id,classification_status,classification_confidence,review_status,document_page_id,document_id,created_at")
     .eq("id", id)
     .maybeSingle();
 
@@ -92,6 +94,9 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
         .limit(20)
     : { data: [], error: null };
   const isOwner = question.owner_id === user.id;
+  const { data: sourcePage } = isOwner && question.document_page_id
+    ? await supabase.from("document_pages").select("id,page_number,extracted_text,extraction_method,status").eq("id", question.document_page_id).eq("document_id", question.document_id).eq("owner_id", user.id).maybeSingle()
+    : { data: null };
   const { data: classificationHistory, error: classificationHistoryError } = isOwner
     ? await typedSupabase.from("question_classification_history")
         .select("id,event_type,previous_state,new_state,changed_at,changed_by")
@@ -167,10 +172,15 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
           <p className="question-card-text">{question.question_number ? question.question_number + ". " : ""}{question.question_text}</p>
           <p className="question-card-meta">{[question.board, question.qualification, question.syllabus_version, question.chapter, question.topic].filter(Boolean).join(" · ") || "Syllabus metadata not set"} · Mapping: {question.classification_status.replace("_", " ")}</p>
           {isOwner && question.review_status === "approved" ? (
-            <form action={generateQuestionSolution}>
+            <form action={generateQuestionSolution} className="review-form">
               <input type="hidden" name="questionId" value={question.id} />
+              {sourcePage?.extracted_text?.trim() ? <div className="source-context-option">
+                <label><input type="checkbox" name="includeSourceContext" value="yes" /> Also send the original source page text to the AI provider</label>
+                <p className="question-card-meta">Optional. Only this page is shared, trimmed to 8,000 characters. Extraction method: {sourcePage.extraction_method ?? "unknown"}; page {sourcePage.page_number}. OCR and PDF extraction can contain mistakes. This text is not an official mark scheme.</p>
+                <details><summary>Preview the text that may be shared</summary><pre className="solution-prose">{sourcePage.extracted_text.trim().slice(0, 8000)}</pre></details>
+              </div> : <p className="question-card-meta">No usable extracted source page is linked to this question. You can still generate an answer without source text.</p>}
               <button className="primary-action" type="submit">Generate AI answer <span aria-hidden="true">→</span></button>
-              <p className="question-card-meta">This action sends the question to your configured AI provider and may incur provider charges.</p>
+              <p className="question-card-meta">This action sends the question to your configured AI provider and may incur provider charges. Source text is sent only if you check the box above.</p>
             </form>
            ) : isOwner ? <p className="notice notice-info">This question needs teacher approval before it can be sent to the AI provider.</p> : <p className="notice notice-info">You have review access only. AI generation and question editing remain with the owner.</p>}
         </article>
