@@ -113,11 +113,17 @@ export async function generateChapterNote(input: {
   try {
     const parsed: unknown = JSON.parse(content.trim().replace(/^\x60{3}(?:json)?\s*/i, "").replace(/\s*\x60{3}$/, ""));
     const result = chapterNoteSchema.parse(parsed);
-    const sourceLabels = input.sources.map((source) => source.ref);
-    const usedLabels = Array.from(result.summary.matchAll(/\[(S\d+)\]/g), (match) => match[1])
-      .concat(...[...result.concepts, ...result.formulas, ...result.workedExamples, ...result.revisionPrompts]
-        .flatMap((item) => Array.from(item.matchAll(/\[(S\d+)\]/g), (match) => match[1])));
-    if (usedLabels.some((label) => !sourceLabels.includes(label))) {
+    const sourceLabels = new Set(input.sources.map((source) => source.ref));
+    const noteText = [
+      result.title,
+      result.summary,
+      ...result.concepts,
+      ...result.formulas,
+      ...result.workedExamples,
+      ...result.revisionPrompts,
+    ].join("\n");
+    const usedLabels = Array.from(noteText.matchAll(/\\[(S[^\\]]*)\\]/g), (match) => match[1].trim());
+    if (usedLabels.some((label) => !/^S(?:[1-9]|1[0-2])$/.test(label) || !sourceLabels.has(label))) {
       throw new AIProviderError("CHAPTER_NOTE_UNKNOWN_CITATION");
     }
     return result;
