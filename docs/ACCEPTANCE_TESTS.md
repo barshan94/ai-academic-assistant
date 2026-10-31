@@ -58,7 +58,7 @@
 - [x] Source-page context is limited to the question\u2019s owner-linked page and 8,000 characters; empty/invalid context is rejected and OCR/extraction uncertainty is disclosed.
 - [x] Saved answers store deterministic document/page/extraction/hash/length provenance, not the source excerpt itself.
 - [ ] Official mark-scheme/source grounding and citation checks.
-- [ ] Teacher verification status is only set through an independently authorized workflow.
+- [ ] Teacher verification status is only set through an independently authorized workflow (implementation and 28 pgTAP assertions added; latest CI pending).
 
 ## Syllabus and chapter intelligence (M5-M6)
 - [x] Store board, qualification, subject, syllabus version, chapter and topic separately.

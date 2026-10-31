@@ -25,7 +25,7 @@ begin
     raise exception using errcode = '42501', message = 'Authentication required';
   end if;
 
-  if p_decision not in ('approved', 'needs_correction') then
+  if p_decision is null or p_decision not in ('approved', 'needs_correction') then
     raise exception 'Invalid teacher review decision';
   end if;
 

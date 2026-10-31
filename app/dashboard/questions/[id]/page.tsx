@@ -161,8 +161,12 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
     : query.mark_scheme === "not_found" ? "The selected saved answer was not found in your account."
     : query.solve
     ? messages[query.solve] ?? "Answer generation failed (" + query.solve.slice(0, 80) + ")."
-    : query.review === "approved" ? "Your review was saved under your account. It is recorded separately from other reviewers."
-    : query.review === "needs_correction" ? "Correction feedback was saved in the review history."
+    : query.review === "approved" ? (isOwner
+      ? "Your owner review was saved separately. Owner approval does not mark an answer as teacher-verified."
+      : "Your independent teacher review was saved. The answer is now marked teacher-verified.")
+    : query.review === "needs_correction" ? (isOwner
+      ? "Your owner correction review was saved in the review history."
+      : "Teacher correction feedback was saved. Any teacher-verified label has been removed until a later approved review.")
     : query.review === "save_failed" ? "The review could not be saved. Please retry."
     : query.review === "notes_required" ? "Please add correction notes when marking an answer as needing correction."
     : query.review === "invalid" ? "The review details were invalid. Check the decision and try again."

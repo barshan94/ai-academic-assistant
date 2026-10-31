@@ -202,7 +202,8 @@ export async function reviewQuestionSolution(formData: FormData) {
       p_correction_notes: parsed.data.correctionNotes || null,
     });
     if (teacherReviewError) {
-      redirect("/dashboard/questions/" + solution.question_id + "?review=not_authorized");
+      const result = teacherReviewError.code === "42501" ? "not_authorized" : "save_failed";
+      redirect("/dashboard/questions/" + solution.question_id + "?review=" + result);
     }
   } else {
     const { error: ownerReviewError } = await typedSupabase
