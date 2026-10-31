@@ -121,6 +121,24 @@ M6 remaining:
 - The confidence scale and practice outcomes are learner self-assessments, not validated measures of mastery.
 - Isolated database authorization coverage for revision, practice, aggregate analytics, the consolidated study queue and weekly calendar passed 37 study-feature pgTAP assertions, including cross-account RPC isolation (CI run `41218501676`, commit `937b52a`).
 
+## M6 status — implemented in code, evaluation pending
+
+- Chapter-note generation uses owner-approved question and source-page inputs, bounded citation checks, source records, append-only versions, approval/archive states and dedicated download/print views.
+- The question solver can optionally retrieve up to three latest approved notes from the exact confirmed syllabus chapter. The answer records immutable note IDs, titles and version numbers; the database revalidates ownership, chapter and approval status.
+- Remaining: independent source-quality review, live AI note evaluation, PDF/print browser acceptance, and authenticated owner/teacher review.
+
+## M7 status — implemented in code, acceptance pending
+
+- Revision scheduling, practice-set creation, question review history, study planning, progress analytics and owner-scoped study features are implemented in code.
+- Database authorization coverage previously passed the 37 study-feature assertions in an earlier isolated run; latest-branch acceptance is not yet complete.
+- Remaining: fresh isolated migration/pgTAP acceptance, browser workflow coverage, and cross-account isolation review.
+
+## M8 status — implementation largely in place, operational acceptance pending
+
+- Implemented: nonce-based CSP middleware with dynamic rendering, privacy-safe route/global error boundaries, allow-listed operational failure logs, owner-scoped AI/upload/research quotas, bounded upstream requests/responses, strict Google Drive file-only OAuth scope checks, and keyboard skip/focus/mobile touch-target affordances.
+- Remaining: full backup/restore proof (Supabase Free limitations are documented), platform log dashboards and alert thresholds, development dependency audit remediation, CSP/auth/browser acceptance, accessibility/performance review and release readiness.
+- External setup still required: non-production Google OAuth credentials, worker bearer secret and default-branch schedule, approved AI provider credentials/budget, optional Brave Search key/budget, and isolated two-account test credentials. Feature-branch migrations have not been applied to the hosted development Supabase project.
+
 ## M4 exit criteria
 - Unsupported verification is explicitly marked not checked.
 - Independent teacher feedback is tied to authenticated reviewer identity.
