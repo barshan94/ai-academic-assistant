@@ -364,3 +364,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Catch transport failures and return false. Preserve idempotent success for HTTP 200 and Google's HTTP 400 invalid/already-revoked-token response; transient server errors remain false. Add tests for request method, endpoint, no-store behavior, encoded token body, HTTP outcomes and network rejection.
 - Verification: New Vitest coverage is committed; feature-branch CI is pending. Do not treat this as verified until the unit suite, type-check and build pass.
 - Status: Implemented; CI verification pending. Live Google OAuth revocation remains untested.
+
+
+## ERR-034 — Document worker ignored failed database state-transition writes
+
+- Date: 2026-10-31
+- Area: M2 background worker / job durability
+- Symptom: The worker awaited document and job status updates but ignored Supabase errors. It could return a successful response even if the document never entered processing state or the job remained running after page extraction completed.
+- Root cause: Database update calls were treated as best-effort even though their state transitions are part of the durable queue contract.
+- Fix: Require the owner-scoped document processing transition to return the expected row. Require the running job's completion transition to return the expected row before reporting success. If finalization fails, the existing catch path marks the job failed for a later bounded retry; page replacement remains atomic.
+- Verification: Feature-branch CI pending. Live concurrent-claim, retry-exhaustion and stale-recovery acceptance remains outstanding.
+- Status: Implemented; CI verification pending.
