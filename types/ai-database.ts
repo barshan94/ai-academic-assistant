@@ -52,6 +52,7 @@ export type DatabaseWithAISolutions = Omit<Database, "public"> & {
           model: string;
           prompt_version: string;
           answer_json: Json;
+          source_context: Json | null;
           verification_status: "generated" | "machine_checked" | "teacher_verified";
           created_at: string;
           updated_at: string;
@@ -64,6 +65,7 @@ export type DatabaseWithAISolutions = Omit<Database, "public"> & {
           model: string;
           prompt_version: string;
           answer_json: Json;
+          source_context?: Json | null;
           created_at?: string;
           updated_at?: string;
         };
