@@ -28,7 +28,11 @@ describe("normalizeFilesToPdf", () => {
   });
 
   it("rejects a combined upload above the configured byte limit", async () => {
-    const oversized = file(new Uint8Array(MAX_UPLOAD_BYTES + 1), "large.pdf", "application/pdf");
+    const oversized = {
+      name: "large.pdf",
+      type: "application/pdf",
+      size: MAX_UPLOAD_BYTES + 1,
+    } as File;
     await expect(normalizeFilesToPdf([oversized])).rejects.toThrow("100 MB or smaller");
   });
 
