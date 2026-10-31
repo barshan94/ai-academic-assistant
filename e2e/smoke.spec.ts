@@ -45,3 +45,20 @@ test("all workspace modules fail closed when Supabase auth is unconfigured", asy
     await expect(page.locator("p.auth-error")).toContainText(/authentication is not configured/i);
   }
 });
+
+test("resumable upload endpoints reject cross-site requests before processing", async ({ page }) => {
+  await page.goto("/");
+  const startUrl = new URL("/api/documents/upload/resumable/start", page.url()).toString();
+  const chunkUrl = new URL("/api/documents/upload/resumable/chunk", page.url()).toString();
+
+  const start = await page.request.post(startUrl, {
+    headers: { origin: "https://attacker.invalid", "content-type": "application/json" },
+    data: { fileName: "forged.pdf", fileSizeBytes: 1024, sha256: "a".repeat(64), pageCount: null },
+  });
+  const chunk = await page.request.post(chunkUrl, {
+    headers: { origin: "https://attacker.invalid", "x-upload-session": "forged", "content-range": "bytes */1024" },
+  });
+
+  expect(start.status()).toBe(403);
+  expect(chunk.status()).toBe(403);
+});
