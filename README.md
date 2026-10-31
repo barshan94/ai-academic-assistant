@@ -59,7 +59,17 @@ A personal academic workspace for Edexcel O/A Level, SSC and HSC tutoring. It ac
 
 Never commit .env.local, service-role keys, OAuth tokens, student personal data or private source documents. Applied Supabase migrations are mirrored in supabase/migrations/.
 
-## Current status (30 October 2026)
-M1 foundation and core M2 document/question workflows are implemented in code. M3 answer generation, version history and question-scoped teacher review are implemented on the feature branch. M5 now includes owner-scoped versioned syllabus catalogues, source provenance, hierarchical chapter/topic references, question foreign-key links, and owner-only classification review. Existing free-text question metadata remains supported for backward compatibility.
+## Current status (31 October 2026)
 
-The authenticated two-account browser test is intentionally postponed until final acceptance. Ordinary CI checks continue throughout development. Live AI provider configuration, Google OAuth/Drive workflows, golden-set answer grading, the shared centrally curated syllabus dataset, independently validated official-board source verification and calibrated classification assistance (owner-recorded citations and lexical suggestions are not independently certified) remain outstanding. M6 now has an owner-only chapter workspace for structured manual notes, source question/page attachments, immutable version history, owner approval and atomic draft creation. AI chapter-note drafting is now implemented as a first slice; live provider execution, comprehensive citation completeness and formula checks, richer source preview and export/print support remain outstanding. The chapter-note tables use owner-only RLS and least-privilege grants; their migrations are mirrored in the repository. The JSON import format is documented in docs/SYLLABUS_IMPORT.md; imports are owner-private drafts and do not certify official accuracy. Main is unchanged; work remains in draft PR #1.
+M1 foundation, the core M2 document intake flow, M3 structured AI answer generation, M4 deterministic checks and review history, M5 owner-scoped syllabus classification/catalogues, M6 source-linked chapter notes, and M7 revision/practice/study-planning experiences are implemented in code on the feature branch.
+
+Implementation is not the same as release acceptance. The remaining work is tracked in `docs/ROADMAP.md` and `docs/ACCEPTANCE_TESTS.md`:
+
+- **M2:** live Google OAuth/Drive acceptance, resumable uploads above 4 MB, durable background processing with automatic retries, and document cross-account tests.
+- **M3–M4:** live provider generation with explicit cost approval, a manually graded golden question set, stronger source/official mark-scheme grounding, and real two-account teacher acceptance. AI remains disabled until the owner configures provider credentials.
+- **M5:** the shared official-board reference library is intentionally empty until a real curator is appointed and current official sources are checked. Lexical suggestions are not calibrated confidence.
+- **M6:** live AI chapter-note evaluation, independent source-quality review, dedicated per-note downloads and automated print-layout checks remain.
+- **M7:** code and 29 new database authorization assertions are committed; the isolated Supabase migration/pgTAP workflow must pass before acceptance.
+- **M8:** backup/restore, operational recovery, security/privacy, accessibility, performance and release acceptance remain.
+
+GitHub Actions runs lint, type-check, unit tests, build, Chromium smoke tests and local Supabase database tests. Authenticated two-account tests remain separately gated by test-only credentials. The existing development Supabase project currently contains the M1–M6 schema; M7 migrations are committed but have not been applied to that project. No production merge or deployment is authorized.
