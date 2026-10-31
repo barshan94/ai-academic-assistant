@@ -155,6 +155,7 @@ export async function GET(request: Request) {
       // HTTP responses. Detailed diagnostics belong in a separately reviewed,
       // redacted observability channel, not owner-visible job metadata.
       const message = "Document processing failed. Reconnect Google Drive if the problem persists.";
+      logSafeOperationalEvent("document_worker_failed", { route: "/api/cron/process-documents", errorCode: "BACKGROUND_PROCESSING_FAILED", jobId });
       const [{ error: failedDocumentError }, { data: failedJob, error: failedJobError }] = await Promise.all([
         supabase.from("documents").update({ status: "failed" }).eq("id", documentId).eq("owner_id", ownerId),
         supabase.from("processing_jobs").update({
