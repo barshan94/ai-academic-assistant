@@ -132,22 +132,6 @@ export default async function StudyPlanPage({ searchParams }: PageProps) {
           <div className="question-card-footer"><Link className="document-open" href={"/dashboard/practice/" + item.practice_set_id}>Continue session & record result ↗</Link></div>
         </article>)}
         {!dueCount && !unfinishedCount ? <div className="empty-state"><h3>No due or unfinished tasks</h3><p>Your current revision reviews and active practice sessions have no open tasks.</p></div> : null}
-        {dueRevisions.map((item) => {
-          const question = questionById.get(item.question_id)!;
-          return <article className="question-card revision-card" key={item.question_id}>
-            <div className="question-card-heading"><span className="document-status">Revision due · {item.status}</span><span className="question-subject">{question.subject ?? "Subject not set"}</span></div>
-            <p className="question-card-text">{question.question_number ? question.question_number + ". " : ""}{question.question_text}</p>
-            <p className="question-card-meta">{[question.chapter, question.topic].filter(Boolean).join(" · ") || "No chapter/topic mapping"} · Previous confidence {item.confidence}/5 · {item.review_count} reviews</p>
-            <div className="question-card-footer"><Link className="document-open" href="/dashboard/revision">Rate confidence & schedule next review ↗</Link><Link className="document-open" href={"/dashboard/questions/" + question.id}>Open question ↗</Link></div>
-          </article>;
-        })}
-        {unfinishedItems.map((item) => <article className="question-card" key={item.id}>
-          <div className="question-card-heading"><span className="document-status">Practice awaiting result · Question {item.position}</span><span className="question-subject">{item.subject ?? "Subject not set"}</span></div>
-          <h3>{setById.get(item.practice_set_id)?.title ?? "Practice session"}</h3>
-          <p className="question-card-text">{item.question_number ? item.question_number + ". " : ""}{item.question_text}</p>
-          <p className="question-card-meta">{[item.chapter, item.topic].filter(Boolean).join(" · ") || "No chapter/topic mapping"}</p>
-          <div className="question-card-footer"><Link className="document-open" href={"/dashboard/practice/" + item.practice_set_id}>Continue session & record result ↗</Link></div>
-        </article>)}
       </section>
       <p className="question-card-meta">Calendar window: selected Monday–Sunday week; up to 200 saved sessions are displayed. Navigate up to 52 weeks backward or forward. Time values are estimates entered by you, not measured focus time.</p>
     </main>
