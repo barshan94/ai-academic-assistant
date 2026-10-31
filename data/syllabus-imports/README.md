@@ -5,7 +5,7 @@ These JSON files use the application's version-1 private syllabus import format.
 ## Included
 
 - Physics 5054, 2026–2028, Version 2 (six official content chapters with 63 numbered topic headings).
-- Chemistry 5070, 2026–2028, Version 1 (twelve official content chapters with 56 numbered topic headings).
+- Chemistry 5070, 2026–2028, Version 1 (twelve official content chapters with 49 numbered topic headings).
 
 ## Accuracy and status
 
