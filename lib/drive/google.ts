@@ -169,6 +169,7 @@ export async function revokeDriveRefreshToken(refreshToken: string) {
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({ token: refreshToken }),
       cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
     });
 
     // Google returns 400 when a token is invalid or already revoked. Treat that
