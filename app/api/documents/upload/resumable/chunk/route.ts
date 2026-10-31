@@ -148,8 +148,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Google Drive is temporarily unavailable. Resume this upload shortly." }, { status: 503 });
     }
     return NextResponse.json({ error: "Google Drive rejected this upload chunk." }, { status: 502 });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Upload chunk failed.";
-    return NextResponse.json({ error: message.slice(0, 300) }, { status: 502 });
+  } catch {
+    return NextResponse.json({ error: "The upload could not be completed. Resume the same file to check the last confirmed byte." }, { status: 502 });
   }
 }
