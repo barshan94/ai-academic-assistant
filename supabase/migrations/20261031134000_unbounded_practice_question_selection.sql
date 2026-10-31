@@ -84,9 +84,9 @@ begin
   from public.questions q
   where q.owner_id = v_owner_id
     and q.review_status = 'approved'
-    and (nullif(trim(p_subject), '') is null or q.subject = trim(p_subject))
-    and (nullif(trim(p_chapter), '') is null or q.chapter = trim(p_chapter))
-    and (nullif(trim(p_topic), '') is null or q.topic = trim(p_topic));
+    and (nullif(trim(p_subject), '') is null or btrim(q.subject) = trim(p_subject))
+    and (nullif(trim(p_chapter), '') is null or btrim(q.chapter) = trim(p_chapter))
+    and (nullif(trim(p_topic), '') is null or btrim(q.topic) = trim(p_topic));
 
   if v_matching_count = 0 then
     raise exception 'No approved questions match those filters';
@@ -102,9 +102,9 @@ begin
     from public.questions q
     where q.owner_id = v_owner_id
       and q.review_status = 'approved'
-      and (nullif(trim(p_subject), '') is null or q.subject = trim(p_subject))
-      and (nullif(trim(p_chapter), '') is null or q.chapter = trim(p_chapter))
-      and (nullif(trim(p_topic), '') is null or q.topic = trim(p_topic))
+      and (nullif(trim(p_subject), '') is null or btrim(q.subject) = trim(p_subject))
+      and (nullif(trim(p_chapter), '') is null or btrim(q.chapter) = trim(p_chapter))
+      and (nullif(trim(p_topic), '') is null or btrim(q.topic) = trim(p_topic))
     order by random()
     limit p_count
   ) candidate;
