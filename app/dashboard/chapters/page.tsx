@@ -36,7 +36,7 @@ export default async function ChapterWorkspacePage({ searchParams }: PageProps) 
   const chapterIds = (chapters ?? []).map((item) => item.id);
   const { data: questions, error: questionError } = chapterIds.length
     ? await supabase.from("questions").select("id,syllabus_chapter_id,question_number,question_text,subject,document_page_id")
-      .eq("owner_id", user.id).in("syllabus_chapter_id", chapterIds).order("created_at", { ascending: false }).limit(300)
+      .eq("owner_id", user.id).eq("review_status", "approved").in("syllabus_chapter_id", chapterIds).order("created_at", { ascending: false }).limit(300)
     : { data: [] as { id: string; syllabus_chapter_id: string | null; question_number: string | null; question_text: string; subject: string | null; document_page_id: string | null }[], error: null };
 
   const pageIds = Array.from(new Set((questions ?? []).map((item) => item.document_page_id).filter((id): id is string => Boolean(id))));
