@@ -384,6 +384,5 @@ h2 { font-size: 24px; letter-spacing: -.04em; margin: 0; font-weight: 600; }
 @media print {
   body[data-print-note] .chapter-note-version { display: none !important; }
   body[data-print-note] .chapter-note-version { display: none !important; }
-  body[data-print-note] .chapter-note-version[data-note-id] { display: block !important; }
-  body[data-print-note] .chapter-note-version:not([data-note-id]) { display: none !important; }
+  body[data-print-note] .chapter-note-version.print-selected-note { display: block !important; }
 }

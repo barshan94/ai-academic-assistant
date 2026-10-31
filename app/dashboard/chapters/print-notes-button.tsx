@@ -7,8 +7,12 @@ export default function PrintNotesButton({ noteId }: { noteId?: string }) {
         window.print();
         return;
       }
+      const target = document.querySelector<HTMLElement>(`.chapter-note-version[data-note-id="${noteId}"]`);
+      if (!target) return;
+      target.classList.add("print-selected-note");
       document.body.dataset.printNote = noteId;
       const clearTarget = () => {
+        target.classList.remove("print-selected-note");
         delete document.body.dataset.printNote;
         window.removeEventListener("afterprint", clearTarget);
       };
