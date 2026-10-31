@@ -4,14 +4,14 @@ These JSON files use the application's version-1 private syllabus import format.
 
 ## Included
 
-- Physics 5054, 2026–2028, Version 2 (six official top-level content chapters).
-- Chemistry 5070, 2026–2028, Version 1 (twelve official top-level content chapters).
+- Physics 5054, 2026–2028, Version 2 (six official content chapters with 63 numbered topic headings).
+- Chemistry 5070, 2026–2028, Version 1 (twelve official content chapters with 56 numbered topic headings).
 
 ## Accuracy and status
 
-The chapter titles were transcribed from the official Cambridge syllabus PDFs linked in each JSON file. These files contain **chapter indexes only**: topic-level entries are intentionally empty and must not be interpreted as complete topic coverage. No learning objectives, assessment criteria, past-paper questions or mark schemes are reproduced.
+Chapter and numbered topic headings were transcribed from the official Cambridge syllabus PDFs linked in each JSON file. The import includes the syllabus's numbered topic-section headings, not the detailed learning-objective statements beneath them. It is a topic index, not a substitute for the full syllabus or a complete teaching scheme. No learning objectives, assessment criteria, past-paper questions or mark schemes are reproduced.
 
-Imports always create owner-private drafts. These files do not publish or verify a shared reference syllabus, and they must not be marked verified until a curator checks the full chapter/topic hierarchy against the current official PDF and confirms administrative-zone availability. The Physics syllabus explicitly warns that availability varies by zone. Recheck official versions before each exam cycle.
+Imports always create owner-private drafts. These files do not publish or verify a shared reference syllabus, and they must not be marked verified until a curator checks the chapter/topic hierarchy against the current official PDF and confirms administrative-zone availability. The Physics syllabus explicitly warns that availability varies by zone. Recheck official versions before each exam cycle.
 
 ## Import
 
