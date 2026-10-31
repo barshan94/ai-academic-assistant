@@ -57,6 +57,7 @@
 - [x] Owner must explicitly opt in before extracted source-page text is sent to the AI provider; no source text is sent by default.
 - [x] Source-page context is limited to the question\u2019s owner-linked page and 8,000 characters; empty/invalid context is rejected and OCR/extraction uncertainty is disclosed.
 - [x] Saved answers store deterministic document/page/extraction/hash/length provenance, not the source excerpt itself.
+- [x] Owner-supplied mark-scheme references record an HTTPS URL, exact page/section locator, optional exam-series/document version and structured mark points; a database trigger requires locators for new references. They remain unverified owner evidence, not certified official schemes, and phrase matching never awards marks.
 - [ ] Official mark-scheme/source grounding and citation checks.
 - [x] Teacher verification status is only set through the invitation-scoped review RPC; owners, uninvited accounts, revoked teachers and direct table writes are rejected. Approved review promotes the label; a correction review demotes it. Verified by 30 assertions in the question-solution authorization suite and the full 149-assertion database CI run `41226216227`.
 
