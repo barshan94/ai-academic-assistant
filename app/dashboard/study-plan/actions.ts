@@ -13,6 +13,7 @@ const createSchema = z.object({
   plannedMinutes: z.coerce.number().int().min(5).max(480),
   notes: z.string().max(500),
   weekOffset: z.coerce.number().int().min(-52).max(52).default(0),
+  sessionPage: z.coerce.number().int().min(1).max(10000).default(1),
 });
 
 export async function createStudySession(formData: FormData) {
@@ -22,9 +23,10 @@ export async function createStudySession(formData: FormData) {
     plannedMinutes: String(formData.get("plannedMinutes") ?? ""),
     notes: String(formData.get("notes") ?? ""),
     weekOffset: String(formData.get("weekOffset") ?? "0"),
+    sessionPage: String(formData.get("sessionPage") ?? "1"),
   });
   if (!parsed.success) redirect("/dashboard/study-plan?calendar=invalid");
-  const weekQuery = parsed.data.weekOffset ? "&week=" + parsed.data.weekOffset : "";
+  const weekQuery = (parsed.data.weekOffset ? "&week=" + parsed.data.weekOffset : "") + (parsed.data.sessionPage > 1 ? "&sessionPage=" + parsed.data.sessionPage : "");
 
   const supabase = await createSupabaseServerClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -43,10 +45,10 @@ export async function createStudySession(formData: FormData) {
   redirect("/dashboard/study-plan?calendar=created" + weekQuery);
 }
 
-const completeSchema = z.object({ sessionId: z.string().uuid(), weekOffset: z.coerce.number().int().min(-52).max(52).default(0) });
+const completeSchema = z.object({ sessionId: z.string().uuid(), weekOffset: z.coerce.number().int().min(-52).max(52).default(0), sessionPage: z.coerce.number().int().min(1).max(10000).default(1) });
 
 export async function completeStudySession(formData: FormData) {
-  const parsed = completeSchema.safeParse({ sessionId: String(formData.get("sessionId") ?? ""), weekOffset: String(formData.get("weekOffset") ?? "0") });
+  const parsed = completeSchema.safeParse({ sessionId: String(formData.get("sessionId") ?? ""), weekOffset: String(formData.get("weekOffset") ?? "0"), sessionPage: String(formData.get("sessionPage") ?? "1") });
   if (!parsed.success) redirect("/dashboard/study-plan?calendar=invalid");
   const weekQuery = parsed.data.weekOffset ? "&week=" + parsed.data.weekOffset : "";
 
