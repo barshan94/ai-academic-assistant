@@ -53,6 +53,7 @@ export default async function SyllabusReviewQueuePage({ searchParams }: Syllabus
         {error ? <p className="notice notice-error">Could not load the classification queue.</p> : null}
         {params.bulk === "updated" ? <p className="notice notice-success" role="status">{Math.max(0, Math.min(50, Number(params.count) || 0))} classifications moved to the selected review state. Each question has its own audit entry.</p> : null}
         {params.bulk === "stale" ? <p className="notice notice-error" role="alert">The selected batch changed while you were reviewing it, or includes a question you cannot access. Nothing was updated; refresh and select again.</p> : null}
+        {params.bulk === "noop" ? <p className="notice notice-info" role="status">At least one selected question is already in that state. Nothing was changed; choose the other review state or adjust your selection.</p> : null}
         {params.bulk === "invalid" ? <p className="notice notice-error" role="alert">Select 1–50 unique pending questions and choose a valid review state.</p> : null}
         {params.bulk === "failed" ? <p className="notice notice-error" role="alert">The batch could not be saved.</p> : null}
         {!questions?.length ? (
