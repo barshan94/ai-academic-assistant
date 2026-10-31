@@ -42,6 +42,9 @@
 - [ ] Live AI provider configured and tested with explicit cost approval.
 - [ ] Teacher invitation, acceptance, review and revocation tested against the chosen non-production Supabase project using the authenticated browser workflow (`docs/AUTHENTICATED_E2E_SETUP.md`).
 - [ ] Golden-set answer quality manually graded across subjects.
+- [x] Owner must explicitly opt in before extracted source-page text is sent to the AI provider; no source text is sent by default.
+- [x] Source-page context is limited to the question\u2019s owner-linked page and 8,000 characters; empty/invalid context is rejected and OCR/extraction uncertainty is disclosed.
+- [x] Saved answers store deterministic document/page/extraction/hash/length provenance, not the source excerpt itself.
 - [ ] Official mark-scheme/source grounding and citation checks.
 - [ ] Teacher verification status is only set through an independently authorized workflow.
 
