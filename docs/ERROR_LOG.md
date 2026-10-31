@@ -440,3 +440,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Restore the matching `$$` function-body terminator. No application behavior or authorization policy was weakened.
 - Verification: Corrected migration is committed in `c5d5164c`; clean-database CI rerun is pending.
 - Status: Syntax fix committed; database migration and pgTAP verification pending.
+
+
+## ERR-041 — Mark-scheme source-locator rollout left legacy test fixtures incomplete
+
+- Date: 2026-11-01
+- Area: M3 mark-scheme provenance / CI fixtures
+- Symptom: Foundation type-check failed because mark-scheme unit fixtures did not provide the newly required `sourceLocator`. The database authorization suite also stopped when its legacy mark-scheme INSERT omitted the locator.
+- Root cause: The implementation now requires an exact page/section locator in the server schema and rejects missing locators at the database INSERT boundary, but the existing test fixtures were not yet migrated.
+- Fix: Pending the dedicated final testing/fixing phase: update unit and pgTAP fixtures with realistic source locators, and add explicit rejection coverage for missing/blank locators.
+- Verification: Automatic feature-branch CI run `41228589729` reached type-check and failed on stale unit fixtures; database run `41228589810` applied every migration successfully, then failed in `question_solution_access.test.sql` on its legacy INSERT before the remaining assertions could run.
+- Status: Implementation and migration apply; test-fixture updates remain pending. No hosted Supabase project was changed.
