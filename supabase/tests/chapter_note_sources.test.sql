@@ -55,16 +55,16 @@ set review_status = 'needs_review'
 where id = '31000000-0000-4000-8000-000000000011';
 
 select throws_ok(
-  $update public.chapter_note_versions
+  $$update public.chapter_note_versions
     set status = 'approved'
-    where title = 'Valid Forces note'$,
+    where title = 'Valid Forces note'$$,
   'P0001',
   'Every question source must remain approved and classified to this chapter',
   'approval is blocked if a linked question is no longer approved'
 );
 
 select throws_ok(
-  $select public.create_chapter_note_draft(
+  $$select public.create_chapter_note_draft(
     '41000000-0000-4000-8000-000000000011',
     '42000000-0000-4000-8000-000000000011',
     'Wrong chapter source note',
