@@ -6,7 +6,7 @@ import { createStudySession, completeStudySession } from "./actions";
 import type { DatabaseWithStudyPlan } from "@/types/study-plan-database";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-type PageProps = { searchParams: Promise<{ calendar?: string }> };
+type PageProps = { searchParams: Promise<{ calendar?: string; week?: string }> };
 function dateKey(date: Date) { return date.getFullYear() + "-" + String(date.getMonth() + 1).padStart(2, "0") + "-" + String(date.getDate()).padStart(2, "0"); }
 function mondayOf(date: Date) { const result = new Date(date.getFullYear(), date.getMonth(), date.getDate()); result.setDate(result.getDate() - ((result.getDay() + 6) % 7)); return result; }
 function formatDay(date: Date) { return new Intl.DateTimeFormat("en", { weekday: "long", month: "short", day: "numeric" }).format(date); }
@@ -18,8 +18,12 @@ export default async function StudyPlanPage({ searchParams }: PageProps) {
   if (authError || !user) redirect("/login");
   const db = supabase as unknown as SupabaseClient<DatabaseWithStudyPlan>;
   const today = new Date();
+  const requestedWeek = Number.parseInt(params.week ?? "0", 10);
+  const weekOffset = Number.isFinite(requestedWeek) ? Math.max(-52, Math.min(52, requestedWeek)) : 0;
   const weekStart = mondayOf(today);
+  weekStart.setDate(weekStart.getDate() + weekOffset * 7);
   const weekEnd = new Date(weekStart); weekEnd.setDate(weekEnd.getDate() + 6);
+  const formDefaultDate = today >= weekStart && today <= weekEnd ? today : weekStart;
   const startKey = dateKey(weekStart), endKey = dateKey(weekEnd);
   const [{ data: sessions, error: sessionsError }, { data: revisionRows, error: revisionError }, { data: sets, error: setsError }] = await Promise.all([
     db.from("weekly_study_sessions").select("id,session_date,title,planned_minutes,notes,status,completed_at").eq("owner_id", user.id).gte("session_date", startKey).lte("session_date", endKey).order("session_date", { ascending: true }).order("created_at", { ascending: true }).limit(200),
@@ -68,7 +72,7 @@ export default async function StudyPlanPage({ searchParams }: PageProps) {
       {message ? <p className={params.calendar === "failed" || params.calendar === "invalid" ? "notice notice-error" : "notice"} role="status">{message}</p> : null}
       {hasError ? <p className="notice notice-error" role="status">Some calendar or workload data could not be loaded. The displayed totals may be incomplete.</p> : null}
       <section className="section">
-        <div className="section-heading"><div><p className="eyebrow">WEEK OF {startKey}</p><h2>Your weekly workload</h2></div><span className="section-count">{plannedCount} planned · {completedCount} completed</span></div>
+        <div className="section-heading"><div><p className="eyebrow">WEEK OF {startKey}</p><h2>Your weekly workload</h2></div><div className="study-week-navigation"><Link className="secondary-action" href={"/dashboard/study-plan?week=" + (weekOffset - 1)}>← Previous</Link><span className="section-count">{plannedCount} planned · {completedCount} completed</span><Link className="secondary-action" href={"/dashboard/study-plan?week=" + (weekOffset + 1)}>Next →</Link></div></div>
         <div className="module-grid revision-stats">
           <article className="module-card"><span className="module-number">{totalMinutes}</span><h3>Planned minutes</h3><p>Estimated time across this week&apos;s saved sessions.</p></article>
           <article className="module-card"><span className="module-number">{completedMinutes}</span><h3>Completed minutes</h3><p>Time estimates for sessions you marked complete.</p></article>
@@ -78,7 +82,8 @@ export default async function StudyPlanPage({ searchParams }: PageProps) {
       <section className="section">
         <div className="section-heading"><div><p className="eyebrow">ADD A BLOCK</p><h2>Schedule study time</h2></div><span className="section-count">5–480 minutes</span></div>
         <form action={createStudySession} className="document-filter-form">
-          <label>Date<input type="date" name="sessionDate" required min={startKey} max={endKey} defaultValue={dateKey(today)} /></label>
+          <label>Date<input type="date" name="sessionDate" required min={startKey} max={endKey} defaultValue={dateKey(formDefaultDate)} />
+          <input type="hidden" name="weekOffset" value={weekOffset} /></label>
           <label>Session title<input name="title" required maxLength={120} placeholder="e.g. Physics — electricity revision" /></label>
           <label>Estimated minutes<select name="plannedMinutes" defaultValue="45">{[15,30,45,60,90,120,180,240].map((value)=><option key={value} value={value}>{value} minutes</option>)}</select></label>
           <label>Notes (optional)<input name="notes" maxLength={500} placeholder="Chapter, goal or materials" /></label>
@@ -99,7 +104,7 @@ export default async function StudyPlanPage({ searchParams }: PageProps) {
                 <article className={"study-session-card " + (session.status === "completed" ? "is-complete" : "")} key={session.id}>
                   <div className="question-card-heading"><span className="document-status">{session.status === "completed" ? "Completed" : "Planned"}</span><span className="question-subject">{session.planned_minutes} min</span></div>
                   <h4>{session.title}</h4>{session.notes ? <p className="question-card-meta">{session.notes}</p> : null}
-                  {session.status === "planned" ? <form action={completeStudySession}><input type="hidden" name="sessionId" value={session.id} /><button className="secondary-action" type="submit">Mark complete ✓</button></form> : <p className="study-complete-note">Completed {session.completed_at ? new Intl.DateTimeFormat("en", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }).format(new Date(session.completed_at)) : ""}</p>}
+                  {session.status === "planned" ? <form action={completeStudySession}><input type="hidden" name="sessionId" value={session.id} /><input type="hidden" name="weekOffset" value={weekOffset} /><button className="secondary-action" type="submit">Mark complete ✓</button></form> : <p className="study-complete-note">Completed {session.completed_at ? new Intl.DateTimeFormat("en", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }).format(new Date(session.completed_at)) : ""}</p>}
                 </article>
               )}
             </section>;
@@ -144,7 +149,7 @@ export default async function StudyPlanPage({ searchParams }: PageProps) {
           <div className="question-card-footer"><Link className="document-open" href={"/dashboard/practice/" + item.practice_set_id}>Continue session & record result ↗</Link></div>
         </article>)}
       </section>
-      <p className="question-card-meta">Calendar window: current Monday–Sunday only; up to 200 saved sessions are displayed. Time values are estimates entered by you, not measured focus time.</p>
+      <p className="question-card-meta">Calendar window: selected Monday–Sunday week; up to 200 saved sessions are displayed. Navigate up to 52 weeks backward or forward. Time values are estimates entered by you, not measured focus time.</p>
     </main>
   );
 }
