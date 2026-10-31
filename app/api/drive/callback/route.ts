@@ -54,6 +54,7 @@ export async function GET(request: NextRequest) {
         grant_type: "authorization_code",
       }),
       cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
     });
 
     const tokenData = await tokenResponse.json() as GoogleTokenResponse;
