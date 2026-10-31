@@ -88,9 +88,10 @@ M6 application status — first usable authoring slice implemented:
 
 M6 remaining:
 - AI drafting is implemented through the configured OpenAI-compatible provider. It uses up to 12 owner-approved, chapter-classified questions and linked extracted pages, validates structured output, source metadata and supplied citation labels, and saves an unverified owner-review draft. Live provider execution and source-quality evaluation remain outstanding.
-- Add citation completeness enforcement across every note section and supported formula-consistency checks.
-- Add richer source preview and export/print support. Basic extracted-text previews are now shown beside each AI citation; a full source viewer remains outstanding.
-- Add authenticated end-to-end coverage for AI generation, provider-not-configured behavior, owner isolation and approval transitions.
+- Require valid supplied-source citations in summaries, concepts, formulas and worked examples; reject fabricated, malformed or missing citation labels in those factual sections. This is a structural guard, not proof that a citation actually supports the adjacent claim.
+- Add deterministic formula syntax/consistency checks; formulas remain unverified until such checks and independent review are implemented.
+- Add richer source preview and export/print support. AI citation previews now include an expandable full extracted-page text view; export/print support remains outstanding.
+- Add authenticated end-to-end coverage for AI generation, provider-not-configured behavior, owner isolation and approval transitions. Existing two-account teacher invitation/review/revocation acceptance is configured to skip unless a dedicated non-production Supabase environment is supplied.
 - Add automated owner-isolation and approval-transition tests.
 
 ## M4 exit criteria
