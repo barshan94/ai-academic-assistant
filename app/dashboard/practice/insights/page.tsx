@@ -187,7 +187,7 @@ export default async function PracticeInsightsPage() {
           </div>
         )}
       </section>
-      <p className="question-card-meta">Coverage note: outcome analytics use up to the latest 3,000 saved question snapshots; the recent-session list shows up to 300 sets. A topic without mapped subject/chapter/topic metadata is grouped under an unmapped label. No AI grading or mastery prediction is performed. A topic without mapped subject/chapter/topic metadata is grouped under an unmapped label. No AI grading or mastery prediction is performed.</p>
+      <p className="question-card-meta">Coverage note: outcome analytics use up to the latest 3,000 saved question snapshots; the recent-session list shows up to 300 sets. A topic without mapped subject/chapter/topic metadata is grouped under an unmapped label. No AI grading or mastery prediction is performed.</p>
     </main>
   );
 }
