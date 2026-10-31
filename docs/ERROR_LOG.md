@@ -494,3 +494,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Replaced both literal escape sequences with real line breaks without changing the declarations or selectors.
 - Verification: Static source inspection only; no browser or build tests were run in this implementation phase.
 - Status: Source corrected; visual/browser acceptance remains pending.
+
+
+## ERR-046 — Database mark-scheme validator needed null-safe JSON structure checks
+
+- Date: 2026-11-01
+- Area: M3 mark-scheme integrity / direct Data API writes
+- Symptom: Static review of the new database-side mark-point validator found that missing JSON keys could yield SQL NULL in compound conditions, and array-length functions must not be called before the JSON type is confirmed.
+- Root cause: The first trigger implementation combined JSON type and length checks in boolean expressions whose evaluation order is not guaranteed.
+- Fix: Added a follow-up migration that uses explicit `IS DISTINCT FROM` type checks and separate validation steps before calling JSON array functions. It also rejects whitespace-padded point IDs and requires explicit key-phrase arrays.
+- Verification: Implementation-only SQL review; database migration and malformed direct-insert behavior remain for the later test phase.
+- Status: Corrected in migration `20261101041000_harden_mark_scheme_validator.sql`; tests pending.
