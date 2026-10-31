@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { logSafeOperationalEvent } from "@/lib/observability/safe-log";
 import { decryptDriveUploadSession } from "@/lib/drive/crypto";
 import { getDriveAccessToken, sendResumablePdfChunk, deleteDriveFile } from "@/lib/drive/google";
 import { isValidDriveChunk, parseDriveUploadOffset, readDriveUploadChunk } from "@/lib/drive/resumable-upload";
@@ -150,6 +151,7 @@ export async function POST(request: NextRequest) {
     }
     return NextResponse.json({ error: "Google Drive rejected this upload chunk." }, { status: 502 });
   } catch {
+    logSafeOperationalEvent("upload_chunk_failed", { route: "/api/documents/upload/resumable/chunk", errorCode: "UPLOAD_CHUNK_FAILED" });
     return NextResponse.json({ error: "The upload could not be completed. Resume the same file to check the last confirmed byte." }, { status: 502 });
   }
 }
