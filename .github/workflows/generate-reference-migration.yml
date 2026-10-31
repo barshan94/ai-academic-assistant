@@ -1,4 +1,5 @@
 name: Generate Supabase migration file
+# One-time helper: remove after the migration file is created.
 
 on:
   push:
