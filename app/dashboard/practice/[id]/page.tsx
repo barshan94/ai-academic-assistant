@@ -67,7 +67,7 @@ export default async function PracticeDetailPage({ params, searchParams }: Props
       </section>
       <section className="section">
         <div className="section-heading"><div><p className="eyebrow">QUESTION SNAPSHOTS</p><h2>Work through your set</h2></div><span className="section-count">{completed}/{items?.length ?? 0} recorded</span></div>
-        <div className="question-list">
+        <div className="question-list practice-print-area">
           {(items ?? []).map((item)=>(
             <article className="question-card" key={item.id}>
               <div className="question-card-heading"><span className="document-status">Question {item.position} · {item.outcome ? outcomeLabels[item.outcome] : "Awaiting result"}</span><span className="question-subject">{item.subject ?? "Subject not set"}</span></div>
