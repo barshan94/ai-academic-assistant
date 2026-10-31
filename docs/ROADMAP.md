@@ -109,6 +109,7 @@ M6 remaining:
 - Allow a learner to add a completed practice question to the revision queue through a separate, explicit confidence rating. The practice outcome is never converted into confidence automatically; the server resolves the linked question from the authenticated owner's saved practice item and the revision RPC rechecks approval and ownership.
 - Add a consolidated study planner that combines due spaced-revision questions with unfinished items from active practice sessions. Keep both task types distinct, link each to its existing workflow, and bound the queue to the latest 500 revision records, 100 active sessions and 1,000 unfinished practice items.
 - Add an owner-private weekly study calendar with Monday–Sunday planning, session titles, date and estimated duration, optional notes, and explicit completion timestamps. Creation and completion use authenticated owner-scoped database functions; estimates are self-entered and are not represented as measured focus time. Calendar data is persisted by a migration committed to the feature branch but is not applied to the live Supabase project.
+- Add previous/next week navigation up to 52 weeks in either direction, constrain the date picker to the selected week, default to that week’s Monday when today is outside it, and preserve the selected week after adding or completing a session.
 - The confidence scale and practice outcomes are learner self-assessments, not validated measures of mastery.
 
 ## M4 exit criteria
