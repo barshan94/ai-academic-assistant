@@ -1,4 +1,4 @@
--- Replace extracted document pages as one transaction.
+-- Replace extracted document pages as one transaction; any failure rolls back the full replacement.
 -- The FK restriction prevents a concurrent academic reference from being cascaded away.
 alter table public.questions
   drop constraint questions_page_owner_fk;
