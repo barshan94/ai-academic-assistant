@@ -472,3 +472,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Replaced upstream error text with stable generic errors, bounded Google network requests with timeouts, and stopped persisting/returning raw worker, OCR and resumable-upload exceptions. Job metadata now stores a generic owner-safe failure message.
 - Verification: Implementation-only source review; no tests were run for this change.
 - Status: Code updated; redaction regression tests and operational observability review remain in the later testing phase.
+
+
+## ERR-044 — Stored Google Drive connections were not revalidated against the requested OAuth scope
+
+- Date: 2026-11-01
+- Area: M2 Google Drive least-privilege authorization
+- Symptom: The OAuth flow requested the narrow `drive.file` scope, but the callback trusted the returned scope string and existing stored connections were not checked before token refresh.
+- Root cause: The requested permission was treated as proof of the permission actually granted.
+- Fix: The callback now rejects a broader-than-requested returned scope. Token refresh checks the stored grant is exactly `https://www.googleapis.com/auth/drive.file`; connections with a broader or unknown scope must be reconnected. The UI explains the scope mismatch.
+- Verification: Implementation-only source review; OAuth consent and revocation behavior remain for the later non-production acceptance phase.
+- Status: Code and setup documentation updated; tests and real Google OAuth acceptance pending.
