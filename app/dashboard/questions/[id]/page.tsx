@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { generateQuestionSolution, reviewQuestionSolution, createQuestionTeacherInvite, revokeQuestionTeacherInvite } from "./actions";
+import { generateQuestionSolution, reviewQuestionSolution, createQuestionTeacherInvite, revokeQuestionTeacherInvite, saveQuestionSolutionMarkScheme } from "./actions";
 import { checkCalculations } from "@/lib/ai/math-check";
 import { checkChemicalEquations } from "@/lib/ai/chemistry-check";
 import { checkPhysicsUnits } from "@/lib/ai/physics-unit-check";
@@ -9,6 +9,7 @@ import type { DatabaseWithAISolutions } from "@/types/ai-database";
 import type { Json } from "@/types/database";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { examAnswerSchema } from "@/lib/ai/answer-schema";
+import { compareAnswerToMarkScheme, markSchemeSchema } from "@/lib/ai/mark-scheme";
 import { ClassificationForm } from "./classification-form";
 
 type PageProps = {
@@ -83,6 +84,13 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
   const selectedSolution = query.solution
     ? solutions?.find((item) => item.id === query.solution)
     : latest;
+  const { data: savedMarkSchemes, error: markSchemeError } = selectedSolution
+    ? await typedSupabase.from("question_solution_mark_schemes")
+        .select("id,title,awarding_body,qualification,subject,paper_reference,source_url,points,created_at")
+        .eq("solution_id", selectedSolution.id)
+        .order("created_at", { ascending: false })
+        .limit(20)
+    : { data: [], error: null };
   const parsedAnswer = selectedSolution
     ? examAnswerSchema.safeParse(selectedSolution.answer_json)
     : undefined;
@@ -143,6 +151,11 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
     : query.invite === "self" ? "You cannot invite your own account as a teacher."
     : query.invite === "save_failed" || query.invite === "revoke_failed" ? "The invitation could not be saved. Please try again."
     : query.invite === "invalid" || query.invite === "not_found" ? "The invitation details were invalid or the question was not found."
+    : query.mark_scheme === "saved" ? "Mark scheme reference saved. The comparison below is a phrase-presence checklist, not a mark award."
+    : query.mark_scheme === "save_failed" ? "The mark scheme could not be saved. Check the migration and supplied fields."
+    : query.mark_scheme === "invalid_json" ? "Mark points must be valid JSON."
+    : query.mark_scheme === "invalid" ? "The mark scheme fields or point structure are invalid."
+    : query.mark_scheme === "not_found" ? "The selected saved answer was not found in your account."
     : query.solve
     ? messages[query.solve] ?? "Answer generation failed (" + query.solve.slice(0, 80) + ")."
     : query.review === "approved" ? "Your review was saved under your account. It is recorded separately from other reviewers."
@@ -308,6 +321,60 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
             <p className="question-card-meta">Provider: {selectedSolution?.provider} · Model: {selectedSolution?.model} · Prompt: {selectedSolution?.prompt_version}</p>
             {sourceProvenanceSummary(selectedSolution?.source_context ?? null) ? <p className="question-card-meta">Source context used: {sourceProvenanceSummary(selectedSolution?.source_context ?? null)}. The extracted text itself is not stored with this answer.</p> : null}
             <p className="notice notice-info">AI-generated draft. Review feedback is recorded separately and does not alter this answer. A teacher review is independent of the owner review, but it is not an official exam-board mark scheme.</p>
+            <section className="section">
+              <p className="eyebrow">MARK-SCHEME COMPARISON · OWNER-SUPPLIED SOURCE</p>
+              <h3>Compare against a mark scheme</h3>
+              <p className="question-card-meta">Enter mark points from a source you have checked yourself. The app does not fetch or certify the URL, and phrase matching cannot determine whether an idea is expressed equivalently. No marks are awarded.</p>
+              {markSchemeError ? <p className="notice notice-error">Could not load saved mark schemes.</p> : null}
+              {savedMarkSchemes?.map((saved) => {
+                const parsedScheme = markSchemeSchema.safeParse({
+                  title: saved.title,
+                  awardingBody: saved.awarding_body,
+                  qualification: saved.qualification,
+                  subject: saved.subject,
+                  paperReference: saved.paper_reference ?? undefined,
+                  sourceUrl: saved.source_url,
+                  points: saved.points,
+                });
+                if (!parsedScheme.success) return <p className="notice notice-error" key={saved.id}>A saved mark scheme has an invalid structure and cannot be compared.</p>;
+                const comparison = compareAnswerToMarkScheme(answer.examAnswer + "\n" + answer.workingSteps.map((step) => step.explanation).join("\n"), parsedScheme.data);
+                return (
+                  <article className="question-card" key={saved.id}>
+                    <h4>{saved.title}</h4>
+                    <p className="question-card-meta">{saved.awarding_body} · {saved.qualification} · {saved.subject}{saved.paper_reference ? " · " + saved.paper_reference : ""}</p>
+                    <p className="question-card-meta">Source reference: <a href={saved.source_url} target="_blank" rel="noreferrer noopener">{saved.source_url}</a> · Saved {new Date(saved.created_at).toLocaleString()}</p>
+                    <ul className="calculation-checks">
+                      {comparison.map((point) => <li key={point.id}>
+                        <strong>{point.status === "possible_match" ? "POSSIBLE PHRASE MATCH" : point.status === "not_found" ? "PHRASE NOT FOUND" : "MANUAL REVIEW REQUIRED"}</strong>
+                        <span>{point.id} · {point.description}{point.marks === undefined ? "" : " · " + point.marks + " mark(s) listed in source"}</span>
+                        {point.matchedPhrases.length ? <small>Literal phrases found: {point.matchedPhrases.join("; ")}</small> : null}
+                      </li>)}
+                    </ul>
+                  </article>
+                );
+              })}
+              {isOwner ? (
+                <form action={saveQuestionSolutionMarkScheme} className="review-form">
+                  <input type="hidden" name="solutionId" value={selectedSolution.id} />
+                  <label htmlFor="mark-scheme-title">Mark scheme title</label>
+                  <input id="mark-scheme-title" name="title" required maxLength={200} placeholder="Exact title from your source" />
+                  <label htmlFor="mark-scheme-board">Awarding body</label>
+                  <input id="mark-scheme-board" name="awardingBody" required maxLength={100} defaultValue={question.board ?? ""} />
+                  <label htmlFor="mark-scheme-qualification">Qualification</label>
+                  <input id="mark-scheme-qualification" name="qualification" required maxLength={100} defaultValue={question.qualification ?? ""} />
+                  <label htmlFor="mark-scheme-subject">Subject</label>
+                  <input id="mark-scheme-subject" name="subject" required maxLength={100} defaultValue={question.subject ?? ""} />
+                  <label htmlFor="mark-scheme-paper">Paper reference (optional)</label>
+                  <input id="mark-scheme-paper" name="paperReference" maxLength={100} />
+                  <label htmlFor="mark-scheme-url">HTTPS source URL</label>
+                  <input id="mark-scheme-url" name="sourceUrl" type="url" required placeholder="https://..." />
+                  <label htmlFor="mark-scheme-points">Mark points (JSON array)</label>
+                  <textarea id="mark-scheme-points" name="points" rows={8} required placeholder={'[{"id":"M1","description":"Describe the required point","keyPhrases":["phrase from the source"],"marks":1}]'} />
+                  <p className="question-card-meta">Use only wording and marks you transcribed from the actual source. Empty keyPhrases deliberately produce a manual-review status.</p>
+                  <button className="primary-action" type="submit">Save mark scheme reference →</button>
+                </form>
+              ) : <p className="question-card-meta">Only the question owner can attach a mark scheme reference.</p>}
+            </section>
             <section className="section">
               <p className="eyebrow">REVIEW & CORRECTION LOG</p>
               <h3>Record your review</h3>
