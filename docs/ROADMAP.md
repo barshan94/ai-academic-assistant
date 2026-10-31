@@ -37,7 +37,7 @@ Implemented on feature/m3-ai-solver:
 M3 exit criteria still outstanding:
 - Configure a provider key/model securely and test live generation with explicit cost approval.
 - Build a golden question set across subjects and manually grade output quality.
-- Complete citation/source-grounding checks and mark-scheme comparison workflows. Current source-page context is opt-in and traceable, but does not yet provide verified quotations or official mark-scheme matching.
+- Complete citation/source-grounding checks and mark-scheme comparison workflows. Current source-page context is opt-in and traceable, but does not yet provide verified quotations or official mark-scheme matching. A conservative mark-scheme review helper now accepts owner-supplied HTTPS references and structured mark points, then flags literal key-phrase presence for human review; it does not award marks, prove semantic equivalence or certify an official scheme.
 - Test teacher invitation, acceptance, review and revocation using two real accounts.
 - Add automated database authorization tests for cross-account isolation.
 
