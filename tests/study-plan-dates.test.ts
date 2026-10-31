@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addCalendarDays, dateFromKey, dateKeyInTimeZone, formatCalendarDay, isValidTimeZone, mondayOf } from "@/lib/study-plan-dates";
+import { addCalendarDays, dateFromKey, dateKeyInTimeZone, formatCalendarDay, isDateKeyInWeek, isValidTimeZone, mondayOf } from "@/lib/study-plan-dates";
 
 describe("study plan date handling", () => {
   it("uses the selected timezone to determine today's date", () => {
@@ -18,6 +18,15 @@ describe("study plan date handling", () => {
     const monday = mondayOf(dateFromKey("2026-11-01"));
     expect(monday.toISOString()).toBe("2026-10-26T00:00:00.000Z");
     expect(formatCalendarDay(monday)).toBe("Monday, Oct 26");
+  });
+
+  it("validates scheduled dates against the selected week in the user timezone", () => {
+    const now = new Date("2026-10-31T18:30:00.000Z");
+    expect(isDateKeyInWeek("2026-10-26", now, "Asia/Dhaka", 0)).toBe(true);
+    expect(isDateKeyInWeek("2026-11-01", now, "Asia/Dhaka", 0)).toBe(true);
+    expect(isDateKeyInWeek("2026-11-02", now, "Asia/Dhaka", 0)).toBe(false);
+    expect(isDateKeyInWeek("2026-11-02", now, "Asia/Dhaka", 1)).toBe(true);
+    expect(isDateKeyInWeek("2026-02-30", now, "Asia/Dhaka", 0)).toBe(false);
   });
 
   it("rejects invalid timezone identifiers and invalid date keys", () => {
