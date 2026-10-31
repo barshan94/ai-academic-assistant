@@ -4,16 +4,23 @@ The feature branch includes a scheduled server-side worker at `GET /api/cron/pro
 
 ## Required deployment environment
 
-Configure these values in the non-production Vercel project before enabling the schedule:
+Configure these values in the dedicated non-production Vercel project:
 
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY` — server-only; never expose with a `NEXT_PUBLIC_` prefix.
-- `CRON_SECRET` — long random secret. Vercel sends it as `Authorization: Bearer <CRON_SECRET>` for scheduled invocations.
+- `CRON_SECRET` — long random secret used by the worker route to authenticate scheduled invocations.
 - `DRIVE_TOKEN_ENCRYPTION_KEY` — the same base64-encoded 32-byte key used to encrypt existing Drive refresh tokens. Rotating it without re-encrypting stored tokens will break Drive connections.
 - `GOOGLE_CLIENT_ID`
 - `GOOGLE_CLIENT_SECRET`
 
-The cron schedule is declared in `vercel.json` and runs every five minutes. Each invocation handles one job to keep execution bounded. Confirm the selected Vercel plan supports this schedule frequency before deployment; otherwise use a supported frequency or an external scheduler that sends the same authenticated request.
+The scheduler is GitHub Actions, defined in `.github/workflows/process-document-queue.yml`, and requests one job every five minutes. Configure these repository Actions secrets:
+
+- `DOCUMENT_WORKER_URL` — the HTTPS base URL of the deployed application, for example `https://your-app.example.com` (no path suffix).
+- `CRON_SECRET` — the same random secret configured in the Vercel environment.
+
+GitHub scheduled workflows run only from the repository's default branch. This feature-branch workflow will not run on a schedule until it is merged to the default branch; do not merge it or deploy it without authorization. Once available on the default branch, GitHub Actions can also be manually dispatched. GitHub may delay scheduled runs during periods of high load.
+
+This uses GitHub Actions rather than a five-minute Vercel Cron expression because Vercel Hobby allows only once-daily cron execution; more frequent schedules require Pro or Enterprise. Do not configure both schedulers at once. See the [Vercel cron plan limits](https://vercel.com/docs/cron-jobs/usage-and-pricing).
 
 ## Operational behavior
 
@@ -37,6 +44,6 @@ The cron schedule is declared in `vercel.json` and runs every five minutes. Each
 6. Trigger two concurrent invocations and verify the same job is processed only once.
 7. Force a transient failure and confirm retries stop at `max_attempts`.
 8. Simulate a stale running job and confirm the worker reclaims it.
-9. Verify the cron execution history and alerting before using it for real academic documents.
+9. Verify GitHub Actions execution history and alerting before using it for real academic documents.
 
-The worker code and schedule do not mean the deployment is operational until these secrets, a compatible scheduler plan, Google Drive credentials and real integration tests are configured.
+The worker code and workflow do not mean the deployment is operational until the Vercel environment variables, GitHub Actions secrets, default-branch workflow activation, Google Drive credentials and real integration tests are configured.
