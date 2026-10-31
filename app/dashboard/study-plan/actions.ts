@@ -54,6 +54,29 @@ export async function createStudySession(formData: FormData) {
   redirect("/dashboard/study-plan?calendar=created" + weekQuery);
 }
 
+const deleteSchema = z.object({ sessionId: z.string().uuid(), weekOffset: z.coerce.number().int().min(-52).max(52).default(0), sessionPage: z.coerce.number().int().min(1).max(10000).default(1) });
+
+export async function deletePlannedStudySession(formData: FormData) {
+  const parsed = deleteSchema.safeParse({
+    sessionId: String(formData.get("sessionId") ?? ""),
+    weekOffset: String(formData.get("weekOffset") ?? "0"),
+    sessionPage: String(formData.get("sessionPage") ?? "1"),
+  });
+  if (!parsed.success) redirect("/dashboard/study-plan?calendar=invalid");
+  const weekQuery = (parsed.data.weekOffset ? "&week=" + parsed.data.weekOffset : "") + (parsed.data.sessionPage > 1 ? "&sessionPage=" + parsed.data.sessionPage : "");
+
+  const supabase = await createSupabaseServerClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) redirect("/login");
+
+  const db = supabase as unknown as SupabaseClient<DatabaseWithStudyPlan>;
+  const { error } = await db.rpc("delete_planned_weekly_study_session", { p_session_id: parsed.data.sessionId });
+  if (error) redirect("/dashboard/study-plan?calendar=failed" + weekQuery);
+
+  revalidatePath("/dashboard/study-plan");
+  redirect("/dashboard/study-plan?calendar=deleted" + weekQuery);
+}
+
 const completeSchema = z.object({ sessionId: z.string().uuid(), weekOffset: z.coerce.number().int().min(-52).max(52).default(0), sessionPage: z.coerce.number().int().min(1).max(10000).default(1) });
 
 export async function completeStudySession(formData: FormData) {
