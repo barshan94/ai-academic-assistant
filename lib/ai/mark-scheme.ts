@@ -14,6 +14,8 @@ export const markSchemeSchema = z.object({
   subject: z.string().trim().min(1).max(100),
   paperReference: z.string().trim().max(100).optional(),
   sourceUrl: z.string().url().refine((value) => new URL(value).protocol === "https:", "Use an HTTPS source URL."),
+  sourceLocator: z.string().trim().min(1).max(160),
+  sourceDocumentVersion: z.string().trim().max(100).optional(),
   points: z.array(markPointSchema).min(1).max(80),
 }).superRefine((scheme, context) => {
   const ids = new Set<string>();
