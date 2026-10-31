@@ -216,6 +216,188 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_admins: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      reference_syllabus_catalogs: {
+        Row: {
+          board: string
+          created_at: string
+          created_by: string | null
+          effective_from: string | null
+          effective_to: string | null
+          id: string
+          qualification: string
+          source_checked_at: string | null
+          source_title: string | null
+          source_url: string | null
+          status: string
+          subject: string
+          updated_at: string
+          verified_at: string | null
+          verified_by: string | null
+          version: string
+        }
+        Insert: {
+          board: string
+          effective_from?: string | null
+          effective_to?: string | null
+          id?: string
+          qualification: string
+          source_checked_at?: string | null
+          source_title?: string | null
+          source_url?: string | null
+          status?: string
+          subject: string
+          version: string
+        }
+        Update: {
+          board?: string
+          effective_from?: string | null
+          effective_to?: string | null
+          qualification?: string
+          source_checked_at?: string | null
+          source_title?: string | null
+          source_url?: string | null
+          status?: string
+          subject?: string
+          version?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      reference_syllabus_chapters: {
+        Row: {
+          catalog_id: string
+          chapter_code: string | null
+          created_at: string
+          id: string
+          sort_order: number
+          title: string
+        }
+        Insert: {
+          catalog_id: string
+          chapter_code?: string | null
+          id?: string
+          sort_order?: number
+          title: string
+        }
+        Update: {
+          chapter_code?: string | null
+          sort_order?: number
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reference_syllabus_chapters_catalog_id_fkey"
+            columns: ["catalog_id"]
+            isOneToOne: false
+            referencedRelation: "reference_syllabus_catalogs"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      reference_syllabus_topics: {
+        Row: {
+          chapter_id: string
+          created_at: string
+          id: string
+          sort_order: number
+          title: string
+          topic_code: string | null
+        }
+        Insert: {
+          chapter_id: string
+          id?: string
+          sort_order?: number
+          title: string
+          topic_code?: string | null
+        }
+        Update: {
+          sort_order?: number
+          title?: string
+          topic_code?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reference_syllabus_topics_chapter_id_fkey"
+            columns: ["chapter_id"]
+            isOneToOne: false
+            referencedRelation: "reference_syllabus_chapters"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      reference_syllabus_evidence: {
+        Row: {
+          catalog_id: string
+          chapter_id: string
+          created_at: string
+          created_by: string | null
+          evidence_excerpt: string | null
+          id: string
+          source_locator: string | null
+          source_title: string
+          source_url: string
+          topic_id: string | null
+        }
+        Insert: {
+          catalog_id: string
+          chapter_id: string
+          evidence_excerpt?: string | null
+          source_locator?: string | null
+          source_title: string
+          source_url: string
+          topic_id?: string | null
+        }
+        Update: {
+          catalog_id?: string
+          chapter_id?: string
+          evidence_excerpt?: string | null
+          source_locator?: string | null
+          source_title?: string
+          source_url?: string
+          topic_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reference_syllabus_evidence_catalog_id_fkey"
+            columns: ["catalog_id"]
+            isOneToOne: false
+            referencedRelation: "reference_syllabus_catalogs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reference_syllabus_evidence_chapter_id_catalog_id_fkey"
+            columns: ["chapter_id", "catalog_id"]
+            isOneToOne: false
+            referencedRelation: "reference_syllabus_chapters"
+            referencedColumns: ["id", "catalog_id"]
+          },
+          {
+            foreignKeyName: "reference_syllabus_evidence_topic_id_chapter_id_fkey"
+            columns: ["topic_id", "chapter_id"]
+            isOneToOne: false
+            referencedRelation: "reference_syllabus_topics"
+            referencedColumns: ["id", "chapter_id"]
+          }
+        ]
+      }
       question_solution_reviews: {
         Row: {
           correction_notes: string | null
@@ -685,6 +867,10 @@ export type Database = {
       bulk_update_question_classification_status: {
         Args: { question_ids: string[]; target_status: string }
         Returns: number
+      }
+      is_platform_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
       }
     }
     Enums: {
