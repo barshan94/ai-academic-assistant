@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { signOut } from "../../actions";
 import { recordPracticeAnswer } from "../actions";
+import { PrintPracticeButton } from "../print-button";
 import type { DatabaseWithPractice } from "@/types/practice-database";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
@@ -52,7 +53,7 @@ export default async function PracticeDetailPage({ params, searchParams }: Props
         <p className="eyebrow">PRACTICE SESSION · {set?.status.replace("_"," ").toUpperCase()}</p>
         <h1>{set?.title}</h1>
         <p className="hero-copy">{set?.question_count} saved questions · {completed} of {set?.question_count} marked. Record your own result after attempting each question; this is self-assessment, not automatic grading.</p>
-        <div className="hero-actions"><Link className="sign-in-link" href="/dashboard/practice">Back to practice history</Link></div>
+        <div className="hero-actions"><Link className="sign-in-link" href="/dashboard/practice">Back to practice history</Link><PrintPracticeButton /></div>
       </section>
       {message ? <p className={query.save === "updated" ? "notice notice-info" : "notice notice-error"} role="status">{message}</p> : null}
       {setError || itemsError ? <p className="notice notice-error">Could not load this practice session.</p> : null}
