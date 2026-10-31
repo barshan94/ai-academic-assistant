@@ -30,7 +30,7 @@ Use .env.local for local secrets and keep it ignored by Git. Commit only placeho
 
 ## Browser response protections
 - Disable framework fingerprinting and set HSTS, frame denial, MIME-sniffing protection, a strict referrer policy and a restrictive Permissions-Policy. These headers are covered by a Chromium smoke test.
-- A Content Security Policy is not yet enforced; introduce one only after validating the Next.js runtime, Supabase auth and required provider origins to avoid a misleading or broken policy.
+- A nonce-based Content Security Policy is enforced by middleware on application pages and API routes. It uses a per-request script nonce, restricts object/frame/base/form sources, and allows only the required Supabase/Google origins plus the configured HTTPS AI provider origin for connections. Development-only eval and localhost connections are scoped to non-production. Browser acceptance must still confirm Next.js script hydration, Supabase auth refresh, Google OAuth redirects, custom provider configuration and CSP violation behavior.
 
 ## Data lifecycle
 - Do not delete original image/PDF data until conversion, readability checks and Drive upload are confirmed.
