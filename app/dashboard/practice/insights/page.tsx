@@ -5,7 +5,6 @@ import { signOut } from "../../actions";
 import type { DatabaseWithPractice, PracticeInsightsResult } from "@/types/practice-database";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-type Outcome = "correct" | "partial" | "incorrect" | "skipped";
 
 export default async function PracticeInsightsPage() {
   const supabase = await createSupabaseServerClient();
