@@ -386,3 +386,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Require stale-document recovery to persist, require the owner-scoped processing transition to return the updated document, and require the running job completion transition to return the updated job. If completion persistence fails, route through the existing failure/retry path. Added a user-facing recovery failure notice.
 - Verification: Foundation CI run `41221378201` passed lint, type-checks, 116 unit tests and production build; Chromium smoke tests passed 7 tests. This confirms the route compiles and the suite passes, but does not exercise the authenticated manual-processing state transitions. Live Drive and authenticated route acceptance remains outstanding.
 - Status: Code and CI checks verified; authenticated route acceptance remains outstanding.
+
+
+## ERR-036 — Worker failure handlers ignored errors while persisting failed state
+
+- Date: 2026-10-31
+- Area: M2 manual and scheduled document processing
+- Symptom: When extraction or finalization failed, both worker paths attempted to mark the document and job failed but ignored database errors. The request could return a normal processing-failed response while the durable job remained running or the document retained a stale status.
+- Root cause: Error-path database writes were not treated as part of the queue state machine.
+- Fix: Both paths now check document failure updates and require the owner-scoped running job transition to return the updated row. If failure state cannot be persisted, the manual route displays a distinct warning; the scheduled worker returns HTTP 500 and leaves the lease for stale recovery rather than claiming the failure was saved.
+- Verification: Feature-branch CI pending. Authenticated database-failure injection and live stale-lease recovery remain outstanding.
+- Status: Implemented; CI verification pending.
