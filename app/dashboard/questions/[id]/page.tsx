@@ -237,7 +237,7 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
           <section className="section web-research-panel">
             <p className="eyebrow">OPTIONAL WEB RESEARCH · OWNER-INITIATED</p>
             <h2>Find external source leads</h2>
-            <p className="question-card-meta">Only the query you type below is sent to Brave Search; the question text and uploaded documents are not sent. Results are unverified leads, not official syllabus documents or mark schemes. Check the publisher, exact document version and page before using a source. Limit: five searches per 15 minutes.</p>
+            <p className="question-card-meta">Only the query you type below is sent to Brave Search; the question text and uploaded documents are not sent. Do not include personal or confidential details. Your search provider's own data handling and possible charges apply. Results are unverified leads, not official syllabus documents or mark schemes. Check the publisher, exact document version and page before using a source. Limit: five searches per 15 minutes.</p>
             <form action={searchQuestionWebSources} className="review-form">
               <input type="hidden" name="questionId" value={question.id} />
               <label htmlFor="web-research-query">Search the web for supporting sources</label>
