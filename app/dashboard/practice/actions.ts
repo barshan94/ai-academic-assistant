@@ -92,3 +92,36 @@ export async function recordPracticeAnswer(formData: FormData) {
   revalidatePath("/dashboard/practice");
   redirect("/dashboard/practice/" + parsed.data.setId + "?save=updated");
 }
+
+
+const practiceRevisionSchema = z.object({
+  questionId: z.string().uuid(),
+  setId: z.string().uuid(),
+  confidence: z.coerce.number().int().min(1).max(5),
+});
+
+export async function schedulePracticeQuestionRevision(formData: FormData) {
+  const parsed = practiceRevisionSchema.safeParse({
+    questionId: String(formData.get("questionId") ?? ""),
+    setId: String(formData.get("setId") ?? ""),
+    confidence: String(formData.get("confidence") ?? ""),
+  });
+  if (!parsed.success) redirect("/dashboard/practice?revision=invalid");
+
+  const supabase = await createSupabaseServerClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) redirect("/login");
+
+  const db = supabase as unknown as SupabaseClient<DatabaseWithPractice>;
+  // This is an explicit learner choice. Practice outcomes never set confidence automatically.
+  const { error } = await db.rpc("record_question_revision", {
+    p_question_id: parsed.data.questionId,
+    p_confidence: parsed.data.confidence,
+  });
+  if (error) redirect("/dashboard/practice/" + parsed.data.setId + "?revision=failed");
+
+  revalidatePath("/dashboard/revision");
+  revalidatePath("/dashboard/revision/insights");
+  revalidatePath("/dashboard/practice/" + parsed.data.setId);
+  redirect("/dashboard/practice/" + parsed.data.setId + "?revision=scheduled");
+}
