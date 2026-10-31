@@ -124,7 +124,7 @@ export default async function SharedSyllabusCuratorPage({ searchParams }: PagePr
             <label>Source title<input name="sourceTitle" maxLength={200} placeholder="Official specification PDF" /></label>
             <label>Source checked on<input name="sourceCheckedAt" type="date" /></label>
           </div>
-          <p className="question-card-meta">Use the board's own official domain wherever possible. HTTPS alone does not prove that a source is official; the curator must check the publisher and document version.</p>
+          <p className="question-card-meta">Use the board&apos;s own official domain wherever possible. HTTPS alone does not prove that a source is official; the curator must check the publisher and document version.</p>
           <button className="primary-action" type="submit">Create draft catalogue</button>
         </form>
       </section>
