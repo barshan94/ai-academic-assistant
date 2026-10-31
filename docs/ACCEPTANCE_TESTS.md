@@ -124,7 +124,8 @@
 - [x] Document free-tier manual database export procedure, scope exclusions and restore limitations in `docs/BACKUP_RESTORE.md`; this is documentation only and does not count as a tested full restore.
 - [ ] Backup and restore process tested.
 - [ ] OAuth token handling and revocation tested.
-- [ ] Rate limits, retries and job recovery tested.
+- [ ] Rate limits, retries and job recovery tested, including concurrent upload-session creation at hourly/daily quota boundaries and cross-account isolation.
+- [ ] Drive/OCR provider failures and worker exceptions are verified not to expose upstream response bodies, credentials, document text or raw database errors in HTTP responses or persisted job metadata.
 - [x] AI generation is protected by atomic account-scoped database quotas: five answer generations and three chapter-note generations per 15-minute window; the server fails closed if quota enforcement is unavailable. Fifteen pgTAP assertions passed in isolated CI run `41219394217` (133 assertions across six files, commit `e43816b`).
 - [ ] Error reporting excludes secrets and sensitive payloads.
 - [ ] Mobile usability and accessibility smoke tests pass.
