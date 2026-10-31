@@ -16,8 +16,8 @@ export type DatabaseWithAISolutions = Omit<Database, "public"> & {
         }];
       };
       question_web_research_sources: {
-        Row: { id: string; owner_id: string; question_id: string; query: string; provider: string; title: string; source_url: string; snippet: string; result_rank: number; retrieved_at: string };
-        Insert: { id?: string; owner_id: string; question_id: string; query: string; provider: string; title: string; source_url: string; snippet: string; result_rank: number; retrieved_at?: string };
+        Row: { id: string; owner_id: string; question_id: string; query: string; provider: string; title: string; source_url: string; snippet: string; result_rank: number; published_at: string | null; retrieved_at: string };
+        Insert: { id?: string; owner_id: string; question_id: string; query: string; provider: string; title: string; source_url: string; snippet: string; result_rank: number; published_at?: string | null; retrieved_at?: string };
         Update: never;
         Relationships: [{
           foreignKeyName: "question_web_research_sources_question_owner_fk";
