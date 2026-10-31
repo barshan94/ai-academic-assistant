@@ -11,7 +11,7 @@ create or replace function public.get_practice_insights()
 returns jsonb
 language plpgsql
 stable
-security definer
+security invoker
 set search_path = ''
 as $$
 declare
