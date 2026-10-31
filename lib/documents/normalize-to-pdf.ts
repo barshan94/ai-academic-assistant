@@ -26,6 +26,10 @@ export async function normalizeFilesToPdf(files: File[]) {
   if (!files.length) throw new Error("Choose a PDF or one or more images.");
   if (files.length > MAX_IMAGE_COUNT) throw new Error("Choose no more than 50 images at a time.");
 
+  const declaredBytes = files.reduce((sum, file) => sum + file.size, 0);
+  if (!declaredBytes || declaredBytes > MAX_UPLOAD_BYTES) {
+    throw new Error("The combined upload must be 100 MB or smaller.");
+  }
   const buffers = await Promise.all(files.map(async (file) => new Uint8Array(await file.arrayBuffer())));
   const totalBytes = buffers.reduce((sum, bytes) => sum + bytes.byteLength, 0);
   if (!totalBytes || totalBytes > MAX_UPLOAD_BYTES) {
