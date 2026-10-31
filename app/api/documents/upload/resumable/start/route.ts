@@ -58,8 +58,7 @@ export async function POST(request: NextRequest) {
     }));
 
     return NextResponse.json({ sessionToken, chunkSize: 1024 * 1024 });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Could not start the upload.";
-    return NextResponse.json({ error: message.slice(0, 300) }, { status: 500 });
+  } catch {
+    return NextResponse.json({ error: "Could not start the Google Drive upload. Check your connection and try again." }, { status: 500 });
   }
 }
