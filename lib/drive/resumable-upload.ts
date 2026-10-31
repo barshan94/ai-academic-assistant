@@ -3,11 +3,15 @@ import { DRIVE_UPLOAD_CHUNK_BYTES, DRIVE_UPLOAD_GRANULARITY_BYTES } from "@/lib/
 export const DRIVE_UPLOAD_CHUNK_SIZE = DRIVE_UPLOAD_CHUNK_BYTES;
 export const DRIVE_UPLOAD_GRANULARITY = DRIVE_UPLOAD_GRANULARITY_BYTES;
 
-export function parseDriveUploadOffset(range: string | null) {
+export function parseDriveUploadOffset(range: string | null, totalBytes?: number) {
   if (!range) return 0;
   const match = /^bytes=0-(\d+)$/.exec(range);
   if (!match) throw new Error("Google Drive returned an invalid upload range.");
-  return Number(match[1]) + 1;
+  const offset = Number(match[1]) + 1;
+  if (!Number.isSafeInteger(offset) || (totalBytes !== undefined && offset > totalBytes)) {
+    throw new Error("Google Drive returned an out-of-bounds upload range.");
+  }
+  return offset;
 }
 
 export function isValidDriveChunk(input: {
@@ -25,6 +29,7 @@ export function isValidDriveChunk(input: {
     && total === input.totalBytes
     && start >= 0
     && end >= start
+    && end < total
     && end - start + 1 === input.byteLength
     && input.byteLength > 0
     && input.byteLength <= DRIVE_UPLOAD_CHUNK_SIZE
