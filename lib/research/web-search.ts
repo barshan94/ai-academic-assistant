@@ -29,7 +29,7 @@ function canonicalUrlTooLong(url: URL) {
 function getBraveApiKey(env: Record<string, string | undefined> = process.env) {
   const provider = env.WEB_SEARCH_PROVIDER?.trim() || "brave";
   const apiKey = env.BRAVE_SEARCH_API_KEY?.trim();
-  if (provider !== "brave" || !apiKey) throw new WebResearchConfigurationError();
+  if (provider !== "brave" || !apiKey || apiKey.length > 1000) throw new WebResearchConfigurationError();
   return apiKey;
 }
 
