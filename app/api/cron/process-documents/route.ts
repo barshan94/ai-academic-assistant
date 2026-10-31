@@ -55,11 +55,11 @@ export async function GET(request: Request) {
 
   // One job per invocation keeps runtime bounded. The conditional UPDATE is
   // the claim operation: concurrent cron invocations cannot both own a job.
+  const staleBefore = new Date(Date.now() - 15 * 60 * 1000).toISOString();
   const { data: candidates, error: candidateError } = await supabase
     .from("processing_jobs")
     .select("id,owner_id,document_id,attempt_count,max_attempts,status,started_at")
-    .in("status", ["queued", "failed"])
-    .lt("attempt_count", 3)
+    .or(`status.eq.queued,status.eq.failed,and(status.eq.running,started_at.lt.${staleBefore}),and(status.eq.running,started_at.is.null)`)
     .order("created_at", { ascending: true })
     .limit(10);
 
@@ -67,6 +67,7 @@ export async function GET(request: Request) {
   if (!candidates?.length) return Response.json({ processed: false, reason: "queue_empty" });
 
   for (const candidate of candidates) {
+    if (candidate.attempt_count >= candidate.max_attempts) continue;
     let claim = supabase.from("processing_jobs").update({
       status: "running",
       stage: "ocr",
