@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(30);
+select plan(34);
 
 -- Isolated identities and records. This test runs inside a transaction and rolls back.
 insert into auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
@@ -25,6 +25,21 @@ values ('50000000-0000-4000-8000-000000000001', '40000000-0000-4000-8000-0000000
 
 insert into public.question_teacher_invites (id, question_id, owner_id, invited_email)
 values ('60000000-0000-4000-8000-000000000001', '30000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', 'rls-teacher@example.test');
+
+-- The exposed API wrapper is invoker-rights. Only its private implementation
+-- uses definer rights, and anonymous clients cannot access the private schema.
+select is(
+  (select prosecdef from pg_proc where oid = 'public.record_teacher_solution_review(uuid,text,text)'::regprocedure),
+  false,
+  'public teacher-review RPC wrapper runs with invoker rights'
+);
+select is(
+  (select prosecdef from pg_proc where oid = 'private.record_teacher_solution_review(uuid,text,text)'::regprocedure),
+  true,
+  'privileged teacher-review implementation is isolated in private schema'
+);
+select ok(has_schema_privilege('authenticated', 'private', 'USAGE'), 'authenticated wrapper can invoke the private implementation');
+select ok(not has_schema_privilege('anon', 'private', 'USAGE'), 'anonymous role cannot access the private schema');
 
 -- Owner sees their own mark scheme.
 set local role authenticated;

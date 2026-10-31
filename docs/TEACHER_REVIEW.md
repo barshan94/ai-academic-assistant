@@ -35,7 +35,7 @@ The owner can share one question with an existing Academic Assistant account. An
 - The teacher must already have an account; invitation-driven account creation is not implemented.
 - Live two-account acceptance/revocation testing is still required.
 - A teacher review is an authenticated human review, not an exam-board endorsement.
-- An active accepted teacher can submit reviews only through the SECURITY DEFINER `record_teacher_solution_review` RPC. The RPC derives the reviewer from `auth.uid()`, locks the solution and invite, rejects owners/uninvited/revoked accounts, and appends the review event. An `approved` decision sets `teacher_verified`; a later `needs_correction` decision returns the status to `generated`. Direct teacher INSERT is denied. Owner reviews remain separate and cannot promote verification.
+- An active accepted teacher can submit reviews only through the SECURITY DEFINER `record_teacher_solution_review` invoker-rights RPC wrapper. The RPC derives the reviewer from `auth.uid()`, locks the solution and invite, rejects owners/uninvited/revoked accounts, and appends the review event. An `approved` decision sets `teacher_verified`; a later `needs_correction` decision returns the status to `generated`. Direct teacher INSERT is denied. Owner reviews remain separate and cannot promote verification.
 - Supabase email confirmation should remain enabled so account email claims represent verified addresses.
 
 - This is independent human review, not official exam-board certification or an automated correctness guarantee.

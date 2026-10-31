@@ -1,6 +1,6 @@
 -- Independent teacher review is the only workflow allowed to promote a
--- generated answer to teacher_verified. The authenticated teacher cannot
--- directly write either the review row or the verification status.
+-- generated answer to teacher_verified. The Data API exposes only an
+-- invoker-rights wrapper; the privileged implementation lives in private.
 
 drop policy if exists "question_solution_reviews_teacher_insert"
   on public.question_solution_reviews;
@@ -15,13 +15,19 @@ create policy "question_solution_reviews_owner_insert"
     and owner_id = (select auth.uid())
   );
 
-create or replace function public.record_teacher_solution_review(
+create schema if not exists private;
+revoke all on schema private from public, anon, authenticated;
+grant usage on schema private to authenticated, service_role;
+
+create or replace function private.record_teacher_solution_review(
   p_solution_id uuid,
   p_decision text,
   p_correction_notes text
 )
 returns uuid
 language plpgsql
+security definer
+set search_path = ''
 security definer
 set search_path = ''
 as $$
@@ -102,6 +108,28 @@ begin
 
   return v_review_id;
 end;
+$$;;
+
+revoke all on function private.record_teacher_solution_review(uuid, text, text)
+  from public, anon;
+grant execute on function private.record_teacher_solution_review(uuid, text, text)
+  to authenticated, service_role;
+
+create or replace function public.record_teacher_solution_review(
+  p_solution_id uuid,
+  p_decision text,
+  p_correction_notes text
+)
+returns uuid
+language sql
+security invoker
+set search_path = ''
+as $$
+  select private.record_teacher_solution_review(
+    p_solution_id,
+    p_decision,
+    p_correction_notes
+  );
 $$;
 
 revoke all on function public.record_teacher_solution_review(uuid, text, text)
@@ -110,4 +138,4 @@ grant execute on function public.record_teacher_solution_review(uuid, text, text
   to authenticated, service_role;
 
 comment on function public.record_teacher_solution_review(uuid, text, text) is
-  'Append-only, invitation-scoped teacher review. Only an accepted teacher can set teacher_verified; a later correction review returns it to generated.';
+  'SECURITY INVOKER API wrapper. Delegates the invitation-checked write to a non-exposed private-schema SECURITY DEFINER function.';
