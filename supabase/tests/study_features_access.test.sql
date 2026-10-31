@@ -81,8 +81,8 @@ select lives_ok(
 );
 select is(
   (public.get_study_queue_page(1, 1, 25) ->> 'practice_total')::integer,
-  1,
-  'study queue includes the remaining unanswered practice item'
+  2,
+  'study queue includes unanswered items from both active practice sets'
 );
 
 select lives_ok(
