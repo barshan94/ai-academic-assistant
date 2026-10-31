@@ -438,5 +438,5 @@ This file records material implementation, CI, integration and release problems 
 - Symptom: Clean local Supabase migration application failed at the SQL wrapper's `select` statement.
 - Root cause: The private PL/pgSQL function body ended with a single dollar sign instead of the matching `$$` delimiter, so PostgreSQL continued parsing the following SQL wrapper as part of the function body.
 - Fix: Restore the matching `$$` function-body terminator. No application behavior or authorization policy was weakened.
-- Verification: Corrected migration is committed in `74307a2f`; clean-database CI rerun is pending.
+- Verification: Corrected migration is committed in `c5d5164c`; clean-database CI rerun is pending.
 - Status: Syntax fix committed; database migration and pgTAP verification pending.
