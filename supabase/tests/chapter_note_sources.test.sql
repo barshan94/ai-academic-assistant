@@ -89,7 +89,7 @@ select throws_ok(
 
 
 select lives_ok(
-  $select public.create_chapter_note_draft(
+  $$select public.create_chapter_note_draft(
     '41000000-0000-4000-8000-000000000011',
     '42000000-0000-4000-8000-000000000011',
     'Valid page-source note',
@@ -97,17 +97,17 @@ select lives_ok(
     '{}'::uuid[],
     array['22000000-0000-4000-8000-000000000011'::uuid],
     null
-  )$,
+  )$$,
   'owner can create a note with a page linked to an approved question in the selected chapter'
 );
 select lives_ok(
-  $update public.chapter_note_versions
+  $$update public.chapter_note_versions
     set status = 'approved'
-    where title = 'Valid page-source note'$,
+    where title = 'Valid page-source note'$$,
   'a page source linked to an approved question in the same chapter can be approved'
 );
 select lives_ok(
-  $select public.create_chapter_note_draft(
+  $$select public.create_chapter_note_draft(
     '41000000-0000-4000-8000-000000000011',
     '42000000-0000-4000-8000-000000000011',
     'Wrong chapter page-source note',
@@ -115,13 +115,13 @@ select lives_ok(
     '{}'::uuid[],
     array['22000000-0000-4000-8000-000000000012'::uuid],
     null
-  )$,
+  )$$,
   'draft creation preserves an owned page as a draft source before approval checks'
 );
 select throws_ok(
-  $update public.chapter_note_versions
+  $$update public.chapter_note_versions
     set status = 'approved'
-    where title = 'Wrong chapter page-source note'$,
+    where title = 'Wrong chapter page-source note'$$,
   'P0001',
   'Every document page source must remain linked to an approved question in this chapter',
   'approval is blocked when a page belongs to a question classified to another chapter'
