@@ -93,6 +93,7 @@
 - [ ] Live non-production two-account acceptance and curator provisioning.
 - [ ] Assisted classification with source evidence and calibrated confidence.
 - [x] Chapter notes retain contributing question/page source references and show citation keys for AI-generated notes.
+- [x] Chapter-note immutability, append-only source history, source-required approval, and second-account RLS/RPC isolation are covered by pgTAP; all 15 chapter-note assertions and 110 total database assertions passed in isolated CI run `41217592205` (branch head `a08f414`).
 - [x] Chapter-note source-integrity pgTAP coverage passes: reject unreviewed and wrong-chapter questions, revalidate question approval at note approval, and accept a mixed-chapter page when at least one approved question on that page matches the note chapter (isolated local Supabase CI run 41215912807, commit 19335bc).
 - [x] Each chapter note can be downloaded as standalone Markdown with its source-reference metadata and unverified-AI warning preserved.
 - [x] Unit tests validate exported note sections, AI/manual provenance warnings, source-reference metadata, empty-section handling and safe filenames.
