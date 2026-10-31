@@ -94,7 +94,7 @@ M6 remaining:
 - Add authenticated end-to-end coverage for AI generation, provider-not-configured behavior, owner isolation and approval transitions. Existing two-account teacher invitation/review/revocation acceptance is configured to skip unless a dedicated non-production Supabase environment is supplied.
 - Add automated owner-isolation and approval-transition tests.
 
-### M7 status — revision tracking, topic insights and practice history implemented
+### M7 status — revision tracking, topic insights, practice history and cross-session analytics implemented in code
 - Add owner-private confidence tracking for approved questions, with a server-side revision scheduler and a five-level self-reported confidence scale.
 - Schedule the next review at 1, 2, 4, 7 or 14 days based on the latest confidence rating; show due, untracked, learning and confident counts.
 - Restrict direct table writes and use an authenticated, owner-checked database function; revision data is private and cascades with its question.
@@ -103,13 +103,16 @@ M6 remaining:
 - Add custom practice set creation using combined subject/chapter/topic filters and a requested set size; the server samples only owner-approved questions and the database function revalidates every selected ID.
 - Save immutable question text/metadata snapshots, owner-private set history, and self-marked outcomes (correct, partial, incorrect or skipped) with optional reflection notes. Session completion is derived from all items receiving an outcome; this is not automatic grading.
 - Add browser Print / Save as PDF for clean practice sheets; saved question snapshots remain printable even if the source question is later edited or deleted.
-- The confidence scale and practice outcomes are learner self-assessments, not validated measures of mastery. Richer cross-session performance summaries remain outstanding.
+- Add cross-session analytics for overall recorded outcomes and subject/chapter/topic patterns, with sample-size safeguards and explicit self-assessment caveats. Analytics are bounded to the latest 300 sets and 3,000 saved question snapshots.
+- Skipped items count toward session completion but are excluded from the correct-rate denominator. A recurring practice signal requires at least three scored attempts and at least half partial/incorrect; it is not presented as an objective weakness or mastery score.
+- The confidence scale and practice outcomes are learner self-assessments, not validated measures of mastery.
 
 ## M4 exit criteria
 - Unsupported verification is explicitly marked not checked.
 - Independent teacher feedback is tied to authenticated reviewer identity.
 - Corrections are retained as append-only events and never silently overwrite AI drafts.
-- Authenticated clients cannot self-assign machine-checked or teacher-verified statuses; generated drafts are the only client-insertable state.\n- Teacher verification status is only set through an independently authorized workflow.
+- Authenticated clients cannot self-assign machine-checked or teacher-verified statuses; generated drafts are the only client-insertable state.
+- Teacher verification status is only set through an independently authorized workflow.
 - Golden-set results are reviewed before release.
 
 ## Working rules
