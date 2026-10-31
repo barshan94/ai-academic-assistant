@@ -100,7 +100,7 @@ select lives_ok(
   'owner can edit a planned study session'
 );
 select is(
-  (select count(*)::integer from public.get_weekly_study_sessions_page(date '2026-10-26', date '2026-11-01', 1, 50) -> 'sessions'),
+  jsonb_array_length(public.get_weekly_study_sessions_page(date '2026-10-26', date '2026-11-01', 1, 50) -> 'sessions'),
   1,
   'weekly calendar returns the owner session in the selected week'
 );
