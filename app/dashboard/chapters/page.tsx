@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { signOut } from "../actions";
 import { createChapterNoteDraft, generateChapterNoteDraft, updateChapterNoteStatus } from "./actions";
+import PrintNotesButton from "./print-notes-button";
 
 type PageProps = { searchParams: Promise<{ create?: string; status?: string; ai?: string }> };
 type NoteContent = {
@@ -110,7 +111,7 @@ export default async function ChapterWorkspacePage({ searchParams }: PageProps) 
       {catalogError || chapterError || questionError || noteError ? <p className="notice notice-error">Some chapter workspace data could not be loaded. Refresh or check the database connection.</p> : null}
 
       <section className="section">
-        <div className="section-heading"><div><p className="eyebrow">YOUR KNOWLEDGE BASE</p><h2>Chapter notes</h2></div><span className="section-count">{notes?.length ?? 0} versions · {chapters?.length ?? 0} chapters</span></div>
+        <div className="section-heading"><div><p className="eyebrow">YOUR KNOWLEDGE BASE</p><h2>Chapter notes</h2></div><div className="hero-actions"><span className="section-count">{notes?.length ?? 0} versions · {chapters?.length ?? 0} chapters</span>{notes?.length ? <PrintNotesButton /> : null}</div></div>
         {!catalogs?.length ? (
           <div className="empty-state"><h3>No syllabus catalogue yet</h3><p>Create a syllabus version and add chapters before building chapter notes. The workspace will not invent syllabus structure.</p><Link className="primary-action" href="/dashboard/syllabus">Create syllabus catalogue →</Link></div>
         ) : !chapters?.length ? (
