@@ -5,11 +5,12 @@ import { signOut } from "../actions";
 import { createStudySession, completeStudySession } from "./actions";
 import type { DatabaseWithStudyPlan } from "@/types/study-plan-database";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { cookies } from "next/headers";
+import StudyPlanTimezone from "./timezone";
+import { addCalendarDays, dateFromKey, dateKeyInTimeZone, formatCalendarDay, isValidTimeZone, mondayOf } from "@/lib/study-plan-dates";
 
 type PageProps = { searchParams: Promise<{ calendar?: string; week?: string; revisionPage?: string; practicePage?: string; sessionPage?: string }> };
-function dateKey(date: Date) { return date.getFullYear() + "-" + String(date.getMonth() + 1).padStart(2, "0") + "-" + String(date.getDate()).padStart(2, "0"); }
-function mondayOf(date: Date) { const result = new Date(date.getFullYear(), date.getMonth(), date.getDate()); result.setDate(result.getDate() - ((result.getDay() + 6) % 7)); return result; }
-function formatDay(date: Date) { return new Intl.DateTimeFormat("en", { weekday: "long", month: "short", day: "numeric" }).format(date); }
+function dateKey(date: Date) { return date.toISOString().slice(0, 10); }
 
 export default async function StudyPlanPage({ searchParams }: PageProps) {
   const params = await searchParams;
@@ -17,14 +18,18 @@ export default async function StudyPlanPage({ searchParams }: PageProps) {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) redirect("/login");
   const db = supabase as unknown as SupabaseClient<DatabaseWithStudyPlan>;
-  const today = new Date();
+  const cookieStore = await cookies();
+  const savedTimeZone = cookieStore.get("study-plan-timezone")?.value;
+  const timeZone = savedTimeZone && isValidTimeZone(savedTimeZone) ? savedTimeZone : "UTC";
+  const today = dateFromKey(dateKeyInTimeZone(new Date(), timeZone));
   const requestedWeek = Number.parseInt(params.week ?? "0", 10);
   const weekOffset = Number.isFinite(requestedWeek) ? Math.max(-52, Math.min(52, requestedWeek)) : 0;
   const weekStart = mondayOf(today);
-  weekStart.setDate(weekStart.getDate() + weekOffset * 7);
-  const weekEnd = new Date(weekStart); weekEnd.setDate(weekEnd.getDate() + 6);
-  const formDefaultDate = today >= weekStart && today <= weekEnd ? today : weekStart;
-  const startKey = dateKey(weekStart), endKey = dateKey(weekEnd);
+  const shiftedWeekStart = addCalendarDays(weekStart, weekOffset * 7);
+  const weekEnd = addCalendarDays(shiftedWeekStart, 6);
+  const calendarWeekStart = shiftedWeekStart;
+  const formDefaultDate = today >= calendarWeekStart && today <= weekEnd ? today : calendarWeekStart;
+  const startKey = dateKey(calendarWeekStart), endKey = dateKey(weekEnd);
   const revisionPage = Math.max(1, Math.min(10000, Number.parseInt(params.revisionPage ?? "1", 10) || 1));
   const practicePage = Math.max(1, Math.min(10000, Number.parseInt(params.practicePage ?? "1", 10) || 1));
   const sessionPage = Math.max(1, Math.min(10000, Number.parseInt(params.sessionPage ?? "1", 10) || 1));
@@ -66,6 +71,7 @@ export default async function StudyPlanPage({ searchParams }: PageProps) {
       </section>
       {message ? <p className={params.calendar === "failed" || params.calendar === "invalid" ? "notice notice-error" : "notice"} role="status">{message}</p> : null}
       {hasError ? <p className="notice notice-error" role="status">Some calendar or workload data could not be loaded. The displayed totals may be incomplete.</p> : null}
+      <StudyPlanTimezone timeZone={timeZone} />
       <section className="section">
         <div className="section-heading"><div><p className="eyebrow">WEEK OF {startKey}</p><h2>Your weekly workload</h2></div><div className="study-week-navigation">{weekOffset > -52 ? <Link className="secondary-action" href={"/dashboard/study-plan?week=" + (weekOffset - 1)}>← Previous</Link> : <span className="section-count">Earliest week</span>}<span className="section-count">{plannedCount} planned · {completedCount} completed · {sessionsTotal} total sessions</span>{weekOffset !== 0 ? <Link className="secondary-action" href="/dashboard/study-plan">This week</Link> : null}{weekOffset < 52 ? <Link className="secondary-action" href={"/dashboard/study-plan?week=" + (weekOffset + 1)}>Next →</Link> : <span className="section-count">Latest week</span>}</div></div>
         <div className="module-grid revision-stats">
@@ -90,16 +96,16 @@ export default async function StudyPlanPage({ searchParams }: PageProps) {
         <div className="section-heading"><div><p className="eyebrow">MONDAY–SUNDAY</p><h2>Weekly calendar</h2></div><span className="section-count">{sessionsTotal} total sessions</span></div>
         <div className="study-calendar">
           {Array.from({ length: 7 }, (_, index) => {
-            const day = new Date(weekStart); day.setDate(day.getDate() + index);
+            const day = addCalendarDays(calendarWeekStart, index);
             const key = dateKey(day), daySessions = visibleSessions.filter((session) => session.session_date === key);
             const dayMinutes = daySessions.reduce((sum, session) => sum + session.planned_minutes, 0);
             return <section className="study-calendar-day" key={key}>
-              <header><div><h3>{formatDay(day)}</h3><span>{key === dateKey(today) ? "Today" : key}</span></div><strong>{dayMinutes} min shown</strong></header>
+              <header><div><h3>{formatCalendarDay(day)}</h3><span>{key === dateKey(today) ? "Today" : key}</span></div><strong>{dayMinutes} min shown</strong></header>
               {!daySessions.length ? <p className="study-calendar-empty">{sessionsTotal === 0 ? "No sessions planned" : "No sessions on this page"}</p> : daySessions.map((session) =>
                 <article className={"study-session-card " + (session.status === "completed" ? "is-complete" : "")} key={session.id}>
                   <div className="question-card-heading"><span className="document-status">{session.status === "completed" ? "Completed" : "Planned"}</span><span className="question-subject">{session.planned_minutes} min</span></div>
                   <h4>{session.title}</h4>{session.notes ? <p className="question-card-meta">{session.notes}</p> : null}
-                  {session.status === "planned" ? <form action={completeStudySession}><input type="hidden" name="sessionId" value={session.id} /><input type="hidden" name="weekOffset" value={weekOffset} /><input type="hidden" name="sessionPage" value={sessionPage} /><button className="secondary-action" type="submit">Mark complete ✓</button></form> : <p className="study-complete-note">Completed {session.completed_at ? new Intl.DateTimeFormat("en", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }).format(new Date(session.completed_at)) : ""}</p>}
+                  {session.status === "planned" ? <form action={completeStudySession}><input type="hidden" name="sessionId" value={session.id} /><input type="hidden" name="weekOffset" value={weekOffset} /><input type="hidden" name="sessionPage" value={sessionPage} /><button className="secondary-action" type="submit">Mark complete ✓</button></form> : <p className="study-complete-note">Completed {session.completed_at ? new Intl.DateTimeFormat("en", { timeZone, month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }).format(new Date(session.completed_at)) : ""}</p>}
                 </article>
               )}
             </section>;
