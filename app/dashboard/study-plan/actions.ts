@@ -54,6 +54,46 @@ export async function createStudySession(formData: FormData) {
   redirect("/dashboard/study-plan?calendar=created" + weekQuery);
 }
 
+const updateSchema = createSchema.extend({ sessionId: z.string().uuid() });
+
+export async function updatePlannedStudySession(formData: FormData) {
+  const parsed = updateSchema.safeParse({
+    sessionId: String(formData.get("sessionId") ?? ""),
+    sessionDate: String(formData.get("sessionDate") ?? ""),
+    title: String(formData.get("title") ?? ""),
+    plannedMinutes: String(formData.get("plannedMinutes") ?? ""),
+    notes: String(formData.get("notes") ?? ""),
+    weekOffset: String(formData.get("weekOffset") ?? "0"),
+    sessionPage: String(formData.get("sessionPage") ?? "1"),
+  });
+  if (!parsed.success) redirect("/dashboard/study-plan?calendar=invalid");
+  const weekQuery = (parsed.data.weekOffset ? "&week=" + parsed.data.weekOffset : "") + (parsed.data.sessionPage > 1 ? "&sessionPage=" + parsed.data.sessionPage : "");
+
+  const supabase = await createSupabaseServerClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) redirect("/login");
+
+  const cookieStore = await cookies();
+  const savedTimeZone = cookieStore.get("study-plan-timezone")?.value;
+  const timeZone = savedTimeZone && isValidTimeZone(savedTimeZone) ? savedTimeZone : "UTC";
+  if (!isDateKeyInWeek(parsed.data.sessionDate, new Date(), timeZone, parsed.data.weekOffset)) {
+    redirect("/dashboard/study-plan?calendar=invalid" + weekQuery);
+  }
+
+  const db = supabase as unknown as SupabaseClient<DatabaseWithStudyPlan>;
+  const { error } = await db.rpc("update_planned_weekly_study_session", {
+    p_session_id: parsed.data.sessionId,
+    p_session_date: parsed.data.sessionDate,
+    p_title: parsed.data.title,
+    p_planned_minutes: parsed.data.plannedMinutes,
+    p_notes: parsed.data.notes || null,
+  });
+  if (error) redirect("/dashboard/study-plan?calendar=failed" + weekQuery);
+
+  revalidatePath("/dashboard/study-plan");
+  redirect("/dashboard/study-plan?calendar=updated" + weekQuery);
+}
+
 const deleteSchema = z.object({ sessionId: z.string().uuid(), weekOffset: z.coerce.number().int().min(-52).max(52).default(0), sessionPage: z.coerce.number().int().min(1).max(10000).default(1) });
 
 export async function deletePlannedStudySession(formData: FormData) {
