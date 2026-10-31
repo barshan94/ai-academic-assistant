@@ -36,6 +36,7 @@
 - [ ] Verify wrong-secret rejection, single-job processing, concurrent claim safety, retry exhaustion and stale recovery against a live non-production database.
 - [ ] Durable background processing worker and automatic retries proven in live integration tests (scheduler is best-effort; queue persistence and subsequent invocations must recover delayed runs).
 - [x] Background worker and user-triggered processing route check document-processing and job-completion state transitions before reporting success (Foundation CI run `41221378201`; 116 unit tests passed, build/type-check passed; route's authenticated transitions still need live E2E).
+- [ ] Manual and scheduled worker failure handlers verify that failed document/job states persist; if persistence fails, they expose a distinct error and retain stale-lease recoverability.
 - [x] Automated unit coverage for Google token-revocation outcomes and worker stale-lease/retry policy passes in feature-branch CI (run `41221378201`; 116 tests across 22 files passed).
 - [x] Add transaction-scoped pgTAP tests for owner isolation across documents, Drive connections, extracted pages, processing jobs and linked questions.
 - [x] Run the document-intake and other database authorization pgTAP suites in clean local Supabase CI (run `41221378160`; all 133 assertions across 6 files passed).
