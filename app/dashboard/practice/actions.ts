@@ -41,12 +41,19 @@ export async function createPracticeSet(formData: FormData) {
   if (error || !eligible?.length) redirect("/dashboard/practice?create=no-questions");
   if (eligible.length < parsed.data.count) redirect("/dashboard/practice?create=not-enough");
 
-  const shuffled = [...eligible].sort(() => Math.random() - 0.5);
+  const shuffled = [...eligible];
+  for (let index = shuffled.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [shuffled[index], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[index]];
+  }
   const questionIds = shuffled.slice(0, parsed.data.count).map((item) => item.id);
   const db = supabase as unknown as SupabaseClient<DatabaseWithPractice>;
   const { data: setId, error: createError } = await db.rpc("create_practice_set", {
     p_title: parsed.data.title,
     p_question_ids: questionIds,
+    p_subject: parsed.data.subject || null,
+    p_chapter: parsed.data.chapter || null,
+    p_topic: parsed.data.topic || null,
   });
   if (createError || !setId) redirect("/dashboard/practice?create=failed");
 
