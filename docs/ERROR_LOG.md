@@ -310,3 +310,11 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Approval now requires at least one owner-matching, approved question on the page classified to the note's exact catalogue and chapter. Added a regression fixture with both matching and other-chapter questions on one page.
 - Verification: Isolated local Supabase migration and pgTAP workflow 41215912807 passed on commit 19335bc, including the mixed-chapter page regression. No hosted Supabase migration was applied.
 - Status: Fixed and verified in CI; live hosted migration and authenticated browser acceptance remain pending.
+
+## ERR-027 — Malformed chapter-note citation markers could pass structural validation
+
+- Symptom: The citation validator recognized complete bracketed labels but could overlook truncated or malformed citation-like tokens such as `[S1` or `[ S1 ]`.
+- Root cause: Validation extracted only fully closed `[S...]` tokens and trimmed their contents, which could normalize malformed spacing instead of rejecting it.
+- Fix: Detect complete and malformed citation-like tokens across the generated note and require exact source-label syntax and membership in the supplied source set. Added a regression test covering both spaced and truncated labels.
+- Verification: Feature-branch CI is running for commits `7f1280f` and `5fd17ba`; do not consider this fixed-and-verified until the unit tests and build pass.
+- Scope: This is structural validation only. It does not prove that cited source material actually supports the adjacent claim.
