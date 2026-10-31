@@ -33,7 +33,7 @@ describe("normalizeFilesToPdf", () => {
       type: "application/pdf",
       size: MAX_UPLOAD_BYTES + 1,
     } as File;
-    await expect(normalizeFilesToPdf([oversized])).rejects.toThrow("100 MB or smaller");
+    await expect(normalizeFilesToPdf([oversized])).rejects.toThrow("50 MB or smaller");
   });
 
   it("preserves a valid single PDF byte-for-byte", async () => {
