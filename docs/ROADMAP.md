@@ -22,7 +22,7 @@ Percentages are cumulative scope estimates, not proof of release readiness.
 - Lint, typecheck, build and automated tests pass.
 
 ## M2 status
-Implemented in code: Google Drive OAuth flow, encrypted refresh-token storage, PDF archiving, image-to-PDF conversion, OCR extraction, page-level correction, explicit source review and manual source-linked question capture. Still required: real Google OAuth/Drive end-to-end testing, durable background processing, resumable large uploads and cross-account isolation tests.
+Implemented in code: Google Drive OAuth flow, encrypted refresh-token storage, PDF archiving, image-to-PDF conversion, OCR extraction, page-level correction, explicit source review and manual source-linked question capture. Implemented in code: a scheduled queue worker with atomic conditional claims, 15-minute stale-job recovery, per-job bounded retries, one-job-per-invocation processing and protection against deleting page rows referenced by saved questions or chapter notes. Still required: configure a non-production worker deployment and secrets, verify scheduler support, execute real Google OAuth/Drive end-to-end tests, implement resumable large uploads and complete document cross-account isolation tests.
 
 ## M3 status — in progress
 Implemented on feature/m3-ai-solver:
