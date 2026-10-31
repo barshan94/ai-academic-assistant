@@ -37,6 +37,7 @@ Use .env.local for local secrets and keep it ignored by Git. Commit only placeho
 - Retain teacher corrections and version history.
 - Backup/export and recovery guidance must be completed and a restore drill must be performed before release; do not claim recovery readiness from documentation alone.
 - Avoid sending entire archives to AI providers; retrieve only the minimum relevant chunks.
+- Web research is owner-initiated and sends only the manually entered search query to the configured search provider; question text and uploaded documents are not sent automatically. Search result snippets and URLs are stored in an owner-private append-only table and remain unverified source leads, not official curriculum evidence.
 - Source-page text is excluded from AI requests by default. Only the question owner can explicitly opt in to sharing the single linked page; the excerpt is trimmed to 8,000 characters and OCR/extraction uncertainty is disclosed.
 - Saved answer provenance stores document/page identifiers, extraction method, excerpt hash and length, but not the source excerpt. A database trigger checks that the recorded page/document belongs to the same owner and question; teacher accounts cannot read the original document page.
 
