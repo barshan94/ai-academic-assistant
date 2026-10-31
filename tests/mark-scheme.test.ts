@@ -19,7 +19,7 @@ describe("mark scheme review checklist", () => {
   it("identifies literal key-phrase presence without awarding marks", () => {
     const result = compareAnswerToMarkScheme("The resultant force equals mass times acceleration.", scheme);
     expect(result[0].status).toBe("possible_match");
-    expect(result[0].matchedPhrases).toEqual(["resultant force"]);
+    expect(result[0].matchedPhrases).toEqual(["resultant force", "mass times acceleration"]);
     expect(result[1].status).toBe("not_found");
     expect(result[2].status).toBe("manual_review");
     expect(result).not.toHaveProperty("score");
