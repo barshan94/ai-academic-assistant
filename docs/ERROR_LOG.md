@@ -361,7 +361,7 @@ This file records material implementation, CI, integration and release problems 
 - Area: M2 Google Drive OAuth revocation
 - Symptom: A fetch/network exception from Google's token-revocation endpoint propagated to the caller, while transient HTTP failures returned false.
 - Root cause: The revocation helper handled HTTP statuses but did not normalize transport failures into its boolean retry contract.
-- Fix: Catch transport failures and return false. Preserve idempotent success for HTTP 200 and Google's HTTP 400 invalid/already-revoked-token response; transient server errors remain false. Add tests for request method, endpoint, no-store behavior, encoded token body, HTTP outcomes and network rejection.
+- Fix: Catch transport failures and return false. Preserve idempotent success for HTTP 200 and Google's HTTP 400 invalid/already-revoked-token response; transient server errors remain false. The disconnect action now retains the encrypted connection when revocation fails so the user can retry, and the UI explicitly states that Drive is still connected. Add tests for request method, endpoint, no-store behavior, encoded token body, HTTP outcomes and network rejection.
 - Verification: New Vitest coverage is committed; feature-branch CI is pending. Do not treat this as verified until the unit suite, type-check and build pass.
 - Status: Implemented; CI verification pending. Live Google OAuth revocation remains untested.
 
