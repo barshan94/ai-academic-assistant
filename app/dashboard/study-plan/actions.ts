@@ -12,6 +12,7 @@ const createSchema = z.object({
   title: z.string().trim().min(1).max(120),
   plannedMinutes: z.coerce.number().int().min(5).max(480),
   notes: z.string().max(500),
+  weekOffset: z.coerce.number().int().min(-52).max(52).default(0),
 });
 
 export async function createStudySession(formData: FormData) {
@@ -20,8 +21,10 @@ export async function createStudySession(formData: FormData) {
     title: String(formData.get("title") ?? ""),
     plannedMinutes: String(formData.get("plannedMinutes") ?? ""),
     notes: String(formData.get("notes") ?? ""),
+    weekOffset: String(formData.get("weekOffset") ?? "0"),
   });
   if (!parsed.success) redirect("/dashboard/study-plan?calendar=invalid");
+  const weekQuery = parsed.data.weekOffset ? "&week=" + parsed.data.weekOffset : "";
 
   const supabase = await createSupabaseServerClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -34,17 +37,18 @@ export async function createStudySession(formData: FormData) {
     p_planned_minutes: parsed.data.plannedMinutes,
     p_notes: parsed.data.notes || null,
   });
-  if (error) redirect("/dashboard/study-plan?calendar=failed");
+  if (error) redirect("/dashboard/study-plan?calendar=failed" + weekQuery);
 
   revalidatePath("/dashboard/study-plan");
-  redirect("/dashboard/study-plan?calendar=created");
+  redirect("/dashboard/study-plan?calendar=created" + weekQuery);
 }
 
-const completeSchema = z.object({ sessionId: z.string().uuid() });
+const completeSchema = z.object({ sessionId: z.string().uuid(), weekOffset: z.coerce.number().int().min(-52).max(52).default(0) });
 
 export async function completeStudySession(formData: FormData) {
-  const parsed = completeSchema.safeParse({ sessionId: String(formData.get("sessionId") ?? "") });
+  const parsed = completeSchema.safeParse({ sessionId: String(formData.get("sessionId") ?? ""), weekOffset: String(formData.get("weekOffset") ?? "0") });
   if (!parsed.success) redirect("/dashboard/study-plan?calendar=invalid");
+  const weekQuery = parsed.data.weekOffset ? "&week=" + parsed.data.weekOffset : "";
 
   const supabase = await createSupabaseServerClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -52,8 +56,8 @@ export async function completeStudySession(formData: FormData) {
 
   const db = supabase as unknown as SupabaseClient<DatabaseWithStudyPlan>;
   const { error } = await db.rpc("complete_weekly_study_session", { p_session_id: parsed.data.sessionId });
-  if (error) redirect("/dashboard/study-plan?calendar=failed");
+  if (error) redirect("/dashboard/study-plan?calendar=failed" + weekQuery);
 
   revalidatePath("/dashboard/study-plan");
-  redirect("/dashboard/study-plan?calendar=completed");
+  redirect("/dashboard/study-plan?calendar=completed" + weekQuery);
 }
