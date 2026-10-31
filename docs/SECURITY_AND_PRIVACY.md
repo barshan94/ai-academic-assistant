@@ -27,7 +27,7 @@ Use .env.local for local secrets and keep it ignored by Git. Commit only placeho
 - Use CSRF-safe OAuth state, secure cookies, and strict redirect URI validation.
 - Apply bounded input sizes, request timeouts and bounded retries to AI and document-processing operations; production rate limiting and abuse monitoring still require explicit acceptance.
 
-## Data lifecycle
+## Browser response protections\n- Disable framework fingerprinting and set HSTS, frame denial, MIME-sniffing protection, a strict referrer policy and a restrictive Permissions-Policy. These headers are covered by a Chromium smoke test.\n- A Content Security Policy is not yet enforced; introduce one only after validating the Next.js runtime, Supabase auth and required provider origins to avoid a misleading or broken policy.\n\n## Data lifecycle
 - Do not delete original image/PDF data until conversion, readability checks and Drive upload are confirmed.
 - Retain teacher corrections and version history.
 - Backup/export and recovery guidance must be completed and a restore drill must be performed before release; do not claim recovery readiness from documentation alone.
