@@ -119,6 +119,7 @@
 - [ ] Authenticated end-to-end acceptance is executed against a dedicated non-production Supabase project.
 
 ## Production readiness (M8)
+- [x] Document free-tier manual database export procedure, scope exclusions and restore limitations in `docs/BACKUP_RESTORE.md`; this is documentation only and does not count as a tested full restore.
 - [ ] Backup and restore process tested.
 - [ ] OAuth token handling and revocation tested.
 - [ ] Rate limits, retries and job recovery tested.
