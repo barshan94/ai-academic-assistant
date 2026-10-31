@@ -22,15 +22,15 @@ Use .env.local for local secrets and keep it ignored by Git. Commit only placeho
 - Store files in the owner's Drive and keep only necessary metadata in the database.
 - Encrypt Google Drive OAuth refresh tokens with AES-256-GCM at rest and restrict OAuth scopes to drive.file.
 - Bind OAuth state to the signed-in owner, use a short-lived HTTP-only SameSite cookie, and never return access tokens to the browser.
-- Validate PDF/JPEG/PNG file signatures, cap the current upload route at 4 MB, and use owner-derived IDs for database writes.
+- Validate PDF/JPEG/PNG file signatures, normalize uploads to a 50 MB maximum, transfer in resumable 1 MB chunks, and use owner-derived IDs for database writes.
 - Treat OCR output as unverified until the owner reviews and approves it.
 - Use CSRF-safe OAuth state, secure cookies, and strict redirect URI validation.
-- Apply rate limits and bounded retries to costly AI and document-processing operations.
+- Apply bounded input sizes, request timeouts and bounded retries to AI and document-processing operations; production rate limiting and abuse monitoring still require explicit acceptance.
 
 ## Data lifecycle
 - Do not delete original image/PDF data until conversion, readability checks and Drive upload are confirmed.
 - Retain teacher corrections and version history.
-- Provide a documented backup/export and recovery process.
+- Backup/export and recovery guidance must be completed and a restore drill must be performed before release; do not claim recovery readiness from documentation alone.
 - Avoid sending entire archives to AI providers; retrieve only the minimum relevant chunks.
 - Source-page text is excluded from AI requests by default. Only the question owner can explicitly opt in to sharing the single linked page; the excerpt is trimmed to 8,000 characters and OCR/extraction uncertainty is disclosed.
 - Saved answer provenance stores document/page identifiers, extraction method, excerpt hash and length, but not the source excerpt. A database trigger checks that the recorded page/document belongs to the same owner and question; teacher accounts cannot read the original document page.
