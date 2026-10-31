@@ -35,7 +35,6 @@ export async function generateQuestionSolution(formData: FormData) {
     redirect("/dashboard/questions/" + question.id + "?solve=needs_review");
   }
 
-  let config;
   try {
     getAIProviderConfigs("answer");
   } catch (error) {
@@ -78,7 +77,7 @@ export async function generateQuestionSolution(formData: FormData) {
   }
 
   let answer;
-  let selectedProvider;
+  let selectedProvider: { provider: string; model: string } | null = null;
   try {
     const routed = await generateStructuredAnswerWithRouting(question.question_text, fetch, {
       board: question.board,
@@ -94,6 +93,8 @@ export async function generateQuestionSolution(formData: FormData) {
     const code = error instanceof AIProviderError ? error.message.split(":")[0] : "AI_PROVIDER_ERROR";
     redirect("/dashboard/questions/" + question.id + "?solve=" + encodeURIComponent(code.slice(0, 80)));
   }
+
+  if (!selectedProvider) redirect("/dashboard/questions/" + question.id + "?solve=provider_not_selected");
 
   const typedSupabase = supabase as unknown as SupabaseClient<DatabaseWithAISolutions>;
   const { error: saveError } = await typedSupabase.from("question_solutions").insert({
