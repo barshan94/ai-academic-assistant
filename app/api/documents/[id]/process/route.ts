@@ -3,6 +3,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { extractTextFromDrivePdf, getDriveAccessToken } from "@/lib/drive/google";
 import { splitExtractedText } from "@/lib/documents/split-extracted-text";
 import { isProcessingJobStale } from "@/lib/documents/processing-state";
+import { canSafelyReplaceExtractedPages } from "@/lib/documents/reprocessing-safety";
 
 export const runtime = "nodejs";
 
@@ -42,6 +43,29 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
   if (jobError || !job) return redirectToDocument(request, id, "job_missing");
   if (job.status === "completed") return redirectToDocument(request, id, "already_processed");
+
+  // Replacing page rows can cascade-delete saved questions and can be blocked
+  // by immutable chapter-note source references. Refuse reprocessing before
+  // claiming a job whenever existing academic content depends on those pages.
+  const { data: existingPages, error: existingPagesError } = await supabase
+    .from("document_pages")
+    .select("id")
+    .eq("document_id", id)
+    .eq("owner_id", user.id);
+  if (existingPagesError) return redirectToDocument(request, id, "reprocess_check_failed");
+  const existingPageIds = (existingPages ?? []).map((page) => page.id);
+  if (existingPageIds.length) {
+    const [{ data: linkedQuestions, error: questionsError }, { data: linkedNotes, error: notesError }] = await Promise.all([
+      supabase.from("questions").select("id").eq("owner_id", user.id).in("document_page_id", existingPageIds).limit(1),
+      supabase.from("chapter_note_sources").select("id").eq("owner_id", user.id).in("document_page_id", existingPageIds).limit(1),
+    ]);
+    if (questionsError || notesError) return redirectToDocument(request, id, "reprocess_check_failed");
+    if (!canSafelyReplaceExtractedPages({
+      questionReferences: linkedQuestions?.length ?? 0,
+      chapterNoteReferences: linkedNotes?.length ?? 0,
+    })) return redirectToDocument(request, id, "reprocess_blocked");
+  }
+
   if (job.status === "running") {
     if (!isProcessingJobStale(job.started_at)) return redirectToDocument(request, id, "already_processing");
     let recoveryQuery = supabase.from("processing_jobs").update({
