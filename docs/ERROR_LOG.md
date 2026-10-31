@@ -151,3 +151,13 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Updated the legacy test to assert the 50 MB limit and replaced a 50 MB in-memory fixture with a small File-shaped object whose declared size exceeds the limit, avoiding unnecessary allocation.
 - Verification: New foundation CI run is pending.
 - Status: Fixed in code; unit-test verification pending.
+
+## ERR-013 — Resumable upload implementation was not wired into the page and legacy size test failed
+
+- Date: 2026-10-31
+- Area: M2 document intake / UI and CI
+- Symptom: CI showed the resumable upload component was unused, the documents page still posted to the removed single-request endpoint, and one legacy normalization test expected the old 4 MB error message.
+- Root cause: The page's existing JSX did not match the replacement pattern used during the initial component integration; the legacy test was outside the newly added test file and retained its old assertion.
+- Fix: Replaced the old form with the resumable client component and updated the legacy test to assert the 50 MB limit. Added a bounded request-body reader so the server rejects chunks larger than 1 MB before allocating the full request body.
+- Verification: Earlier CI established ESLint and both TypeScript checks pass; the unit-test failure was isolated to the stale assertion (101 tests passed, 1 failed). The corrected test, page wiring and bounded-body tests await a fresh full CI run.
+- Status: Code corrected; final CI verification pending.
