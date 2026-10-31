@@ -43,6 +43,18 @@ export type DatabaseWithAISolutions = Omit<Database, "public"> & {
           referencedColumns: ["id", "owner_id"];
         }];
       };
+      question_solution_mark_schemes: {
+        Row: { id: string; solution_id: string; owner_id: string; title: string; awarding_body: string; qualification: string; subject: string; paper_reference: string | null; source_url: string; points: Json; created_at: string };
+        Insert: { id?: string; solution_id: string; owner_id: string; title: string; awarding_body: string; qualification: string; subject: string; paper_reference?: string | null; source_url: string; points: Json; created_at?: string };
+        Update: never;
+        Relationships: [{
+          foreignKeyName: "question_solution_mark_schemes_solution_owner_fk";
+          columns: ["solution_id", "owner_id"];
+          isOneToOne: false;
+          referencedRelation: "question_solutions";
+          referencedColumns: ["id", "owner_id"];
+        }];
+      };
       question_solutions: {
         Row: {
           id: string;
