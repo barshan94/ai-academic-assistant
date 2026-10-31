@@ -106,28 +106,14 @@ export async function POST(request: NextRequest, context: RouteContext) {
     if (!pages.length) throw new Error("No readable text was detected. The file needs manual review.");
     if (pages.length > 100) throw new Error("The document exceeded the 100-page processing limit.");
 
-    const { error: deleteError } = await supabase
-      .from("document_pages")
-      .delete()
-      .eq("document_id", id)
-      .eq("owner_id", user.id);
-    if (deleteError) throw new Error("Could not prepare the document pages for reprocessing.");
-
-    const pageRows = pages.map((text, index) => ({
-      owner_id: user.id,
-      document_id: id,
-      page_number: index + 1,
-      extracted_text: text,
-      extraction_method: "ocr",
-      status: "review_required",
-    }));
-    const { error: insertError } = await supabase.from("document_pages").insert(pageRows);
-    if (insertError) throw new Error("Could not save extracted document text.");
-
-    await supabase.from("documents").update({
-      status: "review_required",
-      page_count: pages.length,
-    }).eq("id", id).eq("owner_id", user.id);
+    const { data: replacedPageCount, error: replaceError } = await supabase.rpc("replace_document_pages", {
+      p_document_id: id,
+      p_owner_id: user.id,
+      p_pages: pages,
+    });
+    if (replaceError || replacedPageCount !== pages.length) {
+      throw new Error("Could not atomically replace extracted document pages.");
+    }
 
     await supabase.from("processing_jobs").update({
       status: "completed",
