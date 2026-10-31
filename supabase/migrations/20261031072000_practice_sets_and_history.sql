@@ -54,7 +54,10 @@ grant select on public.practice_sets, public.practice_set_items to authenticated
 
 create or replace function public.create_practice_set(
   p_title text,
-  p_question_ids uuid[]
+  p_question_ids uuid[],
+  p_subject text default null,
+  p_chapter text default null,
+  p_topic text default null
 )
 returns uuid
 language plpgsql
@@ -73,7 +76,7 @@ begin
   if p_question_ids is null or cardinality(p_question_ids) not between 1 and 50 then
     raise exception 'Choose between 1 and 50 questions';
   end if;
-  if (select count(distinct x) from unnest(p_question_ids) as x) <> cardinality(p_question_ids) then
+  if (select count(distinct selected.question_id) from unnest(p_question_ids) as selected(question_id)) <> cardinality(p_question_ids) then
     raise exception 'Duplicate questions are not allowed';
   end if;
 
@@ -86,8 +89,8 @@ begin
     raise exception 'Every selected question must be your approved question';
   end if;
 
-  insert into public.practice_sets(owner_id, title, question_count)
-  values (v_owner_id, trim(p_title), cardinality(p_question_ids))
+  insert into public.practice_sets(owner_id, title, subject, chapter, topic, question_count)
+  values (v_owner_id, trim(p_title), nullif(trim(p_subject), ''), nullif(trim(p_chapter), ''), nullif(trim(p_topic), ''), cardinality(p_question_ids))
   returning id into v_set_id;
 
   insert into public.practice_set_items(
@@ -149,7 +152,7 @@ begin
 end;
 $$;
 
-revoke all on function public.create_practice_set(text, uuid[]) from public, anon;
-grant execute on function public.create_practice_set(text, uuid[]) to authenticated;
+revoke all on function public.create_practice_set(text, uuid[], text, text, text) from public, anon;
+grant execute on function public.create_practice_set(text, uuid[], text, text, text) to authenticated;
 revoke all on function public.record_practice_answer(uuid, text, text) from public, anon;
 grant execute on function public.record_practice_answer(uuid, text, text) to authenticated;
