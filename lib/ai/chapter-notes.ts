@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { AIProviderError, getAIProviderConfig } from "./provider";
+import { AIProviderError, getAIProviderConfigs, type AIProviderConfig } from "./provider";
 
 const chapterNoteSchema = z.object({
   title: z.string().trim().min(1).max(200),
@@ -29,7 +29,7 @@ export async function generateChapterNote(input: {
   subject: string;
   chapter: string;
   sources: ChapterNoteSource[];
-}, config = getAIProviderConfig(), fetcher: typeof fetch = fetch): Promise<GeneratedChapterNote> {
+}, config: AIProviderConfig = getAIProviderConfigs("chapter-note")[0], fetcher: typeof fetch = fetch): Promise<GeneratedChapterNote> {
   if (!input.sources.length || input.sources.length > 12) {
     throw new AIProviderError("CHAPTER_NOTE_SOURCES_INVALID");
   }
@@ -147,4 +147,38 @@ export async function generateChapterNote(input: {
     if (error instanceof AIProviderError) throw error;
     throw new AIProviderError("AI_PROVIDER_INVALID_CHAPTER_NOTE");
   }
+}
+
+
+export async function generateChapterNoteWithRouting(
+  input: {
+    board: string;
+    qualification: string;
+    subject: string;
+    chapter: string;
+    sources: ChapterNoteSource[];
+  },
+  fetcher: typeof fetch = fetch,
+  env: Record<string, string | undefined> = process.env,
+): Promise<{ note: GeneratedChapterNote; config: AIProviderConfig }> {
+  const providers = getAIProviderConfigs("chapter-note", env);
+  const candidates = env.AI_ALLOW_PROVIDER_FALLBACKS === "true" ? providers : providers.slice(0, 1);
+  let lastError: unknown;
+
+  for (const config of candidates) {
+    try {
+      const note = await generateChapterNote(input, config, fetcher);
+      return { note, config };
+    } catch (error) {
+      lastError = error;
+      if (
+        !(error instanceof AIProviderError) ||
+        error.message === "CHAPTER_NOTE_SOURCES_INVALID" ||
+        error.message === "CHAPTER_NOTE_SOURCE_INVALID" ||
+        env.AI_ALLOW_PROVIDER_FALLBACKS !== "true"
+      ) throw error;
+    }
+  }
+
+  throw lastError ?? new AIProviderError("AI_PROVIDER_UNAVAILABLE");
 }
