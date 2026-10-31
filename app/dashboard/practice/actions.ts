@@ -29,33 +29,25 @@ export async function createPracticeSet(formData: FormData) {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) redirect("/login");
 
-  let query = supabase.from("questions")
-    .select("id")
-    .eq("owner_id", user.id)
-    .eq("review_status", "approved");
-  if (parsed.data.subject) query = query.eq("subject", parsed.data.subject);
-  if (parsed.data.chapter) query = query.eq("chapter", parsed.data.chapter);
-  if (parsed.data.topic) query = query.eq("topic", parsed.data.topic);
-
-  const { data: eligible, error } = await query.limit(500);
-  if (error || !eligible?.length) redirect("/dashboard/practice?create=no-questions");
-  if (eligible.length < parsed.data.count) redirect("/dashboard/practice?create=not-enough");
-
-  const shuffled = [...eligible];
-  for (let index = shuffled.length - 1; index > 0; index -= 1) {
-    const swapIndex = Math.floor(Math.random() * (index + 1));
-    [shuffled[index], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[index]];
-  }
-  const questionIds = shuffled.slice(0, parsed.data.count).map((item) => item.id);
   const db = supabase as unknown as SupabaseClient<DatabaseWithPractice>;
-  const { data: setId, error: createError } = await db.rpc("create_practice_set", {
+  const { data: setId, error: createError } = await db.rpc("create_practice_set_from_filters", {
     p_title: parsed.data.title,
-    p_question_ids: questionIds,
+    p_count: parsed.data.count,
     p_subject: parsed.data.subject || null,
     p_chapter: parsed.data.chapter || null,
     p_topic: parsed.data.topic || null,
   });
-  if (createError || !setId) redirect("/dashboard/practice?create=failed");
+
+  if (createError || !setId) {
+    const reason = createError?.message ?? "";
+    if (reason.includes("No approved questions match")) {
+      redirect("/dashboard/practice?create=no-questions");
+    }
+    if (reason.includes("Not enough matching approved questions")) {
+      redirect("/dashboard/practice?create=not-enough");
+    }
+    redirect("/dashboard/practice?create=failed");
+  }
 
   revalidatePath("/dashboard/practice");
   redirect("/dashboard/practice/" + setId);
