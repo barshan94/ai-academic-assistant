@@ -6,6 +6,7 @@ import { isProcessingJobStale } from "@/lib/documents/processing-state";
 import { canSafelyReplaceExtractedPages } from "@/lib/documents/reprocessing-safety";
 
 export const runtime = "nodejs";
+export const maxDuration = 60;
 
 type RouteContext = { params: Promise<{ id: string }> };
 
