@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { signOut } from "../actions";
+import { signOut } from "../../actions";
 import type { DatabaseWithRevision } from "@/types/revision-database";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
