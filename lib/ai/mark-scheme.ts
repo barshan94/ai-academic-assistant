@@ -13,7 +13,7 @@ export const markSchemeSchema = z.object({
   qualification: z.string().trim().min(1).max(100),
   subject: z.string().trim().min(1).max(100),
   paperReference: z.string().trim().max(100).optional(),
-  sourceUrl: z.string().url().refine((value) => new URL(value).protocol === "https:", "Use an HTTPS source URL."),
+  sourceUrl: z.string().url().refine((value) => { const url = new URL(value); return url.protocol === "https:" && !url.username && !url.password; }, "Use an HTTPS source URL without embedded credentials."),
   sourceLocator: z.string().trim().min(1).max(160),
   sourceDocumentVersion: z.string().trim().max(100).optional(),
   points: z.array(markPointSchema).min(1).max(80),
