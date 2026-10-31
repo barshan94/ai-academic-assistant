@@ -150,7 +150,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     }
 
     return redirectToDocument(request, id, "complete");
-  } catch (error) {
+  } catch {
     // Persist only a stable, owner-safe status message. Provider and database
     // exceptions can contain upstream details or sensitive document metadata.
     const message = "Document processing failed. Review the source file and reconnect Google Drive if needed.";
