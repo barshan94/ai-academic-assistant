@@ -1,0 +1,51 @@
+{
+  "formatVersion": 1,
+  "catalog": {
+    "board": "Cambridge International",
+    "qualification": "Cambridge O Level",
+    "subject": "Physics",
+    "version": "2026-2028 (5054, Version 2)",
+    "effectiveFrom": null,
+    "effectiveTo": null,
+    "sourceUrl": "https://www.cambridgeinternational.org/Images/697324-2026-2028-syllabus.pdf",
+    "sourceTitle": "Cambridge O Level Physics 5054 syllabus for examination in 2026, 2027 and 2028"
+  },
+  "chapters": [
+    {
+      "code": "1",
+      "title": "Motion, forces and energy",
+      "sortOrder": 1,
+      "topics": []
+    },
+    {
+      "code": "2",
+      "title": "Thermal physics",
+      "sortOrder": 2,
+      "topics": []
+    },
+    {
+      "code": "3",
+      "title": "Waves",
+      "sortOrder": 3,
+      "topics": []
+    },
+    {
+      "code": "4",
+      "title": "Electricity and magnetism",
+      "sortOrder": 4,
+      "topics": []
+    },
+    {
+      "code": "5",
+      "title": "Nuclear physics",
+      "sortOrder": 5,
+      "topics": []
+    },
+    {
+      "code": "6",
+      "title": "Space physics",
+      "sortOrder": 6,
+      "topics": []
+    }
+  ]
+}

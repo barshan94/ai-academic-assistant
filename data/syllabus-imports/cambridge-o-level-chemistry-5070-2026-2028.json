@@ -1,0 +1,87 @@
+{
+  "formatVersion": 1,
+  "catalog": {
+    "board": "Cambridge International",
+    "qualification": "Cambridge O Level",
+    "subject": "Chemistry",
+    "version": "2026-2028 (5070, Version 1)",
+    "effectiveFrom": null,
+    "effectiveTo": null,
+    "sourceUrl": "https://www.cambridgeinternational.org/Images/697326-2026-2028-syllabus.pdf",
+    "sourceTitle": "Cambridge O Level Chemistry 5070 syllabus for examination in 2026, 2027 and 2028"
+  },
+  "chapters": [
+    {
+      "code": "1",
+      "title": "States of matter",
+      "sortOrder": 1,
+      "topics": []
+    },
+    {
+      "code": "2",
+      "title": "Atoms, elements and compounds",
+      "sortOrder": 2,
+      "topics": []
+    },
+    {
+      "code": "3",
+      "title": "Stoichiometry",
+      "sortOrder": 3,
+      "topics": []
+    },
+    {
+      "code": "4",
+      "title": "Electrochemistry",
+      "sortOrder": 4,
+      "topics": []
+    },
+    {
+      "code": "5",
+      "title": "Chemical energetics",
+      "sortOrder": 5,
+      "topics": []
+    },
+    {
+      "code": "6",
+      "title": "Chemical reactions",
+      "sortOrder": 6,
+      "topics": []
+    },
+    {
+      "code": "7",
+      "title": "Acids, bases and salts",
+      "sortOrder": 7,
+      "topics": []
+    },
+    {
+      "code": "8",
+      "title": "The Periodic Table",
+      "sortOrder": 8,
+      "topics": []
+    },
+    {
+      "code": "9",
+      "title": "Metals",
+      "sortOrder": 9,
+      "topics": []
+    },
+    {
+      "code": "10",
+      "title": "Chemistry of the environment",
+      "sortOrder": 10,
+      "topics": []
+    },
+    {
+      "code": "11",
+      "title": "Organic chemistry",
+      "sortOrder": 11,
+      "topics": []
+    },
+    {
+      "code": "12",
+      "title": "Experimental techniques and chemical analysis",
+      "sortOrder": 12,
+      "topics": []
+    }
+  ]
+}
