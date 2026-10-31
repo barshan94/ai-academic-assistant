@@ -110,7 +110,8 @@ export function getAIProviderConfigs(
 
   const apiKey = env.AI_API_KEY?.trim();
   const model = env.AI_MODEL?.trim();
-  if (!apiKey || !model) throw new AIConfigurationError();
+  const providerName = env.AI_PROVIDER_NAME?.trim() || "openai-compatible";
+  if (!apiKey || apiKey.length > 1000 || !model || model.length > 160 || providerName.length > 60) throw new AIConfigurationError();
 
   const baseUrl = (env.AI_API_BASE_URL?.trim() || "https://api.openai.com/v1").replace(/\/+$/, "");
   let parsedUrl: URL;
@@ -127,7 +128,7 @@ export function getAIProviderConfigs(
   ) throw new AIConfigurationError();
 
   return [{
-    provider: env.AI_PROVIDER_NAME?.trim() || "openai-compatible",
+    provider: providerName,
     baseUrl,
     apiKey,
     model,
