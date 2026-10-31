@@ -74,7 +74,7 @@ export default async function StudyPlanPage({ searchParams }: PageProps) {
         <div className="section-heading"><div><p className="eyebrow">ADD A BLOCK</p><h2>Schedule study time</h2></div><span className="section-count">5–480 minutes</span></div>
         <form action={createStudySession} className="document-filter-form">
           <label>Date<input type="date" name="sessionDate" required min={startKey} max={endKey} defaultValue={dateKey(formDefaultDate)} />
-          <input type="hidden" name="weekOffset" value={weekOffset} /></label>
+          <input type="hidden" name="weekOffset" value={weekOffset} /><input type="hidden" name="sessionPage" value={sessionPage} /></label>
           <label>Session title<input name="title" required maxLength={120} placeholder="e.g. Physics — electricity revision" /></label>
           <label>Estimated minutes<select name="plannedMinutes" defaultValue="45">{[15,30,45,60,90,120,180,240].map((value)=><option key={value} value={value}>{value} minutes</option>)}</select></label>
           <label>Notes (optional)<input name="notes" maxLength={500} placeholder="Chapter, goal or materials" /></label>
@@ -95,7 +95,7 @@ export default async function StudyPlanPage({ searchParams }: PageProps) {
                 <article className={"study-session-card " + (session.status === "completed" ? "is-complete" : "")} key={session.id}>
                   <div className="question-card-heading"><span className="document-status">{session.status === "completed" ? "Completed" : "Planned"}</span><span className="question-subject">{session.planned_minutes} min</span></div>
                   <h4>{session.title}</h4>{session.notes ? <p className="question-card-meta">{session.notes}</p> : null}
-                  {session.status === "planned" ? <form action={completeStudySession}><input type="hidden" name="sessionId" value={session.id} /><input type="hidden" name="weekOffset" value={weekOffset} /><button className="secondary-action" type="submit">Mark complete ✓</button></form> : <p className="study-complete-note">Completed {session.completed_at ? new Intl.DateTimeFormat("en", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }).format(new Date(session.completed_at)) : ""}</p>}
+                  {session.status === "planned" ? <form action={completeStudySession}><input type="hidden" name="sessionId" value={session.id} /><input type="hidden" name="weekOffset" value={weekOffset} /><input type="hidden" name="sessionPage" value={sessionPage} /><button className="secondary-action" type="submit">Mark complete ✓</button></form> : <p className="study-complete-note">Completed {session.completed_at ? new Intl.DateTimeFormat("en", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }).format(new Date(session.completed_at)) : ""}</p>}
                 </article>
               )}
             </section>;
@@ -103,8 +103,8 @@ export default async function StudyPlanPage({ searchParams }: PageProps) {
         </div>
         {sessionsTotal > 50 ? <div className="study-week-navigation">
           <span className="section-count">Calendar page {sessionPage} of {sessionPages}</span>
-          {sessionPage > 1 ? <Link className="secondary-action" href={"/dashboard/study-plan?week=" + weekOffset + "&sessionPage=" + (sessionPage - 1) + "&revisionPage=" + revisionPage + "&practicePage=" + practicePage}>Previous sessions</Link> : null}
-          {sessionPage < sessionPages ? <Link className="secondary-action" href={"/dashboard/study-plan?week=" + weekOffset + "&sessionPage=" + (sessionPage + 1) + "&revisionPage=" + revisionPage + "&practicePage=" + practicePage}>More sessions</Link> : null}
+          {sessionPage > 1 ? <Link className="secondary-action" href={"/dashboard/study-plan?week=" + weekOffset + "&sessionPage=" + (sessionPage - 1) + "&revisionPage=" + revisionPage + "&practicePage=" + practicePage + "&revisionPage=" + revisionPage}>Previous sessions</Link> : null}
+          {sessionPage < sessionPages ? <Link className="secondary-action" href={"/dashboard/study-plan?week=" + weekOffset + "&sessionPage=" + (sessionPage + 1) + "&revisionPage=" + revisionPage + "&practicePage=" + practicePage + "&revisionPage=" + revisionPage}>More sessions</Link> : null}
         </div> : null}
       </section>
       <section className="section">
@@ -118,6 +118,7 @@ export default async function StudyPlanPage({ searchParams }: PageProps) {
           <form action={createStudySession} className="study-queue-schedule-form">
             <input type="hidden" name="sessionDate" value={dateKey(formDefaultDate)} />
             <input type="hidden" name="weekOffset" value={weekOffset} />
+            <input type="hidden" name="sessionPage" value={sessionPage} />
             <input type="hidden" name="title" value={"Revision: " + (item.subject ?? "Question") + (item.chapter ? " — " + item.chapter : "")} />
             <input type="hidden" name="plannedMinutes" value="30" />
             <input type="hidden" name="notes" value={"Review question " + (item.question_number ?? item.question_id) + ". Rate confidence in the revision tracker after solving."} />
@@ -142,10 +143,10 @@ export default async function StudyPlanPage({ searchParams }: PageProps) {
         {!revisionTotal && !practiceTotal ? <div className="empty-state"><h3>No due or unfinished tasks</h3><p>Your current revision reviews and active practice sessions have no open tasks.</p></div> : null}
         {revisionTotal > 25 || practiceTotal > 25 ? <div className="study-week-navigation">
           <span className="section-count">Revision page {revisionPage} of {revisionPages} · Practice page {practicePage} of {practicePages}</span>
-          {revisionPage > 1 ? <Link className="secondary-action" href={"/dashboard/study-plan?week=" + weekOffset + "&revisionPage=" + (revisionPage - 1) + "&practicePage=" + practicePage}>Previous revisions</Link> : null}
-          {revisionPage < revisionPages ? <Link className="secondary-action" href={"/dashboard/study-plan?week=" + weekOffset + "&revisionPage=" + (revisionPage + 1) + "&practicePage=" + practicePage}>More revisions</Link> : null}
-          {practicePage > 1 ? <Link className="secondary-action" href={"/dashboard/study-plan?week=" + weekOffset + "&revisionPage=" + revisionPage + "&practicePage=" + (practicePage - 1)}>Previous practice</Link> : null}
-          {practicePage < practicePages ? <Link className="secondary-action" href={"/dashboard/study-plan?week=" + weekOffset + "&revisionPage=" + revisionPage + "&practicePage=" + (practicePage + 1)}>More practice</Link> : null}
+          {revisionPage > 1 ? <Link className="secondary-action" href={"/dashboard/study-plan?week=" + weekOffset + "&revisionPage=" + (revisionPage - 1) + "&practicePage=" + practicePage + "&sessionPage=" + sessionPage}>Previous revisions</Link> : null}
+          {revisionPage < revisionPages ? <Link className="secondary-action" href={"/dashboard/study-plan?week=" + weekOffset + "&revisionPage=" + (revisionPage + 1) + "&practicePage=" + practicePage + "&sessionPage=" + sessionPage}>More revisions</Link> : null}
+          {practicePage > 1 ? <Link className="secondary-action" href={"/dashboard/study-plan?week=" + weekOffset + "&revisionPage=" + revisionPage + "&practicePage=" + (practicePage - 1) + "&sessionPage=" + sessionPage}>Previous practice</Link> : null}
+          {practicePage < practicePages ? <Link className="secondary-action" href={"/dashboard/study-plan?week=" + weekOffset + "&revisionPage=" + revisionPage + "&practicePage=" + (practicePage + 1) + "&sessionPage=" + sessionPage}>More practice</Link> : null}
         </div> : null}
 
       </section>
