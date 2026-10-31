@@ -85,6 +85,19 @@
 - [ ] Chapter notes cite contributing questions and source documents.
 - [ ] Reprocessing creates a new note version rather than overwriting teacher-approved content.
 
+## Exam preparation (M7)
+- [x] Owner-private confidence tracking for approved questions with explicit 1, 2, 4, 7 and 14 day revision intervals.
+- [x] Topic-level revision insights include sample-size safeguards and disclose that confidence is self-reported.
+- [x] Practice set generation uses owner-scoped server-side question selection and validates every selected question.
+- [x] Practice history stores immutable question snapshots and explicit self-marked outcomes; it does not claim automatic grading.
+- [x] Practice analytics aggregate outcomes server-side and exclude skipped answers from scored accuracy.
+- [x] The consolidated study queue combines due revisions and unfinished practice items with independent pagination.
+- [x] Weekly calendar supports owner-scoped create, edit, complete and planned-session deletion; completed history is retained.
+- [x] Calendar date handling uses the browser IANA timezone and validates selected-week boundaries server-side.
+- [ ] Database authorization tests pass against a clean local Supabase stack, including cross-account isolation for revision, practice and calendar data.
+- [ ] Browser acceptance covers practice creation, outcome recording, insights, revision scheduling and calendar interactions.
+- [ ] Authenticated end-to-end acceptance is executed against a dedicated non-production Supabase project.
+
 ## Production readiness (M8)
 - [ ] Backup and restore process tested.
 - [ ] OAuth token handling and revocation tested.
