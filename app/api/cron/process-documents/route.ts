@@ -4,6 +4,7 @@ import { decryptRefreshToken } from "@/lib/drive/crypto";
 import { extractTextFromDrivePdf } from "@/lib/drive/google";
 import { splitExtractedText } from "@/lib/documents/split-extracted-text";
 import { canSafelyReplaceExtractedPages } from "@/lib/documents/reprocessing-safety";
+import { isBackgroundJobClaimable, isBackgroundJobRetryEligible } from "@/lib/documents/worker-policy";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -67,7 +68,8 @@ export async function GET(request: Request) {
   if (!candidates?.length) return Response.json({ processed: false, reason: "queue_empty" });
 
   for (const candidate of candidates) {
-    if (candidate.attempt_count >= candidate.max_attempts) continue;
+    if (!isBackgroundJobRetryEligible(candidate.attempt_count, candidate.max_attempts)) continue;
+    if (!isBackgroundJobClaimable({ status: candidate.status, startedAt: candidate.started_at })) continue;
     let claim = supabase.from("processing_jobs").update({
       status: "running",
       stage: "ocr",
