@@ -349,3 +349,10 @@ ERR-121 and ERR-122 implementation coverage: extracted the response-policy heade
 
 
 ERR-123 implementation closure (2026-11-01): added forward-only migration `20261101140000_tighten_uploaded_document_page_count.sql` to align the trusted registration RPC with the 1–50 page route contract. The historical migration remains unchanged; owner validation, advisory lock, duplicate/idempotency behavior, atomic document/job creation and service_role-only execute grants are preserved in the replacement definition. Source review only; migration application and boundary/ACL/concurrency tests remain in the later testing phase (ERR-130).
+
+### M8 readiness monitor follow-up (ERR-133 / ERR-134)
+- [x] Centralize the required Supabase readiness-table inventory and include feature, provenance, quota, curator, mark-scheme and classification-history tables (ERR-133).
+- [x] Use zero-row HEAD probes without assuming each required table exposes an `id` column; add an unexecuted inventory regression test (ERR-133).
+- [x] Validate the monitor's configured application URL as a clean HTTPS origin, reject redirects, enforce a 20-second request timeout and cap streamed response bodies at 4 KiB (ERR-134).
+- [x] Reject invalid UTF-8 and require the generic JSON `ready` status without printing response bodies or secrets (ERR-134).
+- [ ] Execute regression tests and the scheduled workflow during the dedicated testing/operational acceptance phase. The workflow is not active on the scheduled cadence until it is merged to the default branch and its repository secrets are configured.
