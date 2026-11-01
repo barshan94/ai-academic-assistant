@@ -177,3 +177,6 @@ Upload and OAuth boundary hardening (2026-11-01): the resumable chunk route now 
 
 
 Google Drive session destination validation (2026-11-01): both issued and decrypted resumable session URLs are now checked through one strict validator requiring HTTPS, the exact Google API hostname, no embedded user-info and a path-segment-bounded Drive files endpoint. Legitimate Drive upload query parameters are preserved. See ERR-071; URL boundary and live upload acceptance remain pending.
+
+
+Shared AI/research response handling (2026-11-01): the common bounded HTTP reader now rejects malformed Content-Length metadata, enforces the actual streamed byte cap, releases its reader lock on success and failure, and rejects invalid UTF-8 instead of silently replacing bytes. AI and Brave Search integrations consume this helper. See ERR-072; malformed-response regression tests remain in the later testing phase.
