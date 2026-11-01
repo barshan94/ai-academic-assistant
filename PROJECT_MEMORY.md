@@ -1,6 +1,6 @@
 # Project Memory
 
-Last updated: 2026-10-30
+Last updated: 2026-11-01
 
 ## Project
 AI Academic Assistant — personal academic workspace for Edexcel O Level/A Level, SSC and HSC.
@@ -34,7 +34,13 @@ Physics, Mathematics A, Mathematics B, Further Pure Mathematics, General Mathema
 M1 10% foundation; M2 25% document intelligence; M3 45% solver; M4 58% verification; M5 68% syllabus intelligence; M6 82% chapter intelligence; M7 93% exam preparation; M8 100% production readiness.
 
 ## Current progress estimate
-25% implementation scope reached. This is a development estimate, not a production-readiness claim. Live Supabase authentication and Google Drive integration still require owner configuration and end-to-end testing.
+The feature branch `feature/m3-ai-solver` now contains substantial M1–M7 application implementation and most M8 hardening code. Do not use the old 25% estimate from the initial M1/M2 baseline. The remaining work is split between implementation refinements and separately deferred acceptance/release gates; no percentage should be called complete until the backlog and acceptance evidence are reconciled.
+
+## Latest implementation checkpoint (2026-11-01)
+- Latest work is on `feature/m3-ai-solver`; keep `main` and production untouched.
+- Added a bearer-protected readiness probe that validates configuration and performs a bounded server-only Supabase Data API query against `profiles` without returning rows or secret details. The probe does not verify Google Drive or AI provider connectivity.
+- Related implementation commit: `42703c118c3135bca1ea78dc0f80cb0abf56cb6d`; roadmap, acceptance plan, README and security notes were updated in subsequent documentation commits.
+- Do not start the separate testing/fixing phase until implementation is explicitly reported complete. CI may execute automatically after commits; record its result without treating that as permission to begin the planned test phase.
 
 ## Current verified state
 - Supabase project is ACTIVE_HEALTHY on the Free plan.
