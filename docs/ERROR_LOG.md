@@ -1541,3 +1541,13 @@ ERR-073 closure reconciliation (2026-11-01): the earlier note that page and pare
 - Fix: Replaced all seven malformed openers and the six single-dollar closers with balanced `$$select ... $$` expression bodies. Existing `$test$` and already-valid `$$` expressions were left unchanged.
 - Verification: Database run 41301615575 passed all 209 pgTAP assertions across nine SQL test files on a fresh isolated database.
 - Status: Fixed and verified by the complete isolated pgTAP suite.
+
+
+## CI test acceptance — 2026-11-01 (run 41302028456 / commit e34d468)
+- Foundation checks: ESLint passed; application TypeScript passed; Playwright configuration and browser-test TypeScript passed; Vitest passed **29 test files / 132 tests**; production build completed successfully.
+- Dependency audit: `npm audit --omit=dev` passed with **0 production dependency vulnerabilities**. This does not close ERR-124, which concerns the full development/tooling dependency graph and the minimatch advisory compatibility assessment.
+- Database: all repository migrations applied successfully to a fresh isolated local Supabase database; pgTAP passed **9 files / 209 assertions**.
+- Browser: Chromium smoke suite passed **7 tests**, with **1 authenticated two-account teacher lifecycle test skipped** because live authentication credentials are not configured in this CI run.
+- Secret scanning: passed. Authenticated browser acceptance workflow: skipped; no authenticated live-account test was performed.
+- Scope: these are reproducible CI results for the branch commit, not proof of live Google Drive, AI provider, OAuth callback, hosted Supabase migration-history reconciliation, production backup restore, or real-account authentication behavior. No hosted database migration or deployment was performed.
+- Result: first complete green foundation + isolated database + unauthenticated browser smoke run. Continue with targeted runtime/provider acceptance and remaining release blockers; do not call production readiness complete.
