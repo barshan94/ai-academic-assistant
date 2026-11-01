@@ -97,7 +97,7 @@ function isValidUploadSession(value: unknown): value is UploadSession {
     const uri = new URL(session.sessionUri);
     return uri.protocol === "https:" && uri.hostname === "www.googleapis.com" &&
       /^\/upload\/drive\/v3\/files(?:\/|$)/.test(uri.pathname);
-      /^\\/upload\\/drive\\/v3\\/files(?:\\/|$)/.test(uri.pathname);
+
   } catch {
     return false;
   }
