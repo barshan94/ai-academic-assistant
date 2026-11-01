@@ -658,3 +658,13 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Replace filesystem extraction with per-member streaming via `tar -xO` into newly created regular files inside the private temporary directory. The verifier no longer creates archive-controlled paths or link metadata.
 - Verification: Source review only. No archive was decrypted or verified, and no security test was run during the implementation phase.
 - Status: Extraction path hardened; formal regression testing remains pending.
+
+## ERR-061 — Readiness monitoring was implemented without a scheduled caller
+
+- Date: 2026-11-01
+- Area: M8 operations / monitoring
+- Symptom: The protected readiness endpoint existed, but no scheduled workflow called it. A deployment could become unready without a recurring GitHub Actions signal.
+- Root cause: Health endpoint implementation and monitoring/alert delivery had been treated as one item, but only the endpoint existed.
+- Fix: Added `.github/workflows/health-monitor.yml`, scheduled every 15 minutes and manually dispatchable. It validates an HTTPS origin and a sufficiently long bearer secret, calls the protected readiness endpoint with bounded network timeouts, checks for HTTP 200 and the generic ready status, and does not print response bodies or credentials.
+- Verification: Workflow source committed on `feature/m3-ai-solver`; no workflow execution or live deployment is claimed.
+- Status: Implemented in code. Activation requires placing the workflow on the default branch and configuring repository secrets `APP_BASE_URL` and `CRON_SECRET`. GitHub notification delivery depends on repository/user settings; dedicated dashboards, alert thresholds and external paging remain unimplemented.
