@@ -77,7 +77,7 @@ The feature branch `feature/m3-ai-solver` now contains substantial M1–M7 appli
 - Upload accepts one PDF or up to 50 JPEG/PNG images with a 4 MB combined limit. Existing PDFs are preserved unchanged; images are combined into one PDF in selection order.
 - Supabase stores file metadata and extracted text; source PDFs are archived in the owner's Google Drive.
 - Google Drive OCR extraction creates a temporary Google Doc, exports text, then deletes the temporary Doc. Extracted text is editable page-by-page and requires explicit teacher review.
-- Document processing has a three-attempt limit and 100-page text cap; it is manually started from the library. No automatic background worker or resumable large-file upload exists yet.
+- Document processing has a three-attempt limit and 100-page text cap. A scheduled queue worker, resumable PDF uploads up to 50 MB, 1 MB chunks, encrypted upload-session tokens and server-confirmed resume offsets are implemented on the feature branch; live deployment/OAuth acceptance remains pending. Drive authorization is checked before consuming an upload quota slot.
 - Manual question capture is implemented: a teacher can create a question from a reviewed page, add board/qualification/subject/chapter/topic metadata, search the question library and approve/reject records. AI segmentation, classification, answering and verification are not implemented yet.
 - Unit tests cover PDF byte preservation, PNG conversion, multi-image PDF page count/order, filename sanitization, extracted-text splitting, refresh-token encryption/tamper rejection and question input validation.
 - Live Supabase sign-in, Google OAuth, Drive upload and OCR are NOT yet smoke-tested because owner environment credentials and a live authenticated test session have not been configured.
@@ -93,7 +93,7 @@ The feature branch `feature/m3-ai-solver` now contains substantial M1–M7 appli
 ## Next tasks
 1. Configure deployment/local environment and privately create the owner Supabase account; verify sign-in and protected dashboard.
 2. Configure Google Cloud OAuth and live-test Drive connect, PDF/image batch upload, OCR, correction, approval and disconnect.
-3. Add resumable uploads above 4 MB and a durable background worker.
+3. Complete non-production acceptance for resumable uploads, interruption recovery and the scheduled background worker.
 4. Build AI question segmentation/classification and structured exam-answer generation.
 5. Add math/science verification and teacher-correction versioning.
 6. Continue syllabus/chapter intelligence, revision and production readiness.
