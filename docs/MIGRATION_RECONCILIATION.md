@@ -109,3 +109,18 @@ A second read-only inspection was performed against the connected `academic-assi
 ## Current decision
 
 **Open release blocker.** The repository and connected project's migration ledgers are not aligned. A safe resolution requires a clean isolated database and schema-level comparison. The connected project's migration history was read only; no hosted database changes were made.
+
+
+## Connected project follow-up snapshot — 2026-11-01
+
+A further read-only inspection of the connected `academic-assistant` project confirmed:
+
+- Organization plan: Free; project status: `ACTIVE_HEALTHY`; PostgreSQL 17.11; region `ap-south-1`.
+- `auth.users`, `public.profiles`, `public.documents`, and `public.processing_jobs` each contain zero rows.
+- No Storage buckets and no deployed Supabase Edge Functions were returned by the project APIs.
+- The public schema contains 21 base tables and 42 policies; all 21 public tables have RLS enabled.
+- The two timestamp/name-mismatched migration effects have some positive object-level evidence: all five tables created by the shared-reference-catalogue migration exist, its `is_platform_admin()` function exists, and all three indexes created by the following foreign-key-index migration exist.
+- This evidence supports that at least the named objects are present despite the two migration-version mismatches. It does **not** prove that every trigger, policy, grant, constraint, function body or seed-data effect of those migrations matches the repository SQL, and it does not authorize ledger repair.
+- The security advisor returned no findings. The performance advisor returned 60 unused-index informational notices; with zero application rows these are not a reason to drop indexes.
+
+The connected project remains unsuitable as a fully accepted integration target until the complete schema/ledger comparison and missing forward migrations are resolved. No hosted SQL or migration history was changed.
