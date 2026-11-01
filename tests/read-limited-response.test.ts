@@ -27,13 +27,20 @@ describe("readLimitedResponseText", () => {
     await expect(readLimitedResponseText(new Response("abcd"), 3)).rejects.toThrow("RESPONSE_TOO_LARGE");
   });
 
-  it.each(["", " 3", "3 ", "+3", "-1", "1.5", "3x", "1e2"])(
+  it.each(["", "+3", "-1", "1.5", "3x", "1e2"])(
     "rejects malformed Content-Length %j",
     async (contentLength) => {
       const response = new Response("a", { headers: { "content-length": contentLength } });
       await expect(readLimitedResponseText(response, 3)).rejects.toThrow("INVALID_RESPONSE_LENGTH");
     },
   );
+
+  it("accepts optional HTTP whitespace normalized by the Headers implementation", async () => {
+    const headers = new Headers();
+    headers.set("content-length", " 3 ");
+    expect(headers.get("content-length")).toBe("3");
+    await expect(readLimitedResponseText(new Response("abc", { headers }), 3)).resolves.toBe("abc");
+  });
 
   it("rejects a declared body larger than the configured limit before reading it", async () => {
     const response = new Response("abcd", { headers: { "content-length": "4" } });
