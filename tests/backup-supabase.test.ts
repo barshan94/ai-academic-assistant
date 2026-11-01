@@ -16,4 +16,11 @@ describe("encrypted Supabase backup script", () => {
     expect(script).toContain('-v backup_project_ref="$BACKUP_PROJECT_REF" -f "$workdir/auth-export.sql"');
     expect(script).not.toContain('-v backup_project_ref="$BACKUP_PROJECT_REF" -c "$auth_export_sql"');
   });
+
+  it("validates every exported Auth record before writing an encrypted archive", () => {
+    expect(script).toContain('command -v node >/dev/null 2>&1');
+    expect(script).toContain('import { validateBackup } from "./scripts/restore-auth-users.mjs";');
+    expect(script).toContain("validateBackup(backup);");
+    expect(script.indexOf("validateBackup(backup);")).toBeLessThan(script.indexOf('tar -czf "$workdir/backup.tar.gz"'));
+  });
 });
