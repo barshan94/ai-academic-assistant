@@ -116,6 +116,7 @@ describe("structured exam answer generation", () => {
     const [url, init] = fetcher.mock.calls[0];
     expect(url).toBe("https://example.test/v1/chat/completions");
     expect((init?.headers as Record<string, string>).Authorization).toBe("Bearer test-key");
+    expect(init?.redirect).toBe("error");
     const body = JSON.parse(String(init?.body));
     expect(body.response_format).toEqual({ type: "json_object" });
     expect(body.messages[1].content).toContain("Edexcel");
