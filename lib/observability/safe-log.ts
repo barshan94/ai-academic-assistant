@@ -11,7 +11,9 @@ type SafeOperationalEvent =
   | "ai_generation_quota_exhausted"
   | "web_research_quota_unavailable"
   | "web_research_quota_exhausted"
-  | "google_drive_oauth_failed";
+  | "google_drive_oauth_failed"
+  | "exhausted_document_job_terminalization_failed"
+  | "document_job_claim_failed";
 
 type SafeOperationalFields = {
   route?: string;
