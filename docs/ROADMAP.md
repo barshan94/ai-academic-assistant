@@ -234,3 +234,6 @@ Owner syllabus lifecycle correction (2026-11-01): chapter and topic creation now
 
 
 Health readiness authorization correction (2026-11-01): corrected an over-escaped whitespace token in the Bearer-header parser. The readiness endpoint can now extract a correctly formatted bearer credential before performing its constant-time secret comparison. See ERR-095; authorization boundary regression tests remain deferred to the dedicated testing phase.
+
+
+Google Drive OAuth scope alignment (2026-11-01): removed incremental-scope authorization because the application intentionally accepts only the single `drive.file` grant. This keeps the consent request aligned with callback validation and token refresh checks. See ERR-096; live Google consent and reconnect acceptance remain pending.
