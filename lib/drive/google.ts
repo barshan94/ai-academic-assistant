@@ -41,6 +41,17 @@ async function readResponseBytesBounded(response: Response, maxBytes: number, de
   return output;
 }
 
+export async function readGoogleJsonResponseBounded<T>(response: Response, maxBytes: number, description: string): Promise<T> {
+  const bytes = await readResponseBytesBounded(response, maxBytes, description);
+  try {
+    const parsed: unknown = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes));
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("Invalid JSON object.");
+    return parsed as T;
+  } catch {
+    throw new Error(description + " returned invalid JSON.");
+  }
+}
+
 function getGoogleConfig() {
   const clientId = process.env.GOOGLE_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
@@ -93,7 +104,7 @@ export async function getDriveAccessToken() {
     signal: AbortSignal.timeout(20_000),
   });
 
-  const payload = await response.json() as { access_token?: string };
+  const payload = await readGoogleJsonResponseBounded<{ access_token?: string }>(response, MAX_GOOGLE_METADATA_BYTES, "Google OAuth response");
   if (!response.ok || !payload.access_token) {
     throw new Error("Google Drive authorization failed. Reconnect your account and try again.");
   }
@@ -125,7 +136,7 @@ export async function uploadPdfToDrive(input: {
     signal: AbortSignal.timeout(30_000),
   });
 
-  const result = await response.json() as { id?: string; webViewLink?: string };
+  const result = await readGoogleJsonResponseBounded<{ id?: string; webViewLink?: string }>(response, MAX_GOOGLE_METADATA_BYTES, "Google Drive upload metadata");
   if (!response.ok || !result.id) {
     throw new Error("Google Drive could not save the PDF. Check your connection and available Drive storage.");
   }
@@ -280,7 +291,7 @@ export async function sendResumablePdfChunk(input: {
   });
 
   const range = response.headers.get("Range");
-  const text = response.status === 308 || response.status === 404 ? "" : await response.text();
+  const responseBytes = response.status === 308 || response.status === 404\n    ? Buffer.alloc(0)\n    : await readResponseBytesBounded(response, MAX_GOOGLE_METADATA_BYTES, "Google Drive resumable upload response");\n  const text = responseBytes.toString("utf8");
   let file: { id?: string; webViewLink?: string; name?: string; mimeType?: string; size?: string } | null = null;
   if (text) {
     try { file = JSON.parse(text) as { id?: string; webViewLink?: string; name?: string; mimeType?: string; size?: string }; }
