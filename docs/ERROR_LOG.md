@@ -711,3 +711,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Clear the matching localStorage session after an explicit owner mismatch and tell the user to re-select the file to create a new owner-bound session. The server-side owner check remains unchanged.
 - Verification: Source inspection only; no tests or account-switch HTTP/browser scenarios were run.
 - Status: Implemented; cross-account regression verification deferred to the separate testing phase.
+
+
+## ERR-066 — Browser storage failures could interrupt resumable upload handling
+
+- Date: 2026-11-01
+- Area: M2 resumable upload / browser persistence
+- Symptom: The upload form accessed localStorage directly. Browsers or privacy settings that deny storage access could throw while reading, writing or clearing the resumable session, interrupting an otherwise valid upload or masking the original error.
+- Root cause: Browser persistence was treated as guaranteed rather than optional; persisted JSON was also trusted without checking that its file metadata matched the currently selected normalized file.
+- Fix: Centralized best-effort storage helpers, validate the stored session token and exact filename/size before reuse, discard malformed/mismatched entries, and allow the current upload to proceed if storage is unavailable. The UI already explains that resume persistence is conditional.
+- Verification: Source inspection only. No browser test or test command was run in the implementation phase.
+- Status: Implemented; storage-denied, malformed-entry and reload-resume scenarios remain for the separate testing phase.
