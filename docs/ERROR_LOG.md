@@ -1647,3 +1647,14 @@ ERR-073 closure reconciliation (2026-11-01): the earlier note that page and pare
 - Fix: No hosted change was made. Added fresh schema observations to `docs/MIGRATION_RECONCILIATION.md` and tied the registration/page-count release gates to explicit reconciliation and target approval in `docs/PRODUCTION_READINESS.md`.
 - Verification: Read-only Supabase migration listing, catalog query, table metadata and advisors on 2026-11-01. The local isolated CI migration chain and 209 pgTAP assertions pass; this does not establish hosted schema equivalence.
 - Status: Open release blocker. Do not deploy the current application against the connected schema or selectively apply recent migrations. Reconcile on an explicitly approved isolated target first.
+
+
+## ERR-152 — Vercel production build type-check included Playwright-only configuration
+
+- Date: 2026-11-01
+- Area: Hosting build / TypeScript project boundaries
+- Symptom: The latest inspected Vercel preview build failed during Next.js type validation with "Cannot find module '@playwright/test'" at playwright.auth.config.ts. GitHub CI had hidden the issue by installing Playwright temporarily before its build; Vercel correctly installed only the committed dependency graph.
+- Root cause: The root TypeScript include glob covered the authenticated Playwright configuration and E2E test tree, although Playwright is a CI-only temporary dependency and not part of the application build dependencies.
+- Fix: Excluded playwright.auth.config.ts and e2e/ from the application tsconfig.json, alongside the already excluded regular Playwright config. Dedicated CI steps continue to type-check both Playwright configurations and the authenticated spec after installing the temporary test runner.
+- Verification: Source change committed as c4dd2150aeb118a0f878232ef7c0d7a80a060e9a. Fresh GitHub CI and a new Vercel build are required to verify the fix; the previous failed deployment was built from older commit b792d1efe18b8c6798198d1b2706352e79c3eac8.
+- Status: Fix committed; verification pending. No new Vercel deployment was triggered because the account had previously reported deployment rate limits.
