@@ -41,8 +41,26 @@ M3 exit criteria still outstanding:
 - Configure a provider key/model securely and test live generation with explicit cost approval.
 - An original five-case cross-subject golden-set draft and two-reviewer scoring rubric are documented in `docs/AI_GOLDEN_SET.md`; live runs against the configured model and manual grading remain outstanding.
 - Complete independent official-source validation and human grading against current board documents. Structural citation-label validation for AI chapter notes is implemented and covered by unit tests; it only proves that labels refer to supplied source IDs, not that sources support adjacent claims. The code now provides opt-in traceable source-page context and a conservative mark-scheme review workflow that saves owner-supplied HTTPS references, exact page/section locators, optional exam-series/document versions and structured mark points against a specific saved answer. This does not independently verify the publisher, provide certified quotations or perform official mark awarding. New references require a locator in the server schema and a database INSERT trigger; a second database validator enforces HTTPS source hosts, unique point IDs, bounded descriptions/key phrases and valid optional marks even for direct Data API inserts. Legacy rows remain readable with an explicit missing-locator label. The UI displays literal key-phrase presence for human review; it does not award marks, prove semantic equivalence or certify an official scheme. Saved references are append-only and owner-scoped.
-- Test teacher invitation, acceptance, review and revocation using two real accounts.
-- Add automated database authorization tests for cross-account isolation.
+- Configure a provider key/model securely and test live generation with explicit cost approval.
+- Complete the documented golden-set run and independent human grading.
+
+## M4 status — invitation and teacher-review implementation hardened; acceptance pending
+
+Implemented on `feature/m3-ai-solver` and applied to the Supabase project:
+- Question-scoped teacher invitations have a database-enforced seven-day default acceptance window and a 30-day maximum. Existing invitation rows were backfilled from their creation timestamps.
+- Invitation creation is an authenticated RPC with a per-owner/question/email transaction lock. It rejects duplicate pending invitations and duplicate active accepted teachers; expired pending or revoked invitations can be re-issued without deleting historical rows.
+- Acceptance is an atomic RPC that locks the invitation, checks the current Auth user's confirmed email against the normalized invited address, rejects self-acceptance, and blocks expired, revoked, replayed or mismatched acceptance attempts.
+- Expiry applies only to pending invitations. An already accepted teacher retains the question-scoped access until the owner revokes it.
+- Revocation is an atomic, one-way RPC. The database generates the timestamp, verifies ownership and active state, and serializes revocation against teacher review. Direct authenticated INSERT/acceptance/revocation writes to invitation state are denied.
+- Question and saved-answer access remains question-scoped through RLS. Teacher review records are append-only; the teacher-review RPC checks the active accepted invitation, and only that workflow can set or remove the `teacher_verified` label. Owner feedback cannot self-promote an answer to teacher-verified.
+- Added pgTAP coverage in `supabase/tests/question_teacher_invite_expiry.test.sql` and extended `supabase/tests/question_solution_access.test.sql` for duplicate invites, email mismatch, acceptance, expiry, re-issue, revocation and review authorization.
+- Supabase security advisor currently reports no security lint findings. The teacher-invite foreign-key index warning was fixed. Remaining performance findings are unused indexes on mostly empty tables and require workload evidence before removal.
+
+M4 acceptance still outstanding:
+- Run the pgTAP database suite against the project and resolve any failures.
+- Complete two-real-account browser acceptance for invitation creation, confirmed-email acceptance, expiry, re-issue, review, concurrent/repeated revocation and post-revocation access denial.
+- Confirm the owner's manual invitation-sharing process is usable; automatic invitation email delivery is intentionally not implemented.
+- Independently assess teacher review UI, history visibility and verification-state transitions. A teacher review is human feedback, not official exam-board certification.
 
 ## M5 status — in progress
 Implemented on feature/m3-ai-solver:
