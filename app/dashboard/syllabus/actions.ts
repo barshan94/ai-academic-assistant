@@ -31,6 +31,14 @@ const catalogSchema = z.object({
     catch { return false; }
   }),
   sourceTitle: z.string().trim().max(200),
+}).superRefine((value, context) => {
+  if (value.effectiveFrom && value.effectiveTo && value.effectiveTo < value.effectiveFrom) {
+    context.addIssue({
+      code: "custom",
+      path: ["effectiveTo"],
+      message: "The end date must not be earlier than the start date.",
+    });
+  }
 });
 
 const chapterSchema = z.object({
