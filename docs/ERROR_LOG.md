@@ -989,3 +989,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Select the updated document ID and require both the document and running-job failure updates to return rows before reporting the failure state as persisted.
 - Verification: Source inspection only; worker failure, missing-document and concurrent state-change cases remain deferred to the separate testing phase.
 - Status: Implemented on the feature branch; no tests, typecheck or build were run during implementation.
+
+
+## ERR-092 — Practice answer action trusted a client-supplied set ID for navigation
+
+- Date: 2026-11-01
+- Area: Practice sets / answer recording
+- Symptom: The action validated the submitted item ID and set ID formats, but invoked the answer-recording RPC using only the item ID and then used the unverified submitted set ID for redirects and cache revalidation. A mismatched set ID could therefore update an item while sending the learner to an unrelated practice set route.
+- Root cause: The action did not verify the owner-scoped relationship between the selected practice item and the submitted practice set before recording the answer.
+- Fix: Resolve the item through the owner-scoped item/set relationship before invoking the RPC, then use the database-returned set ID for all redirects and revalidation.
+- Verification: Source inspection only; mismatched IDs, inaccessible items and successful answer recording remain deferred to the separate testing phase.
+- Status: Implemented on the feature branch; no tests, typecheck or build were run during implementation.
