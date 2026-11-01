@@ -20,8 +20,8 @@ values ('30000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-0000000
 insert into public.question_solutions (id, owner_id, question_id, provider, model, prompt_version, answer_json)
 values ('40000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', '30000000-0000-4000-8000-000000000001', 'test-provider', 'test-model', 'test-v1', '{}'::jsonb);
 
-insert into public.question_solution_mark_schemes (id, solution_id, owner_id, title, awarding_body, qualification, subject, source_url, points)
-values ('50000000-0000-4000-8000-000000000001', '40000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', 'RLS fixture scheme', 'Example Board', 'A Level', 'Physics', 'https://example.test/mark-scheme.pdf', '[{"id":"M1","description":"Fixture point","keyPhrases":["fixture"]}]'::jsonb);
+insert into public.question_solution_mark_schemes (id, solution_id, owner_id, title, awarding_body, qualification, subject, source_url, source_locator, points)
+values ('50000000-0000-4000-8000-000000000001', '40000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', 'RLS fixture scheme', 'Example Board', 'A Level', 'Physics', 'https://example.test/mark-scheme.pdf', 'Page 1, Question 1', '[{"id":"M1","description":"Fixture point","keyPhrases":["fixture"]}]'::jsonb);
 
 insert into public.question_teacher_invites (id, question_id, owner_id, invited_email)
 values ('60000000-0000-4000-8000-000000000001', '30000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', 'rls-teacher@example.test');
