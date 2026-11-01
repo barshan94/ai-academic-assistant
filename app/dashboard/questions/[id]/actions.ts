@@ -292,8 +292,11 @@ export async function createQuestionTeacherInvite(formData: FormData) {
   const { data: question, error: questionError } = await supabase.from("questions").select("id").eq("id", parsed.data.questionId).eq("owner_id", user.id).maybeSingle();
   if (questionError || !question) redirect("/dashboard/questions?invite=not_found");
   const typedSupabase = supabase as unknown as SupabaseClient<DatabaseWithAISolutions>;
-  const { error: inviteError } = await typedSupabase.from("question_teacher_invites").insert({ question_id: question.id, owner_id: user.id, invited_email: parsed.data.email });
-  if (inviteError) redirect("/dashboard/questions/" + question.id + "?invite=" + (inviteError.code === "23505" ? "exists" : "save_failed"));
+  const { error: inviteError } = await typedSupabase.rpc("create_question_teacher_invite", {
+    p_question_id: question.id,
+    p_invited_email: parsed.data.email,
+  });
+  if (inviteError) redirect("/dashboard/questions/" + question.id + "?invite=" + (inviteError.code === "23505" ? "exists" : inviteError.code === "42501" ? "not_authorized" : "save_failed"));
   revalidatePath("/dashboard/questions/" + question.id);
   revalidatePath("/dashboard/teacher-invites");
   redirect("/dashboard/questions/" + question.id + "?invite=created");
@@ -306,13 +309,13 @@ export async function acceptQuestionTeacherInvite(formData: FormData) {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user?.email) redirect("/login");
   const typedSupabase = supabase as unknown as SupabaseClient<DatabaseWithAISolutions>;
-  const { data: invite, error } = await typedSupabase.from("question_teacher_invites")
-    .update({ accepted_by: user.id, accepted_at: new Date().toISOString() })
-    .eq("id", inviteId.data).is("accepted_by", null).is("revoked_at", null)
-    .select("question_id").maybeSingle();
-  if (error || !invite) redirect("/dashboard/teacher-invites?invite=not_available");
+  const { data: questionId, error } = await typedSupabase.rpc("accept_question_teacher_invite", {
+    p_invite_id: inviteId.data,
+  });
+  if (error || !questionId) redirect("/dashboard/teacher-invites?invite=not_available");
   revalidatePath("/dashboard/teacher-invites");
-  redirect("/dashboard/questions/" + invite.question_id + "?invite=accepted");
+  revalidatePath("/dashboard/questions/" + questionId);
+  redirect("/dashboard/questions/" + questionId + "?invite=accepted");
 }
 
 export async function revokeQuestionTeacherInvite(formData: FormData) {
