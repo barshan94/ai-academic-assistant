@@ -68,7 +68,9 @@ export async function GET(request: NextRequest) {
     }
 
     const requiredScope = "https://www.googleapis.com/auth/drive.file";
-    const grantedScopes = (tokenData.scope ?? requiredScope).split(/\s+/).filter(Boolean);
+    const grantedScopes = typeof tokenData.scope === "string"
+      ? tokenData.scope.split(/\s+/).filter(Boolean)
+      : [];
     if (grantedScopes.length !== 1 || grantedScopes[0] !== requiredScope) {
       logSafeOperationalEvent("google_drive_oauth_failed", { route: "/api/drive/callback", errorCode: "DRIVE_OAUTH_SCOPE_MISMATCH" });
       return finish("/dashboard/documents", "scope_mismatch");
