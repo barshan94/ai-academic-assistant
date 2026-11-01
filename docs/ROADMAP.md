@@ -203,3 +203,5 @@ Reference syllabus catalogs now enforce chronological effective-date ranges, and
 
 
 Owner and reference syllabus evidence URL validation now rejects embedded URL credentials in addition to requiring HTTPS, preventing deceptive links whose user-info prefix can be mistaken for the destination host. See ERR-077; URL-boundary regression testing remains deferred.
+
+Syllabus catalog lifecycle enforcement (2026-11-01): owner catalog verification is now draft-only, owner evidence insertion is draft-only, and platform reference catalog chapter/topic/evidence creation is draft-only. Verified and retired catalogs can no longer be modified through these actions. See ERR-083 and ERR-084; regression and concurrency testing remains deferred to the separate testing phase.
