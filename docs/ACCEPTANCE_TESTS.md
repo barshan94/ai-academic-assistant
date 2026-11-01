@@ -164,7 +164,7 @@
 
 - [ ] Resolve ERR-124: migrate or compatibly patch the ESLint/minimatch development toolchain so no installed minimatch version remains in the GHSA-g3hv-75wg-m249 affected range; then run the complete development dependency audit. Do not force a major-version override without compatibility evidence.
 
-- [ ] AI provider HTTP and empty-response errors exclude upstream response bodies and provider-supplied messages from application errors (status-only regression test added; CI pending).
+- [x] AI provider HTTP and empty-response errors exclude upstream response bodies and provider-supplied messages from application errors; regression tests cover HTTP status-only errors and empty/error payload redaction (Foundation CI `41311063846`, commit `5140bcf110507739ac5d8c7bd9f46a2622eb29b1`). Live provider acceptance remains open.
 
 
 ## Privacy notice and data rights
