@@ -1152,3 +1152,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Added a forward-only migration that serializes quota decisions per owner, captures the quota timestamp after acquiring the lock, checks both counters before mutating either, and increments both only for admitted requests. Existing limits remain 10 uploads per UTC hour and 50 per UTC day; prior over-limit counter values remain blocking until their windows expire.
 - Verification: Source/migration review only. The migration has not been applied to a database; concurrency, quota boundary, expiry and rollback cases remain deferred to the dedicated testing and fixing phases.
 - Status: Migration committed to feature/m3-ai-solver; no tests, typecheck or build were run during implementation.
+
+
+## ERR-107 — Delayed or concurrent AI generation requests could use an expired quota window
+
+- Date: 2026-11-01
+- Area: AI solution and chapter-note generation quotas
+- Symptom: The 15-minute quota bucket timestamp was captured before the counter upsert. A request delayed while waiting on a concurrent row update could be assigned to an expired window, and denied requests continued incrementing the capped counter.
+- Root cause: Quota-window calculation occurred before serialization, with no owner-and-bucket admission lock or explicit pre-write limit check.
+- Fix: Added a forward-only migration that serializes quota admission per owner and bucket, captures the timestamp after lock acquisition, checks the current bucket count before writing, and increments only admitted requests. Existing limits remain five AI solutions or three chapter notes per 15-minute window.
+- Verification: Source/migration review only. The migration has not been applied to a database; concurrency, window-boundary, legacy over-limit row and rollback behavior remain deferred to the dedicated testing and fixing phases.
+- Status: Migration committed to feature/m3-ai-solver; no tests, typecheck or build were run during implementation.
