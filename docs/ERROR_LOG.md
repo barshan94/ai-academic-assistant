@@ -1430,3 +1430,15 @@ ERR-124 compatibility investigation (2026-11-01): the existing lockfile already 
 - Fix: Renamed the field to “Owner-estimated confidence” and explicitly state that it is a human estimate, not a model prediction or calibrated probability. Users are told to leave it blank when they cannot justify a value; the review-state and source-evidence requirements remain separate.
 - Verification: Source review only. No UI/browser or regression test was run during implementation.
 - Status: UI wording corrected on `feature/m3-ai-solver`; broader calibration remains impossible to claim until a sufficiently sized, independently labelled dataset exists and is evaluated in the later testing/quality phase.
+
+
+
+## ERR-132 — AI provider fallback retried permanent HTTP failures
+
+- Date: 2026-11-01
+- Area: M3 AI provider routing / cost and reliability
+- Symptom: When provider fallback was enabled, the router attempted the next configured provider after any `AIProviderError`, including permanent HTTP 4xx responses such as invalid requests, authentication failures, missing models and payload-size rejection.
+- Root cause: Fallback eligibility was based only on the error class and the global opt-in flag, not on whether another provider could plausibly recover the request.
+- Fix: Added an explicit retryability policy. Fallback is limited to network/timeout unavailability, malformed or empty provider responses, and HTTP 408, 425, 429 or 5xx. Permanent 4xx failures stop immediately. Updated provider setup documentation and added regression cases for permanent 4xx, transient 503 and fallback-disabled behavior.
+- Verification: Source and regression-test changes reviewed only. Tests were not executed in the implementation phase; live provider behavior, actual cost and retry timing remain unverified.
+- Status: Implementation committed to `feature/m3-ai-solver`; regression and provider acceptance deferred to the testing phase.
