@@ -175,7 +175,7 @@ export async function GET(request: Request) {
           error: "Processing failed and its failure state could not be persisted.",
         }, { status: 500 });
       }
-      return Response.json({ processed: true, job_id: jobId, failed: true, error: message });
+      return Response.json({ processed: false, job_id: jobId, failed: true, error: message }, { status: 500 });
     }
   }
 
