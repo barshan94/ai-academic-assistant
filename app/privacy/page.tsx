@@ -46,7 +46,7 @@ export default function PrivacyPage() {
         </article>
         <article className="module-card" style={{ minHeight: 0, marginTop: 12 }}>
           <h3>Cookies and technical data</h3>
-          <p>The app uses authentication/session cookies required to sign in securely. The study planner may store the browser's IANA time-zone identifier in a device cookie to display calendar dates and completion times consistently. The application does not use that cookie as an account identifier. Hosting, Supabase, Google and configured providers may process technical connection and security data under their own policies.</p>
+          <p>The app uses authentication/session cookies required to sign in securely. The study planner may store the browser&apos;s IANA time-zone identifier in a device cookie to display calendar dates and completion times consistently. The application does not use that cookie as an account identifier. Hosting, Supabase, Google and configured providers may process technical connection and security data under their own policies.</p>
         </article>
         <article className="module-card" style={{ minHeight: 0, marginTop: 12 }}>
           <h3>Retention, access and deletion</h3>
