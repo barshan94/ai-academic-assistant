@@ -1130,3 +1130,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Added the service-role-only terminalize_exhausted_stale_document_job RPC. It locks the exact stale lease observed by the worker, rechecks that the retry budget is exhausted and the lease is still at least 15 minutes old, then marks both the document and job failed in one transaction. The worker passes the observed started_at value so a newer claim cannot be failed by a stale candidate snapshot.
 - Verification: Source/migration review only. The migration has not been applied to a database; stale lease races, final-attempt crashes, timestamp equality, role authorization and rollback behavior remain deferred to the dedicated testing and fixing phases.
 - Status: Migration, worker route, database types and documentation committed to feature/m3-ai-solver; no tests, typecheck or build were run during implementation.
+
+
+## ERR-105 — Readiness monitoring lacked a response-time threshold and optional operations alert
+
+- Date: 2026-11-01
+- Area: Production readiness monitoring
+- Symptom: The scheduled readiness workflow checked HTTP status and the generic ready response, but a severely slow readiness endpoint still passed. Failures also depended entirely on GitHub Actions notification preferences, with no optional operations webhook.
+- Root cause: The monitor had no explicit latency threshold and no configurable external alert destination.
+- Fix: Added a 10-second per-run readiness latency threshold and an optional HTTPS Slack-compatible incoming webhook notification on workflow failure. The webhook sends only a generic message and run URL; delivery errors do not expose the secret or mask the original workflow failure. Updated operations documentation with the optional secret and limitations.
+- Verification: Workflow/source review only. The workflow has not run against a deployed environment; threshold calibration, webhook delivery and scheduled default-branch activation remain pending operational acceptance.
+- Status: Workflow and documentation committed to feature/m3-ai-solver; no tests, typecheck or build were run during implementation.
