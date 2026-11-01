@@ -4,7 +4,7 @@ import { logSafeOperationalEvent } from "@/lib/observability/safe-log";
 import { decryptDriveUploadSession } from "@/lib/drive/crypto";
 import { getDriveAccessToken, sendResumablePdfChunk, deleteDriveFile } from "@/lib/drive/google";
 import { isValidDriveChunk, parseDriveUploadOffset, readDriveUploadChunk } from "@/lib/drive/resumable-upload";
-import { MAX_UPLOAD_BYTES } from "@/lib/documents/upload-limits";
+import { MAX_UPLOAD_BYTES, safeFileName } from "@/lib/documents/upload-limits";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -78,6 +78,30 @@ async function saveCompletedUpload(
   return { documentId: document.id, duplicate: false };
 }
 
+function isValidUploadSession(value: unknown): value is UploadSession {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const session = value as Partial<UploadSession>;
+  if (
+    typeof session.ownerId !== "string" || !session.ownerId ||
+    typeof session.fileName !== "string" || safeFileName(session.fileName) !== session.fileName ||
+    !session.fileName.toLowerCase().endsWith(".pdf") ||
+    !Number.isSafeInteger(session.fileSizeBytes) || (session.fileSizeBytes ?? 0) < 1 ||
+    (session.fileSizeBytes ?? 0) > MAX_UPLOAD_BYTES ||
+    typeof session.sha256 !== "string" || !/^[a-f0-9]{64}$/.test(session.sha256) ||
+    !(session.pageCount === null || (Number.isInteger(session.pageCount) && session.pageCount >= 1 && session.pageCount <= 50)) ||
+    !Number.isSafeInteger(session.expiresAt) || (session.expiresAt ?? 0) <= Date.now() ||
+    typeof session.sessionUri !== "string"
+  ) return false;
+
+  try {
+    const uri = new URL(session.sessionUri);
+    return uri.protocol === "https:" && uri.hostname === "www.googleapis.com" &&
+      /^\\/upload\\/drive\\/v3\\/files(?:\\/|$)/.test(uri.pathname);
+  } catch {
+    return false;
+  }
+}
+
 export async function POST(request: NextRequest) {
   if (request.headers.get("origin") !== request.nextUrl.origin) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -92,7 +116,7 @@ export async function POST(request: NextRequest) {
 
   let session: UploadSession;
   try {
-    session = JSON.parse(decryptDriveUploadSession(encryptedSession)) as UploadSession;
+    const decoded: unknown = JSON.parse(decryptDriveUploadSession(encryptedSession));\n    if (!isValidUploadSession(decoded)) throw new Error("Invalid upload session payload.");\n    session = decoded;
   } catch {
     return NextResponse.json({ error: "Upload session is invalid or expired." }, { status: 400 });
   }
