@@ -8,13 +8,23 @@ import { parseSyllabusImportText } from "@/lib/questions/syllabus-import";
 import type { Json } from "@/types/database";
 import { parseSyllabusEvidenceInput } from "@/lib/questions/syllabus-evidence";
 
+const dateOnly = z.string().trim().max(10).refine((value) => {
+  if (!value) return true;
+  if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(value)) return false;
+  const [year, month, day] = value.split("-").map(Number);
+  const parsed = new Date(Date.UTC(year, month - 1, day));
+  return parsed.getUTCFullYear() === year &&
+    parsed.getUTCMonth() === month - 1 &&
+    parsed.getUTCDate() === day;
+}, "Enter a real calendar date in YYYY-MM-DD format.");
+
 const catalogSchema = z.object({
   board: z.string().trim().min(1).max(100),
   qualification: z.string().trim().min(1).max(100),
   subject: z.string().trim().min(1).max(120),
   version: z.string().trim().min(1).max(80),
-  effectiveFrom: z.string().trim().max(10),
-  effectiveTo: z.string().trim().max(10),
+  effectiveFrom: dateOnly,
+  effectiveTo: dateOnly,
   sourceUrl: z.string().trim().max(2048).refine((value) => {
     if (!value) return true;
     try { return new URL(value).protocol === "https:"; }
