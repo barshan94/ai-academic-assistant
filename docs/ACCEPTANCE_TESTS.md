@@ -126,13 +126,16 @@
 - [ ] Authenticated end-to-end acceptance is executed against a dedicated non-production Supabase project.
 
 ## Production readiness (M8)
-- [x] Document free-tier manual database export procedure, scope exclusions and restore limitations in `docs/BACKUP_RESTORE.md`; this is documentation only and does not count as a tested full restore.
-- [ ] Backup and restore process tested.
+- [x] Document free-tier backup scope exclusions and restore limitations in `docs/BACKUP_RESTORE.md`.
+- [x] Implement local encrypted logical export and archive checksum verification helpers; implementation does not include Supabase Auth identities, Storage objects or prove database restore.
+- [ ] Run the encrypted backup helper against an isolated non-production project; verify the archive with the separate age identity and confirm no plaintext archive is retained.
+- [ ] Rehearse schema/data restore on an isolated target and prove a supported Auth identity recovery/reconciliation path before claiming full recovery.
 - [ ] OAuth token handling and revocation tested.
 - [ ] Rate limits, retries and job recovery tested, including concurrent upload-session creation at hourly/daily quota boundaries and cross-account isolation.
 - [ ] Drive/OCR provider failures and worker exceptions are verified not to expose upstream response bodies, credentials, document text or raw database errors in HTTP responses or persisted job metadata.
 - [x] AI generation is protected by atomic account-scoped database quotas: five answer generations and three chapter-note generations per 15-minute window; the server fails closed if quota enforcement is unavailable. Fifteen pgTAP assertions passed in isolated CI run `41219394217` (133 assertions across six files, commit `e43816b`).
 - [ ] Error reporting excludes secrets and sensitive payloads; inspect emitted structured log records to confirm only allow-listed metadata is present and no exception messages, stacks, queries, source text, user IDs or credentials are logged.
+- [ ] Verify `/api/health` liveness behavior and authenticated `/api/health/ready` configuration behavior; separately verify actual Supabase, Google and AI connectivity.
 - [ ] Mobile usability and accessibility smoke tests pass, including skip-link navigation, visible keyboard focus, semantic labels, reduced-motion behavior and 44px mobile touch targets.
 
 
