@@ -27,7 +27,7 @@ export default async function TeacherInvitesPage({ searchParams }: PageProps) {
   const outgoing = outgoingResult.data ?? [];
   const inviteError = incomingResult.error || outgoingResult.error;
   const message = query.invite === "accepted" ? "Invitation accepted. You can now open the shared question."
-    : query.invite === "not_available" ? "This invitation is unavailable, revoked, already accepted, or belongs to another email account."
+    : query.invite === "not_available" ? "This invitation is unavailable. It may be expired, revoked, already accepted, assigned to another email, or your account email may not be confirmed."
     : query.invite === "invalid" ? "The invitation details were invalid." : undefined;
   return (
     <main className="shell">
@@ -41,9 +41,9 @@ export default async function TeacherInvitesPage({ searchParams }: PageProps) {
       <section className="section"><h2>Invitations for you</h2>
         {incoming.length ? incoming.map((invite) => <article className="question-card" key={invite.id}>
           <p className="question-card-meta">Question ID: {invite.question_id}</p><p className="question-card-meta">Invited {new Date(invite.created_at).toLocaleString()}</p>
-          <p className="question-card-meta">Acceptance deadline: {new Date(invite.expires_at).toLocaleString()}</p>
+          {!invite.accepted_by ? <p className="question-card-meta">Acceptance deadline: {new Date(invite.expires_at).toLocaleString()}</p> : null}
           {invite.revoked_at ? <p className="notice notice-info">This invitation has been revoked.</p>
-            : invite.accepted_by ? <p className="notice notice-info">Accepted. <Link href={"/dashboard/questions/" + invite.question_id}>Open shared question →</Link></p>
+            : invite.accepted_by ? <p className="notice notice-info">Accepted — access remains active until revoked. <Link href={"/dashboard/questions/" + invite.question_id}>Open shared question →</Link></p>
             : new Date(invite.expires_at).getTime() <= Date.now() ? <p className="notice notice-info">This invitation has expired. Ask the owner to send a new invitation.</p>
             : <form action={acceptQuestionTeacherInvite}><input type="hidden" name="inviteId" value={invite.id} /><button className="primary-action" type="submit">Accept invitation →</button></form>}
         </article>) : <p className="question-card-meta">No invitations have been sent to this account email.</p>}
@@ -51,8 +51,8 @@ export default async function TeacherInvitesPage({ searchParams }: PageProps) {
       <section className="section"><h2>Invitations you sent</h2>
         {outgoing.length ? outgoing.map((invite) => <article className="question-card" key={invite.id}>
           <p>{invite.invited_email}</p><p className="question-card-meta">Question ID: {invite.question_id}</p>
-          <p className="question-card-meta">{invite.revoked_at ? "Revoked" : invite.accepted_by ? "Accepted" : new Date(invite.expires_at).getTime() <= Date.now() ? "Expired — re-invitation allowed" : "Waiting for acceptance"}</p>
-          <p className="question-card-meta">Expires {new Date(invite.expires_at).toLocaleString()}</p>
+          <p className="question-card-meta">{invite.revoked_at ? "Revoked" : invite.accepted_by ? "Accepted — active until revoked" : new Date(invite.expires_at).getTime() <= Date.now() ? "Expired — re-invitation allowed" : "Waiting for acceptance"}</p>
+          {!invite.accepted_by && !invite.revoked_at ? <p className="question-card-meta">Acceptance deadline: {new Date(invite.expires_at).toLocaleString()}</p> : null}
         </article>) : <p className="question-card-meta">You have not invited a teacher yet.</p>}
       </section>
     </main>
