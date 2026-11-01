@@ -203,10 +203,11 @@ export async function extractTextFromDrivePdf(input: {
       signal: AbortSignal.timeout(30_000),
     },
   );
-  const convertedBytes = await readResponseBytesBounded(convertResponse, MAX_GOOGLE_METADATA_BYTES, "Google Drive OCR conversion metadata");
-  let converted: { id?: string };
-  try { converted = JSON.parse(convertedBytes.toString("utf8")) as { id?: string }; }
-  catch { throw new Error("Google Drive returned invalid OCR conversion metadata."); }
+  const converted = await readGoogleJsonResponseBounded<{ id?: string }>(
+    convertResponse,
+    MAX_GOOGLE_METADATA_BYTES,
+    "Google Drive OCR conversion metadata",
+  );
   if (!convertResponse.ok || !converted.id) {
     throw new Error("Google Drive could not extract text from this PDF. The file may be unreadable or unsupported.");
   }
