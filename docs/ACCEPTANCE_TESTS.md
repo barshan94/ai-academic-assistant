@@ -221,3 +221,7 @@
 - [ ] ERR-126: verify resumable Drive chunk validation rejects unsafe integer totals/lengths while retaining valid 1 MB-aligned chunks and final short chunks.
 - [ ] ERR-127: verify the chemistry atom-count parser rejects empty nested formula groups such as `H()2` while retaining valid nested groups and state symbols.
 - [ ] ERR-128: verify chemistry atom-count checks reject symbols outside the periodic table rather than treating arbitrary capitalized tokens as elements.
+
+- [ ] Auth recovery: export active email/password Auth users into the encrypted archive; verify the export contains original UUIDs and supported password hashes but no sessions or plaintext passwords.
+- [ ] Auth recovery: restore into a different isolated project; verify source-project target refusal, original UUID preservation, existing-password sign-in, confirmation state and safe idempotent resume after an interrupted import.
+- [ ] Auth recovery: verify unsupported phone-based, MFA, SSO, anonymous and external-identity accounts are rejected before any account is created; verify logs never contain email addresses, password hashes or service-role credentials.
