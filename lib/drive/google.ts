@@ -52,7 +52,7 @@ export async function readGoogleJsonResponseBounded<T>(response: Response, maxBy
   }
 }
 
-function isGoogleDriveUploadSessionUri(value: string) {
+export function isGoogleDriveUploadSessionUri(value: string) {
   try {
     const uri = new URL(value);
     return uri.protocol === "https:" && uri.hostname === "www.googleapis.com" &&
