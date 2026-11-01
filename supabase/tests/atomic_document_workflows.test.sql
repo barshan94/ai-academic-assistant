@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(24);
+select plan(30);
 
 insert into auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
 values
@@ -156,8 +156,95 @@ select is(
   'each independent owner registration receives its own processing job'
 );
 
+select is(
+  (select count(*)::integer from public.register_uploaded_document(
+    '12000000-0000-4000-8000-000000000001',
+    'minimum-pages.pdf',
+    1024,
+    repeat('d', 64),
+    'drive-minimum-pages',
+    null,
+    1
+  )),
+  1,
+  'registration accepts the minimum supported page count of one'
+);
+
+select is(
+  (select count(*)::integer from public.register_uploaded_document(
+    '12000000-0000-4000-8000-000000000001',
+    'maximum-pages.pdf',
+    1024,
+    repeat('e', 64),
+    'drive-maximum-pages',
+    null,
+    50
+  )),
+  1,
+  'registration accepts the maximum supported page count of fifty'
+);
+
+select is(
+  (select count(*)::integer from public.register_uploaded_document(
+    '12000000-0000-4000-8000-000000000001',
+    'unknown-pages.pdf',
+    1024,
+    repeat('1', 64),
+    'drive-unknown-pages',
+    null,
+    null
+  )),
+  1,
+  'registration permits an unknown page count'
+);
+
 select throws_ok(
-  $$select * from public.register_uploaded_document(
+  $select * from public.register_uploaded_document(
+    '12000000-0000-4000-8000-000000000001',
+    'zero-pages.pdf',
+    1024,
+    repeat('2', 64),
+    'drive-zero-pages',
+    null,
+    0
+  )$,
+  'P0001',
+  'Uploaded document metadata is invalid',
+  'registration rejects a zero page count'
+);
+
+select throws_ok(
+  $select * from public.register_uploaded_document(
+    '12000000-0000-4000-8000-000000000001',
+    'fifty-one-pages.pdf',
+    1024,
+    repeat('3', 64),
+    'drive-fifty-one-pages',
+    null,
+    51
+  )$,
+  'P0001',
+  'Uploaded document metadata is invalid',
+  'registration rejects a page count above fifty'
+);
+
+select throws_ok(
+  $select * from public.register_uploaded_document(
+    '12000000-0000-4000-8000-000000000001',
+    'one-hundred-pages.pdf',
+    1024,
+    repeat('4', 64),
+    'drive-one-hundred-pages',
+    null,
+    100
+  )$,
+  'P0001',
+  'Uploaded document metadata is invalid',
+  'registration rejects the legacy one-hundred-page upper bound'
+);
+
+select throws_ok(
+  $select * from public.register_uploaded_document(
     '12000000-0000-4000-8000-000000000001',
     'invalid-hash.pdf',
     1024,
