@@ -13,19 +13,30 @@ export default async function TeacherInvitesPage({ searchParams }: PageProps) {
   const { data: { user }, error } = await supabase.auth.getUser();
   if (error || !user?.email) redirect("/login");
   const typedSupabase = supabase as unknown as SupabaseClient<DatabaseWithAISolutions>;
-  const [incomingResult, outgoingResult] = await Promise.all([
+  const [incomingResult, acceptedResult, outgoingResult] = await Promise.all([
     typedSupabase.from("question_teacher_invites")
       .select("id,question_id,owner_id,invited_email,accepted_by,accepted_at,revoked_at,expires_at,created_at")
       .eq("invited_email", user.email.toLowerCase())
+      .order("created_at", { ascending: false }).limit(50),
+    // Accepted access is tied to the immutable Auth user ID, not the current
+    // email address. Keep accepted/revoked history visible after an email change.
+    typedSupabase.from("question_teacher_invites")
+      .select("id,question_id,owner_id,invited_email,accepted_by,accepted_at,revoked_at,expires_at,created_at")
+      .eq("accepted_by", user.id)
       .order("created_at", { ascending: false }).limit(50),
     typedSupabase.from("question_teacher_invites")
       .select("id,question_id,owner_id,invited_email,accepted_by,accepted_at,revoked_at,expires_at,created_at")
       .eq("owner_id", user.id)
       .order("created_at", { ascending: false }).limit(50),
   ]);
-  const incoming = incomingResult.data ?? [];
+  const incomingById = new Map(
+    [...(incomingResult.data ?? []), ...(acceptedResult.data ?? [])].map((invite) => [invite.id, invite]),
+  );
+  const incoming = [...incomingById.values()]
+    .sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at))
+    .slice(0, 50);
   const outgoing = outgoingResult.data ?? [];
-  const inviteError = incomingResult.error || outgoingResult.error;
+  const inviteError = incomingResult.error || acceptedResult.error || outgoingResult.error;
   const message = query.invite === "accepted" ? "Invitation accepted. You can now open the shared question."
     : query.invite === "not_available" ? "This invitation is unavailable. It may be expired, revoked, already accepted, assigned to another email, or your account email may not be confirmed."
     : query.invite === "invalid" ? "The invitation details were invalid." : undefined;
