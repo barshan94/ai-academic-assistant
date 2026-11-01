@@ -1570,3 +1570,13 @@ ERR-073 closure reconciliation (2026-11-01): the earlier note that page and pare
 - Fix: Added `tests/read-limited-response.test.ts` covering exact byte limits, absent/malformed/oversized Content-Length, actual streamed overrun, split multibyte UTF-8, invalid UTF-8, empty bodies and invalid configured limits.
 - Verification: Test source committed; latest CI execution is pending.
 - Status: Regression coverage added; rerun required before closing ERR-143.
+
+
+## ERR-144 — Content-Length whitespace test assumed raw header bytes survive Fetch normalization
+- Date: 2026-11-01
+- Area: HTTP response-reader regression tests
+- Symptom: The new response-reader tests initially failed two cases expecting leading/trailing whitespace in `Content-Length` to reach application code unchanged.
+- Root cause: The Fetch `Headers` implementation normalizes optional HTTP whitespace when the header is inserted, so the test did not represent the value exposed to the application. This was a test-fixture assumption, not evidence that the production reader accepted malformed raw header syntax.
+- Fix: Removed the two invalid raw-whitespace rejection cases and added an explicit assertion that the Fetch Headers API normalizes optional whitespace to the decimal value before the bounded reader receives it. Kept rejection cases for empty, signed, negative, fractional, non-decimal and exponent-form values.
+- Verification: Corrected test source committed; full CI rerun pending.
+- Status: Test fixture corrected; rerun required.
