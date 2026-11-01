@@ -12,7 +12,7 @@ command -v age >/dev/null 2>&1 || fail "age is required for encrypted backups."
 command -v tar >/dev/null 2>&1 || fail "tar is required."
 command -v sha256sum >/dev/null 2>&1 || command -v shasum >/dev/null 2>&1 || fail "sha256sum or shasum is required."
 
-: "${SUPABASE_DB_URL:?Set SUPABASE_DB_URL in the current shell; do not pass it as a command-line argument.}"
+: "${SUPABASE_DB_URL:?Set SUPABASE_DB_URL in the current shell; do not put it in the script invocation.}"
 : "${BACKUP_AGE_RECIPIENT:?Set BACKUP_AGE_RECIPIENT to the age public recipient key.}"
 
 if [[ ! "$BACKUP_AGE_RECIPIENT" =~ ^age1[0-9a-z]{20,}$ ]]; then
