@@ -668,3 +668,13 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Added `.github/workflows/health-monitor.yml`, scheduled every 15 minutes and manually dispatchable. It validates an HTTPS origin and a sufficiently long bearer secret, calls the protected readiness endpoint with bounded network timeouts, checks for HTTP 200 and the generic ready status, and does not print response bodies or credentials.
 - Verification: Workflow source committed on `feature/m3-ai-solver`; no workflow execution or live deployment is claimed.
 - Status: Implemented in code. Activation requires placing the workflow on the default branch and configuring repository secrets `APP_BASE_URL` and `CRON_SECRET`. GitHub notification delivery depends on repository/user settings; dedicated dashboards, alert thresholds and external paging remain unimplemented.
+
+## ERR-062 — Readiness checked database reachability but not core application schema
+
+- Date: 2026-11-01
+- Area: M8 health/readiness
+- Symptom: The readiness endpoint could return ready when Supabase PostgREST was reachable and `profiles` existed, even if the document-processing tables required by the application were missing.
+- Root cause: The original database probe verified transport and one foundational table, not the minimum schema needed by the document workflow.
+- Fix: Probe `profiles`, `documents` and `processing_jobs` in parallel using bounded, server-only HEAD queries. No rows or database contents are returned.
+- Verification: Source and documentation updated on the feature branch. Runtime checks and migration-absence scenarios remain deferred to the separate testing phase.
+- Status: Implemented; verification pending. This checks three core tables only and does not prove every feature migration or integration is ready.
