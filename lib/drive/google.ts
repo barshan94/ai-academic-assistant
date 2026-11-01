@@ -162,8 +162,10 @@ export async function deleteDriveFile(accessToken: string, fileId: string) {
     signal: AbortSignal.timeout(15_000),
   });
   if (!response.ok && response.status !== 404) {
+    await response.body?.cancel().catch(() => {});
     throw new Error("Could not remove the orphaned Google Drive file.");
   }
+  await response.body?.cancel().catch(() => {});
 }
 
 
@@ -175,7 +177,10 @@ export async function extractTextFromDrivePdf(input: {
     "https://www.googleapis.com/drive/v3/files/" + encodeURIComponent(input.driveFileId) + "?alt=media",
     { headers: { Authorization: "Bearer " + input.accessToken }, cache: "no-store", signal: AbortSignal.timeout(30_000) },
   );
-  if (!sourceResponse.ok) throw new Error("Could not download the archived PDF from Google Drive.");
+  if (!sourceResponse.ok) {
+    await sourceResponse.body?.cancel().catch(() => {});
+    throw new Error("Could not download the archived PDF from Google Drive.");
+  }
   const sourceBytes = await readResponseBytesBounded(sourceResponse, MAX_DRIVE_PDF_BYTES, "Archived PDF");
 
   const boundary = "academic_ocr_" + crypto.randomUUID().replaceAll("-", "");
@@ -217,7 +222,10 @@ export async function extractTextFromDrivePdf(input: {
       "https://www.googleapis.com/drive/v3/files/" + encodeURIComponent(converted.id) + "/export?mimeType=text%2Fplain",
       { headers: { Authorization: "Bearer " + input.accessToken }, cache: "no-store", signal: AbortSignal.timeout(20_000) },
     );
-    if (!exportResponse.ok) throw new Error("Google Drive OCR export failed.");
+    if (!exportResponse.ok) {
+      await exportResponse.body?.cancel().catch(() => {});
+      throw new Error("Google Drive OCR export failed.");
+    }
     const extractedBytes = await readResponseBytesBounded(exportResponse, MAX_OCR_TEXT_BYTES, "Extracted OCR text");
     return new TextDecoder("utf-8", { fatal: true }).decode(extractedBytes);
   } finally {
@@ -238,6 +246,7 @@ export async function revokeDriveRefreshToken(refreshToken: string) {
 
     // Google returns 400 when a token is invalid or already revoked. Treat that
     // response as idempotent success; transient server errors remain retryable.
+    await response.body?.cancel().catch(() => {});
     return response.ok || response.status === 400;
   } catch {
     // Network failures must not be mistaken for a successful revocation.
@@ -267,6 +276,7 @@ export async function initiateResumablePdfUpload(input: {
   );
   const sessionUri = response.headers.get("Location");
   if (!response.ok || !sessionUri) {
+    await response.body?.cancel().catch(() => {});
     throw new Error("Google Drive could not start a resumable upload session.");
   }
   if (!isGoogleDriveUploadSessionUri(sessionUri)) {
@@ -312,6 +322,10 @@ export async function sendResumablePdfChunk(input: {
     } catch {
       throw new Error("Google Drive returned an unreadable upload response.");
     }
+  } else {
+    // 308 and 404 responses are used only for confirmed offset/session state.
+    // Their bodies are not needed and must not be buffered.
+    await response.body?.cancel().catch(() => {});
   }
 
   return { status: response.status, range, file };
