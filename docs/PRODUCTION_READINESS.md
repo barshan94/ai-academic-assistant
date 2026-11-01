@@ -115,7 +115,7 @@ The owner-selected infrastructure constraint remains Supabase Free only. No paid
 - [ ] Define and approve recovery-point and recovery-time objectives based on actual backup cadence and measured restore time.
 - [ ] Complete a restore drill and record the evidence, gaps and corrective actions.
 
-**Hard limitation:** The current Supabase Free logical dump excludes Auth identities, Storage objects, project settings and external Google Drive files. Auth UUIDs are referenced by application rows. Until a supported Auth identity recovery/reconciliation method is proven, full account-and-data disaster recovery remains an unresolved release blocker. Do not claim that the backup helper provides a complete restore.
+**Hard limitation:** The Supabase CLI logical dump still excludes managed Auth. The backup helper now exports supported email/password account records separately and `scripts/restore-auth-users.mjs` recreates them through the Auth Admin API with original UUIDs and compatible password hashes. The importer intentionally excludes sessions, MFA, SSO, anonymous and non-email identity accounts. Storage objects, project settings and external Google Drive files also remain outside the archive. The full restore remains unproven until an isolated Free-plan restore drill and original-password sign-in succeed.
 
 ## 9. Release and post-release
 
