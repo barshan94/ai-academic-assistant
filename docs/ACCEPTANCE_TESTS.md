@@ -201,3 +201,10 @@
 - [ ] Trigger a Supabase auth-cookie refresh on a dashboard request and confirm the resulting response retains the request CSP, `Cache-Control: private, no-store` and `X-Robots-Tag: noindex, nofollow, noarchive`.
 - [ ] Repeat with an expired/invalid session that redirects to sign-in; confirm all applicable response policy headers survive the redirect and refreshed-cookie handling.
 - [ ] Confirm refreshed auth cookies are still emitted with their original options and the request continues with the updated cookie header.
+
+
+## Bounded upstream HTTP response reader (ERR-122)
+- [ ] Confirm numeric Content-Length headers are accepted and the response body is read.
+- [ ] Confirm malformed and oversized Content-Length headers are rejected before body consumption.
+- [ ] Confirm responses without Content-Length remain bounded by streamed byte counting.
+- [ ] Exercise Google OAuth/Drive and AI provider response paths with representative Content-Length headers.
