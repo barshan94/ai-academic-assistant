@@ -61,12 +61,10 @@ export async function GET(request: Request) {
   // One job per invocation keeps runtime bounded. The conditional UPDATE is
   // the claim operation: concurrent cron invocations cannot both own a job.
   const staleBefore = new Date(Date.now() - 15 * 60 * 1000).toISOString();
-  const { data: candidates, error: candidateError } = await supabase
-    .from("processing_jobs")
-    .select("id,owner_id,document_id,attempt_count,max_attempts,status,started_at")
-    .or(`status.eq.queued,status.eq.failed,and(status.eq.running,started_at.lt.${staleBefore}),and(status.eq.running,started_at.is.null)`)
-    .order("created_at", { ascending: true })
-    .limit(10);
+  const { data: candidates, error: candidateError } = await supabase.rpc("list_claimable_document_jobs", {
+    p_stale_before: staleBefore,
+    p_limit: 10,
+  });
 
   if (candidateError) return Response.json({ error: "Could not read the processing queue." }, { status: 500 });
   if (!candidates?.length) return Response.json({ processed: false, reason: "queue_empty" });
