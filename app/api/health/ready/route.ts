@@ -88,12 +88,15 @@ async function hasLiveSupabaseConnection() {
       },
     });
 
-    const { error } = await supabase
-      .from("profiles")
-      .select("id", { head: true })
-      .limit(1);
+    // Probe the core application tables as well as the profile table.
+    // A reachable PostgREST endpoint alone is insufficient if the deployed
+    // schema is missing the document-processing tables the application needs.
+    const requiredTables = ["profiles", "documents", "processing_jobs"] as const;
+    const results = await Promise.all(requiredTables.map((table) =>
+      supabase.from(table).select("id", { head: true }).limit(1),
+    ));
 
-    return !error;
+    return results.every(({ error }) => !error);
   } catch {
     return false;
   }
