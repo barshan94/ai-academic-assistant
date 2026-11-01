@@ -74,15 +74,24 @@ export async function recordPracticeAnswer(formData: FormData) {
   if (authError || !user) redirect("/login");
 
   const db = supabase as unknown as SupabaseClient<DatabaseWithPractice>;
+  const { data: item, error: itemError } = await db.from("practice_set_items")
+    .select("practice_set_id")
+    .eq("id", parsed.data.itemId)
+    .eq("practice_set_id", parsed.data.setId)
+    .eq("owner_id", user.id)
+    .maybeSingle();
+  if (itemError || !item) redirect("/dashboard/practice?answer=not_found");
+
+  const setId = item.practice_set_id;
   const { error } = await db.rpc("record_practice_answer", {
     p_item_id: parsed.data.itemId,
     p_outcome: parsed.data.outcome,
     p_response_notes: parsed.data.notes || null,
   });
-  if (error) redirect("/dashboard/practice/" + parsed.data.setId + "?save=failed");
-  revalidatePath("/dashboard/practice/" + parsed.data.setId);
+  if (error) redirect("/dashboard/practice/" + setId + "?save=failed");
+  revalidatePath("/dashboard/practice/" + setId);
   revalidatePath("/dashboard/practice");
-  redirect("/dashboard/practice/" + parsed.data.setId + "?save=updated");
+  redirect("/dashboard/practice/" + setId + "?save=updated");
 }
 
 
