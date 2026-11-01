@@ -5,7 +5,7 @@ export const syllabusEvidenceInputSchema = z.object({
   chapterId: z.string().uuid(),
   topicId: z.string().uuid().or(z.literal("")),
   sourceUrl: z.string().trim().url().max(2048).refine((value) => {
-    try { return new URL(value).protocol === "https:"; }
+    try { const url = new URL(value); return url.protocol === "https:" && !url.username && !url.password; }
     catch { return false; }
   }),
   sourceTitle: z.string().trim().min(1).max(200),
