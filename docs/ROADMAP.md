@@ -211,3 +211,5 @@ Reference syllabus verification now requires a valid HTTPS source URL with a hos
 Owner syllabus verification now re-validates the persisted draft catalog source URL (HTTPS, hostname present, no embedded credentials) rather than relying only on non-null source_url. See ERR-086; regression coverage remains deferred to the separate testing phase.
 
 Teacher invitation revocation now confirms that the owner- and question-scoped update actually changed an active invite before reporting success. See ERR-087; missing-row, ownership and repeated-revocation regression coverage remains deferred to the testing phase.
+
+Mark scheme authoring now rejects serialized points JSON above 256 KiB before parsing, in addition to the existing structured field and point-count limits. See ERR-088; malformed and boundary-size regression coverage remains deferred to the testing phase.
