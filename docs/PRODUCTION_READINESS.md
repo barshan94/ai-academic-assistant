@@ -20,7 +20,7 @@ The owner selected infrastructure constraint remains Supabase Free only. No paid
 ## 1. Application and release artifact
 
 - [ ] Freeze the implementation scope and publish a reviewed release candidate commit.
-- [x] Complete automated lint, application/Playwright type-check, 132 unit tests and production build on the tested feature-branch commit. Live integration acceptance remains listed separately below.
+- [x] Complete automated lint, application/Playwright type-check, 152 unit tests and production build on the tested feature-branch commit. Live integration acceptance remains listed separately below.
 - [x] Complete credential-free Chromium smoke suite (7 passed / 1 skipped; authenticated flow is separate).
 - [ ] Complete mobile responsive/accessibility acceptance.
 - [ ] Confirm all user-facing pages, sign-in/out, protected routes, empty/error/loading states and navigation.
