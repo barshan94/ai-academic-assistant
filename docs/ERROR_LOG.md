@@ -1310,3 +1310,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Middleware now sets `Cache-Control: private, no-store` on dashboard and API paths before authentication branching. Existing auth-response copying preserves the header across redirects.
 - Verification: Source change only. Browser/network acceptance for successful pages, API success/error responses, redirects, sign-out and account switching remains pending.
 - Status: Implemented on `feature/m3-ai-solver`; runtime verification deferred to the dedicated testing phase.
+
+
+## ERR-121 — Auth cookie refresh could discard response policy headers
+
+- Date: 2026-11-01
+- Area: Middleware / cache and crawler policy
+- Symptom: When Supabase refreshed authentication cookies during the dashboard middleware request, the cookie callback rebuilt the NextResponse. The replacement response could lose headers assigned before authentication, including the private no-store cache policy and no-index crawler directive.
+- Root cause: The response-recreation path copied the CSP by construction but did not carry forward the other response policy headers already applied to the original response.
+- Fix: Added one shared response-policy header copier and invoke it whenever the middleware rebuilds its response for refreshed auth cookies. Redirect handling uses the same helper, keeping cache, CSP and crawler policy handling consistent.
+- Verification: Source change only. No tests, build, browser, auth-refresh simulation or deployment was performed. Confirm headers on refreshed-cookie success and redirect paths during the dedicated testing phase.
+- Status: Implemented on `feature/m3-ai-solver`; runtime verification remains deferred.
