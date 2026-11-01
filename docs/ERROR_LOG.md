@@ -788,3 +788,15 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Reject malformed declared lengths, preserve the streamed byte ceiling, release the reader lock in a `finally` block, return an empty string only for genuinely body-less responses, and decode UTF-8 in fatal mode. AI and web-research callers already convert these failures into generic provider errors.
 - Verification: Source inspection only; invalid UTF-8, malformed Content-Length and stream cancellation tests remain for the separate testing phase.
 - Status: Implemented on the feature branch; no tests, typecheck or build were run during implementation.
+
+
+## ERR-073 — Document review actions reported success without confirming affected rows
+
+- Date: 2026-11-01
+- Area: M2 document review / owner-scoped server actions
+- Symptom: Manual page correction treated a successful database response as proof that a row was updated, even when no owner-scoped page matched; it also ignored failure to update the parent document status. Document approval did not validate the document UUID or confirm that the parent document existed and that all selected pages were actually updated.
+- Root cause: The server actions checked database error objects but did not request and verify the affected rows.
+- Fix: Validate correction/approval identifiers as UUIDs, request the updated owner-scoped rows, reject missing page/document matches, and report success only after the expected page rows and parent document update are confirmed.
+- Limitation: Page and parent-document updates remain separate database statements. An unexpected failure between them can still leave a partial state; making the transition fully atomic requires a dedicated database RPC migration.
+- Verification: Source inspection only; ownership, missing-row and partial-failure regression cases are deferred to the separate testing phase.
+- Status: Implemented on the feature branch; no tests, typecheck, build or live database acceptance was run during implementation.
