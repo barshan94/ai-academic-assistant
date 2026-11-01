@@ -1141,3 +1141,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Added a 10-second per-run readiness latency threshold and an optional HTTPS Slack-compatible incoming webhook notification on workflow failure. The webhook sends only a generic message and run URL; delivery errors do not expose the secret or mask the original workflow failure. Updated operations documentation with the optional secret and limitations.
 - Verification: Workflow/source review only. The workflow has not run against a deployed environment; threshold calibration, webhook delivery and scheduled default-branch activation remain pending operational acceptance.
 - Status: Workflow and documentation committed to feature/m3-ai-solver; no tests, typecheck or build were run during implementation.
+
+
+## ERR-106 — Rejected document uploads consumed quota and concurrent requests could overshoot limits
+
+- Date: 2026-11-01
+- Area: Google Drive document-upload admission quota
+- Symptom: The upload quota function incremented both hourly and daily counters before deciding whether the request was allowed. A request rejected by the hourly limit still consumed daily quota, and concurrent requests could race past either limit.
+- Root cause: The function performed independent upserts without a per-owner transaction lock or a read-both/check-both/write-both admission sequence.
+- Fix: Added a forward-only migration that serializes quota decisions per owner, captures the quota timestamp after acquiring the lock, checks both counters before mutating either, and increments both only for admitted requests. Existing limits remain 10 uploads per UTC hour and 50 per UTC day; prior over-limit counter values remain blocking until their windows expire.
+- Verification: Source/migration review only. The migration has not been applied to a database; concurrency, quota boundary, expiry and rollback cases remain deferred to the dedicated testing and fixing phases.
+- Status: Migration committed to feature/m3-ai-solver; no tests, typecheck or build were run during implementation.
