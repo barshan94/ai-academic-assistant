@@ -76,7 +76,7 @@ function isValidUploadSession(value: unknown): value is UploadSession {
     !Number.isSafeInteger(session.fileSizeBytes) || (session.fileSizeBytes ?? 0) < 1 ||
     (session.fileSizeBytes ?? 0) > MAX_UPLOAD_BYTES ||
     typeof session.sha256 !== "string" || !/^[a-f0-9]{64}$/.test(session.sha256) ||
-    !(session.pageCount === null || (Number.isInteger(session.pageCount) && session.pageCount >= 1 && session.pageCount <= 50)) ||
+    !(session.pageCount === null || (typeof session.pageCount === "number" && Number.isInteger(session.pageCount) && session.pageCount >= 1 && session.pageCount <= 50)) ||
     !Number.isSafeInteger(session.expiresAt) || (session.expiresAt ?? 0) <= Date.now() ||
     typeof session.sessionUri !== "string"
   ) return false;
