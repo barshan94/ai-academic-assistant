@@ -160,3 +160,13 @@ The following supporting procedures are now committed on this feature branch. Th
 - `docs/ACADEMIC_PRIVACY_OPERATIONS_ACCEPTANCE.md` — official syllabus validation, independent grading, privacy/legal review and named primary/backup operator gates. All remain open pending human evidence.
 
 Do not check any runtime or external-review item above until the evidence is attached to the tested commit and reviewed by the release owner.
+
+
+## Connected Supabase project inventory — 2026-11-01
+
+- [x] Read-only inventory confirms the existing Free organization and `academic-assistant` project are active and healthy in `ap-south-1`; no additional account or project was created.
+- [x] Confirmed the connected academic project currently has zero Auth users, profiles, documents and processing jobs, zero Storage buckets, and no deployed Edge Functions.
+- [x] Confirmed all 21 public tables have RLS enabled and the security advisor currently reports no findings; performance advisor unused-index notices are informational and have not been acted on.
+- [ ] Complete object-by-object reconciliation of all remote migration effects against the repository's ordered migration chain before any hosted migration or authenticated integration acceptance.
+- [ ] Configure and verify Google OAuth/Drive, AI provider, worker scheduler and authenticated test credentials in a non-production environment.
+
