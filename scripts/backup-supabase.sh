@@ -76,9 +76,13 @@ else
 fi
 
 tar -czf "$workdir/backup.tar.gz" -C "$workdir" roles.sql schema.sql data.sql manifest.txt SHA256SUMS
-age --recipient "$BACKUP_AGE_RECIPIENT" --output "$archive" "$workdir/backup.tar.gz"
+age --recipient "$BACKUP_AGE_RECIPIENT" "$workdir/backup.tar.gz" > "$encrypted_temp"
+[[ -s "$encrypted_temp" ]] || fail "Encrypted archive output is empty."
+chmod 600 "$encrypted_temp"
+mv -n "$encrypted_temp" "$archive"
+if [[ -e "$encrypted_temp" ]]; then fail "A backup archive already exists at the generated path."; fi
+archive_created=1
 [[ -s "$archive" ]] || fail "Encrypted archive was not created."
-chmod 600 "$archive"
 backup_complete=1
 
 printf 'Encrypted backup created: %s\n' "$archive"
