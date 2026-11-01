@@ -1502,3 +1502,22 @@ ERR-124 additional compatibility evidence (2026-11-01): the current lockfile con
 
 
 ERR-073 closure reconciliation (2026-11-01): the earlier note that page and parent-document updates remained separate is superseded by the atomic approval and correction RPCs documented above. Do not count ERR-073 as an open code-implementation blocker. The migration application and pgTAP acceptance remain testing-phase work.
+
+
+## ERR-138 — JSX lint failures in login and privacy pages
+- Date: 2026-11-01
+- Area: CI / ESLint
+- Symptom: The latest pull-request CI run failed ESLint with an unclosed paragraph in `app/login/page.tsx` and two unescaped apostrophes in `app/privacy/page.tsx`.
+- Root cause: The login footnote paragraph was missing its closing tag; JSX text contained literal apostrophes that violate the configured `react/no-unescaped-entities` rule.
+- Fix: Closed the login footnote paragraph and encoded the two apostrophes as `&apos;` in the privacy notice.
+- Verification: Confirmed against the ESLint output from run 41300335750. A post-fix lint rerun is still required.
+- Status: Source fixes committed; verification pending.
+
+## ERR-139 — Fresh local migration chain lacks the private schema
+- Date: 2026-11-01
+- Area: Supabase migrations / clean-database bootstrap
+- Symptom: The latest isolated database workflow failed while applying `20261101040000_validate_mark_scheme_provenance_and_points.sql` with `schema "private" does not exist`; pgTAP tests were skipped.
+- Root cause: The migration creates a trigger function in the `private` schema, but a clean Supabase database created by the workflow has no preceding migration that creates that schema.
+- Fix: Pending migration-order and remote-history reconciliation before changing the migration chain. No hosted database was touched.
+- Verification: Confirmed from database workflow run 41300335749. Migration application stopped at the first missing-schema reference.
+- Status: Open database test blocker; must be fixed in a forward-only, fresh-install-safe migration and then rerun on an isolated database.
