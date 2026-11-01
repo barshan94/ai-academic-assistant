@@ -104,3 +104,5 @@ The feature branch `feature/m3-ai-solver` now contains substantial M1–M7 appli
 - Added ERR-063 to `docs/ERROR_LOG.md`; updated `docs/ROADMAP.md` and `README.md` to record the behavior. Corrected stale lower-section project-memory notes that incorrectly said resumable uploads and the worker did not exist.
 - Implementation commit: `606e0a3`; documentation commits: `371d5ee`, `1044ebe`, `5c054bb`, `3f2f86e`.
 - No test commands or live OAuth/Drive calls were run. Regression and integration verification remain in the later testing phase.
+
+- Follow-up M2 hardening: `app/api/documents/upload/resumable/start/route.ts` now reads metadata requests through a 16 KiB bounded stream, validates declared Content-Length, requires a JSON object and returns client errors for malformed/oversized payloads. Added ERR-064 and updated roadmap/README. Source-only change; no tests run.
