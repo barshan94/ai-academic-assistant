@@ -1299,3 +1299,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Added a forced-colors media query that retains visible Highlight focus outlines, CanvasText panel/notice boundaries and system-color progress/status indicators without disabling the browser's automatic color adaptation.
 - Verification: Source/CSS and documentation change only. No browser, Windows High Contrast, keyboard, screen-reader or visual-regression testing was performed. Confirm all interactive states and information remain distinguishable during the dedicated acceptance phase.
 - Status: CSS affordance committed to `feature/m3-ai-solver`; accessibility acceptance remains open.
+
+
+## ERR-120 — Dashboard redirects did not inherit the private no-store cache policy
+
+- Date: 2026-11-01
+- Area: Middleware / private response caching
+- Symptom: Authenticated dashboard responses received `Cache-Control: private, no-store`, but middleware did not set the header until after successful authentication. Dashboard redirects for missing configuration or expired sessions could therefore leave the middleware without an explicit private no-store policy.
+- Root cause: The cache header was assigned only on the authenticated success path rather than before the authentication branch.
+- Fix: Middleware now sets `Cache-Control: private, no-store` on dashboard and API paths before authentication branching. Existing auth-response copying preserves the header across redirects.
+- Verification: Source change only. Browser/network acceptance for successful pages, API success/error responses, redirects, sign-out and account switching remains pending.
+- Status: Implemented on `feature/m3-ai-solver`; runtime verification deferred to the dedicated testing phase.
