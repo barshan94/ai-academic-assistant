@@ -822,3 +822,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Route the OCR conversion response through the shared 64 KiB bounded JSON reader, which enforces fatal UTF-8 decoding and a top-level JSON object before the temporary Drive file ID is used.
 - Verification: Source inspection only; malformed UTF-8, malformed JSON and oversized metadata cases remain deferred to the separate testing phase.
 - Status: Implemented on the feature branch; no tests, typecheck, build or live Drive request was run during implementation.
+
+
+## ERR-076 — Owner syllabus catalogs accepted impossible effective dates
+
+- Date: 2026-11-01
+- Area: M4 owner syllabus catalog / input validation
+- Symptom: Owner-managed syllabus catalogs limited effective-date strings to ten characters but did not verify their calendar validity, allowing impossible dates to be stored.
+- Root cause: The catalog form schema validated field length but not the actual YYYY-MM-DD date.
+- Fix: Apply the same strict UTC calendar-date validation used by reference syllabus administration while preserving empty optional dates.
+- Verification: Source inspection only; leap-year, invalid-day and month-boundary regression tests remain deferred to the separate testing phase.
+- Status: Implemented on the feature branch; no tests, typecheck or build were run during implementation.
