@@ -6,7 +6,7 @@ This document separates repository implementation from actions that require the 
 
 - [ ] Confirm the non-production Vercel deployment target and deploy only after the implementation branch is ready for the testing phase.
 - [x] Inventory the existing Supabase organization and projects. Reuse the existing Free-plan `academic-assistant` project as the non-production candidate; do not create another account or project by default.
-- [ ] Owner confirms `academic-assistant` is approved as the dedicated non-production target and that its existing schema may be reconciled. Do not reset it or apply hosted migrations until the complete ledger/schema plan is reviewed and approved. `durga-map` is excluded because it contains existing application data.
+- [x] Owner confirmed `academic-assistant` as the dedicated non-production reconciliation/testing target. Do not reset it or apply hosted migrations until the full migration plan is reviewed and separately approved. `durga-map` remains excluded because it contains existing application data.
 - [ ] Configure the server-side Supabase URL, publishable key and service-role key in the hosting provider. The service-role key must remain server-only.
 - [ ] Create a dedicated Google Cloud project and OAuth web client for non-production. Enable Drive API, allow only the intended test user, and register the exact HTTPS callback URL.
 - [ ] Confirm Google consent-screen publishing mode and refresh-token lifetime. Store the client secret and a stable 32-byte Drive token-encryption key in the hosting provider's secret store.
