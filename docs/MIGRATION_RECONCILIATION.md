@@ -2,13 +2,13 @@
 
 ## Snapshot
 
-Read-only comparison performed on 2026-11-01 between the `feature/m3-ai-solver` repository tree and the connected Supabase project's migration ledger.
+Read-only comparison performed on 2026-11-01 between the `feature/m3-ai-solver` repository tree and the connected Supabase project's migration ledger. Repository file counts below were refreshed at commit `c674d90e911f812fa35ee6f9355c86832e521c49`; the remote ledger count remains the earlier read-only snapshot and has not been refreshed.
 
-- Repository migration files: **94**
+- Repository migration files: **95**
 - Remote migration-ledger entries: **53**
 - Exact version-and-name matches: **51**
 - Remote entries whose version/name does not exactly match a repository filename: **2**
-- Repository migration files with no exact remote ledger entry: **43** (41 local-only versions plus the two renamed-version counterparts below)
+- Repository migration files with no exact remote ledger entry: **44** (42 local-only versions plus the two renamed-version counterparts below)
 
 This is a migration-history comparison only. It does not prove that the remote schema matches either migration sequence. No migration was applied, repaired, deleted, renamed or otherwise changed during this inspection.
 
@@ -67,6 +67,7 @@ The following repository migrations did not have exact version entries in the co
 20261101110000_make_manual_document_corrections_atomic
 20261101120000_enforce_private_syllabus_catalog_lifecycle
 20261101130000_restrict_document_registration_rpc
+20261101140000_tighten_uploaded_document_page_count
 ```
 
 These are not automatically safe to apply. Some may already be represented in the remote schema under a different version, some may be genuinely pending, and some may depend on prior schema state. The actual schema must be inspected before a migration plan is approved.
