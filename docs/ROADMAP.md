@@ -28,7 +28,7 @@ Implemented in code: Google Drive OAuth flow, encrypted refresh-token storage, P
 Implemented on feature/m3-ai-solver:
 - Structured exam answer schema and bilingual explanations.
 - OpenAI-compatible server-side provider adapter with bounded input/output and HTTPS enforcement.
-- Add an optional task-aware pool of up to eight OpenAI-compatible providers, filtered by answer/chapter-note capability and owner-defined priority. Fallback calls are disabled unless explicitly enabled; actual provider/model is retained in answer and note provenance.
+- Add an optional task-aware pool of up to eight OpenAI-compatible providers, filtered by answer/chapter-note capability and owner-defined priority. Fallback calls are disabled unless explicitly enabled; actual provider/model is retained in answer and note provenance. When explicitly enabled, fallback is restricted to network/timeout failures, malformed/empty provider responses, HTTP 408/425/429 and 5xx; permanent 4xx errors stop without a second paid request (ERR-132).
 - Add opt-in retrieval of up to three owner-approved chapter-note versions from the question's exact confirmed syllabus chapter. The prompt treats notes as secondary untrusted study context; immutable note IDs, versions and titles are stored with the answer and revalidated by a database trigger.
 - Add optional owner-initiated Brave web research. Only the manually entered query is sent; HTTPS result leads are stored privately with snippets and publication dates, clearly marked unverified, and protected by five-search/15-minute and 20-search/daily owner quotas.
 - Subject/qualification/board/chapter context passed into prompts; missing syllabus context is not guessed.
