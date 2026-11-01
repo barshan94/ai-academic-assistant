@@ -216,3 +216,6 @@ Mark scheme authoring now rejects serialized points JSON above 256 KiB before pa
 
 
 Stale document-processing recovery hardening (2026-11-01): after a stale processing job is conditionally marked failed, the route now also confirms that the owner-scoped parent document update actually affected a row before proceeding. This avoids treating a zero-row update as successful recovery and silently leaving job/document state inconsistent. See ERR-089; concurrency and recovery regression coverage remains deferred to the separate testing phase.
+
+
+Document-processing failure persistence hardening (2026-11-01): the OCR processing catch handler now verifies that both the owner-scoped parent document and active processing-job rows were actually updated before returning the persisted-failure status. A zero-row document update is treated as an unpersisted failure state. See ERR-090; failure-path regression coverage remains deferred to the separate testing phase.
