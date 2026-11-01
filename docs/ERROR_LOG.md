@@ -744,3 +744,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Added a shared bounded Google JSON response reader with strict UTF-8/object validation and a 64 KiB ceiling. Applied it to user OAuth refresh, background-worker OAuth refresh and legacy Drive upload metadata. Resumable chunk responses now use the same 64 KiB streamed cap; expected 308/404 responses remain body-free.
 - Verification: Source inspection only. No tests, typecheck, build, HTTP requests or live Google calls were run during implementation.
 - Status: Implemented on the feature branch; malformed/oversized upstream response tests and live integration verification are deferred to the separate testing phase.
+
+
+## ERR-069 — Decrypted resumable upload claims were trusted without structural validation
+
+- Date: 2026-11-01
+- Area: M2 resumable upload / session integrity
+- Symptom: The chunk route decrypted and parsed the upload-session token but trusted its JSON shape until individual fields happened to be used. A malformed or obsolete encrypted payload could reach the upload transport with invalid file metadata or an invalid session URI.
+- Root cause: Authenticated encryption established token integrity, but the route did not separately validate the decoded claim schema, expiry, file constraints and Google upload endpoint before use.
+- Fix: Validate the decrypted payload as a non-array object with a non-empty owner, canonical safe PDF filename, bounded positive file size, SHA-256 checksum, valid page-count range, unexpired safe-integer expiry and HTTPS Google Drive upload-session URI restricted to the expected upload endpoint path. The transport retains its independent URL validation.
+- Verification: Source inspection only; malformed-token, expiry and URL-boundary tests remain for the separate testing phase.
+- Status: Implemented on the feature branch; no test command, typecheck, build or live Drive request was run during implementation.
