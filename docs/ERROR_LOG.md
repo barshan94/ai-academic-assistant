@@ -1031,3 +1031,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Corrected the expression to use the JavaScript regex whitespace escape (`\s`) before constant-time secret comparison.
 - Verification: Source inspection only; valid, invalid, missing and unequal-length bearer credentials remain deferred to the dedicated testing phase.
 - Status: Implemented on `feature/m3-ai-solver`; tests, typecheck and build were not run during implementation.
+
+
+## ERR-096 — Google Drive OAuth requested incremental scopes but rejected expanded grants
+
+- Date: 2026-11-01
+- Area: Google Drive OAuth authorization
+- Symptom: The authorization request enabled incremental scope grants while the callback and Drive token reader required the stored grant to equal the single `drive.file` scope exactly. A user with other previously granted Google scopes could receive a combined grant and be rejected despite approving the requested Drive permission.
+- Root cause: The OAuth request's `include_granted_scopes=true` setting conflicted with the application's strict least-privilege scope invariant.
+- Fix: Removed the incremental-scope parameter. The flow now requests only the explicitly configured `drive.file` scope, consistent with callback validation and token-use checks.
+- Verification: Source inspection only; Google OAuth consent, scope response, reconnect and refresh-token preservation scenarios remain deferred to the dedicated testing/acceptance phase.
+- Status: Implemented on `feature/m3-ai-solver`; no tests, typecheck or build were run during implementation.
