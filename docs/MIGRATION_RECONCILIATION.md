@@ -2,13 +2,13 @@
 
 ## Snapshot
 
-Read-only comparison performed on 2026-11-01 between the `feature/m3-ai-solver` repository tree and the connected Supabase project's migration ledger. Repository file counts below were refreshed after adding the worker-queue fairness migration; the remote ledger count remains the earlier read-only snapshot and has not been refreshed.
+Read-only comparison performed on 2026-11-01 between the `feature/m3-ai-solver` repository tree and the connected Supabase project's migration ledger. Both the repository tree and hosted migration ledger were refreshed in the same read-only session on 2026-11-01.
 
 - Repository migration files: **96**
 - Remote migration-ledger entries: **53**
 - Exact version-and-name matches: **51**
 - Remote entries whose version/name does not exactly match a repository filename: **2**
-- Repository migration files with no exact remote ledger entry: **45** (43 local-only versions plus the two renamed-version counterparts below)
+- Repository migration files with no exact remote ledger entry: **45** (43 genuinely pending versions plus the two renamed-version counterparts below)
 
 This is a migration-history comparison only. It does not prove that the remote schema matches either migration sequence. No migration was applied, repaired, deleted, renamed or otherwise changed during this inspection.
 
@@ -139,3 +139,30 @@ A further read-only catalog audit was run against the connected `academic-assist
 - The `private` schema exists, but the connected schema does not contain the current server-only document-registration RPC. A private-schema existence check is not proof that expected private functions/tables are present.
 
 **Decision:** no hosted migration or grant change is authorized by this audit. Preserve the connected project as the existing non-production candidate, but do not point the current branch at it until the missing migration chain is reconciled and applied under an explicitly approved plan.
+
+
+## Detailed shared-reference migration object audit — 2026-11-01
+
+The two mismatched shared-reference migration pairs were inspected again using read-only catalog queries against the connected project.
+
+- All five expected tables exist: `platform_admins`, `reference_syllabus_catalogs`, `reference_syllabus_chapters`, `reference_syllabus_topics`, and `reference_syllabus_evidence`.
+- All 13 expected indexes from the two current repository migration files exist, including the three indexes added by the index migration.
+- All four expected functions exist: `is_platform_admin()`, `guard_reference_syllabus_catalog()`, `guard_reference_syllabus_structure()`, and `reject_reference_syllabus_evidence_mutation()`.
+- All four expected triggers exist: catalogue guard, chapter guard, topic guard, and append-only evidence guard.
+- All 12 expected RLS policies exist across those five tables.
+- The shared-reference catalogue, chapter, topic and evidence tables currently contain zero rows. The two Cambridge/Edexcel draft-seed migrations are therefore not represented by existing seed rows and remain pending.
+- The three trigger-only helper functions are invoker-security trigger functions, not SECURITY DEFINER functions. Their catalog EXECUTE privileges are still inherited from PostgreSQL's default PUBLIC grant (including anon/authenticated). Trigger-returning functions are not directly callable as ordinary PostgREST RPCs, but the grants are unnecessarily broad and should be revoked in a forward-only hardening migration.
+
+**Migration-history consequence:** object-level evidence strongly supports that the two shared-reference schema migrations have already been applied under the old hosted timestamps. It is still not proof that their function bodies, triggers, grants, constraints and seed side-effects are byte-for-byte/effect-for-effect equivalent to the repository versions. Do not execute the two current `CREATE TABLE` migrations against existing tables. A reviewed migration-history repair plan must account for the old ledger entries and the two replacement repository version identifiers without re-running their DDL.
+
+## Reconciled count and current execution plan
+
+- 96 repository migration files.
+- 53 hosted migration ledger entries.
+- 51 exact version/name matches.
+- 2 hosted-only version identifiers corresponding to the two renamed shared-reference migrations.
+- 45 repository files lack exact ledger entries: 2 renamed counterparts whose principal objects are present, plus **43 genuinely pending migration versions**.
+- The 43 pending versions must be reviewed and applied in chronological order after the two historical version mismatches are reconciled. The two seed migrations are included in this pending set.
+- The fresh isolated CI database has already applied the full current 96-file repository chain successfully, with the current pgTAP suite passing. That proves the repository chain can be replayed on a clean database, not that the hosted database is equivalent.
+
+No hosted migration or migration-ledger repair was performed. The target project remains dedicated to non-production reconciliation, as confirmed by the owner; actual hosted migration execution still requires a separately reviewed execution plan and explicit approval.
