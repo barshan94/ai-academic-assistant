@@ -40,8 +40,10 @@ timestamp="$(date -u +%Y%m%dT%H%M%SZ)"
 project_suffix="${BACKUP_PROJECT_REF:+-$BACKUP_PROJECT_REF}"
 archive="$backup_root/academic-assistant-$timestamp$project_suffix.tar.gz.age"
 workdir="$(mktemp -d "${TMPDIR:-/tmp}/academic-assistant-backup.XXXXXX")"
+backup_complete=0
 cleanup() {
   rm -rf "$workdir"
+  if [[ "$backup_complete" -ne 1 ]]; then rm -f "$archive"; fi
 }
 trap cleanup EXIT
 
@@ -76,6 +78,7 @@ tar -czf "$workdir/backup.tar.gz" -C "$workdir" roles.sql schema.sql data.sql ma
 age --recipient "$BACKUP_AGE_RECIPIENT" --output "$archive" "$workdir/backup.tar.gz"
 [[ -s "$archive" ]] || fail "Encrypted archive was not created."
 chmod 600 "$archive"
+backup_complete=1
 
 printf 'Encrypted backup created: %s\n' "$archive"
 printf 'Keep the matching age identity key separately. This archive excludes Auth users and Storage objects.\n'
