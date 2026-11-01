@@ -225,3 +225,6 @@ Background document-worker failure persistence hardening (2026-11-01): the cron 
 
 
 Practice answer routing hardening (2026-11-01): answer recording now verifies the owner-scoped relationship between the submitted practice item and practice set before invoking the answer RPC. Redirects and cache invalidation use the set ID returned by the database rather than trusting the submitted route identifier. See ERR-092; regression coverage remains deferred to the testing phase.
+
+
+Owner syllabus date validation correction (2026-11-01): fixed an over-escaped regular-expression digit pattern that rejected all valid YYYY-MM-DD inputs before calendar-date validation. The UTC round-trip still rejects impossible dates. See ERR-093; regression testing remains deferred to the dedicated testing phase.
