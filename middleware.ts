@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { copyResponsePolicyHeaders } from "@/lib/http/response-policy-headers";
+import { supabaseFetch } from "@/lib/supabase/fetch";
 
 function buildContentSecurityPolicy(nonce: string) {
   const scriptSources = ["'self'", "'nonce-" + nonce + "'", "'strict-dynamic'"];
@@ -116,6 +117,7 @@ export async function middleware(request: NextRequest) {
   }
 
   const supabase = createServerClient(supabaseUrl, supabasePublishableKey, {
+    global: { fetch: supabaseFetch },
     cookies: {
       getAll() {
         return request.cookies.getAll();
