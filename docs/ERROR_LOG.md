@@ -722,3 +722,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Centralized best-effort storage helpers, validate the stored session token and exact filename/size before reuse, discard malformed/mismatched entries, and allow the current upload to proceed if storage is unavailable. The UI already explains that resume persistence is conditional.
 - Verification: Source inspection only. No browser test or test command was run in the implementation phase.
 - Status: Implemented; storage-denied, malformed-entry and reload-resume scenarios remain for the separate testing phase.
+
+
+## ERR-067 — OCR worker buffered unbounded Google Drive responses
+
+- Date: 2026-11-01
+- Area: M2 document extraction / worker resource limits
+- Symptom: The background worker downloaded the archived PDF and OCR text with unbounded `arrayBuffer()` / `text()` calls. A malformed or unexpectedly large upstream response could allocate memory beyond the application's documented 50 MB upload limit, risking worker memory exhaustion.
+- Root cause: The upload path enforced a 50 MB limit, but the subsequent Drive download and OCR export path did not independently enforce response-size bounds.
+- Fix: Added streamed response readers with hard byte caps: 50 MB for the archived PDF, 10 MB for extracted OCR text, and 64 KiB for OCR conversion metadata. Content-Length is checked when supplied, while streamed byte counting remains authoritative when it is absent or inaccurate. OCR text decoding is strict UTF-8; temporary Drive OCR files remain deleted in the existing finally block.
+- Verification: Source inspection only; no tests, typecheck, build or worker invocation was run in the implementation phase.
+- Status: Implemented; bounded-stream edge cases and real Drive OCR acceptance remain for the separate testing phase.
