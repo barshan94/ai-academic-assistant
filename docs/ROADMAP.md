@@ -258,3 +258,6 @@ Verified syllabus provenance protection (2026-11-01): owner and shared-reference
 
 
 Document failure-state transaction hardening (2026-11-01): manual and background processing routes now use fail_document_processing to persist the document and job failure states together. The RPC validates owner/service-role authority, locks the running job and restricts stored error messages to an allow-list. See ERR-103. Migration application and failure/rollback/concurrency acceptance remain pending the dedicated testing and fixing phases.
+
+
+Worker retry-exhaustion recovery (2026-11-01): a stale running job that has exhausted max_attempts is now terminalized atomically with its document instead of remaining stuck in processing. The RPC rechecks the exact observed lease timestamp and the 15-minute staleness threshold under a row lock, so it cannot fail a newer claim. See ERR-104. Database migration application and stale-lease race acceptance remain pending the dedicated testing and fixing phases.
