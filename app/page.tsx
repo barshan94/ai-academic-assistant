@@ -1,10 +1,10 @@
 import Link from "next/link";
 
 const workspaceItems = [
-  { number: "01", title: "Question library", description: "Organise questions by board, qualification, subject and chapter.", status: "Planned" },
-  { number: "02", title: "Upload documents", description: "Prepare question images and PDFs for structured extraction.", status: "Planned" },
-  { number: "03", title: "Solutions & explanations", description: "Create exam-ready answers with Bengali and English teaching notes.", status: "Planned" },
-  { number: "04", title: "Chapter intelligence", description: "Build reusable notes, formula sheets and revision material.", status: "Planned" },
+  { number: "01", title: "Document intake", description: "Archive PDFs in Google Drive, extract page text and review OCR before use.", status: "In code" },
+  { number: "02", title: "Question solver", description: "Organise source-linked questions and draft structured answers with Bengali and English explanations.", status: "In code" },
+  { number: "03", title: "Syllabus & notes", description: "Classify by syllabus version, chapter and topic; create source-linked chapter notes.", status: "In code" },
+  { number: "04", title: "Exam preparation", description: "Track revision, build practice sets and plan weekly study sessions.", status: "In code" },
 ];
 
 const subjects = ["Physics", "Mathematics", "Further Pure Mathematics", "ICT", "Computer Science"];
@@ -29,7 +29,7 @@ export default function HomePage() {
         <p className="hero-copy">A focused workspace for teaching, solving and organising O Level, A Level, SSC and HSC academic material.</p>
         <div className="hero-actions">
           <a className="primary-action" href="#workspace">Explore workspace <span aria-hidden="true">↗</span></a>
-          <span className="build-note">Foundation build · Private sign-in now available</span>
+          <span className="build-note">Feature-branch preview · External integrations require setup</span>
         </div>
       </section>
 
@@ -61,7 +61,7 @@ export default function HomePage() {
 
       <footer className="footer">
         <span>Academic Assistant <span className="footer-muted">· Built for careful learning</span></span>
-        <span><Link href="/privacy">Privacy notice</Link> · Milestone 1 · Foundation</span>
+        <span><Link href="/privacy">Privacy notice</Link> · Private academic workspace</span>
       </footer>
     </main>
   );
