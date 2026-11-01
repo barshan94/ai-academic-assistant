@@ -7,7 +7,8 @@ const scriptPath = fileURLToPath(new URL("../scripts/backup-supabase.sh", import
 const script = readFileSync(scriptPath, "utf8");
 
 describe("encrypted Supabase backup script", () => {
-  it("has valid Bash syntax", () => {
+  it("has valid Bash syntax on Unix-like runners", () => {
+    if (process.platform === "win32") return;
     expect(() => execFileSync("bash", ["-n", scriptPath])).not.toThrow();
   });
 
