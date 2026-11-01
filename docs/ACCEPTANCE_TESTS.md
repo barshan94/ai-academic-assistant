@@ -3,7 +3,7 @@
 ## Foundation (M1)
 - [ ] Fresh install succeeds from documented steps.
 - [ ] Development server starts.
-- [x] Latest feature-branch CI on `1436fad6e78bd2026883c09fab75262bd4f36cfc`: lint, application/Playwright type checks, unit tests, production build and credential-free Chromium browser smoke tests all passed (Foundation run `41309812309`). The complete ordered migration chain and pgTAP suite also passed on a fresh isolated local Supabase database (Database run `41309812359`). Authenticated two-account Supabase acceptance remains separate and requires dedicated non-production credentials.
+- [x] Latest feature-branch CI on `a4846778d5e3364d879296e5467eb5e150a6e06b`: lint, application/Playwright type checks, unit tests (including worker-failure and AI-provider redaction regressions), production build and Chromium browser smoke tests all passed (Foundation run `41311258777`). The complete ordered migration chain and pgTAP suite also passed on a fresh isolated local Supabase database (Database run `41311258771`); secret scanning passed in `41311258770`. Authenticated two-account Supabase acceptance remains separate and requires dedicated non-production credentials.
 - [x] Protected routes redirect to login when authentication is not configured (Chromium smoke test).
 - [x] Baseline browser security response headers are configured; nonce-based CSP is now enforced by middleware on pages and API routes.
 - [ ] Browser acceptance confirms Next.js nonce propagation, auth refresh, Google OAuth navigation and configured provider connections work without unexpected CSP violations.
@@ -164,7 +164,7 @@
 
 - [ ] Resolve ERR-124: migrate or compatibly patch the ESLint/minimatch development toolchain so no installed minimatch version remains in the GHSA-g3hv-75wg-m249 affected range; then run the complete development dependency audit. Do not force a major-version override without compatibility evidence.
 
-- [x] AI provider HTTP and empty-response errors exclude upstream response bodies and provider-supplied messages from application errors; regression tests cover HTTP status-only errors and empty/error payload redaction (Foundation CI `41311063846`, commit `5140bcf110507739ac5d8c7bd9f46a2622eb29b1`). Live provider acceptance remains open.
+- [x] AI provider HTTP and empty-response errors exclude upstream response bodies and provider-supplied messages from application errors; regression tests cover HTTP status-only errors and empty/error payload redaction (Foundation CI `41311258777`, commit `a4846778d5e3364d879296e5467eb5e150a6e06b`). Live provider acceptance remains open.
 
 
 ## Privacy notice and data rights
@@ -194,7 +194,8 @@
 
 
 ## Private response caching
-- [ ] Confirm dashboard pages, API success responses, API errors and unauthenticated dashboard redirects return `Cache-Control: private, no-store`.
+- [x] Credential-free Chromium smoke test confirms an unauthenticated dashboard redirect and cross-site API 403 response retain `Cache-Control: private, no-store` and `X-Robots-Tag: noindex` (Foundation run `41311258777`, commit `a4846778d5e3364d879296e5467eb5e150a6e06b`).
+- [ ] Verify the same policy on every authenticated API success/error path and after live account switching in the deployed non-production environment.
 - [ ] Confirm no private academic response is reused after sign-out, account switching, back/forward navigation or browser cache restoration.
 
 
