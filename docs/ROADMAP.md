@@ -427,4 +427,4 @@ The multi-provider router now has a shared 60-second total deadline and caps eac
 
 ### ERR-149 — Global keyboard focus baseline
 
-A global `:focus-visible` outline now provides a consistent keyboard focus indicator. Chromium smoke coverage verifies the public landing-page skip link and its focus treatment. Full keyboard-only and assistive-technology acceptance remains open.
+The existing shared `:focus-visible` outline and skip-link styling now have Chromium regression coverage for the first keyboard stop, destination and visible outline. Full keyboard-only and assistive-technology acceptance remains open.
