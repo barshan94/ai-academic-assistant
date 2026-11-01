@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { encryptRefreshToken } from "@/lib/drive/crypto";
+import { logSafeOperationalEvent } from "@/lib/observability/safe-log";
 
 type GoogleTokenResponse = {
   refresh_token?: string;
@@ -40,7 +41,10 @@ export async function GET(request: NextRequest) {
   const clientId = process.env.GOOGLE_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
   const redirectUri = process.env.GOOGLE_DRIVE_REDIRECT_URI;
-  if (!clientId || !clientSecret || !redirectUri) return finish("/dashboard/documents", "not_configured");
+  if (!clientId || !clientSecret || !redirectUri) {
+    logSafeOperationalEvent("google_drive_oauth_failed", { route: "/api/drive/callback", errorCode: "DRIVE_OAUTH_NOT_CONFIGURED" });
+    return finish("/dashboard/documents", "not_configured");
+  }
 
   try {
     const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
@@ -58,11 +62,15 @@ export async function GET(request: NextRequest) {
     });
 
     const tokenData = await tokenResponse.json() as GoogleTokenResponse;
-    if (!tokenResponse.ok) return finish("/dashboard/documents", "token_exchange_failed");
+    if (!tokenResponse.ok) {
+      logSafeOperationalEvent("google_drive_oauth_failed", { route: "/api/drive/callback", errorCode: "DRIVE_TOKEN_EXCHANGE_REJECTED" });
+      return finish("/dashboard/documents", "token_exchange_failed");
+    }
 
     const requiredScope = "https://www.googleapis.com/auth/drive.file";
     const grantedScopes = (tokenData.scope ?? requiredScope).split(/\s+/).filter(Boolean);
     if (grantedScopes.length !== 1 || grantedScopes[0] !== requiredScope) {
+      logSafeOperationalEvent("google_drive_oauth_failed", { route: "/api/drive/callback", errorCode: "DRIVE_OAUTH_SCOPE_MISMATCH" });
       return finish("/dashboard/documents", "scope_mismatch");
     }
 
@@ -79,7 +87,10 @@ export async function GET(request: NextRequest) {
       encryptedToken = existing?.encrypted_refresh_token ?? null;
     }
 
-    if (!encryptedToken) return finish("/dashboard/documents", "missing_refresh_token");
+    if (!encryptedToken) {
+      logSafeOperationalEvent("google_drive_oauth_failed", { route: "/api/drive/callback", errorCode: "DRIVE_REFRESH_TOKEN_MISSING" });
+      return finish("/dashboard/documents", "missing_refresh_token");
+    }
 
     const { error } = await supabase.from("drive_connections").upsert({
       owner_id: user.id,
@@ -87,8 +98,13 @@ export async function GET(request: NextRequest) {
       granted_scope: requiredScope,
       updated_at: new Date().toISOString(),
     });
-    return finish("/dashboard/documents", error ? "save_failed" : "connected");
+    if (error) {
+      logSafeOperationalEvent("google_drive_oauth_failed", { route: "/api/drive/callback", errorCode: "DRIVE_CONNECTION_SAVE_FAILED" });
+      return finish("/dashboard/documents", "save_failed");
+    }
+    return finish("/dashboard/documents", "connected");
   } catch {
+    logSafeOperationalEvent("google_drive_oauth_failed", { route: "/api/drive/callback", errorCode: "DRIVE_OAUTH_CALLBACK_FAILED" });
     return finish("/dashboard/documents", "token_exchange_failed");
   }
 }
