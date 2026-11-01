@@ -124,3 +124,18 @@ A further read-only inspection of the connected `academic-assistant` project con
 - The security advisor returned no findings. The performance advisor returned 60 unused-index informational notices; with zero application rows these are not a reason to drop indexes.
 
 The connected project remains unsuitable as a fully accepted integration target until the complete schema/ledger comparison and missing forward migrations are resolved. No hosted SQL or migration history was changed.
+
+
+## Hosted privilege and function inventory — 2026-11-01
+
+A further read-only catalog audit was run against the connected `academic-assistant` project. This was an inventory, not an authorization acceptance test.
+
+- No direct `anon` table privileges were found in the `public` schema.
+- All 21 public base tables have RLS enabled. Authenticated table grants vary by table and are bounded by the listed RLS policies; RLS correctness and cross-account isolation still require two-account tests.
+- The connected public schema exposes no views.
+- The only public `SECURITY DEFINER` function found was `capture_question_classification_history()`; catalog privilege checks showed execute for `postgres` and `service_role`, but not `anon` or `authenticated`.
+- The connected public schema has 42 policies, all assigned to `authenticated`; this does not establish that they match the current repository's full migration chain.
+- The managed `storage` schema has its own platform grants and RLS policies. No Storage buckets exist, so application file-storage acceptance remains unperformed.
+- The `private` schema exists, but the connected schema does not contain the current server-only document-registration RPC. A private-schema existence check is not proof that expected private functions/tables are present.
+
+**Decision:** no hosted migration or grant change is authorized by this audit. Preserve the connected project as the existing non-production candidate, but do not point the current branch at it until the missing migration chain is reconciled and applied under an explicitly approved plan.
