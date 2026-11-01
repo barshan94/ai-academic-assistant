@@ -5,7 +5,7 @@ export async function readLimitedResponseText(response: Response, maxBytes: numb
 
   const declaredLength = response.headers.get("content-length");
   if (declaredLength !== null) {
-    if (!/^\\d+$/.test(declaredLength)) {
+    if (!/^\d+$/.test(declaredLength)) {
       await response.body?.cancel();
       throw new Error("INVALID_RESPONSE_LENGTH");
     }
