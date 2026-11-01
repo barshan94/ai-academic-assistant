@@ -175,12 +175,27 @@ export async function verifySyllabusCatalog(formData: FormData) {
   const catalogId = z.string().uuid().safeParse(String(formData.get("catalogId") ?? ""));
   if (!catalogId.success) redirect("/dashboard/syllabus?catalog=invalid");
   const { supabase, user } = await requireOwner();
+  const { data: catalog, error: catalogError } = await supabase.from("syllabus_catalogs")
+    .select("id,source_url,status").eq("id", catalogId.data)
+    .eq("owner_id", user.id).eq("status", "draft").maybeSingle();
+  if (catalogError || !catalog) redirect("/dashboard/syllabus?catalog=not_found");
+
+  let sourceIsValid = false;
+  try {
+    const source = new URL(catalog.source_url ?? "");
+    sourceIsValid = source.protocol === "https:" && Boolean(source.hostname) &&
+      !source.username && !source.password;
+  } catch {
+    sourceIsValid = false;
+  }
+  if (!sourceIsValid) redirect("/dashboard/syllabus?catalog=source_required");
+
   const { data, error } = await supabase.from("syllabus_catalogs").update({
     status: "verified",
     source_checked_at: new Date().toISOString(),
   }).eq("id", catalogId.data).eq("owner_id", user.id).eq("status", "draft")
-    .not("source_url", "is", null).select("id").maybeSingle();
-  if (error || !data) redirect("/dashboard/syllabus?catalog=source_required");
+    .select("id").maybeSingle();
+  if (error || !data) redirect("/dashboard/syllabus?catalog=verify_failed");
   revalidatePath("/dashboard/syllabus");
   revalidatePath("/dashboard/questions");
   redirect("/dashboard/syllabus?catalog=verified");
