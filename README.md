@@ -79,3 +79,6 @@ The branch's automated workflows may run automatically after commits, but this d
 
 
 Resumable-upload browser state is validated against the selected file and treated as best-effort: malformed or cross-account sessions are discarded, and a current upload can proceed when browser storage is unavailable. Reload-based resume still depends on browser storage being available.
+
+
+The document worker also enforces streamed response-size limits when downloading PDFs from Drive (50 MB), receiving OCR text (10 MB), and parsing OCR conversion metadata (64 KiB); this protects worker memory independently of the original upload checks.
