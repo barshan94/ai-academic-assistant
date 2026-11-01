@@ -1733,3 +1733,13 @@ ERR-073 closure reconciliation (2026-11-01): the earlier note that page and pare
 - Advisor findings: Security advisor returned no findings. Performance advisor returned 60 unused-index informational notices; no indexes were removed because the application tables are empty and these notices do not prove the indexes are unnecessary.
 - Verification: Read-only Supabase project, table, migration, SQL catalog, Edge Function and advisor inspections on 2026-11-01. No SQL mutation, migration, storage change, credential change or deployment was performed.
 - Status: Inventory recorded. Hosted schema/ledger reconciliation remains an open release blocker.
+
+
+## ERR-160 — Connected Supabase project lacks current server-only document registration boundary
+
+- Date: 2026-11-01
+- Area: Hosted database schema / authorization inventory
+- Finding: A fresh read-only catalog inspection confirms the connected `academic-assistant` project has no `public.register_uploaded_document(...)` RPC, and its `public.documents.page_count` check still allows every non-negative value rather than the repository's 1–50 non-null range. The public schema has 21 RLS-enabled base tables, 42 authenticated policies, no direct anon table grants and no views. The only public SECURITY DEFINER function is `capture_question_classification_history()`, executable only by postgres/service_role.
+- Risk: The current application expects a later migration state than the connected hosted schema. Deploying it against this project could cause upload registration failures and schema-contract mismatches. No migration was applied.
+- Verification: Read-only catalog queries on 2026-11-01; no data or schema mutation.
+- Status: Open. Requires full ordered migration reconciliation and explicit owner approval before hosted migration.
