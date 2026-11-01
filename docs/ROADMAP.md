@@ -318,3 +318,6 @@ Private-route indexing controls (2026-11-01): added `app/robots.ts` to disallow 
 
 
 Accessibility implementation note (2026-11-01): added a forced-colors mode that preserves visible keyboard focus and structural boundaries for major workspace panels and notices when the operating system enables high-contrast colors. This is a source-level affordance only; Windows High Contrast / forced-colors, keyboard, screen-reader and contrast acceptance remain outstanding (ERR-119).
+
+
+Private-response cache hardening (2026-11-01): middleware now applies `Cache-Control: private, no-store` to dashboard and API paths before authentication checks, so unauthenticated redirects and configuration/error branches inherit the same no-store policy as authenticated workspace responses. See ERR-120; verify headers on successful, redirected and error responses during browser/deployment acceptance.
