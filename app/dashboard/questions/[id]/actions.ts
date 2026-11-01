@@ -326,15 +326,12 @@ export async function revokeQuestionTeacherInvite(formData: FormData) {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) redirect("/login");
   const typedSupabase = supabase as unknown as SupabaseClient<DatabaseWithAISolutions>;
-  const { data: revokedInvite, error } = await typedSupabase.from("question_teacher_invites")
-    .update({ revoked_at: new Date().toISOString() })
-    .eq("id", inviteId.data)
-    .eq("question_id", questionId.data)
-    .eq("owner_id", user.id)
-    .is("revoked_at", null)
-    .select("id")
-    .maybeSingle();
-  if (error || !revokedInvite) redirect("/dashboard/questions/" + questionId.data + "?invite=revoke_failed");
+  const { data: revokedQuestionId, error } = await typedSupabase.rpc("revoke_question_teacher_invite", {
+    p_invite_id: inviteId.data,
+  });
+  if (error || !revokedQuestionId || revokedQuestionId !== questionId.data) {
+    redirect("/dashboard/questions/" + questionId.data + "?invite=revoke_failed");
+  }
   revalidatePath("/dashboard/questions/" + questionId.data);
   revalidatePath("/dashboard/teacher-invites");
   redirect("/dashboard/questions/" + questionId.data + "?invite=revoked");
