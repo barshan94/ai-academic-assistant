@@ -115,6 +115,10 @@ export async function generateChapterNoteDraft(formData: FormData) {
   const pageMap = new Map((pages ?? []).map((page) => [page.id, page]));
   const quota = await consumeAIGenerationQuota(supabase, "ai-chapter-note");
   if (quota !== "allowed") {
+    logSafeOperationalEvent(quota === "limited" ? "ai_generation_quota_exhausted" : "ai_generation_quota_unavailable", {
+      route: "/dashboard/chapters",
+      errorCode: quota === "limited" ? "CHAPTER_NOTE_QUOTA_REACHED" : "CHAPTER_NOTE_QUOTA_RPC_FAILED",
+    });
     redirect("/dashboard/chapters?ai=" + (quota === "limited" ? "rate_limited" : "rate_limit_unavailable"));
   }
 
