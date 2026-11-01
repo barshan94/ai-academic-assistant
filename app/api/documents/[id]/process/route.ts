@@ -144,18 +144,14 @@ export async function POST(request: NextRequest, context: RouteContext) {
   } catch {
     // Persist only a stable, owner-safe status message. Provider and database
     // exceptions can contain upstream details or sensitive document metadata.
-    const message = "Document processing failed. Review the source file and reconnect Google Drive if needed.";
     logSafeOperationalEvent("document_processing_failed", { route: "/api/documents/[id]/process", errorCode: "DOCUMENT_PROCESSING_FAILED" });
-    const [{ data: failedDocument, error: failedDocumentError }, { data: failedJob, error: failedJobError }] = await Promise.all([
-      supabase.from("documents").update({ status: "failed" })
-        .eq("id", id).eq("owner_id", user.id).select("id").maybeSingle(),
-      supabase.from("processing_jobs").update({
-        status: "failed",
-        error_code: "DOCUMENT_PROCESSING_FAILED",
-        error_message: message.slice(0, 500),
-      }).eq("id", job.id).eq("owner_id", user.id).eq("status", "running").select("id").maybeSingle(),
-    ]);
-    if (failedDocumentError || !failedDocument || failedJobError || !failedJob) {
+    const { data: failurePersisted, error: failureError } = await supabase.rpc("fail_document_processing", {
+      p_document_id: id,
+      p_owner_id: user.id,
+      p_job_id: job.id,
+      p_error_code: "DOCUMENT_PROCESSING_FAILED",
+    });
+    if (failureError || failurePersisted !== true) {
       return redirectToDocument(request, id, "failure_state_unpersisted");
     }
     return redirectToDocument(request, id, "processing_failed");
