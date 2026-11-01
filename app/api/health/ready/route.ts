@@ -94,7 +94,7 @@ async function hasLiveSupabaseConnection() {
     // study workflows so a partially migrated database cannot report ready.
     // These are zero-row HEAD requests; no academic content is returned.
     const results = await Promise.all(REQUIRED_READINESS_TABLES.map((table) =>
-      supabase.from(table).select("id", { head: true }).limit(1),
+      supabase.from(table).select("*", { head: true }).limit(1),
     ));
 
     return results.every(({ error }) => !error);
