@@ -48,6 +48,12 @@ The feature branch `feature/m3-ai-solver` now contains substantial M1–M7 appli
 - Latest commits: `5a58afd` workflow; `393c3a1` error log; `394736c` monitoring runbook; `333a76c` README; `340c17b` roadmap.
 - Not active until merged to the default branch and repository secrets `APP_BASE_URL` and `CRON_SECRET` are configured. A green readiness check does not validate Google Drive, AI generation, worker throughput, backups or user workflows.
 
+## Latest implementation checkpoint (2026-11-01, continued)
+- Strengthened `app/api/health/ready/route.ts`: readiness now probes `profiles`, `documents` and `processing_jobs` concurrently with bounded server-only HEAD queries. A reachable Supabase API with missing core document-processing tables no longer reports ready. No row data is returned.
+- Updated `docs/OPERATIONS_MONITORING.md`, `docs/ROADMAP.md`, `README.md` and added ERR-062 to `docs/ERROR_LOG.md`.
+- Latest commits: `56f3b8d` readiness core-table probes; `b46be40` monitor runbook; `9508bb5` roadmap; `220d161` README; `631af23` error log.
+- No test commands were run; runtime/migration-absence scenarios remain for the later testing phase.
+
 ## Current verified state
 - Supabase project is ACTIVE_HEALTHY on the Free plan.
 - GitHub repository is public by the owner's choice.
