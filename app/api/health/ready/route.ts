@@ -35,9 +35,10 @@ function hasValidDriveEncryptionKey() {
   return decoded.length === 32 && decoded.toString("base64") === encoded;
 }
 
-function hasAIProvider() {
+function hasAIProvidersForRequiredTasks() {
   try {
     getAIProviderConfigs("answer");
+    getAIProviderConfigs("chapter-note");
     return true;
   } catch {
     return false;
@@ -60,7 +61,7 @@ export async function GET(request: Request) {
     process.env.GOOGLE_CLIENT_SECRET?.trim() &&
     (process.env.CRON_SECRET?.length ?? 0) >= 32 &&
     hasValidDriveEncryptionKey() &&
-    hasAIProvider()
+    hasAIProvidersForRequiredTasks()
   );
 
   return NextResponse.json(
