@@ -20,7 +20,7 @@ The owner selected infrastructure constraint remains Supabase Free only. No paid
 ## 1. Application and release artifact
 
 - [ ] Freeze the implementation scope and publish a reviewed release candidate commit.
-- [x] Re-run lint, application/Playwright type-check, unit tests (including the newly discovered `tests/restore-auth-users.test.mjs`) and production build on `2e319d9ff169465f7f62d4059daf0f32d6dd1d9d`; GitHub Actions run `41309074463` reports the verification job successful. Chromium browser smoke job is still in progress; this does not close live integration or production acceptance.
+- [x] Re-run lint, application/Playwright type-check, unit tests (including `tests/restore-auth-users.test.mjs`), production build and Chromium browser smoke tests on `e04b2d23d450ed78a2ced8efaacf67653cc0d1ca`; GitHub Actions run `41309335030` reports both jobs successful. This does not close live integration or production acceptance.
 - [x] Complete automated lint, application/Playwright type-check, 155 unit tests across 30 files and production build on feature-branch commit `b929566a8d175ff1f3894da706ba64414e40ccf2` (GitHub Actions run `41306988899`). Live integration acceptance remains listed separately below.
 - [x] Complete credential-free Chromium smoke suite (9 passed / 1 skipped; authenticated flow is separate) on `b929566a8d175ff1f3894da706ba64414e40ccf2`.
 - [ ] Complete mobile responsive/accessibility acceptance.
