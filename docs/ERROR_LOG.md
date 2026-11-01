@@ -811,3 +811,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Parse year, month and day components and compare them with the UTC date components after construction. Reject normalized or impossible dates while continuing to allow empty optional dates.
 - Verification: Source inspection only; leap-year, month-boundary and invalid-day cases remain deferred to the separate testing phase.
 - Status: Implemented on the feature branch; no tests, typecheck or build were run during implementation.
+
+
+## ERR-075 — OCR conversion metadata bypassed strict JSON decoding
+
+- Date: 2026-11-01
+- Area: M2 Google Drive OCR / upstream response validation
+- Symptom: OCR conversion metadata was byte-bounded but parsed through Buffer UTF-8 replacement decoding and JSON.parse directly, unlike the shared strict Google JSON response helper.
+- Root cause: The OCR conversion path retained its earlier parser after the common bounded JSON helper was introduced.
+- Fix: Route the OCR conversion response through the shared 64 KiB bounded JSON reader, which enforces fatal UTF-8 decoding and a top-level JSON object before the temporary Drive file ID is used.
+- Verification: Source inspection only; malformed UTF-8, malformed JSON and oversized metadata cases remain deferred to the separate testing phase.
+- Status: Implemented on the feature branch; no tests, typecheck, build or live Drive request was run during implementation.
