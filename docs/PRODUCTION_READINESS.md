@@ -142,4 +142,4 @@ The owner-selected infrastructure constraint remains Supabase Free only. No paid
 
 ## Honest status
 
-The source-level production preflight and release documentation are implemented. Production readiness itself is **not complete** because migrations are unapplied, runtime acceptance has not been run, external services are not configured/verified, full Auth recovery is unresolved under the current backup scope, and security/accessibility/performance acceptance remains outstanding.
+The source-level production preflight, Auth account recovery path and release documentation are implemented. Production readiness itself is **not complete** because migrations are unapplied, runtime acceptance and the isolated Auth/data restore drill have not been run, external services are not configured/verified, and security/accessibility/performance acceptance remains outstanding.
