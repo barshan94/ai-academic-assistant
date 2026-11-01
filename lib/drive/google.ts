@@ -178,7 +178,7 @@ export async function extractTextFromDrivePdf(input: {
 }) {
   const sourceResponse = await fetch(
     "https://www.googleapis.com/drive/v3/files/" + encodeURIComponent(input.driveFileId) + "?alt=media",
-    { headers: { Authorization: "Bearer " + input.accessToken }, cache: "no-store", signal: AbortSignal.timeout(30_000) },
+    { headers: { Authorization: "Bearer " + input.accessToken }, cache: "no-store", signal: AbortSignal.timeout(30_000), redirect: "error" },
   );
   if (!sourceResponse.ok) {
     await sourceResponse.body?.cancel().catch(() => {});
@@ -224,7 +224,7 @@ export async function extractTextFromDrivePdf(input: {
   try {
     const exportResponse = await fetch(
       "https://www.googleapis.com/drive/v3/files/" + encodeURIComponent(converted.id) + "/export?mimeType=text%2Fplain",
-      { headers: { Authorization: "Bearer " + input.accessToken }, cache: "no-store", signal: AbortSignal.timeout(20_000) },
+      { headers: { Authorization: "Bearer " + input.accessToken }, cache: "no-store", signal: AbortSignal.timeout(20_000), redirect: "error" },
     );
     if (!exportResponse.ok) {
       await exportResponse.body?.cancel().catch(() => {});
