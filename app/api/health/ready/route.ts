@@ -16,11 +16,12 @@ function authorized(request: Request) {
 function hasValidSupabaseUrl() {
   try {
     const url = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "");
-    return url.protocol === "https:" || (
-      process.env.NODE_ENV !== "production" &&
+    const secureProtocol = url.protocol === "https:";
+    const localDevelopmentUrl = process.env.NODE_ENV !== "production" &&
       url.protocol === "http:" &&
-      (url.hostname === "localhost" || url.hostname === "127.0.0.1")
-    );
+      (url.hostname === "localhost" || url.hostname === "127.0.0.1");
+    return (secureProtocol || localDevelopmentUrl) &&
+      !url.username && !url.password && !url.search && !url.hash && url.pathname === "/";
   } catch {
     return false;
   }
