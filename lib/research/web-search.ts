@@ -66,6 +66,7 @@ export async function searchWebSources(
       },
       cache: "no-store",
       signal: AbortSignal.timeout(12_000),
+      redirect: "error",
     });
   } catch {
     throw new WebResearchProviderError("WEB_RESEARCH_UNAVAILABLE");
