@@ -155,6 +155,10 @@ export async function createReferenceChapter(formData: FormData) {
   if (!parsed.success) redirect("/dashboard/syllabus/references/manage?result=invalid");
   const supabase = await requirePlatformAdmin();
   const value = parsed.data;
+  const { data: catalog, error: catalogError } = await supabase.from("reference_syllabus_catalogs")
+    .select("id,status").eq("id", value.catalogId).maybeSingle();
+  if (catalogError || !catalog) redirect("/dashboard/syllabus/references/manage?result=not_found");
+  if (catalog.status !== "draft") redirect("/dashboard/syllabus/references/manage?result=catalog_locked");
   const { error } = await supabase.from("reference_syllabus_chapters").insert({
     catalog_id: value.catalogId,
     title: value.title,
@@ -179,6 +183,10 @@ export async function createReferenceTopic(formData: FormData) {
   const { data: chapter } = await supabase.from("reference_syllabus_chapters")
     .select("id,catalog_id").eq("id", value.chapterId).maybeSingle();
   if (!chapter) redirect("/dashboard/syllabus/references/manage?result=not_found");
+  const { data: catalog } = await supabase.from("reference_syllabus_catalogs")
+    .select("status").eq("id", chapter.catalog_id).maybeSingle();
+  if (!catalog) redirect("/dashboard/syllabus/references/manage?result=not_found");
+  if (catalog.status !== "draft") redirect("/dashboard/syllabus/references/manage?result=catalog_locked");
   const { error } = await supabase.from("reference_syllabus_topics").insert({
     chapter_id: value.chapterId,
     title: value.title,
@@ -211,6 +219,14 @@ export async function addReferenceEvidence(formData: FormData) {
     .maybeSingle();
   if (chapterError || !chapter) {
     redirect("/dashboard/syllabus/references/manage?result=evidence_invalid");
+  }
+  const { data: catalog, error: catalogError } = await supabase.from("reference_syllabus_catalogs")
+    .select("status").eq("id", value.catalogId).maybeSingle();
+  if (catalogError || !catalog) {
+    redirect("/dashboard/syllabus/references/manage?result=evidence_invalid");
+  }
+  if (catalog.status !== "draft") {
+    redirect("/dashboard/syllabus/references/manage?result=catalog_locked");
   }
 
   if (value.topicId) {
