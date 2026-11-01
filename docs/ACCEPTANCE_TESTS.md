@@ -3,7 +3,7 @@
 ## Foundation (M1)
 - [ ] Fresh install succeeds from documented steps.
 - [ ] Development server starts.
-- [x] Latest feature-branch CI on `a4846778d5e3364d879296e5467eb5e150a6e06b`: lint, application/Playwright type checks, unit tests (including worker-failure and AI-provider redaction regressions), production build and Chromium browser smoke tests all passed (Foundation run `41311258777`). The complete ordered migration chain and pgTAP suite also passed on a fresh isolated local Supabase database (Database run `41311258771`); secret scanning passed in `41311258770`. Authenticated two-account Supabase acceptance remains separate and requires dedicated non-production credentials.
+- [x] Latest feature-branch CI on `443db3ed22bdb3c2086d1ba476b82a33eb870885`: lint, application/Playwright type checks, unit tests (including worker/provider redaction and middleware auth-refresh regressions), production build and Chromium browser smoke tests all passed (Foundation run `41312165056`). The complete ordered migration chain and pgTAP suite also passed on a fresh isolated local Supabase database (Database run `41312165137`); secret scanning passed in `41312165107`. Authenticated two-account Supabase acceptance remains separate and requires dedicated non-production credentials.
 - [x] Protected routes redirect to login when authentication is not configured (Chromium smoke test).
 - [x] Baseline browser security response headers are configured; nonce-based CSP is now enforced by middleware on pages and API routes.
 - [ ] Browser acceptance confirms Next.js nonce propagation, auth refresh, Google OAuth navigation and configured provider connections work without unexpected CSP violations.
@@ -164,7 +164,7 @@
 
 - [ ] Resolve ERR-124: migrate or compatibly patch the ESLint/minimatch development toolchain so no installed minimatch version remains in the GHSA-g3hv-75wg-m249 affected range; then run the complete development dependency audit. Do not force a major-version override without compatibility evidence.
 
-- [x] AI provider HTTP and empty-response errors exclude upstream response bodies and provider-supplied messages from application errors; regression tests cover HTTP status-only errors and empty/error payload redaction (Foundation CI `41311258777`, commit `a4846778d5e3364d879296e5467eb5e150a6e06b`). Live provider acceptance remains open.
+- [x] AI provider HTTP and empty-response errors exclude upstream response bodies and provider-supplied messages from application errors; regression tests cover HTTP status-only errors and empty/error payload redaction (Foundation CI `41312165056`, commit `443db3ed22bdb3c2086d1ba476b82a33eb870885`). Live provider acceptance remains open.
 
 
 ## Privacy notice and data rights
@@ -201,9 +201,9 @@
 
 ## Middleware response-policy preservation (ERR-121)
 - [x] Add isolated unit regression tests for copying cache, CSP and crawler policy headers without copying unrelated headers (`lib/http/response-policy-headers.test.ts`).
-- [ ] Trigger a Supabase auth-cookie refresh on a dashboard request and confirm the resulting response retains the request CSP, `Cache-Control: private, no-store` and `X-Robots-Tag: noindex, nofollow, noarchive`.
-- [ ] Repeat with an expired/invalid session that redirects to sign-in; confirm all applicable response policy headers survive the redirect and refreshed-cookie handling.
-- [ ] Confirm refreshed auth cookies are still emitted with their original options and the request continues with the updated cookie header.
+- [x] Simulated Supabase `setAll` auth-cookie refresh on a dashboard request retains CSP, `Cache-Control: private, no-store` and `X-Robots-Tag: noindex, nofollow, noarchive` (`tests/middleware-auth-refresh.test.ts`; Foundation run `41312165056`).
+- [x] Simulated expired-session redirect preserves the applicable response policy headers and refreshed cookie (`tests/middleware-auth-refresh.test.ts`; same run).
+- [x] Verify refreshed cookie `HttpOnly`/`Secure` options and updated downstream request cookie header are retained in the middleware refresh path (same run). Live Supabase refresh remains a separate integration check.
 
 
 ## Bounded upstream HTTP response reader (ERR-122)

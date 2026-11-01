@@ -1319,8 +1319,8 @@ This file records material implementation, CI, integration and release problems 
 - Symptom: When Supabase refreshed authentication cookies during the dashboard middleware request, the cookie callback rebuilt the NextResponse. The replacement response could lose headers assigned before authentication, including the private no-store cache policy and no-index crawler directive.
 - Root cause: The response-recreation path copied the CSP by construction but did not carry forward the other response policy headers already applied to the original response.
 - Fix: Added one shared response-policy header copier and invoke it whenever the middleware rebuilds its response for refreshed auth cookies. Redirect handling uses the same helper, keeping cache, CSP and crawler policy handling consistent.
-- Verification: Extracted the response-policy copier into `lib/http/response-policy-headers.ts` and added unit regression coverage for cache, CSP, crawler and non-policy header behavior. Tests have not been executed. Browser auth-refresh success/redirect simulation and cookie-option preservation remain for the dedicated testing phase.
-- Status: Implemented on `feature/m3-ai-solver`; runtime verification remains deferred.
+- Verification: `lib/http/response-policy-headers.test.ts` and `tests/middleware-auth-refresh.test.ts` passed in Foundation run `41312165056` on commit `443db3ed22bdb3c2086d1ba476b82a33eb870885`. The middleware test simulates Supabase `setAll` on authenticated and expired-session paths and verifies CSP/cache/crawler headers, refreshed cookie attributes, and the updated downstream request cookie. A real Supabase session refresh remains an integration check.
+- Status: Unit and middleware-simulation regressions verified; live Supabase refresh acceptance remains open.
 
 
 ## ERR-122 — Bounded HTTP response reader rejected numeric Content-Length headers
@@ -1330,8 +1330,8 @@ This file records material implementation, CI, integration and release problems 
 - Symptom: Responses carrying an ordinary numeric `Content-Length` header were rejected as invalid before their bodies could be read. This affected bounded response handling for upstream Google and AI HTTP calls.
 - Root cause: The decimal-digit regular expression was double-escaped in a regular-expression literal, so it matched a literal backslash followed by `d` rather than one or more digits.
 - Fix: Corrected the expression to accept decimal digits while retaining the existing invalid-length and maximum-byte checks. Added focused regression coverage for numeric, malformed, oversized and absent content-length headers.
-- Verification: Not run in the implementation phase. The new regression tests are authored but must be executed in the later testing phase.
-- Status: Source fix and regression tests committed; runtime verification pending.
+- Verification: `tests/read-limited-response.test.ts` passed in Foundation run `41312165056` on commit `443db3ed22bdb3c2086d1ba476b82a33eb870885`, alongside the complete unit suite and production build. Live upstream Google/AI response behavior remains a separate integration check.
+- Status: Unit regression coverage verified; live provider integration remains open.
 
 
 ## ERR-123 — Resumable upload page-count invariant differs from database registration
@@ -1690,5 +1690,5 @@ ERR-073 closure reconciliation (2026-11-01): the earlier note that page and pare
 - Symptom: The worker correctly persisted a failed job and returned a JSON payload with `failed: true`, but used HTTP 200. The GitHub Actions scheduler therefore treated an OCR/provider/database processing failure as a successful invocation.
 - Root cause: The route conflated successful handling/persistence of a failure with successful document processing.
 - Fix: After `fail_document_processing` confirms that the failed state was persisted, the route now returns HTTP 500 with a sanitized error payload. The durable job remains eligible for a later scheduled retry within its attempt budget; no sensitive upstream error is returned.
-- Verification: The sanitized HTTP 500 response helper and redaction regression tests passed in Foundation run `41311258777` on commit `a4846778d5e3364d879296e5467eb5e150a6e06b`; lint, type-check, unit tests, production build and Chromium smoke tests all passed. Live non-production worker acceptance must still confirm that GitHub Actions marks a persisted processing failure as failed and that a later invocation retries within the attempt budget.
+- Verification: The sanitized HTTP 500 response helper and redaction regression tests passed in Foundation run `41312165056` on commit `443db3ed22bdb3c2086d1ba476b82a33eb870885`; lint, type-check, unit tests, production build and Chromium smoke tests all passed. Live non-production worker acceptance must still confirm that GitHub Actions marks a persisted processing failure as failed and that a later invocation retries within the attempt budget.
 - Status: Source fix and automated regressions verified; live worker acceptance remains open.
