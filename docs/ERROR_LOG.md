@@ -1382,3 +1382,12 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Reject nested formula groups that contain no elements before applying their multiplier.
 - Regression coverage: Added an empty-group case to \`tests/chemistry-check.test.ts\`. Tests are authored but not executed.
 - Status: Source fix committed; regression test remains pending the testing phase.
+
+## ERR-128 — Chemistry atom-count checker accepted unknown element symbols
+- Date: 2026-11-01
+- Area: Deterministic chemistry equation checks
+- Symptom: The formula tokenizer accepted any one- or two-letter capitalized token as an element, including symbols that are not on the periodic table. Such a typo could receive a misleading balanced result.
+- Root cause: Formula tokenization validated capitalization and token length but did not validate the symbol against the supported element set.
+- Fix: Validate parsed symbols against the 118 recognized chemical element symbols. Unsupported or unknown symbols now produce an uncheckable result.
+- Regression coverage: Added an unknown-symbol equation to \`tests/chemistry-check.test.ts\`. Tests are authored but not executed.
+- Status: Source fix committed; regression test remains pending the testing phase.
