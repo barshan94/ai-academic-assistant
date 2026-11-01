@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 
-import { readFile } from "node:fs/promises";
+import { readFile, stat } from "node:fs/promises";
 
 const MAX_BACKUP_BYTES = 10 * 1024 * 1024;
 const MAX_USERS = 1000;
 const UUID_V4 = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const BCRYPT_HASH = /^\$2[aby]\$\d{2}\$[./A-Za-z0-9]{53}$/;
-const ARGON2_HASH = /^\$argon2(id|i|d)\$[A-Za-z0-9$=+/._-]{20,}$/;
+const ARGON2_HASH = /^\$argon2(id|i|d)\$[A-Za-z0-9$=+,/._-]{20,}$/;
 
 function fail(message) {
   process.stderr.write(`Auth restore failed: ${message}\n`);
@@ -71,10 +71,26 @@ function remainingBanDuration(bannedUntil) {
 }
 
 async function readJsonResponse(response) {
-  const text = await response.text();
-  if (text.length > 256 * 1024) throw new Error("Auth API response exceeded the 256 KiB safety limit.");
+  if (!response.body) return null;
+  const reader = response.body.getReader();
+  const chunks = [];
+  let total = 0;
   try {
-    return text ? JSON.parse(text) : null;
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > 256 * 1024) {
+        await reader.cancel().catch(() => {});
+        throw new Error("Auth API response exceeded the 256 KiB safety limit.");
+      }
+      chunks.push(Buffer.from(value));
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  try {
+    return chunks.length ? JSON.parse(Buffer.concat(chunks).toString("utf8")) : null;
   } catch {
     throw new Error("Auth API returned invalid JSON.");
   }
@@ -94,8 +110,9 @@ async function main() {
   }
   if (serviceKey.length < 32) throw new Error("SUPABASE_SERVICE_ROLE_KEY is missing or malformed.");
 
+  const backupStat = await stat(backupPath);
+  if (!backupStat.isFile() || backupStat.size > MAX_BACKUP_BYTES) throw new Error("Auth backup must be a regular file no larger than 10 MiB.");
   const bytes = await readFile(backupPath);
-  if (bytes.byteLength > MAX_BACKUP_BYTES) throw new Error("Auth backup exceeds the 10 MiB safety limit.");
   let parsed;
   try {
     parsed = JSON.parse(bytes.toString("utf8"));
