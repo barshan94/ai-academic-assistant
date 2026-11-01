@@ -26,7 +26,12 @@ function mockAuthRefresh(claims: Record<string, unknown> | null, error: Error | 
         value: "refreshed-session",
         options: { httpOnly: true, secure: true, sameSite: "lax", path: "/", maxAge: 3600 },
       } satisfies CookieToSet],
-      { "x-auth-refresh-test": "preserved" },
+      {
+        "x-auth-refresh-test": "preserved",
+        "cache-control": "public, max-age=3600",
+        "content-security-policy": "default-src *",
+        "x-robots-tag": "index, follow",
+      },
     );
     return {
       auth: {
@@ -59,6 +64,10 @@ describe("middleware auth-refresh response policy", () => {
     expect(response.headers.get("X-Robots-Tag")).toBe("noindex, nofollow, noarchive");
     expect(response.headers.get("Content-Security-Policy")).toContain("nonce-");
     expect(response.headers.get("x-auth-refresh-test")).toBe("preserved");
+    expect(response.headers.get("Cache-Control")).toBe("private, no-store");
+    expect(response.headers.get("X-Robots-Tag")).toBe("noindex, nofollow, noarchive");
+    expect(response.headers.get("Content-Security-Policy")).toContain("nonce-");
+    expect(response.headers.get("Content-Security-Policy")).not.toBe("default-src *");
     expect(response.cookies.get("sb-access-token")?.value).toBe("refreshed-session");
     expect(response.cookies.get("sb-access-token")?.httpOnly).toBe(true);
     expect(response.cookies.get("sb-access-token")?.secure).toBe(true);
