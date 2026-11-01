@@ -538,3 +538,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Emit `google_drive_oauth_failed` with a stable error code and fixed route label for configuration, token-exchange, scope-mismatch, missing-refresh-token, persistence and unexpected callback failures. No OAuth code, provider response, token, user ID or exception detail is logged.
 - Verification: Source and documentation review only. No OAuth flow, live Google credentials or log pipeline was exercised in this implementation phase.
 - Status: Redacted event instrumentation committed; OAuth acceptance and monitoring configuration remain pending.
+
+
+## ERR-050 — CI workflows used movable action tags and retained a privileged one-time workflow
+
+- Date: 2026-11-01
+- Area: M8 CI supply-chain security
+- Symptom: Several workflows referenced third-party GitHub Actions by mutable major-version tags. A completed one-time migration-generation workflow retained `contents: write` permission and credential persistence.
+- Root cause: Workflow setup prioritized convenience and did not remove the temporary write-enabled helper after its migration was generated.
+- Fix: Pin checkout, setup-node, Supabase CLI setup and Gitleaks actions to immutable commit SHAs. Remove the one-time migration-generation workflow and its unnecessary repository write permission.
+- Verification: Workflow source review only. No workflow was dispatched or re-run in this implementation phase.
+- Status: CI configuration hardened; normal workflow execution and action compatibility remain for the separate testing phase.
