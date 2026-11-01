@@ -1000,3 +1000,13 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Resolve the item through the owner-scoped item/set relationship before invoking the RPC, then use the database-returned set ID for all redirects and revalidation.
 - Verification: Source inspection only; mismatched IDs, inaccessible items and successful answer recording remain deferred to the separate testing phase.
 - Status: Implemented on the feature branch; no tests, typecheck or build were run during implementation.
+
+
+## ERR-093 — Owner syllabus date validation used an over-escaped digit pattern
+- Date: 2026-11-01
+- Area: Syllabus catalog creation / date validation
+- Symptom: Valid owner-entered effective dates in YYYY-MM-DD format were rejected before the database insert.
+- Root cause: The JavaScript regular-expression literal contained doubled backslashes, so `\\d` matched a literal backslash-plus-d rather than a digit.
+- Fix: Corrected the date-shape expression to use the digit character class escape `\d` while retaining the UTC round-trip check that rejects impossible calendar dates.
+- Verification: Source inspected and corrected on `feature/m3-ai-solver`; tests remain deferred to the dedicated testing phase.
+- Status: Implementation fixed; regression verification pending.
