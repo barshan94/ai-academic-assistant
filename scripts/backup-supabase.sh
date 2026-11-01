@@ -72,7 +72,7 @@ select json_build_object(
       'aud', u.aud,
       'role', u.role,
       'email', u.email,
-      'phone', u.phone,
+      'phone', nullif(u.phone, ''),
       'password_hash', nullif(u.encrypted_password, ''),
       'email_confirm', u.email_confirmed_at is not null,
       'phone_confirm', u.phone_confirmed_at is not null,
