@@ -63,3 +63,6 @@ Anyone can read source code and documentation. Public visibility does not expose
 
 
 - Private dashboard and API paths receive `Cache-Control: private, no-store` at middleware entry, before authentication branching. This includes dashboard redirects and prevents shared/browser caches from retaining private workspace/API responses; route-level data authorization remains mandatory.
+
+
+Middleware response recreation: when Supabase refreshes auth cookies, the replacement response explicitly inherits the existing `Cache-Control`, `Expires`, `Pragma`, CSP and `X-Robots-Tag` policy headers. This prevents cookie refresh from silently dropping private-response or crawler directives (ERR-121); verify in the browser acceptance phase.
