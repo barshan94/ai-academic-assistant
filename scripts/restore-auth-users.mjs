@@ -21,6 +21,9 @@ function validateBackup(value) {
   if (!isRecord(value) || value.formatVersion !== 1 || !Array.isArray(value.users)) {
     throw new Error("Backup must use formatVersion 1 and contain a users array.");
   }
+  if (typeof value.projectRef !== "string" || !/^[a-z0-9-]{5,40}$/.test(value.projectRef)) {
+    throw new Error("Auth backup is missing its source project reference.");
+  }
   if (value.users.length > MAX_USERS) throw new Error("Backup exceeds the 1,000-account safety limit.");
 
   const ids = new Set();
@@ -102,11 +105,16 @@ async function main() {
 
   const projectUrl = process.env.SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!projectUrl || !serviceKey) throw new Error("Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in the trusted shell environment.");
+  const targetProjectRef = process.env.RESTORE_TARGET_PROJECT_REF;
+  if (!projectUrl || !serviceKey || !targetProjectRef) {
+    throw new Error("Set SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY and RESTORE_TARGET_PROJECT_REF in the trusted shell environment.");
+  }
+  if (!/^[a-z0-9-]{5,40}$/.test(targetProjectRef)) throw new Error("RESTORE_TARGET_PROJECT_REF is malformed.");
 
   const url = new URL(projectUrl);
-  if (url.protocol !== "https:" || url.username || url.password || url.pathname !== "/" || url.search || url.hash) {
-    throw new Error("SUPABASE_URL must be a clean HTTPS project origin.");
+  if (url.protocol !== "https:" || url.username || url.password || url.pathname !== "/" || url.search || url.hash ||
+      url.hostname !== targetProjectRef + ".supabase.co") {
+    throw new Error("SUPABASE_URL must be the clean HTTPS origin for RESTORE_TARGET_PROJECT_REF.");
   }
   if (serviceKey.length < 32) throw new Error("SUPABASE_SERVICE_ROLE_KEY is missing or malformed.");
 
@@ -120,6 +128,9 @@ async function main() {
     throw new Error("Auth backup is not valid UTF-8 JSON.");
   }
   const users = validateBackup(parsed);
+  if (parsed.projectRef === targetProjectRef) {
+    throw new Error("Refusing to restore Auth accounts back into the source project.");
+  }
   if (users.length === 0) {
     process.stdout.write("The backup contains no active email/password accounts.\n");
     return;
