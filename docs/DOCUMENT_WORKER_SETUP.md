@@ -34,3 +34,12 @@ Do not put these values in source files, workflow YAML, issue comments, or logs.
 - A failed workflow run means the endpoint was unavailable or rejected the invocation; inspect the Actions job without exposing secrets.
 - Use `workflow_dispatch` to trigger a controlled manual run after verifying the target environment and queue.
 - Live processing acceptance still requires a non-production Google Drive connection and Supabase test project. This workflow file alone does not prove that the secrets are configured or that OCR succeeds.
+
+
+## Manual recovery and state transitions
+
+The document detail action is owner-authenticated. For a fresh running lease it refuses to start a second processor. For a stale running job with retry budget remaining, it calls the same atomic claim RPC as the scheduled worker: the database rechecks the exact observed status, attempt count and `started_at`, enforces the 15-minute threshold, increments the attempt, and moves the parent document to processing in one transaction. It does not first mark the job failed and then issue a second claim.
+
+If the stale job has exhausted its retry budget, the manual action uses `recover_stale_document_processing_job` to mark both the job and document failed in one transaction. No further attempt is started.
+
+Manual OCR corrections use `save_document_page_correction`, which locks the job, document and page in a consistent order and saves the corrected page plus the document's `review_required` state atomically. Corrections are refused while a worker is actively processing the document.
