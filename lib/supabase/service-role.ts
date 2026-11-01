@@ -17,5 +17,8 @@ export function createSupabaseServiceRoleClient() {
       persistSession: false,
       detectSessionInUrl: false,
     },
+    global: {
+      fetch: (input, init) => fetch(input, { ...init, redirect: "error" }),
+    },
   });
 }
