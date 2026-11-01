@@ -199,5 +199,7 @@ Question review actions now validate UUID identifiers and confirm that an owner-
 
 Reference syllabus evidence creation now confirms the selected chapter belongs to the selected catalog and any selected topic belongs to that chapter, preventing cross-catalog evidence associations. See ERR-080; regression coverage remains deferred to the testing phase.
 
+Reference syllabus catalogs now enforce chronological effective-date ranges, and JSON syllabus imports reject HTTPS source URLs with embedded credentials. See ERR-081 and ERR-082; regression coverage remains deferred to the testing phase.
+
 
 Owner and reference syllabus evidence URL validation now rejects embedded URL credentials in addition to requiring HTTPS, preventing deceptive links whose user-info prefix can be mistaken for the destination host. See ERR-077; URL-boundary regression testing remains deferred.
