@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { copyResponsePolicyHeaders } from "@/lib/http/response-policy-headers";
 
 function buildContentSecurityPolicy(nonce: string) {
   const scriptSources = ["'self'", "'nonce-" + nonce + "'", "'strict-dynamic'"];
@@ -70,21 +71,6 @@ function createSecureNextResponse(requestHeaders: Headers, contentSecurityPolicy
   const response = NextResponse.next({ request: { headers: requestHeaders } });
   response.headers.set("Content-Security-Policy", contentSecurityPolicy);
   return response;
-}
-
-const RESPONSE_POLICY_HEADERS = [
-  "Cache-Control",
-  "Expires",
-  "Pragma",
-  "Content-Security-Policy",
-  "X-Robots-Tag",
-] as const;
-
-function copyResponsePolicyHeaders(source: NextResponse, destination: NextResponse) {
-  for (const header of RESPONSE_POLICY_HEADERS) {
-    const value = source.headers.get(header);
-    if (value) destination.headers.set(header, value);
-  }
 }
 
 function copyAuthResponse(source: NextResponse, destination: NextResponse) {
