@@ -1363,7 +1363,8 @@ This file records material implementation, CI, integration and release problems 
 - Root cause: The persisted-value parser relied on successful cryptographic decoding rather than enforcing the exact versioned wire format and bounded input sizes.
 - Fix: Require exactly four segments, canonical Base64URL encoding, a 12-byte IV, a 16-byte authentication tag, non-empty ciphertext and bounded plaintext/ciphertext sizes. Require the encryption key to use canonical padded Base64 for exactly 32 bytes.
 - Regression coverage: Added \`lib/drive/crypto.test.ts\` for round trips, malformed extra segments, non-canonical keys, invalid IV/tag lengths and size limits. Tests are authored but not executed.
-- Status: Source fix committed; regression and existing-token compatibility checks remain pending the testing phase.
+- Verification: The encrypted Drive secret unit suite passed in Foundation CI run `41309812309` at commit `1436fad6e78bd2026883c09fab75262bd4f36cfc`; it covers refresh-token/upload-session round trips, non-canonical keys, extra segments, IV/tag length rejection and size limits. Live compatibility with previously stored production tokens remains unverified.
+- Status: Unit regression coverage passed; deployed-key and existing-token acceptance remains open.
 
 ## ERR-126 — Drive resumable chunk validator accepted unsafe total-byte integers
 - Date: 2026-11-01
@@ -1372,7 +1373,8 @@ This file records material implementation, CI, integration and release problems 
 - Root cause: The total values were compared for equality without validating that JavaScript could represent them exactly.
 - Fix: Require parsed total, caller total and byte length to be safe integers; require total values to be positive before validating chunk alignment and bounds.
 - Regression coverage: Added an unsafe-integer total-size case to \`lib/drive/resumable-upload.test.ts\`. Tests are authored but not executed.
-- Status: Source fix committed; regression tests remain pending the testing phase.
+- Verification: The resumable Drive upload unit suite passed in Foundation CI run `41309812309` at commit `1436fad6e78bd2026883c09fab75262bd4f36cfc`; it covers valid 1 MB/final chunks, malformed ranges, bounds and an unsafe-integer total.
+- Status: Unit regression coverage passed; live Drive resumable-upload acceptance remains open.
 
 ## ERR-127 — Chemistry atom-count checker accepted empty formula groups
 - Date: 2026-11-01
@@ -1381,7 +1383,8 @@ This file records material implementation, CI, integration and release problems 
 - Root cause: The recursive formula parser accepted a closing parenthesis without requiring at least one element in the group.
 - Fix: Reject nested formula groups that contain no elements before applying their multiplier.
 - Regression coverage: Added an empty-group case to \`tests/chemistry-check.test.ts\`. Tests are authored but not executed.
-- Status: Source fix committed; regression test remains pending the testing phase.
+- Verification: The chemistry checker unit suite passed in Foundation CI run `41309812309` at commit `1436fad6e78bd2026883c09fab75262bd4f36cfc`; it confirms empty groups such as `H()2` are uncheckable while valid nested formulae remain supported.
+- Status: Unit regression coverage passed.
 
 ## ERR-128 — Chemistry atom-count checker accepted unknown element symbols
 - Date: 2026-11-01
@@ -1390,7 +1393,8 @@ This file records material implementation, CI, integration and release problems 
 - Root cause: Formula tokenization validated capitalization and token length but did not validate the symbol against the supported element set.
 - Fix: Validate parsed symbols against the 118 recognized chemical element symbols. Unsupported or unknown symbols now produce an uncheckable result.
 - Regression coverage: Added an unknown-symbol equation to \`tests/chemistry-check.test.ts\`. Tests are authored but not executed.
-- Status: Source fix committed; regression test remains pending the testing phase.
+- Verification: The chemistry checker unit suite passed in Foundation CI run `41309812309` at commit `1436fad6e78bd2026883c09fab75262bd4f36cfc`; it confirms unknown symbols such as `Xx` are uncheckable while supported formulae remain covered.
+- Status: Unit regression coverage passed.
 
 ## ERR-129 — Physics unit parser treated inherited object properties as unit definitions
 - Date: 2026-11-01
@@ -1399,7 +1403,8 @@ This file records material implementation, CI, integration and release problems 
 - Root cause: The SI unit lookup used a normal object index without checking that the key was an own property.
 - Fix: Require \`Object.hasOwn\` before reading a unit definition; unknown prototype property names now produce an uncheckable result.
 - Regression coverage: Added \`constructor\` and \`toString\` cases to \`tests/physics-unit-check.test.ts\`. Tests are authored but not executed.
-- Status: Source fix committed; regression test remains pending the testing phase.
+- Verification: The physics unit checker suite passed in Foundation CI run `41309812309` at commit `1436fad6e78bd2026883c09fab75262bd4f36cfc`; inherited property names `constructor` and `toString` are explicitly rejected as uncheckable.
+- Status: Unit regression coverage passed.
 
 ## ERR-130 — Uploaded document registration RPC accepted invalid page counts
 
