@@ -117,7 +117,9 @@ export async function POST(request: NextRequest) {
 
   let session: UploadSession;
   try {
-    const decoded: unknown = JSON.parse(decryptDriveUploadSession(encryptedSession));\n    if (!isValidUploadSession(decoded)) throw new Error("Invalid upload session payload.");\n    session = decoded;
+    const decoded: unknown = JSON.parse(decryptDriveUploadSession(encryptedSession));
+    if (!isValidUploadSession(decoded)) throw new Error("Invalid upload session payload.");
+    session = decoded;
   } catch {
     return NextResponse.json({ error: "Upload session is invalid or expired." }, { status: 400 });
   }
