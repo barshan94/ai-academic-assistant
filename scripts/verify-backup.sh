@@ -11,12 +11,12 @@ command -v age >/dev/null 2>&1 || fail "age is required."
 command -v tar >/dev/null 2>&1 || fail "tar is required."
 command -v sha256sum >/dev/null 2>&1 || command -v shasum >/dev/null 2>&1 || fail "sha256sum or shasum is required."
 
-archive="\${1:-}"
+archive="${1:-}"
 [[ -n "$archive" && -f "$archive" ]] || fail "Usage: bash scripts/verify-backup.sh /absolute/path/to/archive.tar.gz.age"
-: "\${AGE_IDENTITY_FILE:?Set AGE_IDENTITY_FILE to the separately stored age private identity file.}"
+: "${AGE_IDENTITY_FILE:?Set AGE_IDENTITY_FILE to the separately stored age private identity file.}"
 [[ -f "$AGE_IDENTITY_FILE" ]] || fail "AGE_IDENTITY_FILE does not exist."
 
-workdir="$(mktemp -d "\${TMPDIR:-/tmp}/academic-assistant-verify.XXXXXX")"
+workdir="$(mktemp -d "${TMPDIR:-/tmp}/academic-assistant-verify.XXXXXX")"
 cleanup() { rm -rf "$workdir"; }
 trap cleanup EXIT
 
