@@ -389,3 +389,18 @@ The scheduled document worker now uses the shared `createSupabaseServiceRoleClie
 
 ## ERR-137 implementation note
 A shared redirect-rejecting fetch transport now backs the cookie-authenticated Supabase SSR clients in middleware and server routes as well as the service-role client. The regression test is authored and intentionally unexecuted until the testing phase.
+
+
+### First green CI testing baseline — 2026-11-01 (commit e34d468)
+- [x] ESLint, application TypeScript, Playwright TypeScript, Vitest (**29 files / 132 tests**) and production build passed.
+- [x] Production dependency audit passed (**0 production vulnerabilities**); this does not close full dev/tooling dependency advisory ERR-124.
+- [x] Fresh isolated local Supabase migration chain passed; pgTAP passed (**9 files / 209 assertions**).
+- [x] Chromium smoke suite passed (**7 passed / 1 skipped**). The skipped test requires authenticated two-account teacher credentials.
+- [x] Secret scanning passed.
+- [ ] Run authenticated two-account browser acceptance with approved non-production test accounts.
+- [ ] Verify Google OAuth/Drive upload, download/export, refresh and failure handling using non-production credentials.
+- [ ] Verify AI provider generation, fallback policy, quotas, timeouts and malformed/upstream failure behavior using an approved provider configuration.
+- [ ] Reconcile the hosted Supabase migration ledger before any hosted migration deployment; the CI database was isolated and local only.
+- [ ] Prove encrypted backup and Auth restore on a fresh isolated Free-plan project; no production restore was attempted.
+- [ ] Resolve ERR-124 dependency advisory for the complete dependency graph, not only production dependencies.
+- [ ] Complete accessibility, performance, CSP/auth-refresh and operational monitoring acceptance.
