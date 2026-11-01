@@ -678,3 +678,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Probe `profiles`, `documents` and `processing_jobs` in parallel using bounded, server-only HEAD queries. No rows or database contents are returned.
 - Verification: Source and documentation updated on the feature branch. Runtime checks and migration-absence scenarios remain deferred to the separate testing phase.
 - Status: Implemented; verification pending. This checks three core tables only and does not prove every feature migration or integration is ready.
+
+
+## ERR-063 — Disconnected Drive accounts consumed upload quota
+
+- Date: 2026-11-01
+- Area: M2 resumable upload admission / quota fairness
+- Symptom: A valid upload attempt consumed the owner's hourly/daily new-document quota before the server checked whether Google Drive was connected and could provide an access token.
+- Root cause: Quota consumption preceded the non-mutating Drive authorization prerequisite.
+- Fix: Acquire the owner-scoped Drive access token before atomically consuming quota. Disconnected or reauthorization-required accounts now fail before using an upload slot; quota is still consumed before creating a remote resumable session.
+- Verification: Source change committed on the feature branch. No tests or live OAuth/upload requests were run during implementation.
+- Status: Implemented; regression and live integration verification deferred to the separate testing phase.
