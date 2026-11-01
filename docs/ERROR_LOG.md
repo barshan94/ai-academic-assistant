@@ -582,3 +582,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Added the explicit import from `@/lib/observability/safe-log`.
 - Verification: Source inspection only. No type-check, build, workflow or worker invocation was run in this implementation phase.
 - Status: Source reference corrected; compile and failure-path regression coverage remain for the later testing phase.
+
+
+## ERR-054 — Readiness endpoint parsed bearer authorization with an over-escaped whitespace pattern
+
+- Date: 2026-11-01
+- Area: M8 authenticated readiness endpoint
+- Symptom: Static review found the bearer-header regular expression was escaped twice, so it would look for a literal backslash rather than whitespace after the word Bearer.
+- Root cause: The source file was generated through a string template and the regular-expression escape was doubled.
+- Fix: Corrected the expression to match one or more whitespace characters and re-read the committed source to confirm the intended regex.
+- Verification: Source inspection only; no request or endpoint test was run.
+- Status: Source corrected; authorization and readiness acceptance remain pending.
