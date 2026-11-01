@@ -10,7 +10,7 @@ The owner selected infrastructure constraint remains Supabase Free only. No paid
 
 ## Release principles
 
-- Preserve the implementation → testing → fixing sequence. This checklist defines scope; it does not authorize starting tests early.
+- Testing is now authorized on `feature/m3-ai-solver`; record failures and fixes separately, and do not treat a green isolated CI run as production release approval.
 - Use a disposable non-production Supabase project and dedicated Google OAuth client for all integration and recovery work.
 - Keep production secrets out of source, browser bundles, logs, GitHub issues and test environments.
 - Never label AI output, syllabus mappings, mark-scheme sources or OCR as verified unless the corresponding human/technical verification actually occurred.
@@ -20,8 +20,9 @@ The owner selected infrastructure constraint remains Supabase Free only. No paid
 ## 1. Application and release artifact
 
 - [ ] Freeze the implementation scope and publish a reviewed release candidate commit.
-- [ ] Complete lint, typecheck, unit/integration tests and production build during the authorized testing phase.
-- [ ] Complete Chromium smoke and mobile responsive/accessibility acceptance.
+- [x] Complete automated lint, application/Playwright type-check, 132 unit tests and production build on the tested feature-branch commit. Live integration acceptance remains listed separately below.
+- [x] Complete credential-free Chromium smoke suite (7 passed / 1 skipped; authenticated flow is separate).
+- [ ] Complete mobile responsive/accessibility acceptance.
 - [ ] Confirm all user-facing pages, sign-in/out, protected routes, empty/error/loading states and navigation.
 - [ ] Verify print and Markdown exports on supported desktop and mobile browsers.
 - [ ] Confirm dynamic rendering and nonce-based CSP do not break hydration, Supabase cookie refresh, Google OAuth redirects or configured AI provider connections.
@@ -44,13 +45,15 @@ The owner selected infrastructure constraint remains Supabase Free only. No paid
 ## 3. Database, authorization and migrations
 
 - [ ] Reconcile migration-history drift (ERR-007) using the exact ledger comparison and schema-first procedure in `docs/MIGRATION_RECONCILIATION.md`; do not blindly push or repair the ledger.
-- [ ] Apply the complete ordered migration chain to a clean isolated project.
+- [x] Apply the complete ordered repository migration chain to a fresh isolated local Supabase database in CI; all migrations completed successfully.
+- [ ] Repeat against a dedicated non-production hosted project after migration-history reconciliation and explicit target approval.
 - [ ] Apply `20261101130000_restrict_document_registration_rpc.sql`; confirm authenticated/anon cannot execute the registration RPC and service_role can.
 - [x] Commit the forward-only ERR-123 migration `20261101140000_tighten_uploaded_document_page_count.sql`, tightening `register_uploaded_document` page_count from 0–100 to 1–50. Applying it and confirming locking, idempotency, document/job atomicity and effective execute grants remain testing-phase tasks.
 - [ ] Inspect effective execute grants for every exposed function, including SECURITY DEFINER functions and trigger functions.
 - [ ] Inspect RLS on every exposed-schema table and all table/view grants; check views for security-invoker behavior where required.
 - [ ] Run Supabase security/performance advisors and resolve findings or document a justified exception.
-- [ ] Complete all pgTAP authorization, trigger, lifecycle, rollback and concurrency coverage on the latest branch.
+- [x] Execute current pgTAP suite on the latest tested branch: 209 assertions across 9 files passed on a fresh isolated local Supabase database.
+- [ ] Expand acceptance to authenticated two-account IDOR, concurrency and hosted-project behavior where not covered by current fixtures.
 - [ ] Complete two-account IDOR tests for documents/pages/questions/solutions, teacher invitations/reviews, chapter notes, syllabus references, practice sets and calendar records.
 - [ ] Confirm atomic document upload, worker claim/recovery, completion/failure, correction/approval and quota admission transitions.
 - [ ] Confirm no service-role client is imported by client components, middleware or browser-exposed modules.
