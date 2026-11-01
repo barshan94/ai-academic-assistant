@@ -516,3 +516,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: The mark-scheme schema now rejects username/password components. A database migration strengthens both mark-scheme and web-research URL constraints so direct inserts cannot store URLs with embedded credentials in the authority.
 - Verification: Implementation-only validation review; database migration and malformed URL cases remain for the later test phase.
 - Status: Code and migration committed; tests pending.
+
+
+## ERR-048 — Quota denials and quota-service outages were missing from operational event logs
+
+- Date: 2026-11-01
+- Area: M8 operational observability / upload, AI and web-research quotas
+- Symptom: Protected actions failed closed when an atomic quota RPC was unavailable, and expected quota denials were returned to users, but neither outcome had a distinct operational event. Operators could not distinguish a quota backend outage from normal user throttling using the structured event stream.
+- Root cause: The safe logger covered provider and worker failures but did not include quota outcomes.
+- Fix: Added allow-listed event categories for upload, AI-generation and web-research quota exhaustion and quota-RPC unavailability. The affected server routes/actions emit stable event and error codes only; no account IDs, quota counters, request bodies or submitted content are logged. Added recommended hosting-platform alert thresholds to `docs/OPERATIONS_AND_COSTS.md`.
+- Verification: Source and documentation review only. No tests, live quota calls, dashboards or alerts were run/configured in this implementation phase.
+- Status: Event instrumentation committed; alert configuration and test-phase regression coverage remain pending.
