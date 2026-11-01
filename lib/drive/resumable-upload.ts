@@ -26,6 +26,11 @@ export function isValidDriveChunk(input: {
   const total = Number(match[3]);
   return Number.isSafeInteger(start)
     && Number.isSafeInteger(end)
+    && Number.isSafeInteger(total)
+    && total > 0
+    && Number.isSafeInteger(input.totalBytes)
+    && input.totalBytes > 0
+    && Number.isSafeInteger(input.byteLength)
     && total === input.totalBytes
     && start >= 0
     && end >= start
