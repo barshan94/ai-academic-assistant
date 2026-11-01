@@ -81,12 +81,8 @@ select throws_ok(
   'an accepted active invitation cannot be duplicated'
 );
 select lives_ok(
-  $test$update public.question_teacher_invites set revoked_at = now()
-    where question_id = '31000000-0000-4000-8000-000000000001'
-      and invited_email = 'invite-teacher@example.test'
-      and accepted_by = '11000000-0000-4000-8000-000000000002'
-      and revoked_at is null$test$,
-  'owner can revoke an accepted invitation once'
+  $test$select public.revoke_question_teacher_invite((select id from public.question_teacher_invites where invited_email = 'invite-teacher@example.test' and accepted_by = '11000000-0000-4000-8000-000000000002' order by created_at desc limit 1))$test$,
+  'owner can revoke an accepted invitation once through the atomic RPC'
 );
 
 set local role authenticated;
