@@ -225,3 +225,4 @@
 - [ ] Auth recovery: export active email/password Auth users into the encrypted archive; verify the export contains original UUIDs and supported password hashes but no sessions or plaintext passwords.
 - [ ] Auth recovery: restore into a different isolated project; verify source-project target refusal, original UUID preservation, existing-password sign-in, confirmation state and safe idempotent resume after an interrupted import.
 - [ ] Auth recovery: verify unsupported phone-based, MFA, SSO, anonymous and external-identity accounts are rejected before any account is created; verify logs never contain email addresses, password hashes or service-role credentials.
+- [ ] ERR-129: verify inherited JavaScript object property names are rejected as unknown physics units.
