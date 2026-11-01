@@ -1266,3 +1266,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Added `/privacy` with plain-language descriptions of account roles, stored academic records, Google Drive storage and token encryption, opt-in AI/source-page retrieval, manually initiated web research, cookies/time-zone handling, retention/deletion limitations and the current non-production status. Added links from both the public landing page and sign-in screen.
 - Verification: Source/documentation change only. No tests, typecheck, build, browser, legal review or runtime deployment was performed. Confirm wording against the final deployed data flows, add a responsible contact channel, and complete accessibility/legal review during the dedicated testing and release-acceptance phases.
 - Status: Privacy page and landing-page link committed to `feature/m3-ai-solver`; no external service or database was changed.
+
+
+## ERR-117 — Public landing page described completed workflows as planned
+
+- Date: 2026-11-01
+- Area: Product status and user-facing accuracy
+- Symptom: The landing page still labeled the question library, document intake, bilingual solver and chapter intelligence as planned and described the app as a Foundation/Milestone 1 build, despite substantial M1–M7 implementation on the feature branch.
+- Root cause: Public product copy was not updated as implementation scope expanded.
+- Fix: Replaced the stale planned modules with the current document-intake, question-solver, syllabus/chapter-note and exam-preparation workflows. The page now labels them "In code" and explicitly says external integrations require setup; it no longer implies the branch is only a Foundation build.
+- Verification: Source/documentation change only. No tests, typecheck, build or browser acceptance was run. Confirm copy against the shipped branch and verify mobile presentation during the dedicated testing phase.
+- Status: Landing page updated on `feature/m3-ai-solver`; no deployment or external service was changed.
