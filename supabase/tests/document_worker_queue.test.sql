@@ -14,6 +14,18 @@ values
   ('23000000-0000-4000-8000-000000000004', '13000000-0000-4000-8000-000000000001', 'stale-running.pdf', 'application/pdf', 1024, 'processing', now() - interval '30 minutes'),
   ('23000000-0000-4000-8000-000000000005', '13000000-0000-4000-8000-000000000001', 'fresh-running.pdf', 'application/pdf', 1024, 'processing', now() - interval '20 minutes');
 
+-- More than one worker page of terminal failures must not hide new work.
+insert into public.documents (id, owner_id, file_name, mime_type, file_size_bytes, status, created_at)
+select
+  ('23000000-0000-4000-8000-' || lpad(n::text, 12, '0'))::uuid,
+  '13000000-0000-4000-8000-000000000001',
+  'exhausted-' || n || '.pdf',
+  'application/pdf',
+  1024,
+  'failed',
+  now() - interval '70 minutes' + n * interval '1 second'
+from generate_series(10, 19) as n;
+
 insert into public.processing_jobs (
   id, owner_id, document_id, stage, status, attempt_count, max_attempts,
   idempotency_key, started_at, created_at
@@ -24,6 +36,22 @@ values
   ('33000000-0000-4000-8000-000000000003', '13000000-0000-4000-8000-000000000001', '23000000-0000-4000-8000-000000000003', 'ocr', 'queued', 0, 3, 'worker-queue-queued', null, now() - interval '40 minutes'),
   ('33000000-0000-4000-8000-000000000004', '13000000-0000-4000-8000-000000000001', '23000000-0000-4000-8000-000000000004', 'ocr', 'running', 3, 3, 'worker-queue-stale-running', now() - interval '30 minutes', now() - interval '30 minutes'),
   ('33000000-0000-4000-8000-000000000005', '13000000-0000-4000-8000-000000000001', '23000000-0000-4000-8000-000000000005', 'ocr', 'running', 1, 3, 'worker-queue-fresh-running', now() - interval '5 minutes', now() - interval '20 minutes');
+insert into public.processing_jobs (
+  id, owner_id, document_id, stage, status, attempt_count, max_attempts,
+  idempotency_key, started_at, created_at
+)
+select
+  ('33000000-0000-4000-8000-' || lpad(n::text, 12, '0'))::uuid,
+  '13000000-0000-4000-8000-000000000001',
+  ('23000000-0000-4000-8000-' || lpad(n::text, 12, '0'))::uuid,
+  'ocr',
+  'failed',
+  3,
+  3,
+  'worker-queue-exhausted-' || n,
+  null,
+  now() - interval '70 minutes' + n * interval '1 second'
+from generate_series(10, 19) as n;
 
 set local role service_role;
 
