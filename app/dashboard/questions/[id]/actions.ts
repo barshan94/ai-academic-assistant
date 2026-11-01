@@ -102,6 +102,10 @@ export async function generateQuestionSolution(formData: FormData) {
 
   const quota = await consumeAIGenerationQuota(supabase, "ai-solution");
   if (quota !== "allowed") {
+    logSafeOperationalEvent(quota === "limited" ? "ai_generation_quota_exhausted" : "ai_generation_quota_unavailable", {
+      route: "/dashboard/questions/[id]",
+      errorCode: quota === "limited" ? "AI_SOLUTION_QUOTA_REACHED" : "AI_SOLUTION_QUOTA_RPC_FAILED",
+    });
     redirect("/dashboard/questions/" + question.id + "?solve=" + (quota === "limited" ? "rate_limited" : "rate_limit_unavailable"));
   }
 
@@ -354,8 +358,14 @@ export async function searchQuestionWebSources(formData: FormData) {
 
   const typedSupabase = supabase as unknown as SupabaseClient<DatabaseWithAISolutions>;
   const { data: allowed, error: quotaError } = await typedSupabase.rpc("consume_question_web_research_quota");
-  if (quotaError) redirect("/dashboard/questions/" + question.id + "?research=quota_unavailable");
-  if (!allowed) redirect("/dashboard/questions/" + question.id + "?research=rate_limited");
+  if (quotaError) {
+    logSafeOperationalEvent("web_research_quota_unavailable", { route: "/dashboard/questions/[id]", errorCode: "WEB_RESEARCH_QUOTA_RPC_FAILED" });
+    redirect("/dashboard/questions/" + question.id + "?research=quota_unavailable");
+  }
+  if (!allowed) {
+    logSafeOperationalEvent("web_research_quota_exhausted", { route: "/dashboard/questions/[id]", errorCode: "WEB_RESEARCH_QUOTA_REACHED" });
+    redirect("/dashboard/questions/" + question.id + "?research=rate_limited");
+  }
 
   let sources: Awaited<ReturnType<typeof searchWebSources>>;
   try {
