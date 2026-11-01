@@ -979,6 +979,15 @@ export type Database = {
         };
         Returns: number;
       }
+      save_document_page_correction: {
+        Args: {
+          p_document_id: string;
+          p_owner_id: string;
+          p_page_id: string;
+          p_extracted_text: string;
+        };
+        Returns: boolean;
+      }
       register_uploaded_document: {
         Args: {
           p_owner_id: string;
