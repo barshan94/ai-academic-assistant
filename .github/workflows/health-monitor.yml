@@ -1,0 +1,63 @@
+name: Production readiness monitor
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-readiness-monitor
+  cancel-in-progress: true
+
+jobs:
+  readiness:
+    name: Check protected application readiness
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Validate monitor configuration
+        shell: bash
+        env:
+          APP_BASE_URL: ${{ secrets.APP_BASE_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          set -Eeuo pipefail
+          if [[ -z "$APP_BASE_URL" || ! "$APP_BASE_URL" =~ ^https://[^/]+$ ]]; then
+            echo "::error::APP_BASE_URL must be an HTTPS origin without a path."
+            exit 1
+          fi
+          if [[ -z "$CRON_SECRET" || ${#CRON_SECRET} -lt 32 ]]; then
+            echo "::error::CRON_SECRET is missing or too short."
+            exit 1
+          fi
+
+      - name: Check application readiness
+        shell: bash
+        env:
+          APP_BASE_URL: ${{ secrets.APP_BASE_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          set -Eeuo pipefail
+          response_file="$(mktemp)"
+          trap 'rm -f "$response_file"' EXIT
+
+          status="$(curl --silent --show-error \
+            --connect-timeout 10 --max-time 20 \
+            --output "$response_file" --write-out '%{http_code}' \
+            --header "Authorization: Bearer ${CRON_SECRET}" \
+            "${APP_BASE_URL%/}/api/health/ready")"
+
+          if [[ "$status" != "200" ]]; then
+            echo "::error::Application readiness check failed (HTTP $status)."
+            exit 1
+          fi
+
+          if ! grep -Eq '"status"[[:space:]]*:[[:space:]]*"ready"' "$response_file"; then
+            echo "::error::Readiness endpoint returned an unexpected response."
+            exit 1
+          fi
+
+          echo "Application readiness check passed."
