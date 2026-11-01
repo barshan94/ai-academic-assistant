@@ -864,3 +864,13 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Validate the question identifier as a UUID and require the owner-scoped update to return the updated row before reporting success.
 - Verification: Source inspection only; malformed UUID, cross-owner, missing-row and valid status-transition cases remain deferred to the separate testing phase.
 - Status: Implemented on the feature branch; no tests, typecheck or build were run during implementation.
+
+## ERR-080 — Reference syllabus evidence could be attached across unrelated chapters
+
+- Date: 2026-11-01
+- Area: M5 reference syllabus evidence / relational integrity
+- Symptom: A platform administrator could submit a valid catalog ID, chapter ID and optional topic ID that individually existed but did not belong to the same catalog/chapter hierarchy.
+- Root cause: The evidence action validated identifier formats but inserted the supplied relationships without checking that the chapter belonged to the selected catalog and the topic belonged to that chapter.
+- Fix: Before insertion, load the chapter using both chapter and catalog IDs; when a topic is supplied, confirm it belongs to that exact chapter. Reject mismatched or missing relationships.
+- Verification: Source inspection only; cross-catalog, cross-chapter, missing-row and valid evidence cases remain deferred to the separate testing phase.
+- Status: Implemented on the feature branch; no tests, typecheck or build were run during implementation.
