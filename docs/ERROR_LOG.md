@@ -1762,3 +1762,15 @@ ERR-073 closure reconciliation (2026-11-01): the earlier note that page and pare
 - Verification: isolated Supabase migration/pgTAP workflow run `41322904037` passed after the new migration and test were committed.
 - Hosted status: unchanged. The grant migration has not been applied to the hosted project yet.
 - Status: repository fix and isolated regression verified; hosted execution remains pending migration-history reconciliation.
+
+
+## ERR-162 — Auth restore resume skipped conflicting account state
+
+- Date: 2026-11-01
+- Area: Backup / Auth recovery idempotency
+- Symptom: During an interrupted Auth restore, the importer treated an existing account as already restored when only its UUID, email and email-provider identity matched. A pre-existing or partially modified account could therefore be skipped even when its audience, role, confirmation state, metadata or ban state differed from the backup.
+- Root cause: The idempotency check compared identity fields but did not compare the restorable account state returned by the Supabase Auth Admin API.
+- Fix: Added a pure compatibility check for the existing Auth Admin user response. It now compares UUID, normalized email, phone absence, email provider identity, audience, role, email-confirmation state, phone-confirmation state, supported anonymous/SSO flags when present, user/app metadata and active-ban state. JSON metadata comparison is key-order independent. A mismatch fails closed rather than silently skipping the account.
+- Password limitation: Supabase Auth Admin user reads do not expose the stored password hash. The importer cannot safely compare hashes for an already-present account; the isolated restore drill must still verify sign-in using the original password. Sessions and MFA remain excluded from this restore scope.
+- Verification: Added regression coverage for a matching interrupted-restore account and mismatches in audience, role, confirmation state, metadata, phone state and SSO state. Foundation CI was triggered on commit `60b995dda4c13cf3e1cdb963f06a6bc2a1171343`; results are pending at the time of this entry. No live Auth users were created or modified.
+- Status: Source fix committed; automated CI verification pending; live isolated restore acceptance remains open.
