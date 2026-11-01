@@ -427,3 +427,13 @@ The multi-provider router now has a shared 60-second total deadline and caps eac
 ### ERR-149 — Global keyboard focus baseline
 
 The existing shared `:focus-visible` outline and skip-link styling now have Chromium regression coverage for the first keyboard stop, destination and visible outline. Full keyboard-only and assistive-technology acceptance remains open.
+
+
+## Connected Supabase follow-up — 2026-11-01
+
+- [x] Confirmed the existing `Barshan` organization is on the Free plan and contains the existing `academic-assistant` project in `ap-south-1`; no additional account or project is needed by default.
+- [x] Confirmed the connected academic project has no Auth users, profiles, documents, processing jobs or Storage buckets; it is a candidate non-production target, not yet an accepted integration environment.
+- [x] Read-only hosted audit confirms 21 public tables with RLS, 42 public policies, no anon public-table grants, no public views, and one public SECURITY DEFINER function restricted to postgres/service_role.
+- [x] Confirmed the hosted schema is behind the current application: no document-registration RPC and an outdated page-count constraint. Added ERR-159/ERR-160 and updated migration reconciliation, owner actions and production-readiness gates.
+- [x] Latest isolated database authorization CI passed (run 41318724631); latest foundation lint/typecheck/unit/build and Chromium smoke checks passed (run 41318724655).
+- [ ] Owner confirms the existing academic project is the intended non-production target before any hosted migration is applied. No hosted mutation was performed.
