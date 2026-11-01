@@ -946,3 +946,13 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Return the updated invite ID from the owner- and question-scoped update and report failure when no row was changed.
 - Verification: Source inspection only; missing, foreign-owner, already-revoked and valid revocation cases remain deferred to the separate testing phase.
 - Status: Implemented on the feature branch; no tests, typecheck or build were run during implementation.
+
+## ERR-088 — Mark scheme action parsed unbounded JSON form input
+
+- Date: 2026-11-01
+- Area: M5 mark scheme authoring / server action input bounds
+- Symptom: The action passed the entire submitted points field to JSON.parse before applying the structured mark-scheme limits, allowing unnecessarily large request bodies to consume memory and CPU.
+- Root cause: Schema validation bounded the parsed object but no raw serialized-input limit existed before parsing.
+- Fix: Reject points JSON strings larger than 256 KiB before JSON.parse; the existing schema continues to enforce per-field and per-array limits after parsing.
+- Verification: Source inspection only; boundary-size, malformed JSON and valid maximum mark-scheme cases remain deferred to the separate testing phase.
+- Status: Implemented on the feature branch; no tests, typecheck or build were run during implementation.
