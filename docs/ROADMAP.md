@@ -440,3 +440,10 @@ The existing shared `:focus-visible` outline and skip-link styling now have Chro
 - [x] Refreshed the full migration comparison: 96 repository migrations, 53 hosted ledger entries, 51 exact matches, two renamed shared-reference versions and 43 genuinely pending migrations.
 - [x] Object-level audit confirms the shared-reference tables, indexes, functions, triggers and policies exist; seed tables are empty. Identified three trigger-only functions with unnecessary default PUBLIC EXECUTE grants (ERR-161).
 - [ ] Prepare migration-history repair for the two renamed migrations, harden trigger-only function privileges, then apply the 43 pending migrations in order only after a reviewed plan and separate execution approval. No hosted mutation has been performed.
+
+## Migration hardening and hosted execution status — 2026-11-01
+- [x] Owner explicitly authorized migration-history reconciliation and 43 pending migrations on the dedicated `academic-assistant` non-production project.
+- [x] Added ERR-161 forward-only grant-hardening migration and pgTAP regression coverage.
+- [x] Latest isolated database workflow run `41322904037` passed with the new migration and test.
+- [ ] Hosted reconciliation remains blocked until a version-aware Supabase CLI session is available. Do not use generic migration apply or direct ledger DML because neither preserves the repository's exact migration versions safely.
+- [ ] After CLI reconciliation and ordered push: verify hosted ledger, schema, trigger grants, seed counts and advisors; then create disposable Auth test accounts and continue live integration acceptance.
