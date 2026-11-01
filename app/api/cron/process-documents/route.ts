@@ -151,16 +151,13 @@ export async function GET(request: Request) {
       // redacted observability channel, not owner-visible job metadata.
       const message = "Document processing failed. Reconnect Google Drive if the problem persists.";
       logSafeOperationalEvent("document_worker_failed", { route: "/api/cron/process-documents", errorCode: "BACKGROUND_PROCESSING_FAILED", jobId });
-      const [{ data: failedDocument, error: failedDocumentError }, { data: failedJob, error: failedJobError }] = await Promise.all([
-        supabase.from("documents").update({ status: "failed" })
-          .eq("id", documentId).eq("owner_id", ownerId).select("id").maybeSingle(),
-        supabase.from("processing_jobs").update({
-          status: "failed",
-          error_code: "BACKGROUND_PROCESSING_FAILED",
-          error_message: message.slice(0, 500),
-        }).eq("id", jobId).eq("owner_id", ownerId).eq("status", "running").select("id").maybeSingle(),
-      ]);
-      if (failedDocumentError || !failedDocument || failedJobError || !failedJob) {
+      const { data: failurePersisted, error: failureError } = await supabase.rpc("fail_document_processing", {
+        p_document_id: documentId,
+        p_owner_id: ownerId,
+        p_job_id: jobId,
+        p_error_code: "BACKGROUND_PROCESSING_FAILED",
+      });
+      if (failureError || failurePersisted !== true) {
         // Leave the lease in place if failure state cannot be persisted. The
         // stale-job policy can safely reclaim it after the lease expires.
         return Response.json({
