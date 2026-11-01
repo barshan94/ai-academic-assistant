@@ -90,7 +90,7 @@ Implemented on feature/m3-ai-solver:
 
 M5 exit criteria still outstanding:
 - Populate and maintain the shared reference library with real official-board syllabus versions and citations. The shared schema and curator workflow now exist, and four Cambridge/Pearson Edexcel science shared catalogues have been seeded as curator-only drafts with chapter/topic evidence locators (30 chapters and 170 numbered topic headings total). Separate owner-private JSON imports are also available. Neither shared draft is verified or visible to ordinary users. Detailed learning objectives are not imported; a curator must check every heading against the live official PDF and confirm administrative-zone availability before publication.
-- Improve assisted classification with calibrated confidence; current lexical suggestions remain transparent navigation aids, not probabilities. Exact section-code matches receive an explicit reason, and chapter/topic suggestions now display their owner-recorded source evidence before selection. Never silently guess a syllabus version.
+- Improve assisted classification with calibrated confidence only after collecting a sufficiently sized, independently labelled dataset and evaluating calibration; no probability is currently emitted. The numeric confidence field is explicitly an owner estimate, not a classifier score (ERR-131). Current lexical suggestions remain transparent navigation aids, not probabilities. Exact section-code matches receive an explicit reason, and chapter/topic suggestions display owner-recorded source evidence before selection. Never silently guess a syllabus version.
 
 ### M6 status — implemented in code, independent evaluation and acceptance pending
 Implemented on feature/m3-ai-solver:
