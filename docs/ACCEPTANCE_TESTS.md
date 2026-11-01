@@ -164,3 +164,11 @@
 - [ ] Replace or upgrade the legacy ESLint dependency chain so the full development dependency tree can pass `npm audit` without the minimatch v3 compatibility exception. Until then, production dependencies are audited with `npm audit --omit=dev`; the development-toolchain advisory remains documented and is not represented as resolved.
 
 - [ ] AI provider HTTP and empty-response errors exclude upstream response bodies and provider-supplied messages from application errors (status-only regression test added; CI pending).
+
+
+## Privacy notice and data rights
+- [x] Publish a user-facing `/privacy` page covering Supabase application records, Google Drive file storage and encrypted refresh tokens, optional AI and web-research data flows, cookies/time-zone handling, retention limitations and current deletion limitations.
+- [x] Link the privacy notice from the public landing page.
+- [ ] Review the notice against the final deployed configuration, provider terms, actual retention settings and applicable legal requirements.
+- [ ] Add and verify a responsible contact channel for access, correction and deletion requests before inviting additional users.
+- [ ] Browser-check notice navigation, keyboard access, mobile layout and screen-reader headings.
