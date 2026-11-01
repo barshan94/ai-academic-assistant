@@ -64,6 +64,12 @@ export function validateBackup(value) {
     if (!isRecord(user.user_metadata) || !isRecord(user.app_metadata)) {
       throw new Error("An account's user or app metadata is not a JSON object.");
     }
+    if (user.app_metadata.provider !== "email" ||
+        !Array.isArray(user.app_metadata.providers) ||
+        user.app_metadata.providers.length !== 1 ||
+        user.app_metadata.providers[0] !== "email") {
+      throw new Error("Only email-provider Auth metadata is supported by this restore workflow.");
+    }
     if (typeof user.aud !== "string" || typeof user.role !== "string") {
       throw new Error("An account is missing its Auth audience or role.");
     }
