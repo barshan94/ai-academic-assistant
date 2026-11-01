@@ -199,6 +199,11 @@
 - [ ] Confirm no private academic response is reused after sign-out, account switching, back/forward navigation or browser cache restoration.
 
 
+## Document worker queue fairness
+
+- [ ] Isolated pgTAP regression proves ten older exhausted failed jobs cannot occupy the worker's candidate limit or starve queued/retryable jobs; stale running jobs remain eligible and fresh running jobs remain excluded (ERR-156).
+- [ ] Live non-production scheduler acceptance proves a full page of exhausted jobs does not prevent a later queued job from being processed.
+
 ## Middleware response-policy preservation (ERR-121)
 - [x] Add isolated unit regression tests for copying cache, CSP and crawler policy headers without copying unrelated headers (`lib/http/response-policy-headers.test.ts`).
 - [x] Simulated Supabase `setAll` auth-cookie refresh on a dashboard request retains CSP, `Cache-Control: private, no-store` and `X-Robots-Tag: noindex, nofollow, noarchive` (`tests/middleware-auth-refresh.test.ts`; Foundation run `41312165056`).

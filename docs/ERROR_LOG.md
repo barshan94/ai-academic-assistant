@@ -1692,3 +1692,13 @@ ERR-073 closure reconciliation (2026-11-01): the earlier note that page and pare
 - Fix: After `fail_document_processing` confirms that the failed state was persisted, the route now returns HTTP 500 with a sanitized error payload. The durable job remains eligible for a later scheduled retry within its attempt budget; no sensitive upstream error is returned.
 - Verification: The sanitized HTTP 500 response helper and redaction regression tests passed in Foundation run `41312165056` on commit `443db3ed22bdb3c2086d1ba476b82a33eb870885`; lint, type-check, unit tests, production build and Chromium smoke tests all passed. Live non-production worker acceptance must still confirm that GitHub Actions marks a persisted processing failure as failed and that a later invocation retries within the attempt budget.
 - Status: Source fix and automated regressions verified; live worker acceptance remains open.
+
+
+## ERR-156 — Exhausted failed jobs could starve the document worker queue
+- Date: 2026-11-01
+- Area: Background worker queue fairness / retry scheduling
+- Symptom: The worker selected the oldest queued, failed and stale-running jobs before checking retry eligibility in application code. Ten or more old failed jobs that had already exhausted their retry budgets could occupy the entire candidate page, causing every scheduled invocation to skip them and never reach newer queued or retryable work.
+- Root cause: Candidate filtering happened after the database query's fixed limit, so terminal failed jobs consumed the worker's limited candidate slots.
+- Fix: Added a service-role-only list_claimable_document_jobs RPC. It filters failed jobs against their per-row attempt_count < max_attempts before applying the limit, while retaining stale running jobs for terminalization and excluding fresh running jobs. The worker now obtains candidates through this RPC.
+- Verification: A pgTAP regression fixture creates ten older exhausted failed jobs ahead of retryable/queued work, plus stale and fresh running jobs. Foundation and isolated database CI are pending for the new migration, route and tests.
+- Status: Source and regression implementation committed; CI verification pending. Live worker scheduling and hosted migration acceptance remain open.
