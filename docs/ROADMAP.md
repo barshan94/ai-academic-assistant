@@ -213,3 +213,6 @@ Owner syllabus verification now re-validates the persisted draft catalog source 
 Teacher invitation revocation now confirms that the owner- and question-scoped update actually changed an active invite before reporting success. See ERR-087; missing-row, ownership and repeated-revocation regression coverage remains deferred to the testing phase.
 
 Mark scheme authoring now rejects serialized points JSON above 256 KiB before parsing, in addition to the existing structured field and point-count limits. See ERR-088; malformed and boundary-size regression coverage remains deferred to the testing phase.
+
+
+Stale document-processing recovery hardening (2026-11-01): after a stale processing job is conditionally marked failed, the route now also confirms that the owner-scoped parent document update actually affected a row before proceeding. This avoids treating a zero-row update as successful recovery and silently leaving job/document state inconsistent. See ERR-089; concurrency and recovery regression coverage remains deferred to the separate testing phase.
