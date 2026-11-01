@@ -267,3 +267,6 @@ Readiness monitoring hardening (2026-11-01): the 15-minute health monitor now en
 
 
 Document upload quota hardening (2026-11-01): Drive upload admission now serializes each owner's quota decision, captures the time after lock acquisition, checks both hourly and daily caps before changing either counter, and increments both only for admitted uploads. Existing limits remain 10/hour and 50/UTC day. See ERR-106. Database migration application and quota boundary/concurrency acceptance remain pending the dedicated testing and fixing phases.
+
+
+AI generation quota hardening (2026-11-01): solution and chapter-note quota admission now serializes per owner/bucket, timestamps the 15-minute window after lock acquisition, and checks the limit before incrementing. Existing limits remain five solutions or three chapter notes per 15 minutes. See ERR-107. Migration application and quota concurrency/window-boundary acceptance remain pending the dedicated testing and fixing phases.
