@@ -546,6 +546,6 @@ This file records material implementation, CI, integration and release problems 
 - Area: M8 CI supply-chain security
 - Symptom: Several workflows referenced third-party GitHub Actions by mutable major-version tags. A completed one-time migration-generation workflow retained `contents: write` permission and credential persistence.
 - Root cause: Workflow setup prioritized convenience and did not remove the temporary write-enabled helper after its migration was generated.
-- Fix: Pin checkout, setup-node, Supabase CLI setup and Gitleaks actions to immutable commit SHAs; pin the Supabase CLI binary to v2.122.0 instead of `latest`. Remove the one-time migration-generation workflow and its unnecessary repository write permission.
+- Fix: Pin checkout, setup-node, Supabase CLI setup and Gitleaks actions to immutable commit SHAs; pin the Supabase CLI binary to v2.122.0 instead of `latest`. Remove the one-time migration-generation workflow and its unnecessary repository write permission; disable persisted checkout credentials in all read-only workflows.
 - Verification: Workflow source review only. No workflow was dispatched or re-run in this implementation phase.
 - Status: CI configuration hardened; normal workflow execution and action compatibility remain for the separate testing phase.
