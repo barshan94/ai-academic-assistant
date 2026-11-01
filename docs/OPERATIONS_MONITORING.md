@@ -61,3 +61,9 @@ The workflow intentionally does not print the response body or bearer token. Ins
 - Authenticated two-account and browser acceptance.
 
 These remain separate implementation, configuration or acceptance tasks. A green monitor run is not a production release approval.
+
+## Incident response
+
+Use `docs/INCIDENT_RESPONSE.md` for worker backlog, Supabase/quota outage, Google OAuth compromise, AI-provider outage, suspected data exposure and Drive encryption-key loss. Do not manually rewrite job states or bypass quota/security RPCs during an incident.
+
+Use `docs/PRODUCTION_READINESS.md` as the release gate. A successful readiness-monitor run is not a release approval and does not establish full restore capability.
