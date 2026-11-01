@@ -56,7 +56,23 @@ export function ResumableUploadForm({ disabled }: { disabled: boolean }) {
       let stored: StoredSession | null = null;
       try {
         const raw = localStorage.getItem(storageKey);
-        if (raw) stored = JSON.parse(raw) as StoredSession;
+        if (raw) {
+          const candidate: unknown = JSON.parse(raw);
+          if (
+            candidate && typeof candidate === "object" &&
+            typeof (candidate as StoredSession).sessionToken === "string" &&
+            (candidate as StoredSession).sessionToken.length > 0 &&
+            typeof (candidate as StoredSession).fileName === "string" &&
+            typeof (candidate as StoredSession).fileSizeBytes === "number" &&
+            Number.isSafeInteger((candidate as StoredSession).fileSizeBytes) &&
+            (candidate as StoredSession).fileSizeBytes === normalized.bytes.byteLength &&
+            (candidate as StoredSession).fileName === normalized.fileName
+          ) {
+            stored = candidate as StoredSession;
+          } else {
+            localStorage.removeItem(storageKey);
+          }
+        }
       } catch {
         localStorage.removeItem(storageKey);
       }
