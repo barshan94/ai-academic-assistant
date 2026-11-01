@@ -3,7 +3,7 @@
 ## Foundation (M1)
 - [ ] Fresh install succeeds from documented steps.
 - [ ] Development server starts.
-- [x] Latest feature-branch CI on `e04b2d23d450ed78a2ced8efaacf67653cc0d1ca`: lint, application/Playwright type checks, unit tests, production build and credential-free Chromium browser smoke tests all passed (Foundation run `41309335030`). Authenticated two-account Supabase acceptance remains separate and requires dedicated non-production credentials.
+- [x] Latest feature-branch CI on `1436fad6e78bd2026883c09fab75262bd4f36cfc`: lint, application/Playwright type checks, unit tests, production build and credential-free Chromium browser smoke tests all passed (Foundation run `41309812309`). The complete ordered migration chain and pgTAP suite also passed on a fresh isolated local Supabase database (Database run `41309812359`). Authenticated two-account Supabase acceptance remains separate and requires dedicated non-production credentials.
 - [x] Protected routes redirect to login when authentication is not configured (Chromium smoke test).
 - [x] Baseline browser security response headers are configured; nonce-based CSP is now enforced by middleware on pages and API routes.
 - [ ] Browser acceptance confirms Next.js nonce propagation, auth refresh, Google OAuth navigation and configured provider connections work without unexpected CSP violations.
@@ -212,10 +212,10 @@
 
 
 ## Database registration page-count invariant (ERR-123)
-- [ ] Apply the committed forward-only migration `20261101140000_tighten_uploaded_document_page_count.sql` in the isolated test project, then confirm the registration RPC rejects non-null page counts 0, 51 and 100.
-- [ ] Confirm the registration RPC accepts page counts 1 and 50, and preserves null for a document whose page count is not yet known.
-- [ ] Confirm owner checks, duplicate/idempotency handling, document registration, processing-job creation and service_role-only execute grants are unchanged.
-- [ ] Confirm authenticated and anon roles cannot execute the RPC directly.
+- [x] Apply the committed forward-only migration `20261101140000_tighten_uploaded_document_page_count.sql` in the fresh isolated CI database; pgTAP confirms the registration RPC rejects non-null page counts 0, 51 and 100 (Database run `41309812359`, commit `1436fad6e78bd2026883c09fab75262bd4f36cfc`).
+- [x] Confirm the registration RPC accepts page counts 1 and 50, and preserves null for a document whose page count is not yet known (same isolated pgTAP run).
+- [x] Confirm owner checks, duplicate/idempotency handling, document registration, processing-job creation and service_role-only execute grants are covered by the isolated atomic document workflow pgTAP suite (same run).
+- [x] Confirm authenticated and anon roles cannot execute the RPC directly (same run). Hosted-project behavior remains unverified.
 
 - [ ] ERR-125: verify encrypted Drive secrets round-trip; reject non-canonical Base64 keys, extra serialized segments, malformed Base64URL, invalid IV/tag lengths, empty ciphertext and values over the configured size limits.
 - [ ] ERR-126: verify resumable Drive chunk validation rejects unsafe integer totals/lengths while retaining valid 1 MB-aligned chunks and final short chunks.
