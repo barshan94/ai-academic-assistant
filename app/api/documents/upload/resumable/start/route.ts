@@ -12,7 +12,7 @@ const MAX_START_BODY_BYTES = 16 * 1024;
 
 async function readStartRequestBody(request: Request) {
   const declaredLength = request.headers.get("content-length");
-  if (declaredLength && (!/^\\d+$/.test(declaredLength) || Number(declaredLength) > MAX_START_BODY_BYTES)) {
+  if (declaredLength && (!/^\d+$/.test(declaredLength) || Number(declaredLength) > MAX_START_BODY_BYTES)) {
     throw new Error("Upload session request is too large.");
   }
   if (!request.body) throw new Error("Upload session request body is missing.");
