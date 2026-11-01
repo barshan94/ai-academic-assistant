@@ -72,6 +72,7 @@ export async function searchWebSources(
   }
 
   if (!response.ok) {
+    await response.body?.cancel().catch(() => {});
     throw new WebResearchProviderError("WEB_RESEARCH_HTTP_" + response.status);
   }
 
