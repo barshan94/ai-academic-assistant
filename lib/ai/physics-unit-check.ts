@@ -55,7 +55,7 @@ function parseUnit(source: string): Dimensions {
     if (token === "1") continue;
     const match = token.match(/^([A-Za-z]+)(?:\^(-?\d{1,2}))?$/);
     if (!match) throw new Error("Unsupported unit notation.");
-    const dimensions = UNIT_DIMENSIONS[match[1]];
+    const dimensions = Object.hasOwn(UNIT_DIMENSIONS, match[1]) ? UNIT_DIMENSIONS[match[1]] : undefined;
     if (!dimensions) throw new Error("Unknown SI unit: " + match[1]);
     const exponent = Number(match[2] ?? "1") * sign;
     if (!Number.isInteger(exponent) || Math.abs(exponent) > 12) throw new Error("Unit exponent is outside the supported range.");
