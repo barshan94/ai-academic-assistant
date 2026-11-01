@@ -797,9 +797,9 @@ This file records material implementation, CI, integration and release problems 
 - Symptom: Manual page correction treated a successful database response as proof that a row was updated, even when no owner-scoped page matched; it also ignored failure to update the parent document status. Document approval did not validate the document UUID or confirm that the parent document existed and that all selected pages were actually updated.
 - Root cause: The server actions checked database error objects but did not request and verify the affected rows.
 - Fix: Validate correction/approval identifiers as UUIDs, request the updated owner-scoped rows, reject missing page/document matches, and report success only after the expected page rows and parent document update are confirmed.
-- Limitation: Page and parent-document updates remain separate database statements. An unexpected failure between them can still leave a partial state; making the transition fully atomic requires a dedicated database RPC migration.
-- Verification: Source inspection only; ownership, missing-row and partial-failure regression cases are deferred to the separate testing phase.
-- Status: Implemented on the feature branch; no tests, typecheck, build or live database acceptance was run during implementation.
+- Atomic closure: Document approval is performed by the transactional `approve_document_review` RPC introduced in `20261101070719_make_document_worker_and_review_transitions_atomic.sql`. Manual page correction and the parent document's review state are now updated by one transaction in `save_document_page_correction`, introduced in `20261101110000_make_manual_document_corrections_atomic.sql`. Both functions enforce the authenticated owner, lock the relevant rows and raise on incomplete updates so the transaction rolls back.
+- Verification: Regression coverage exists in `supabase/tests/atomic_document_workflows.test.sql` for successful approval, cross-account rejection, page-count mismatch and injected page-update failure. The latest-branch test suite has not been run; runtime acceptance remains pending.
+- Status: **Source implementation closed** by the two forward-only migrations. Test execution and hosted migration application remain deferred; no hosted database was changed.
 
 
 ## ERR-074 — Reference syllabus date validation accepted impossible calendar dates
@@ -1499,3 +1499,6 @@ ERR-124 compatibility investigation (2026-11-01): the existing lockfile already 
 
 
 ERR-124 additional compatibility evidence (2026-11-01): the current lockfile contains exactly two minimatch installations: nested `11.0.3` for `@typescript-eslint/typescript-estree` and root `3.1.5` for legacy ESLint consumers. The root `3.1.5` source was compared with the upstream `11.0.1` security fix: the older implementation does not contain the `optimizationLevel` / `firstPhasePreProcess` / `secondPhasePreProcess` glob-expansion path changed by that fix. The advisory metadata nevertheless declares a blanket affected range of all versions below `11.0.1`. This is useful evidence of a possible over-broad version range, not proof that the package is formally exempt. Do not force a breaking global override or claim the dependency audit is clean; retain ERR-124 until the advisory's applicability is confirmed by the maintainer/security database or an explicit risk exception is approved.
+
+
+ERR-073 closure reconciliation (2026-11-01): the earlier note that page and parent-document updates remained separate is superseded by the atomic approval and correction RPCs documented above. Do not count ERR-073 as an open code-implementation blocker. The migration application and pgTAP acceptance remain testing-phase work.
