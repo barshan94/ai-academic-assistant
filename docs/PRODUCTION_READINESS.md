@@ -20,7 +20,7 @@ The owner selected infrastructure constraint remains Supabase Free only. No paid
 ## 1. Application and release artifact
 
 - [ ] Freeze the implementation scope and publish a reviewed release candidate commit.
-- [x] Re-run lint, application/Playwright type-check, unit tests (including `tests/restore-auth-users.test.mjs`), production build and Chromium browser smoke tests on `e04b2d23d450ed78a2ced8efaacf67653cc0d1ca`; GitHub Actions run `41309335030` reports both jobs successful. This does not close live integration or production acceptance.
+- [x] Re-run lint, application/Playwright type-check, unit tests (including `tests/restore-auth-users.test.mjs`), production build and Chromium browser smoke tests on `1436fad6e78bd2026883c09fab75262bd4f36cfc`; GitHub Actions run `41309812309` reports both jobs successful. The isolated migration and pgTAP workflow `41309812359` also passed on the same commit. This does not close live integration or production acceptance.
 - [x] Complete automated lint, application/Playwright type-check, 155 unit tests across 30 files and production build on feature-branch commit `b929566a8d175ff1f3894da706ba64414e40ccf2` (GitHub Actions run `41306988899`). Live integration acceptance remains listed separately below.
 - [x] Complete credential-free Chromium smoke suite (9 passed / 1 skipped; authenticated flow is separate) on `b929566a8d175ff1f3894da706ba64414e40ccf2`.
 - [ ] Complete mobile responsive/accessibility acceptance.
@@ -53,7 +53,7 @@ The owner selected infrastructure constraint remains Supabase Free only. No paid
 - [ ] Inspect effective execute grants for every exposed function, including SECURITY DEFINER functions and trigger functions.
 - [ ] Inspect RLS on every exposed-schema table and all table/view grants; check views for security-invoker behavior where required.
 - [ ] Run Supabase security/performance advisors and resolve findings or document a justified exception.
-- [x] Execute current pgTAP suite on the latest tested branch: 209 assertions across 9 files passed on a fresh isolated local Supabase database.
+- [x] Execute current pgTAP suite on the latest tested branch commit `1436fad6e78bd2026883c09fab75262bd4f36cfc`; the complete ordered migration chain and pgTAP suite passed on a fresh isolated local Supabase database (workflow `41309812359`).
 - [ ] Expand acceptance to authenticated two-account IDOR, concurrency and hosted-project behavior where not covered by current fixtures.
 - [ ] Complete two-account IDOR tests for documents/pages/questions/solutions, teacher invitations/reviews, chapter notes, syllabus references, practice sets and calendar records.
 - [ ] Confirm atomic document upload, worker claim/recovery, completion/failure, correction/approval and quota admission transitions.
