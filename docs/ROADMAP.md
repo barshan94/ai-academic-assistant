@@ -240,3 +240,6 @@ Google Drive OAuth scope alignment (2026-11-01): removed incremental-scope autho
 
 
 Web-research quota atomicity (2026-11-01): added a forward-only Supabase migration to serialize quota admission per owner, check the daily and 15-minute limits before mutating either counter, and avoid consuming quota on rejected requests. See ERR-097. The migration is committed but intentionally not applied to a database; migration execution, concurrency/boundary tests and Supabase advisor review remain for the dedicated testing and fixing phases.
+
+
+Document lifecycle transaction hardening (2026-11-01): worker page replacement and processing-job completion now share one database transaction through complete_document_processing. Manual page approval and parent-document readiness now share one transaction through approve_document_review, with owner checks, row locks and page-count validation. Application call sites and database function types are updated. See ERR-098. Migration application and all SQL/RLS/concurrency/rollback verification remain pending the dedicated testing and fixing phases.
