@@ -34,7 +34,7 @@ export default function PrivacyPage() {
         </article>
         <article className="module-card" style={{ minHeight: 0, marginTop: 12 }}>
           <h3>Google Drive document storage</h3>
-          <p>When the owner connects Google Drive and uploads a document, the original PDF is stored in that owner's Drive. The app stores related metadata and extracted text in its database. The app requests the Google Drive file-only `drive.file` scope. OAuth refresh tokens are encrypted before being stored by the application. The Drive encryption key is held in server-side deployment configuration; losing that key can make existing stored connections unusable.</p>
+          <p>When the owner connects Google Drive and uploads a document, the original PDF is stored in that owner&apos;s Drive. The app stores related metadata and extracted text in its database. The app requests the Google Drive file-only `drive.file` scope. OAuth refresh tokens are encrypted before being stored by the application. The Drive encryption key is held in server-side deployment configuration; losing that key can make existing stored connections unusable.</p>
         </article>
         <article className="module-card" style={{ minHeight: 0, marginTop: 12 }}>
           <h3>Optional AI processing</h3>
