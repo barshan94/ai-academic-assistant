@@ -324,3 +324,9 @@ Private-response cache hardening (2026-11-01): middleware now applies `Cache-Con
 
 
 Middleware response policy now survives Supabase auth-cookie response recreation: the shared header copier retains cache, CSP and crawler directives when a refreshed session causes a new NextResponse to be created (ERR-121). Browser/auth-refresh acceptance remains deferred.
+
+
+### HTTP response size enforcement (ERR-122)
+- [x] Correct decimal Content-Length validation in the shared bounded HTTP response reader.
+- [x] Add regression tests for numeric, malformed, oversized and absent Content-Length headers.
+- [ ] Execute the regression tests and provider integration checks in the dedicated testing phase.
