@@ -62,7 +62,7 @@ begin
 
   if new.status = 'verified' then
     if new.source_url is null
-      or new.source_url !~ '^https://[^[:space:]/?#]+([/?#]|$)'
+      or new.source_url !~ '^https://[^/@[:space:]]+([/?#]|$)'
       or new.source_title is null
       or length(btrim(new.source_title)) = 0 then
       raise exception 'Verification requires an HTTPS source URL and a source title'
