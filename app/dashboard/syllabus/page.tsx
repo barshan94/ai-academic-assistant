@@ -30,7 +30,7 @@ const statusMessages: Record<string, string> = {
   invalid: "Some fields are invalid. Check the values and try again.",
   save_failed: "Could not save this entry. Please check the values and try again.",
   not_found: "The selected parent entry was not found in your account.",
-  source_required: "Add an official HTTPS source URL before marking a syllabus version verified.",
+  source_required: "Add an HTTPS source URL and source title before marking a syllabus version verified. The database records the verification time.",
   imported: "The syllabus was imported atomically as a draft. Review its source and contents before marking it verified.",
   import_duplicate: "A matching syllabus version or chapter/topic already exists. Nothing from this import was saved.",
   import_invalid: "The JSON document is invalid or exceeds the import limits. Check its format and try again.",
