@@ -1,3 +1,7 @@
+-- Keep this schema private: trigger-only validation helpers must not be callable through the Data API.
+create schema if not exists private;
+revoke all on schema private from public, anon, authenticated;
+
 -- Enforce mark-scheme evidence and point structure even for direct Data API inserts.
 alter table public.question_solution_mark_schemes
   add constraint question_solution_mark_schemes_source_url_https_host
