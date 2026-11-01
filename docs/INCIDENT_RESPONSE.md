@@ -79,5 +79,5 @@ Record only non-sensitive operational metadata:
 - GitHub Actions schedules are best-effort and are not guaranteed paging.
 - Current structured logs are allow-listed but dedicated retention, dashboards and external paging still require configuration.
 - Supabase Free has no automatic backup or point-in-time recovery.
-- Current logical backups exclude Auth identities and Storage objects; complete owner identity/data recovery is not yet proven.
+- The Supabase CLI logical dump excludes managed Auth, but the encrypted backup helper separately exports supported email/password accounts and the Auth Admin API importer recreates original UUIDs. Sessions, phone-based sign-in, MFA, SSO and non-email identities remain excluded; the full restore is not proven until an isolated restore and original-password sign-in succeed. Storage objects and external Google Drive files are not included.
 - Original PDFs live in user-owned Google Drive and are not included in the database backup.
