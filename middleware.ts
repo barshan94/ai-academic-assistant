@@ -74,7 +74,7 @@ function createSecureNextResponse(requestHeaders: Headers, contentSecurityPolicy
 
 function copyAuthResponse(source: NextResponse, destination: NextResponse) {
   source.cookies.getAll().forEach((cookie) => destination.cookies.set(cookie));
-  for (const header of ["Cache-Control", "Expires", "Pragma", "Content-Security-Policy"]) {
+  for (const header of ["Cache-Control", "Expires", "Pragma", "Content-Security-Policy", "X-Robots-Tag"]) {
     const value = source.headers.get(header);
     if (value) destination.headers.set(header, value);
   }
@@ -89,9 +89,16 @@ export async function middleware(request: NextRequest) {
 
   let response = createSecureNextResponse(requestHeaders, contentSecurityPolicy);
 
+  // Keep authenticated workspace, sign-in and API endpoints out of search
+  // indexes even if a crawler discovers a URL outside robots.txt.
+  const pathname = request.nextUrl.pathname;
+  if (pathname.startsWith("/dashboard") || pathname.startsWith("/api/") || pathname === "/login") {
+    response.headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
+  }
+
   // Public pages and API routes receive the same response policy. Only the
   // dashboard path performs the authentication gate below.
-  if (!request.nextUrl.pathname.startsWith("/dashboard")) return response;
+  if (!pathname.startsWith("/dashboard")) return response;
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabasePublishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
