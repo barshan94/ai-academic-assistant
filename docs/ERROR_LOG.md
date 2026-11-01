@@ -689,3 +689,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Acquire the owner-scoped Drive access token before atomically consuming quota. Disconnected or reauthorization-required accounts now fail before using an upload slot; quota is still consumed before creating a remote resumable session.
 - Verification: Source change committed on the feature branch. No tests or live OAuth/upload requests were run during implementation.
 - Status: Implemented; regression and live integration verification deferred to the separate testing phase.
+
+
+## ERR-064 — Upload-session creation parsed an unbounded JSON request body
+
+- Date: 2026-11-01
+- Area: M2 resumable upload API / request resource limits
+- Symptom: The upload-session start route parsed JSON directly with `request.json()`, allowing an authenticated caller to submit an unnecessarily large metadata body before the route validated the small set of expected fields.
+- Root cause: The route bounded PDF bytes and chunk bodies, but did not impose a corresponding bound on the session-creation metadata request.
+- Fix: Read the request stream with a strict 16 KiB ceiling, reject oversized declared or streamed bodies, require a JSON object, reject malformed JSON, and return 413 for oversized payloads or 400 for invalid payloads. Numeric Content-Length validation is explicit.
+- Verification: Source inspection only. No test command or HTTP request was run during the implementation phase.
+- Status: Implemented; request-boundary regression coverage remains for the separate testing phase.
