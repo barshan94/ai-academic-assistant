@@ -31,51 +31,36 @@ async function saveCompletedUpload(
     throw new Error("Google Drive returned a file with an unexpected type or size. The incomplete archive was removed.");
   }
 
-  const { data: existing, error: existingError } = await supabase.from("documents")
-    .select("id,drive_file_id").eq("owner_id", session.ownerId).eq("sha256", session.sha256).maybeSingle();
-  if (existingError) throw new Error("Could not verify whether this document was already archived.");
-  if (existing) {
-    if (existing.drive_file_id !== file.id) {
-      const accessToken = await getDriveAccessToken();
-      await deleteDriveFile(accessToken, file.id);
-    }
-    return { documentId: existing.id, duplicate: true };
-  }
-
-  const { data: document, error: documentError } = await supabase.from("documents").insert({
-    owner_id: session.ownerId,
-    file_name: session.fileName,
-    mime_type: "application/pdf",
-    file_size_bytes: session.fileSizeBytes,
-    sha256: session.sha256,
-    drive_file_id: file.id,
-    drive_web_view_link: file.webViewLink ?? null,
-    page_count: session.pageCount,
-    status: "queued",
-  }).select("id").single();
-
-  if (documentError || !document) {
-    const accessToken = await getDriveAccessToken();
-    await deleteDriveFile(accessToken, file.id);
-    throw new Error("The uploaded file could not be registered in the document library.");
-  }
-
-  const { error: jobError } = await supabase.from("processing_jobs").insert({
-    owner_id: session.ownerId,
-    document_id: document.id,
-    stage: "validate",
-    status: "queued",
-    idempotency_key: session.ownerId + ":" + session.sha256 + ":validate",
+  const { data: registrations, error: registrationError } = await supabase.rpc("register_uploaded_document", {
+    p_owner_id: session.ownerId,
+    p_file_name: session.fileName,
+    p_file_size_bytes: session.fileSizeBytes,
+    p_sha256: session.sha256,
+    p_drive_file_id: file.id,
+    p_drive_web_view_link: file.webViewLink ?? null,
+    p_page_count: session.pageCount,
   });
+  const registration = registrations?.[0];
 
-  if (jobError) {
-    await supabase.from("documents").delete().eq("id", document.id).eq("owner_id", session.ownerId);
-    const accessToken = await getDriveAccessToken();
-    await deleteDriveFile(accessToken, file.id);
-    throw new Error("The processing job could not be queued. The uploaded file was rolled back.");
+  if (
+    registrationError ||
+    !registration?.document_id ||
+    typeof registration.duplicate !== "boolean"
+  ) {
+    // The database may have committed even if the response was lost. Do not
+    // delete the Drive object here: that could leave a committed row dangling.
+    throw new Error("The uploaded file could not be registered safely. Retry the upload to reconcile its status.");
   }
 
-  return { documentId: document.id, duplicate: false };
+  if (registration.duplicate && registration.stored_drive_file_id !== file.id) {
+    const accessToken = await getDriveAccessToken();
+    await deleteDriveFile(accessToken, file.id);
+  }
+
+  return {
+    documentId: registration.document_id,
+    duplicate: registration.duplicate,
+  };
 }
 
 function isValidUploadSession(value: unknown): value is UploadSession {
