@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { readFile, lstat } from "node:fs/promises";
+import { pathToFileURL } from "node:url";
 
 const MAX_BACKUP_BYTES = 10 * 1024 * 1024;
 const MAX_USERS = 1000;
@@ -17,7 +18,7 @@ function isRecord(value) {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
-function validateBackup(value) {
+export function validateBackup(value) {
   if (!isRecord(value) || value.formatVersion !== 1 || !Array.isArray(value.users)) {
     throw new Error("Backup must use formatVersion 1 and contain a users array.");
   }
@@ -67,13 +68,13 @@ function validateBackup(value) {
   return value.users;
 }
 
-function remainingBanDuration(bannedUntil) {
+export function remainingBanDuration(bannedUntil) {
   if (!bannedUntil) return undefined;
   const remainingSeconds = Math.ceil((Date.parse(bannedUntil) - Date.now()) / 1000);
   return remainingSeconds > 0 ? `${remainingSeconds}s` : undefined;
 }
 
-async function readJsonResponse(response) {
+export async function readJsonResponse(response) {
   if (!response.body) return null;
   const reader = response.body.getReader();
   const chunks = [];
@@ -208,4 +209,6 @@ async function main() {
   process.stdout.write("Sessions and MFA factors were not restored; users must sign in again.\n");
 }
 
-main().catch((error) => fail(error instanceof Error ? error.message : "Unexpected restore error."));
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch((error) => fail(error instanceof Error ? error.message : "Unexpected restore error."));
+}
