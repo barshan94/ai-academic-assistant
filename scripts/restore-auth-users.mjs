@@ -41,11 +41,11 @@ function validateBackup(value) {
     if (Number(user.mfa_factor_count) !== 0 || user.is_anonymous === true || user.is_sso_user === true) {
       throw new Error("Accounts with MFA factors, anonymous status or SSO status require a separately designed recovery workflow.");
     }
-    if (typeof user.email_confirm !== "boolean" || typeof user.phone_confirm !== "boolean") {
-      throw new Error("An account is missing its confirmation-state flags.");
+    if (typeof user.email_confirm !== "boolean") {
+      throw new Error("An account is missing its email confirmation-state flag.");
     }
-    if (user.phone !== null && user.phone !== undefined && typeof user.phone !== "string") {
-      throw new Error("An account has an invalid phone value.");
+    if (user.phone !== null && user.phone !== undefined) {
+      throw new Error("Phone-based account data is outside the email/password restore scope.");
     }
     if (!isRecord(user.user_metadata) || !isRecord(user.app_metadata)) {
       throw new Error("An account's user or app metadata is not a JSON object.");
@@ -161,10 +161,8 @@ async function main() {
       aud: user.aud,
       role: user.role,
       email: user.email,
-      phone: user.phone || undefined,
       password_hash: user.password_hash,
       email_confirm: user.email_confirm,
-      phone_confirm: user.phone_confirm,
       user_metadata: user.user_metadata,
       app_metadata: user.app_metadata,
       ban_duration: remainingBanDuration(user.banned_until),
