@@ -80,6 +80,7 @@ A second read-only inspection was performed against the connected `academic-assi
 - The remote migration ledger still contains **53 entries**: 51 exact version/name matches and the same two timestamp/name mismatches listed above.
 - The remote `public.documents.page_count` check remains `page_count IS NULL OR page_count >= 0`; it does not enforce the repository's 1–50 non-null page-count contract.
 - A catalog query found no `public.register_uploaded_document` function in the connected schema. A broader read-only query for public/private document, upload and worker functions also returned no rows.
+- A catalog query found 21 public base/partitioned tables and all 21 had RLS enabled. This does not verify policy correctness, effective grants or two-account IDOR behavior.
 - The Supabase security advisor returned no findings at the time of inspection. This is not evidence that repository migrations have been applied or that application-level authorization is accepted.
 - The performance advisor reported 60 unused-index notices. The application tables currently report zero rows, so these notices are not grounds to drop indexes.
 
