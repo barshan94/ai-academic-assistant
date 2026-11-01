@@ -1690,5 +1690,5 @@ ERR-073 closure reconciliation (2026-11-01): the earlier note that page and pare
 - Symptom: The worker correctly persisted a failed job and returned a JSON payload with `failed: true`, but used HTTP 200. The GitHub Actions scheduler therefore treated an OCR/provider/database processing failure as a successful invocation.
 - Root cause: The route conflated successful handling/persistence of a failure with successful document processing.
 - Fix: After `fail_document_processing` confirms that the failed state was persisted, the route now returns HTTP 500 with a sanitized error payload. The durable job remains eligible for a later scheduled retry within its attempt budget; no sensitive upstream error is returned.
-- Verification: Pending foundation CI and non-production worker acceptance. Confirm the workflow reports a failed run after a job failure and that a later invocation can retry the persisted job.
-- Status: Source fix committed; CI and live worker acceptance pending.
+- Verification: The sanitized HTTP 500 response helper and redaction regression tests passed in Foundation run `41311063846` on commit `5140bcf110507739ac5d8c7bd9f46a2622eb29b1` (lint, type-check, unit tests and production build all passed). The browser smoke job is still running. Live non-production worker acceptance must still confirm that GitHub Actions marks a persisted processing failure as failed and that a later invocation retries within the attempt budget.
+- Status: Source fix and unit regression verified; live worker acceptance remains open.
