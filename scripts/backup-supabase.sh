@@ -27,6 +27,9 @@ if [[ ! "$BACKUP_PROJECT_REF" =~ ^[a-z0-9-]{5,40}$ ]]; then
 fi
 
 repo_root="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+[[ -n "$repo_root" ]] || fail "Run this helper from the repository working tree."
+repo_root="$(cd "$repo_root" && pwd -P)"
+cd "$repo_root"
 backup_root="${BACKUP_ROOT:-$HOME/academic-assistant-backups}"
 mkdir -p "$backup_root"
 chmod 700 "$backup_root"
