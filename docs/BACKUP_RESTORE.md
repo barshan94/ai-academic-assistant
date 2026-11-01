@@ -45,7 +45,7 @@ A repository helper now automates the logical export and encrypts the result loc
    ```bash
    bash scripts/backup-supabase.sh
    ```
-   The helper writes a mode-restricted encrypted `.tar.gz.age` archive under `$HOME/academic-assistant-backups` (or `BACKUP_ROOT`), refuses to place backups inside the Git working tree, creates role/schema/data dumps, writes a metadata manifest and SHA-256 checksums, and removes its temporary plaintext working directory on exit. Keep the private age identity separate from the archive.
+   The helper writes a mode-restricted encrypted `.tar.gz.age` archive under `$HOME/academic-assistant-backups` (or `BACKUP_ROOT`), refuses to place backups inside the Git working tree, creates role/schema/data dumps plus a supported Auth account export, writes a metadata manifest and SHA-256 checksums, and removes its temporary plaintext working directory on exit. Keep the private age identity separate from the archive.
 5. Verify the encrypted archive on the trusted workstation before copying it off-site. Point `AGE_IDENTITY_FILE` to the separately stored private age identity and pass the archive path:
    ```bash
    export AGE_IDENTITY_FILE="$HOME/.config/age/keys.txt"
@@ -57,6 +57,8 @@ A repository helper now automates the logical export and encrypts the result loc
 The helper does not export Auth sessions, MFA factors, SSO/external provider identities, Storage object bytes, Google Drive files, project settings or provider secrets. Its output is not a complete disaster-recovery backup.
 
 ### Manual CLI export (alternative)
+
+This CLI-only alternative does not create the separate `auth-users.json` payload and is not sufficient for the current account-recovery workflow. Prefer `scripts/backup-supabase.sh` for the current archive format.
 
 1. Use a trusted workstation with the Supabase CLI and Docker installed.
 2. Obtain the database connection string from the Supabase Dashboard's Connect panel. Do not paste it into chat, source code, shell history, or logs.
@@ -101,14 +103,12 @@ Do not test restore against production or the current shared project.
 1. Create a separate non-production Supabase project. Do not delete or overwrite the source project.
 2. Enable required extensions and confirm the target PostgreSQL/Supabase compatibility.
 3. Review the repository's migrations and compare them with the target's migration history. This repository currently tracks a remote migration-history drift issue (ERR-007); do not run `supabase db push` blindly. Reconcile the target schema and migration ledger first.
-4. Restore the schema/roles/data using the current official Supabase CLI restore procedure. For a blank target that is being reconstructed from the logical dump, the documented pattern is:
+4. Restore roles and schema only using the current official Supabase CLI restore procedure. For a blank target that is being reconstructed from the logical dump, use:
 
    ```bash
    psql --single-transaction --variable ON_ERROR_STOP=1 \
      --file roles.sql \
      --file schema.sql \
-     --command 'SET session_replication_role = replica' \
-     --file data.sql \
      --dbname "$TARGET_DB_URL"
    ```
 
@@ -133,8 +133,8 @@ Do not test restore against production or the current shared project.
    ```
    Check the current Supabase restore guide for compatibility with the target Postgres version. Do not manually edit Supabase-managed Auth tables.
 7. Reconfigure OAuth providers, redirect URLs, environment variables, cron secrets and deployment settings in the target. Reuse the exact Drive encryption key if encrypted refresh-token rows are restored.
-7. Confirm that Google Drive files still exist in their original owner accounts. The app's database backup does not contain those file bytes.
-8. Run the full local migration/pgTAP suite and a dedicated two-account authenticated acceptance suite against the isolated target before considering any migration.
+8. Confirm that Google Drive files still exist in their original owner accounts. The app's database backup does not contain those file bytes.
+9. Run the full local migration/pgTAP suite and a dedicated two-account authenticated acceptance suite against the isolated target before considering any migration.
 
 ## Restore acceptance checklist
 
