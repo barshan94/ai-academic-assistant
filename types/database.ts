@@ -1007,6 +1007,21 @@ export type Database = {
       consume_document_upload_quota: {
         Args: Record<PropertyKey, never>;
         Returns: boolean;
+      },
+      list_claimable_document_jobs: {
+        Args: {
+          p_stale_before: string;
+          p_limit?: number;
+        };
+        Returns: {
+          id: string;
+          owner_id: string;
+          document_id: string;
+          attempt_count: number;
+          max_attempts: number;
+          status: string;
+          started_at: string | null;
+        }[];
       }
     }
     Enums: {
