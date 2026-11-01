@@ -43,40 +43,13 @@ export async function approveDocument(formData: FormData) {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) redirect("/login");
 
-  const { data: document, error: documentError } = await supabase.from("documents")
-    .select("id").eq("id", documentId).eq("owner_id", user.id).maybeSingle();
-  if (documentError || !document) {
-    redirect("/dashboard/documents/" + encodeURIComponent(documentId) + "?review=not_found");
-  }
-
-  const { data: pages, error: pageError } = await supabase
-    .from("document_pages")
-    .select("id")
-    .eq("document_id", documentId)
-    .eq("owner_id", user.id);
-
-  if (pageError || !pages?.length) redirect("/dashboard/documents/" + encodeURIComponent(documentId) + "?review=empty");
-
-  const { data: updatedPages, error: updatePagesError } = await supabase
-    .from("document_pages")
-    .update({ status: "complete" })
-    .eq("document_id", documentId)
-    .eq("owner_id", user.id)
-    .select("id");
-  if (updatePagesError || updatedPages?.length !== pages.length) {
-    redirect("/dashboard/documents/" + encodeURIComponent(documentId) + "?review=approve_failed");
-  }
-
-  const { data: updatedDocument, error: updateDocumentError } = await supabase
-    .from("documents")
-    .update({ status: "ready" })
-    .eq("id", documentId)
-    .eq("owner_id", user.id)
-    .select("id")
-    .maybeSingle();
+  const { error: approvalError } = await supabase.rpc("approve_document_review", {
+    p_document_id: documentId,
+    p_owner_id: user.id,
+  });
 
   redirect("/dashboard/documents/" + encodeURIComponent(documentId) +
-    (updateDocumentError || !updatedDocument ? "?review=approve_failed" : "?review=approved"));
+    (approvalError ? "?review=approve_failed" : "?review=approved"));
 }
 
 export async function createQuestionFromPage(formData: FormData) {
