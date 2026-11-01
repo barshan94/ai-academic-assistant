@@ -148,7 +148,7 @@ async function main() {
     const endpoint = new URL(`/auth/v1/admin/users/${encodeURIComponent(user.id)}`, url);
     let existingResponse;
     try {
-      existingResponse = await fetch(endpoint, { method: "GET", headers, signal: AbortSignal.timeout(15000) });
+      existingResponse = await fetch(endpoint, { method: "GET", headers, redirect: "error", signal: AbortSignal.timeout(15000) });
     } catch {
       throw new Error("Could not reach the Auth Admin API while checking an account.");
     }
@@ -186,6 +186,7 @@ async function main() {
         method: "POST",
         headers,
         body: JSON.stringify(payload),
+        redirect: "error",
         signal: AbortSignal.timeout(15000),
       });
     } catch {
