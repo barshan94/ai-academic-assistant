@@ -10,6 +10,7 @@ fail() {
 command -v supabase >/dev/null 2>&1 || fail "Supabase CLI is required."
 command -v age >/dev/null 2>&1 || fail "age is required for encrypted backups."
 command -v psql >/dev/null 2>&1 || fail "psql is required to export supported Auth account records through a read-only query."
+command -v node >/dev/null 2>&1 || fail "Node.js is required to validate the Auth account export."
 command -v tar >/dev/null 2>&1 || fail "tar is required."
 command -v sha256sum >/dev/null 2>&1 || command -v shasum >/dev/null 2>&1 || fail "sha256sum or shasum is required."
 
@@ -103,6 +104,17 @@ printf '%s\n' "$auth_export_sql" > "$workdir/auth-export.sql"
 psql "$SUPABASE_DB_URL" -X -q -A -t -v ON_ERROR_STOP=1 -v backup_project_ref="$BACKUP_PROJECT_REF" -f "$workdir/auth-export.sql" > "$workdir/auth-users.json"
 rm -f "$workdir/auth-export.sql"
 [[ -s "$workdir/auth-users.json" ]] || fail "Auth account export is missing or empty."
+
+# Fail before archiving if any exported Auth row is outside the importer's
+# supported, explicitly validated email/password account format. Never create
+# an archive that looks restorable but will fail part-way through Auth recovery.
+node --input-type=module - "$workdir/auth-users.json" <<'NODE'
+import { readFile } from "node:fs/promises";
+import { validateBackup } from "./scripts/restore-auth-users.mjs";
+
+const backup = JSON.parse(await readFile(process.argv[2], "utf8"));
+validateBackup(backup);
+NODE
 
 for file in roles.sql schema.sql data.sql auth-users.json; do
   [[ -s "$workdir/$file" ]] || fail "Expected dump file is missing or empty: $file"
