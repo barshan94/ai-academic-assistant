@@ -166,3 +166,17 @@ The two mismatched shared-reference migration pairs were inspected again using r
 - The fresh isolated CI database has already applied the full current 96-file repository chain successfully, with the current pgTAP suite passing. That proves the repository chain can be replayed on a clean database, not that the hosted database is equivalent.
 
 No hosted migration or migration-ledger repair was performed. The target project remains dedicated to non-production reconciliation, as confirmed by the owner; actual hosted migration execution still requires a separately reviewed execution plan and explicit approval.
+
+## Owner authorization and execution-method check — 2026-11-01
+
+The owner explicitly authorized reconciliation of the two migration-history entries and application of the 43 pending migrations to the existing `academic-assistant` non-production project. This authorization does not include resets, the separate `durga-map` project, production deployment or branch merging.
+
+A forward-only fix for ERR-161 has now been committed:
+
+- `20261101160000_revoke_reference_trigger_function_execute.sql` revokes direct EXECUTE from PUBLIC, anon, authenticated and service_role on the three trigger-only shared-reference helper functions.
+- `supabase/tests/reference_trigger_function_privileges.test.sql` verifies those effective privileges, PostgreSQL owner execution and the continued presence of all four triggers.
+- Isolated migration/pgTAP workflow run `41322904037` passed.
+
+**Hosted execution is not yet performed.** The available connected database interface can apply DDL migrations, but does not expose the Supabase CLI's version-specific `migration repair` operation. The ordinary migration-apply operation also does not accept a repository migration version. Using it for 43 migrations would risk creating a second, timestamp-divergent history rather than reconciling the repository's exact versions. That would recreate the very drift this procedure is meant to eliminate.
+
+Therefore, do not use the generic migration-apply operation or hand-edit `supabase_migrations.schema_migrations` as a shortcut. The remaining safe route is a pinned Supabase CLI session/workflow against this exact project: inspect `supabase migration repair --help` and `supabase db push --help`, repair only the two evidenced old/new version pairs, run a dry-run including out-of-order migrations, then apply the repository's pending chain in chronological order. Re-fetch the ledger and verify the 96 expected repository versions, schema contracts, RLS, grants, triggers, seed counts and advisors afterward. The hosted project remains unchanged as of this note.
