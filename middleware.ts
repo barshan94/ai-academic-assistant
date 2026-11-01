@@ -131,7 +131,18 @@ export async function middleware(request: NextRequest) {
         // private-cache or crawler policy headers assigned before getClaims().
         copyResponsePolicyHeaders(previousResponse.headers, response.headers);
         cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
-        Object.entries(headers).forEach(([key, value]) => response.headers.set(key, value));
+        // Supabase may return transport headers alongside refreshed cookies.
+        // Never allow those headers to replace the app's security/cache policy.
+        const protectedHeaders = new Set([
+          "cache-control",
+          "expires",
+          "pragma",
+          "content-security-policy",
+          "x-robots-tag",
+        ]);
+        Object.entries(headers ?? {}).forEach(([key, value]) => {
+          if (!protectedHeaders.has(key.toLowerCase())) response.headers.set(key, value);
+        });
       },
     },
   });
