@@ -49,7 +49,7 @@ A repository helper now automates the logical export and encrypts the result loc
    export AGE_IDENTITY_FILE="$HOME/.config/age/keys.txt"
    bash scripts/verify-backup.sh "$HOME/academic-assistant-backups/academic-assistant-YYYYMMDDTHHMMSSZ-PID.tar.gz.age"
    ```
-   This decrypts into a private temporary directory, accepts only the exact expected archive entries, and verifies every SHA-256 checksum. It proves archive integrity, not successful database restoration.
+   This decrypts into a private temporary directory, accepts only the exact expected archive entries, streams each member into a newly created regular file (without extracting archive-controlled paths or link metadata), and verifies every SHA-256 checksum. It proves archive integrity, not successful database restoration.
 6. Copy the encrypted archive to an independent off-site location. Never commit it to this repository.
 
 The helper intentionally does not export Supabase Auth identities, Storage object bytes, Google Drive files, project settings or provider secrets. Its output is not a complete disaster-recovery backup.
