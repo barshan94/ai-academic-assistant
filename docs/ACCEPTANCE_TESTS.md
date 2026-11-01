@@ -216,3 +216,6 @@
 - [ ] Confirm the registration RPC accepts page counts 1 and 50, and preserves null for a document whose page count is not yet known.
 - [ ] Confirm owner checks, duplicate/idempotency handling, document registration, processing-job creation and service_role-only execute grants are unchanged.
 - [ ] Confirm authenticated and anon roles cannot execute the RPC directly.
+
+- [ ] ERR-125: verify encrypted Drive secrets round-trip; reject non-canonical Base64 keys, extra serialized segments, malformed Base64URL, invalid IV/tag lengths, empty ciphertext and values over the configured size limits.
+- [ ] ERR-126: verify resumable Drive chunk validation rejects unsafe integer totals/lengths while retaining valid 1 MB-aligned chunks and final short chunks.
