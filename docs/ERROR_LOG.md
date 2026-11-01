@@ -1064,3 +1064,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Added the complete_document_processing RPC, which invokes the existing transactional page replacement and marks the matching running job completed within the same database transaction. Added approve_document_review, which locks the owner-scoped document and pages, validates the review state and page-count invariant, then marks all pages complete and the document ready atomically. Updated the worker and server action to use these RPCs and registered both function signatures in types/database.ts.
 - Verification: Source/migration review only. The migration has not been applied to a database; SQL execution, RLS behavior, service-role execution, concurrent processing/approval and rollback scenarios remain deferred to the dedicated testing and fixing phases.
 - Status: Migration, application call sites, database types and documentation committed to feature/m3-ai-solver; no tests, typecheck or build were run during implementation.
+
+
+## ERR-099 — Resumable upload could leave an orphaned document or processing job
+
+- Date: 2026-11-01
+- Area: Resumable PDF upload / document intake transaction
+- Symptom: Upload completion inserted the document row and processing-job row in separate requests. If job insertion failed and the compensating document delete also failed, the library could retain a document that had no queued processing job. Concurrent uploads of identical content could also race around the duplicate check.
+- Root cause: Document registration and job creation were not one database transaction, and the application-level duplicate lookup was not serialized.
+- Fix: Added the register_uploaded_document RPC to validate the authenticated owner and upload metadata, serialize same-owner/same-content registrations with a transaction-scoped advisory lock, preserve duplicate Drive-file identity, and insert the document and initial processing job in one transaction. Updated the upload completion route to use the RPC and avoid deleting a Drive file when an RPC response error leaves commit status ambiguous. Registered the function signature in types/database.ts.
+- Verification: Source/migration review only. The migration has not been applied to a database; SQL execution, RLS permissions, duplicate/concurrent upload behavior, transaction rollback and ambiguous network response recovery remain deferred to the dedicated testing and fixing phases.
+- Status: Migration, upload route, database types and documentation committed to feature/m3-ai-solver; no tests, typecheck or build were run during implementation.
