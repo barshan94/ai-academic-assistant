@@ -934,6 +934,15 @@ export type Database = {
         };
         Returns: number;
       }
+      fail_document_processing: {
+        Args: {
+          p_document_id: string;
+          p_owner_id: string;
+          p_job_id: string;
+          p_error_code: string;
+        };
+        Returns: boolean;
+      }
       approve_document_review: {
         Args: {
           p_document_id: string;
