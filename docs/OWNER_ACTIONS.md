@@ -35,6 +35,7 @@ Configure repository Actions secrets from the deployment dashboard; never commit
 - [ ] Run scripts/verify-backup.sh with the separately stored age identity.
 - [ ] Copy the encrypted archive to two independent locations and record archive date, project reference, CLI version and checksum evidence without recording secrets.
 - [ ] Rehearse roles/schema restore, then run scripts/restore-auth-users.mjs against the target Auth Admin API, then restore application data so original Auth UUID foreign keys resolve.
+- [ ] Confirm the target Auth project uses the same password-hashing algorithm as the source and set `RESTORE_PASSWORD_HASH_ALGORITHM` accordingly before importing. The importer refuses mixed hash algorithms.
 - [ ] Confirm the restored email/password owner can sign in with the existing password. The importer deliberately rejects phone-based, MFA, SSO, anonymous and non-email identity accounts; sessions and refresh tokens must be re-established. Storage objects, project settings and Google Drive files are separate recovery concerns.
 - [ ] Preserve the exact original DRIVE_TOKEN_ENCRYPTION_KEY in an approved secret manager. A newly generated key cannot decrypt existing tokens.
 - [ ] Approve realistic RPO/RTO targets only after a restore drill measures backup cadence and restore time.
