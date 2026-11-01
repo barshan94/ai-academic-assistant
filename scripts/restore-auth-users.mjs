@@ -18,6 +18,13 @@ function isRecord(value) {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
+export function passwordHashAlgorithm(hash) {
+  if (typeof hash !== "string") return null;
+  if (BCRYPT_HASH.test(hash)) return "bcrypt";
+  if (ARGON2_HASH.test(hash)) return "argon2";
+  return null;
+}
+
 export function validateBackup(value) {
   if (!isRecord(value) || value.formatVersion !== 1 || !Array.isArray(value.users)) {
     throw new Error("Backup must use formatVersion 1 and contain a users array.");
@@ -29,6 +36,7 @@ export function validateBackup(value) {
 
   const ids = new Set();
   const emails = new Set();
+  const hashAlgorithms = new Set();
 
   for (const user of value.users) {
     if (!isRecord(user)) throw new Error("An account record is malformed.");
@@ -36,9 +44,11 @@ export function validateBackup(value) {
     if (typeof user.email !== "string" || user.email.length > 320 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(user.email)) {
       throw new Error("An account has an invalid email address.");
     }
-    if (typeof user.password_hash !== "string" || (!BCRYPT_HASH.test(user.password_hash) && !ARGON2_HASH.test(user.password_hash))) {
+    const hashAlgorithm = passwordHashAlgorithm(user.password_hash);
+    if (!hashAlgorithm) {
       throw new Error("Every account must have a supported bcrypt or Argon2 password hash; plaintext passwords are not accepted.");
     }
+    hashAlgorithms.add(hashAlgorithm);
     if (!Array.isArray(user.identity_providers) || user.identity_providers.length !== 1 || user.identity_providers[0] !== "email") {
       throw new Error("Only email-identity accounts are supported by this restore workflow.");
     }
@@ -64,6 +74,9 @@ export function validateBackup(value) {
     if (user.banned_until !== null && user.banned_until !== undefined && !Number.isFinite(Date.parse(user.banned_until))) {
       throw new Error("An account has an invalid ban-expiry timestamp.");
     }
+  }
+  if (hashAlgorithms.size > 1) {
+    throw new Error("The backup mixes password-hash algorithms; restore it only after a dedicated migration plan.");
   }
   return value.users;
 }
@@ -131,6 +144,12 @@ async function main() {
   const users = validateBackup(parsed);
   if (parsed.projectRef === targetProjectRef) {
     throw new Error("Refusing to restore Auth accounts back into the source project.");
+  }
+  if (users.length > 0) {
+    const sourceHashAlgorithm = passwordHashAlgorithm(users[0].password_hash);
+    if (process.env.RESTORE_PASSWORD_HASH_ALGORITHM !== sourceHashAlgorithm) {
+      throw new Error(`Set RESTORE_PASSWORD_HASH_ALGORITHM to ${sourceHashAlgorithm} only after confirming the target Auth project's password hashing algorithm matches the source.`);
+    }
   }
   if (users.length === 0) {
     process.stdout.write("The backup contains no active email/password accounts.\n");
