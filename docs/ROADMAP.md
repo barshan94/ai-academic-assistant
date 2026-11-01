@@ -180,3 +180,6 @@ Google Drive session destination validation (2026-11-01): both issued and decryp
 
 
 Shared AI/research response handling (2026-11-01): the common bounded HTTP reader now rejects malformed Content-Length metadata, enforces the actual streamed byte cap, releases its reader lock on success and failure, and rejects invalid UTF-8 instead of silently replacing bytes. AI and Brave Search integrations consume this helper. See ERR-072; malformed-response regression tests remain in the later testing phase.
+
+
+Document review action hardening (2026-11-01): manual page correction and document approval now validate UUID inputs, confirm owner-scoped affected rows, and only report success when both page and parent-document updates are confirmed. The two database updates are still separate and require a future transactional RPC migration to eliminate partial-state risk. See ERR-073; all regression testing remains deferred to the dedicated testing phase.
