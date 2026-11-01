@@ -93,7 +93,7 @@ jobs:
 
           let payload;
           try {
-            payload = JSON.parse(Buffer.concat(chunks).toString("utf8"));
+            payload = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(Buffer.concat(chunks)));
           } catch {
             console.error("::error::Readiness endpoint returned invalid JSON.");
             process.exit(1);
