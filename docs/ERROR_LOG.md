@@ -549,3 +549,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Pin checkout, setup-node, Supabase CLI setup and Gitleaks actions to immutable commit SHAs; pin the Supabase CLI binary to v2.122.0 instead of `latest`. Remove the one-time migration-generation workflow and its unnecessary repository write permission; disable persisted checkout credentials in all read-only workflows.
 - Verification: Workflow source review only. No workflow was dispatched or re-run in this implementation phase.
 - Status: CI configuration hardened; normal workflow execution and action compatibility remain for the separate testing phase.
+
+
+## ERR-051 — Backup runbook required manual export steps without a repeatable encrypted helper
+
+- Date: 2026-11-01
+- Area: M8 backup operations / Supabase Free
+- Symptom: The runbook described a manual logical dump but had no repository-owned helper to consistently create the three exports, record metadata/checksums and encrypt the resulting archive before off-device storage.
+- Root cause: Backup procedure was documented but not packaged into a repeatable local workflow.
+- Fix: Added `scripts/backup-supabase.sh`. It exports roles, schema and application data, validates non-empty outputs, records a non-secret manifest, creates SHA-256 checksums, encrypts the archive to an age public recipient, restricts output permissions, rejects backup destinations inside the repository, and removes incomplete archives and temporary working files on exit. Updated the runbook with setup and invocation instructions, plus the local process-argument and SSD deletion limitations.
+- Verification: Implementation-only source and documentation review. The helper was not executed; no database connection, age key, backup archive or restore was exercised.
+- Status: Repeatable encrypted logical-export implementation added. Supabase Auth identity restoration, Storage objects, project settings and a verified end-to-end restore remain unresolved; this is not a full disaster-recovery solution.
