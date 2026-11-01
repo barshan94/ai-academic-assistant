@@ -109,8 +109,8 @@ The owner-selected infrastructure constraint remains Supabase Free only. No paid
 - [x] Document Supabase Free backup limitations and explicitly avoid claiming point-in-time recovery.
 - [x] Implement encrypted logical database export and archive integrity verification helpers.
 - [ ] Create a non-production encrypted backup, verify checksums with the separately stored age identity and copy the encrypted archive to two independent locations.
-- [ ] Rehearse schema/roles/application-data restore into a new isolated Supabase project.
-- [ ] Prove a supported method to recover or reconcile the original Supabase Auth user UUIDs without manually editing managed Auth tables.
+- [ ] Rehearse roles/schema restore, Auth Admin API account recreation with original UUIDs/password hashes, and application-data restore in that order on a new isolated Supabase project.
+- [ ] Verify the restored owner can sign in with the original password; separately account for sessions, MFA, SSO and non-email identities that the current importer intentionally does not restore.
 - [ ] Verify the original Drive encryption key and all external credentials are recoverable from the approved secret store.
 - [ ] Define and approve recovery-point and recovery-time objectives based on actual backup cadence and measured restore time.
 - [ ] Complete a restore drill and record the evidence, gaps and corrective actions.
