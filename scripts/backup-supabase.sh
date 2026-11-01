@@ -84,16 +84,16 @@ select json_build_object(
         from auth.mfa_factors as factor
         where factor.user_id = u.id
       ),
-      'is_anonymous', coalesce(u.is_anonymous, false),
-      'is_sso_user', coalesce(u.is_sso_user, false),
-      'banned_until', u.banned_until
+      'is_anonymous', coalesce((to_jsonb(u)->>'is_anonymous')::boolean, false),
+      'is_sso_user', coalesce((to_jsonb(u)->>'is_sso_user')::boolean, false),
+      'banned_until', to_jsonb(u)->>'banned_until'
     ) order by u.created_at
   ),
   '[]'::json
   )
 )::text
 from auth.users as u
-where u.deleted_at is null;
+where to_jsonb(u)->>'deleted_at' is null;
 SQL
 )"
 # Supabase CLI logical dumps intentionally omit managed Auth tables. Export only
