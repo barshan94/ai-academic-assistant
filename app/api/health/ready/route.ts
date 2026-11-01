@@ -88,10 +88,34 @@ async function hasLiveSupabaseConnection() {
       },
     });
 
-    // Probe the core application tables as well as the profile table.
-    // A reachable PostgREST endpoint alone is insufficient if the deployed
-    // schema is missing the document-processing tables the application needs.
-    const requiredTables = ["profiles", "documents", "processing_jobs"] as const;
+    // A reachable PostgREST endpoint alone is insufficient. Probe the
+    // tables required by the shipped document, solver, syllabus, notes and
+    // study workflows so a partially migrated database cannot report ready.
+    // These are zero-row HEAD requests; no academic content is returned.
+    const requiredTables = [
+      "profiles",
+      "documents",
+      "document_pages",
+      "processing_jobs",
+      "drive_connections",
+      "questions",
+      "question_solutions",
+      "question_teacher_invites",
+      "question_solution_reviews",
+      "syllabus_catalogs",
+      "syllabus_chapters",
+      "syllabus_topics",
+      "reference_syllabus_catalogs",
+      "reference_syllabus_chapters",
+      "reference_syllabus_topics",
+      "reference_syllabus_evidence",
+      "chapter_note_versions",
+      "chapter_note_sources",
+      "question_revision_progress",
+      "practice_sets",
+      "practice_set_items",
+      "weekly_study_sessions",
+    ] as const;
     const results = await Promise.all(requiredTables.map((table) =>
       supabase.from(table).select("id", { head: true }).limit(1),
     ));
