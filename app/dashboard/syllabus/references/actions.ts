@@ -10,7 +10,15 @@ const httpsUrl = z.string().trim().max(2048).refine((value) => {
   catch { return false; }
 }, "A valid HTTPS source URL is required.");
 
-const dateOnly = z.string().trim().max(10).refine((value) => !value || /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(value + "T00:00:00.000Z")));
+const dateOnly = z.string().trim().max(10).refine((value) => {
+  if (!value) return true;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const [year, month, day] = value.split("-").map(Number);
+  const parsed = new Date(Date.UTC(year, month - 1, day));
+  return parsed.getUTCFullYear() === year &&
+    parsed.getUTCMonth() === month - 1 &&
+    parsed.getUTCDate() === day;
+}, "Enter a real calendar date in YYYY-MM-DD format.");
 
 const catalogSchema = z.object({
   board: z.string().trim().min(1).max(100),
