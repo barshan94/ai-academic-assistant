@@ -228,3 +228,6 @@ Practice answer routing hardening (2026-11-01): answer recording now verifies th
 
 
 Owner syllabus date validation correction (2026-11-01): fixed an over-escaped regular-expression digit pattern that rejected all valid YYYY-MM-DD inputs before calendar-date validation. The UTC round-trip still rejects impossible dates. See ERR-093; regression testing remains deferred to the dedicated testing phase.
+
+
+Owner syllabus lifecycle correction (2026-11-01): chapter and topic creation now require a draft catalog; verified and retired owner catalogs are locked against taxonomy additions through these actions. See ERR-094. The checks are application-level read-then-write guards only; database-level lifecycle enforcement remains required to prevent concurrent bypass.
