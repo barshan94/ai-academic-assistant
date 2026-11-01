@@ -17,20 +17,15 @@ export async function savePageCorrection(formData: FormData) {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) redirect("/login");
 
-  const { data: updatedPage, error: pageUpdateError } = await supabase.from("document_pages").update({
-    extracted_text: extractedText,
-    extraction_method: "manual",
-    status: "review_required",
-  }).eq("id", pageId).eq("document_id", documentId).eq("owner_id", user.id).select("id").maybeSingle();
+  const { data: correctionSaved, error: correctionError } = await supabase.rpc("save_document_page_correction", {
+    p_document_id: documentId,
+    p_owner_id: user.id,
+    p_page_id: pageId,
+    p_extracted_text: extractedText,
+  });
 
-  if (pageUpdateError || !updatedPage) {
-    redirect("/dashboard/documents/" + encodeURIComponent(documentId) + "?review=save_failed");
-  }
-
-  const { data: updatedDocument, error: documentUpdateError } = await supabase.from("documents")
-    .update({ status: "review_required" }).eq("id", documentId).eq("owner_id", user.id).select("id").maybeSingle();
   redirect("/dashboard/documents/" + encodeURIComponent(documentId) +
-    (documentUpdateError || !updatedDocument ? "?review=save_failed" : "?review=saved"));
+    (correctionError || correctionSaved !== true ? "?review=save_failed" : "?review=saved"));
 }
 
 export async function approveDocument(formData: FormData) {
