@@ -38,7 +38,13 @@ A repository helper now automates the logical export and encrypts the result loc
    bash scripts/backup-supabase.sh
    ```
    The helper writes a mode-restricted encrypted `.tar.gz.age` archive under `$HOME/academic-assistant-backups` (or `BACKUP_ROOT`), refuses to place backups inside the Git working tree, creates role/schema/data dumps, writes a metadata manifest and SHA-256 checksums, and removes its temporary plaintext working directory on exit. Keep the private age identity separate from the archive.
-5. Copy the encrypted archive to an independent off-site location. Never commit it to this repository.
+5. Verify the encrypted archive on the trusted workstation before copying it off-site. Point `AGE_IDENTITY_FILE` to the separately stored private age identity and pass the archive path:
+   ```bash
+   export AGE_IDENTITY_FILE="$HOME/.config/age/keys.txt"
+   bash scripts/verify-backup.sh "$HOME/academic-assistant-backups/academic-assistant-YYYYMMDDTHHMMSSZ.tar.gz.age"
+   ```
+   This decrypts into a private temporary directory, accepts only the exact expected archive entries, and verifies every SHA-256 checksum. It proves archive integrity, not successful database restoration.
+6. Copy the encrypted archive to an independent off-site location. Never commit it to this repository.
 
 The helper intentionally does not export Supabase Auth identities, Storage object bytes, Google Drive files, project settings or provider secrets. Its output is not a complete disaster-recovery backup. For a manual export without the helper, the lower-level CLI procedure remains below.
 
