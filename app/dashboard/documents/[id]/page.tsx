@@ -15,6 +15,7 @@ const notices: Record<string, string> = {
   processing_failed: "Text extraction failed. Check the original PDF and retry if attempts remain.",
   already_processed: "This document has already been extracted. Review the pages below.",
   already_processing: "Another request is already processing this document. Refresh in a moment.",
+  recovery_failed: "The stale processing attempt could not be recovered safely. Refresh the document and try again.",
   job_missing: "No processing job was found for this document. Contact support before re-uploading.",
   retry_limit: "The three-attempt processing limit has been reached. Review the source file manually.",
   not_found: "Document not found or you do not have access to it.",
