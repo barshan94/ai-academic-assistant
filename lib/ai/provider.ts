@@ -141,6 +141,21 @@ export function getAIProviderConfig(env: Record<string, string | undefined> = pr
   return getAIProviderConfigs("answer", env)[0];
 }
 
+function canFallbackAfterProviderError(error: unknown): error is AIProviderError {
+  if (!(error instanceof AIProviderError)) return false;
+  if ([
+    "AI_PROVIDER_UNAVAILABLE",
+    "AI_PROVIDER_INVALID_RESPONSE",
+    "AI_PROVIDER_EMPTY_RESPONSE",
+    "AI_PROVIDER_INVALID_STRUCTURED_ANSWER",
+  ].includes(error.message)) return true;
+
+  const status = /^AI_PROVIDER_HTTP_(\\d{3})$/.exec(error.message)?.[1];
+  if (!status) return false;
+  const code = Number(status);
+  return code === 408 || code === 425 || code === 429 || code >= 500;
+}
+
 export async function generateStructuredAnswerWithRouting(
   questionText: string,
   fetcher: typeof fetch = fetch,
@@ -148,7 +163,8 @@ export async function generateStructuredAnswerWithRouting(
   env: Record<string, string | undefined> = process.env,
 ): Promise<{ answer: ExamAnswer; config: AIProviderConfig }> {
   const providers = getAIProviderConfigs("answer", env);
-  const candidates = env.AI_ALLOW_PROVIDER_FALLBACKS === "true" ? providers : providers.slice(0, 1);
+  const allowFallbacks = env.AI_ALLOW_PROVIDER_FALLBACKS === "true";
+  const candidates = allowFallbacks ? providers : providers.slice(0, 1);
   let lastError: unknown;
 
   for (const config of candidates) {
@@ -157,12 +173,7 @@ export async function generateStructuredAnswerWithRouting(
       return { answer, config };
     } catch (error) {
       lastError = error;
-      if (
-        !(error instanceof AIProviderError) ||
-        error.message === "QUESTION_INVALID" ||
-        error.message === "SOURCE_CONTEXT_INVALID" ||
-        env.AI_ALLOW_PROVIDER_FALLBACKS !== "true"
-      ) throw error;
+      if (!allowFallbacks || !canFallbackAfterProviderError(error)) throw error;
     }
   }
 
