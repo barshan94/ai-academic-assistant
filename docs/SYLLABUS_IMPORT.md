@@ -77,3 +77,10 @@ Two additional owner-private topic-index drafts are available:
 - Chemistry 4CH1, linear 2017 specification, Issue 3 (September 2024).
 
 Pearson's September 2026 update confirms that the linear 2017 International GCSE science specifications remain unchanged for students starting courses in September 2026. The imports contain topic-section headings only, not the detailed bullet-point learning objectives. Official PDFs are linked in the JSON metadata and in `data/syllabus-imports/README.md`.
+
+
+## Database-enforced lifecycle
+
+Private catalogue lifecycle transitions are enforced by PostgreSQL, not only by the dashboard action. New catalogues must begin as drafts. A draft can remain a draft, be retired, or be verified; verification requires an HTTPS source URL, a non-empty source title and at least one chapter. PostgreSQL generates `source_checked_at` during the verification transition, so clients cannot pre-date or forge that timestamp. Catalogue ownership cannot be transferred. Verified catalogues can only remain verified or be retired, and the existing metadata guard prevents changes to their syllabus identity and provenance. Retired catalogues reject all further updates.
+
+The database cannot establish that a URL is genuinely published by an exam board or that the syllabus transcription is accurate. A human still has to inspect the source. The database enforces recorded provenance and lifecycle invariants, not factual certification.
