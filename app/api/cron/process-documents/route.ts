@@ -1,11 +1,11 @@
 import { timingSafeEqual } from "node:crypto";
-import { createClient } from "@supabase/supabase-js";
 import { decryptRefreshToken } from "@/lib/drive/crypto";
 import { extractTextFromDrivePdf, readGoogleJsonResponseBounded } from "@/lib/drive/google";
 import { splitExtractedText } from "@/lib/documents/split-extracted-text";
 import { canSafelyReplaceExtractedPages } from "@/lib/documents/reprocessing-safety";
 import { isBackgroundJobClaimable, isBackgroundJobRetryEligible } from "@/lib/documents/worker-policy";
 import { logSafeOperationalEvent } from "@/lib/observability/safe-log";
+import { createSupabaseServiceRoleClient } from "@/lib/supabase/service-role";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -55,9 +55,7 @@ export async function GET(request: Request) {
     return Response.json({ error: "Worker database credentials are not configured." }, { status: 503 });
   }
 
-  const supabase = createClient(supabaseUrl, serviceRoleKey, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
+  const supabase = createSupabaseServiceRoleClient();
 
   // One job per invocation keeps runtime bounded. The conditional UPDATE is
   // the claim operation: concurrent cron invocations cannot both own a job.
