@@ -261,3 +261,6 @@ Document failure-state transaction hardening (2026-11-01): manual and background
 
 
 Worker retry-exhaustion recovery (2026-11-01): a stale running job that has exhausted max_attempts is now terminalized atomically with its document instead of remaining stuck in processing. The RPC rechecks the exact observed lease timestamp and the 15-minute staleness threshold under a row lock, so it cannot fail a newer claim. See ERR-104. Database migration application and stale-lease race acceptance remain pending the dedicated testing and fixing phases.
+
+
+Readiness monitoring hardening (2026-11-01): the 15-minute health monitor now enforces a 10-second readiness response threshold and can send a generic failure alert to an optional HTTPS Slack-compatible webhook. Secret handling avoids logging the webhook URL or response body. Operations documentation records setup and limitations. See ERR-105. Deployment, threshold calibration and webhook delivery remain operational acceptance tasks.
