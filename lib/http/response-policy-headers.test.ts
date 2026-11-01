@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { copyResponsePolicyHeaders } from "./response-policy-headers";
+import { copyResponsePolicyHeaders, isResponsePolicyHeader } from "./response-policy-headers";
 
 describe("copyResponsePolicyHeaders", () => {
   it("preserves cache, CSP and crawler policy on a replacement response", () => {
@@ -31,5 +31,14 @@ describe("copyResponsePolicyHeaders", () => {
 
     expect(destination.get("Cache-Control")).toBe("private, no-store");
     expect(destination.get("X-Robots-Tag")).toBe("noindex");
+  });
+});
+
+describe("isResponsePolicyHeader", () => {
+  it("matches protected response headers case-insensitively", () => {
+    expect(isResponsePolicyHeader("Cache-Control")).toBe(true);
+    expect(isResponsePolicyHeader("content-security-policy")).toBe(true);
+    expect(isResponsePolicyHeader("X-Robots-Tag")).toBe(true);
+    expect(isResponsePolicyHeader("x-request-id")).toBe(false);
   });
 });
