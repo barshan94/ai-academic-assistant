@@ -604,3 +604,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Require a secure protocol (or localhost HTTP outside production), no embedded username/password, no query/fragment, and a root path before reporting the Supabase URL as configured.
 - Verification: Source inspection only; no endpoint request or live Supabase connection was made.
 - Status: Configuration validation tightened; runtime and credential acceptance remain pending.
+
+
+## ERR-056 — Readiness accepted non-canonical encryption-key encodings
+
+- Date: 2026-11-01
+- Area: M8 health/readiness configuration validation
+- Symptom: Node's permissive Base64 decoder can ignore invalid characters or accept non-canonical encodings; checking only the decoded byte length could report a malformed Drive encryption key as configured.
+- Root cause: The readiness check validated decoded length without validating the encoded representation.
+- Fix: Require the exact 44-character Base64 form for 32 bytes, decode it, and require a canonical re-encoding match before reporting readiness.
+- Verification: Source-level change only. Formal tests and runtime readiness checks are deferred to the user's separate testing phase.
+- Status: Implemented; verification pending.
