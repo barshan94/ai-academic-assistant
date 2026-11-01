@@ -356,3 +356,9 @@ ERR-123 implementation closure (2026-11-01): added forward-only migration `20261
 - [x] Validate the monitor's configured application URL as a clean HTTPS origin, reject redirects, enforce a 20-second request timeout and cap streamed response bodies at 4 KiB (ERR-134).
 - [x] Reject invalid UTF-8 and require the generic JSON `ready` status without printing response bodies or secrets (ERR-134).
 - [ ] Execute regression tests and the scheduled workflow during the dedicated testing/operational acceptance phase. The workflow is not active on the scheduled cadence until it is merged to the default branch and its repository secrets are configured.
+
+### ERR-135 — Reject redirects on credential-bearing outbound requests
+- [x] Explicitly reject redirects for AI, Brave web research, Google OAuth and Google Drive API requests that carry credentials or tokens.
+- [x] Preserve manual redirect handling only for the Google resumable-upload protocol, with strict upload-session host/path validation.
+- [x] Add unexecuted regression tests for AI and Brave request redirect policies.
+- [ ] Verify behavior with controlled redirect fixtures and non-production provider integrations during the testing phase.
