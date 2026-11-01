@@ -1086,3 +1086,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Added an invoker-security trigger function for owner and shared-reference chapter, topic and evidence tables. Inserts, updates and deletes now lock the relevant chapter/catalog rows in deterministic order and require every affected catalog to remain in draft status. Catalog status changes and taxonomy writes therefore serialize on the parent catalog row. The trigger function is not directly executable by client roles.
 - Verification: Migration/source review only. The migration has not been applied to a database; trigger execution under owner/admin RLS, lifecycle transition races, cross-catalog moves and rollback cases remain deferred to the dedicated testing and fixing phases.
 - Status: Migration committed to feature/m3-ai-solver; no tests, typecheck or build were run during implementation.
+
+
+## ERR-101 — Verified and retired syllabus catalogs could be reopened by direct status updates
+
+- Date: 2026-11-01
+- Area: Owner and shared-reference syllabus catalog lifecycle
+- Symptom: Taxonomy writes are now restricted to draft catalogs, but the catalog tables' broad owner/admin update policies still allowed a direct status update to move a verified catalog back to draft or a retired catalog back to an active state.
+- Root cause: Catalog status constraints validated allowed status values and verification metadata, but did not enforce monotonic lifecycle transitions.
+- Fix: Added database triggers for owner and shared-reference catalogs that reject verified-to-draft and retired-to-any-active-state transitions. Draft-to-verified, draft-to-retired and verified-to-retired transitions remain compatible with the existing application actions.
+- Verification: Migration/source review only. The migration has not been applied to a database; direct status-update authorization and lifecycle transition cases remain deferred to the dedicated testing and fixing phases.
+- Status: Migration committed to feature/m3-ai-solver; no tests, typecheck or build were run during implementation.
