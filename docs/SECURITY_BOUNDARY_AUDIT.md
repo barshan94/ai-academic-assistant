@@ -2,9 +2,11 @@
 
 - Review date: 2026-11-01
 - Branch: `feature/m3-ai-solver`
-- Reviewed revision before the remediation: `37439cc220d73ca632726a4e5561258c23d3eef0`
-- Remediation commits are recorded in Git history after that revision.
-- Review type: static source and migration review. No database was queried, no migration was applied, and no tests/build/type-check/CI were run.
+- Current reviewed branch revision: `04b9043f299938a718c28587882cc580d275900a` (`feature/m3-ai-solver`).
+- Review type: static source and migration review, supplemented by fresh isolated GitHub CI. No connected/hosted database was queried and no hosted migration was applied.
+- Foundation run `41315165441`: lint, TypeScript checks, unit tests, production build and Chromium smoke tests passed.
+- Database run `41315165466`: fresh isolated local migration chain and pgTAP authorization suite passed.
+- Secret scan `41315170179`: passed. Authenticated two-account browser acceptance `41315169864`: skipped because dedicated non-production credentials are not configured; it is not a pass.
 
 ## Executive result
 
@@ -51,7 +53,7 @@ This is a code-level fix, not a deployed fix. The new migration must be applied 
 
 **Expected boundary after migration:** Browser sessions cannot invoke the registration RPC. Only the server upload completion path can call it with the service-role credential.
 
-**Verification status:** Source changes committed. Database migration application, role/ACL inspection, direct authenticated RPC denial, successful route registration and failure rollback tests remain pending the dedicated testing phase.
+**Verification status:** Source changes and forward-only migration committed. The migration chain and pgTAP authorization tests passed on a fresh isolated local Supabase instance in run `41315165466`; this includes the SQL-level role/permission regression suite. The connected hosted database remains unreconciled, and live route behavior, deployed role/ACL inspection and failure rollback acceptance remain pending a dedicated non-production deployment.
 
 ## Controls observed in the reviewed source
 
@@ -89,4 +91,4 @@ This is a code-level fix, not a deployed fix. The new migration must be applied 
 
 ## Decision
 
-The confirmed source-level defect has been corrected in the feature branch. The overall security review is **not a security certification** and must not be marked fully accepted until the migration, database ACL/RLS checks, two-account acceptance and integration security tests pass in a non-production environment.
+The confirmed source-level defect has been corrected in the feature branch, and the complete migration chain plus isolated pgTAP authorization suite now pass. The overall security review is **not a security certification** and must not be marked fully accepted until hosted migration reconciliation, deployed ACL/RLS checks, authenticated two-account acceptance and live integration security tests pass in a dedicated non-production environment.
