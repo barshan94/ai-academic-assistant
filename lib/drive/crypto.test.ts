@@ -41,8 +41,8 @@ describe("encrypted Google Drive secrets", () => {
     vi.stubEnv("DRIVE_TOKEN_ENCRYPTION_KEY", validKey);
     const encrypted = encryptRefreshToken("refresh-token-value");
     const [version, iv, tag, ciphertext] = encrypted.split(".");
-    expect(() => decryptRefreshToken([version, iv.slice(1), tag, ciphertext].join(".")).toThrow();
-    expect(() => decryptRefreshToken([version, iv, tag.slice(1), ciphertext].join(".")).toThrow();
+    expect(() => decryptRefreshToken([version, iv.slice(1), tag, ciphertext].join("."))).toThrow();
+    expect(() => decryptRefreshToken([version, iv, tag.slice(1), ciphertext].join("."))).toThrow();
   });
 
   it("rejects empty and oversized values before encryption", () => {
