@@ -17,12 +17,12 @@ Percentages are cumulative scope estimates, not proof of release readiness.
 
 ## Latest automated testing checkpoint — 2026-11-01
 
-Tested commit: `c096fa921e1573566562bcf80d7e314c78a50781` on `feature/m3-ai-solver`.
+Tested commit: `cd835f4b6cbb28929d3a75cd5fa4fafeea7bb9a8` on `feature/m3-ai-solver`.
 
 - ESLint: passed.
 - Application TypeScript: passed.
 - Playwright configuration and authenticated-E2E TypeScript: passed.
-- Unit tests: 132 passed across 29 test files.
+- Unit tests: 152 passed across 30 test files.
 - Production build: passed.
 - Production dependency audit (`npm audit --omit=dev`): zero vulnerabilities. The full development dependency advisory ERR-124 remains open.
 - Fresh isolated local Supabase migration application: passed.
@@ -408,7 +408,7 @@ A shared redirect-rejecting fetch transport now backs the cookie-authenticated S
 
 
 ## Testing progress — 2026-11-01
-- [x] First green foundation CI baseline: lint, application type-check, Playwright type-check, 132 unit tests and production build.
+- [x] First green foundation CI baseline: lint, application type-check, Playwright type-check, 152 unit tests across 30 files and production build.
 - [x] Fresh isolated Supabase migration chain and all 209 pgTAP assertions.
 - [x] Credential-free Chromium smoke tests (7 passed / 1 skipped).
 - [x] Secret scanning.
