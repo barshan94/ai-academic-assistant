@@ -102,6 +102,46 @@ export function remainingBanDuration(bannedUntil) {
   return remainingSeconds > 0 ? `${remainingSeconds}s` : undefined;
 }
 
+function stableJson(value) {
+  if (Array.isArray(value)) return value.map(stableJson);
+  if (isRecord(value)) {
+    return Object.fromEntries(Object.keys(value).sort().map((key) => [key, stableJson(value[key])]));
+  }
+  return value;
+}
+
+function sameJsonValue(left, right) {
+  return JSON.stringify(stableJson(left)) === JSON.stringify(stableJson(right));
+}
+
+export function isCompatibleExistingAccount(existingUser, backupUser) {
+  if (!isRecord(existingUser) || !isRecord(backupUser)) return false;
+  const existingAppMetadata = isRecord(existingUser.app_metadata) ? existingUser.app_metadata : {};
+  const providers = existingAppMetadata.providers;
+  const existingEmailConfirmed = Boolean(existingUser.email_confirmed_at);
+  const expectedActiveBan = Boolean(remainingBanDuration(backupUser.banned_until));
+  const existingActiveBan = Boolean(
+    typeof existingUser.banned_until === "string" &&
+    Number.isFinite(Date.parse(existingUser.banned_until)) &&
+    Date.parse(existingUser.banned_until) > Date.now()
+  );
+
+  return existingUser.id === backupUser.id &&
+    String(existingUser.email ?? "").toLowerCase() === backupUser.email.toLowerCase() &&
+    (existingUser.phone === null || existingUser.phone === undefined || existingUser.phone === "") &&
+    existingAppMetadata.provider === "email" &&
+    Array.isArray(providers) && providers.length === 1 && providers[0] === "email" &&
+    existingUser.aud === backupUser.aud &&
+    existingUser.role === backupUser.role &&
+    existingEmailConfirmed === backupUser.email_confirm &&
+    !existingUser.phone_confirmed_at &&
+    (!Object.hasOwn(existingUser, "is_anonymous") || existingUser.is_anonymous === false) &&
+    (!Object.hasOwn(existingUser, "is_sso_user") || existingUser.is_sso_user === false) &&
+    sameJsonValue(existingUser.user_metadata ?? {}, backupUser.user_metadata) &&
+    sameJsonValue(existingAppMetadata, backupUser.app_metadata) &&
+    existingActiveBan === expectedActiveBan;
+}
+
 export async function readJsonResponse(response) {
   if (!response.body) return null;
   const reader = response.body.getReader();
@@ -191,17 +231,8 @@ async function main() {
     if (existingResponse.ok) {
       const existing = await readJsonResponse(existingResponse);
       const existingUser = isRecord(existing?.user) ? existing.user : existing;
-      const existingAppMetadata = isRecord(existingUser?.app_metadata) ? existingUser.app_metadata : {};
-      const existingProviders = existingAppMetadata.providers;
-      if (!isRecord(existingUser) ||
-          existingUser.id !== user.id ||
-          String(existingUser.email ?? "").toLowerCase() !== user.email.toLowerCase() ||
-          existingUser.phone ||
-          existingAppMetadata.provider !== "email" ||
-          !Array.isArray(existingProviders) ||
-          existingProviders.length !== 1 ||
-          existingProviders[0] !== "email") {
-        throw new Error("An existing Auth account conflicts with an account in the backup.");
+      if (!isCompatibleExistingAccount(existingUser, user)) {
+        throw new Error("An existing Auth account conflicts with the backup identity or restorable account state.");
       }
       alreadyPresent += 1;
       continue;
