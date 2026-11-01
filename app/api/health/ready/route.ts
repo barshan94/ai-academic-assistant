@@ -29,7 +29,10 @@ function hasValidSupabaseUrl() {
 
 function hasValidDriveEncryptionKey() {
   const encoded = process.env.DRIVE_TOKEN_ENCRYPTION_KEY;
-  return Boolean(encoded && Buffer.from(encoded, "base64").length === 32);
+  if (!encoded || !/^[A-Za-z0-9+/]{43}=$/.test(encoded)) return false;
+
+  const decoded = Buffer.from(encoded, "base64");
+  return decoded.length === 32 && decoded.toString("base64") === encoded;
 }
 
 function hasAIProvider() {
