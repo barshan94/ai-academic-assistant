@@ -1400,3 +1400,13 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Require \`Object.hasOwn\` before reading a unit definition; unknown prototype property names now produce an uncheckable result.
 - Regression coverage: Added \`constructor\` and \`toString\` cases to \`tests/physics-unit-check.test.ts\`. Tests are authored but not executed.
 - Status: Source fix committed; regression test remains pending the testing phase.
+
+## ERR-130 — Uploaded document registration RPC accepted invalid page counts
+
+- Date: 2026-11-01
+- Area: Document intake / database validation
+- Symptom: The server-only registration RPC accepted non-null page counts from 0 through 100 while the upload routes enforce 1 through 50.
+- Root cause: The RPC's independent metadata validation was not updated when the route contract was tightened.
+- Fix: Added forward-only migration `20261101140000_tighten_uploaded_document_page_count.sql`. It recreates the existing function with the 1–50 invariant, retains the owner check, advisory lock, duplicate handling, atomic document/job insertion and explicitly restates the service_role-only execute grant. The historical migration is unchanged.
+- Verification: Migration source reviewed only. It has not been applied and no pgTAP, migration, typecheck, build or runtime test was run. Boundary cases 0, 1, 50, 51, 100 and NULL, effective ACLs and atomic/idempotent behavior remain for the testing phase.
+- Status: Implementation committed to `feature/m3-ai-solver`; hosted database unchanged.
