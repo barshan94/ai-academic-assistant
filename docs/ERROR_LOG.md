@@ -593,3 +593,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Corrected the expression to match one or more whitespace characters and re-read the committed source to confirm the intended regex.
 - Verification: Source inspection only; no request or endpoint test was run.
 - Status: Source corrected; authorization and readiness acceptance remain pending.
+
+
+## ERR-055 — Readiness configuration check accepted Supabase URLs with embedded credentials or URL modifiers
+
+- Date: 2026-11-01
+- Area: M8 deployment readiness
+- Symptom: Static review found that the configuration-only readiness check validated the Supabase URL protocol but did not reject URL user-info, query strings, fragments or non-root paths.
+- Root cause: The first readiness implementation checked only HTTPS (or localhost HTTP during development).
+- Fix: Require a secure protocol (or localhost HTTP outside production), no embedded username/password, no query/fragment, and a root path before reporting the Supabase URL as configured.
+- Verification: Source inspection only; no endpoint request or live Supabase connection was made.
+- Status: Configuration validation tightened; runtime and credential acceptance remain pending.
