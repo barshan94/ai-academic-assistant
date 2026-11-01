@@ -35,6 +35,7 @@ async function refreshDriveAccessToken(encryptedToken: string) {
     }),
     cache: "no-store",
     signal: AbortSignal.timeout(15_000),
+    redirect: "error",
   });
   const payload = await readGoogleJsonResponseBounded<{ access_token?: string; error?: string; error_description?: string }>(response, 64 * 1024, "Google OAuth token response");
   if (!response.ok || !payload.access_token) {
