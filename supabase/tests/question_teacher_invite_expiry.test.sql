@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(13);
+select plan(16);
 
 insert into auth.users (
   id, aud, role, email, encrypted_password, email_confirmed_at,
@@ -42,6 +42,13 @@ select throws_ok(
   'An active invitation already exists',
   'duplicate pending invitation is rejected atomically'
 );
+select throws_ok(
+  $test$insert into public.question_teacher_invites (question_id, owner_id, invited_email)
+    values ('31000000-0000-4000-8000-000000000001', '11000000-0000-4000-8000-000000000001', 'direct-insert@example.test')$test$,
+  '42501',
+  null,
+  'owner cannot bypass the invitation creation RPC with direct INSERT'
+);
 
 -- A different signed-in account cannot accept an invitation addressed to the
 -- teacher, even if it knows the invitation UUID.
@@ -59,6 +66,14 @@ select throws_ok(
 set local role authenticated;
 set local request.jwt.claim.sub = '11000000-0000-4000-8000-000000000002';
 set local request.jwt.claims = '{"sub":"11000000-0000-4000-8000-000000000002","role":"authenticated","email":"invite-teacher@example.test"}';
+select throws_ok(
+  $test$update public.question_teacher_invites
+    set accepted_by = '11000000-0000-4000-8000-000000000002', accepted_at = now()
+    where invited_email = 'invite-teacher@example.test' and accepted_by is null$test$,
+  '42501',
+  null,
+  'invitee cannot bypass the acceptance RPC with direct UPDATE'
+);
 select lives_ok(
   $test$select public.accept_question_teacher_invite((select id from public.question_teacher_invites where invited_email = 'invite-teacher@example.test' order by created_at desc limit 1))$test$,
   'matching verified teacher can accept the invitation'
@@ -79,6 +94,15 @@ select throws_ok(
   '23505',
   'An active invitation already exists',
   'an accepted active invitation cannot be duplicated'
+);
+select throws_ok(
+  $test$update public.question_teacher_invites set revoked_at = now()
+    where invited_email = 'invite-teacher@example.test'
+      and accepted_by = '11000000-0000-4000-8000-000000000002'
+      and revoked_at is null$test$,
+  '42501',
+  null,
+  'owner cannot bypass the atomic revocation RPC with direct UPDATE'
 );
 select lives_ok(
   $test$select public.revoke_question_teacher_invite((select id from public.question_teacher_invites where invited_email = 'invite-teacher@example.test' and accepted_by = '11000000-0000-4000-8000-000000000002' order by created_at desc limit 1))$test$,
