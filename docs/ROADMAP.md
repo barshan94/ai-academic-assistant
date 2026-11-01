@@ -321,3 +321,6 @@ Accessibility implementation note (2026-11-01): added a forced-colors mode that 
 
 
 Private-response cache hardening (2026-11-01): middleware now applies `Cache-Control: private, no-store` to dashboard and API paths before authentication checks, so unauthenticated redirects and configuration/error branches inherit the same no-store policy as authenticated workspace responses. See ERR-120; verify headers on successful, redirected and error responses during browser/deployment acceptance.
+
+
+Middleware response policy now survives Supabase auth-cookie response recreation: the shared header copier retains cache, CSP and crawler directives when a refreshed session causes a new NextResponse to be created (ERR-121). Browser/auth-refresh acceptance remains deferred.
