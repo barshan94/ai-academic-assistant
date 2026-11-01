@@ -571,3 +571,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Added `scripts/verify-backup.sh`. It decrypts using a separately stored age identity, rejects unexpected archive entry names/order, checks required files and verifies SHA-256 checksums in a private temporary directory. The runbook now documents the integrity-verification command and clearly distinguishes it from a database restore.
 - Verification: Implementation-only source review. The verifier was not run and no archive or private key was created.
 - Status: Archive integrity verification implementation added; restore rehearsal and full disaster-recovery acceptance remain outstanding.
+
+
+## ERR-053 — Scheduled document worker referenced the safe logger without importing it
+
+- Date: 2026-11-01
+- Area: M2 background worker / M8 operational observability
+- Symptom: The worker's failure handler called `logSafeOperationalEvent`, but the module did not import that symbol. A production type-check would reject the route.
+- Root cause: Operational logging was added to the worker failure path without updating its import block.
+- Fix: Added the explicit import from `@/lib/observability/safe-log`.
+- Verification: Source inspection only. No type-check, build, workflow or worker invocation was run in this implementation phase.
+- Status: Source reference corrected; compile and failure-path regression coverage remain for the later testing phase.
