@@ -207,3 +207,5 @@ Owner and reference syllabus evidence URL validation now rejects embedded URL cr
 Syllabus catalog lifecycle enforcement (2026-11-01): owner catalog verification is now draft-only, owner evidence insertion is draft-only, and platform reference catalog chapter/topic/evidence creation is draft-only. Verified and retired catalogs can no longer be modified through these actions. See ERR-083 and ERR-084; regression and concurrency testing remains deferred to the separate testing phase.
 
 Reference syllabus verification now requires a valid HTTPS source URL with a hostname and no embedded credentials before a draft catalog can become verified. See ERR-085; URL and lifecycle regression coverage remains deferred to the separate testing phase.
+
+Owner syllabus verification now re-validates the persisted draft catalog source URL (HTTPS, hostname present, no embedded credentials) rather than relying only on non-null source_url. See ERR-086; regression coverage remains deferred to the separate testing phase.
