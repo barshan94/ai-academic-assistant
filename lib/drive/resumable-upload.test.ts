@@ -48,6 +48,11 @@ describe("resumable Drive upload protocol", () => {
       byteLength: 524288,
       totalBytes: 262144,
     })).toBe(false);
+    expect(isValidDriveChunk({
+      contentRange: "bytes 0-262143/9007199254740992",
+      byteLength: 262144,
+      totalBytes: 9007199254740992,
+    })).toBe(false);
   });
 });
 
