@@ -1568,8 +1568,8 @@ ERR-073 closure reconciliation (2026-11-01): the earlier note that page and pare
 - Symptom: The shared `readLimitedResponseText` helper was used by AI, Brave and Google Drive response paths, but the current test tree had no direct test file for its Content-Length parsing, streamed-byte enforcement or UTF-8 decoding behavior. Earlier roadmap notes incorrectly described this regression coverage as already authored.
 - Root cause: The helper implementation was added without a dedicated test module; downstream provider tests covered selected failure paths but did not directly exercise all shared-reader boundaries.
 - Fix: Added `tests/read-limited-response.test.ts` covering exact byte limits, absent/malformed/oversized Content-Length, actual streamed overrun, split multibyte UTF-8, invalid UTF-8, empty bodies and invalid configured limits.
-- Verification: Test source committed; latest CI execution is pending.
-- Status: Regression coverage added; rerun required before closing ERR-143.
+- Verification: The corrected suite passed in run `41303192380` on commit `cd835f4b6cbb28929d3a75cd5fa4fafeea7bb9a8`: 30 test files / 152 tests passed. Lint, application/Playwright type-checks and production build also passed.
+- Status: Fixed and verified by CI.
 
 
 ## ERR-144 — Content-Length whitespace test assumed raw header bytes survive Fetch normalization
@@ -1578,5 +1578,12 @@ ERR-073 closure reconciliation (2026-11-01): the earlier note that page and pare
 - Symptom: The new response-reader tests initially failed two cases expecting leading/trailing whitespace in `Content-Length` to reach application code unchanged.
 - Root cause: The Fetch `Headers` implementation normalizes optional HTTP whitespace when the header is inserted, so the test did not represent the value exposed to the application. This was a test-fixture assumption, not evidence that the production reader accepted malformed raw header syntax.
 - Fix: Removed the two invalid raw-whitespace rejection cases and added an explicit assertion that the Fetch Headers API normalizes optional whitespace to the decimal value before the bounded reader receives it. Kept rejection cases for empty, signed, negative, fractional, non-decimal and exponent-form values.
-- Verification: Corrected test source committed; full CI rerun pending.
-- Status: Test fixture corrected; rerun required.
+- Verification: Full Vitest suite passed after the fixture correction: 30 files / 152 tests passed in run `41303192380` on commit `cd835f4b6cbb28929d3a75cd5fa4fafeea7bb9a8`.
+- Status: Fixed; no production defect was established by these two assertions.
+
+
+## ERR-145 — Regression-suite rerun after bounded-reader test additions
+- Date: 2026-11-01
+- Area: CI / unit, database and browser smoke testing
+- Verification: On commit `cd835f4b6cbb28929d3a75cd5fa4fafeea7bb9a8`, foundation workflow `41303192380` passed lint, application and Playwright TypeScript checks, all 30 Vitest files / 152 tests, and the production build. Database workflow `41303192382` passed all 209 pgTAP assertions across 9 files after applying the full repository migration chain to a fresh isolated local Supabase database. Chromium smoke tests passed 7 tests with 1 skipped in the foundation workflow's browser job. Secret scanning passed in run `41303192377`. The authenticated two-account workflow remained skipped because non-production credentials are not configured.
+- Status: Automated branch test baseline green; live authenticated/provider/hosted-database/recovery/accessibility acceptance remains open.
