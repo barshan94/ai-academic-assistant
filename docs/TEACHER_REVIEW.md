@@ -27,8 +27,11 @@ The owner can share one question with an existing Academic Assistant account. An
 - Teachers cannot create new AI answers or edit the owner's question.
 - Teachers can insert append-only review events for the shared question's saved answers.
 - The owner can read all review events; a teacher can read their own review events.
-- The owner revokes access by setting a revocation timestamp. Invitation history is retained; authenticated users cannot delete it.
-- Revoked invitations can be reissued because only active invitations are unique.
+- New invitations expire after seven days by default (the database rejects expiry windows beyond 30 days). Expiry blocks acceptance of a pending invitation; it does not silently terminate an already accepted teacher session.
+- Acceptance is an atomic RPC: it locks the invitation, checks that the authenticated account has a confirmed Auth email matching the normalized invited email, rejects self-acceptance, and prevents replay or acceptance after expiry/revocation.
+- Invitation creation is also atomic and serialized per owner/question/email. A still-pending unexpired invitation or an accepted, unrevoked invitation prevents duplicate invitations. Expired pending invitations do not block re-issue.
+- The owner revokes access by setting a revocation timestamp. Revocation is a one-way transition, immediately removes question/solution access and prevents further reviews. Invitation history is retained; authenticated users cannot delete it.
+- Revoked invitations can be reissued; expired pending invitations can also be reissued without deleting historical rows.
 
 ## Important limitations
 - The app currently does not send invitation emails. The owner must notify the teacher separately.
