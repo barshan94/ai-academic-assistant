@@ -943,6 +943,15 @@ export type Database = {
         };
         Returns: boolean;
       }
+      terminalize_exhausted_stale_document_job: {
+        Args: {
+          p_document_id: string;
+          p_owner_id: string;
+          p_job_id: string;
+          p_expected_started_at: string | null;
+        };
+        Returns: boolean;
+      }
       approve_document_review: {
         Args: {
           p_document_id: string;
