@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { encryptRefreshToken } from "@/lib/drive/crypto";
+import { readGoogleJsonResponseBounded } from "@/lib/drive/google";
 import { logSafeOperationalEvent } from "@/lib/observability/safe-log";
 
 type GoogleTokenResponse = {
@@ -61,7 +62,7 @@ export async function GET(request: NextRequest) {
       signal: AbortSignal.timeout(15_000),
     });
 
-    const tokenData = await tokenResponse.json() as GoogleTokenResponse;
+    const tokenData = await readGoogleJsonResponseBounded<GoogleTokenResponse>(tokenResponse, 64 * 1024, "Google OAuth callback response");
     if (!tokenResponse.ok) {
       logSafeOperationalEvent("google_drive_oauth_failed", { route: "/api/drive/callback", errorCode: "DRIVE_TOKEN_EXCHANGE_REJECTED" });
       return finish("/dashboard/documents", "token_exchange_failed");
