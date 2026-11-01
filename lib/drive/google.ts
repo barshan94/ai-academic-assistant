@@ -52,6 +52,17 @@ export async function readGoogleJsonResponseBounded<T>(response: Response, maxBy
   }
 }
 
+function isGoogleDriveUploadSessionUri(value: string) {
+  try {
+    const uri = new URL(value);
+    return uri.protocol === "https:" && uri.hostname === "www.googleapis.com" &&
+      !uri.username && !uri.password &&
+      /^\\/upload\\/drive\\/v3\\/files(?:\\/|$)/.test(uri.pathname);
+  } catch {
+    return false;
+  }
+}
+
 function getGoogleConfig() {
   const clientId = process.env.GOOGLE_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
@@ -257,9 +268,7 @@ export async function initiateResumablePdfUpload(input: {
   if (!response.ok || !sessionUri) {
     throw new Error("Google Drive could not start a resumable upload session.");
   }
-  const parsed = new URL(sessionUri);
-  if (parsed.protocol !== "https:" || parsed.hostname !== "www.googleapis.com" ||
-      !parsed.pathname.startsWith("/upload/drive/v3/files")) {
+  if (!isGoogleDriveUploadSessionUri(sessionUri)) {
     throw new Error("Google Drive returned an invalid upload session URL.");
   }
   return sessionUri;
@@ -271,9 +280,7 @@ export async function sendResumablePdfChunk(input: {
   contentRange: string;
   bytes: Uint8Array;
 }) {
-  const session = new URL(input.sessionUri);
-  if (session.protocol !== "https:" || session.hostname !== "www.googleapis.com" ||
-      !session.pathname.startsWith("/upload/drive/v3/files")) {
+  if (!isGoogleDriveUploadSessionUri(input.sessionUri)) {
     throw new Error("Invalid Google Drive upload session.");
   }
 
