@@ -183,3 +183,10 @@
 - [x] Publish crawler rules disallowing dashboard, API and sign-in paths while allowing public landing/privacy pages.
 - [x] Emit response-level no-index metadata for dashboard, API and sign-in routes, including authentication redirects.
 - [ ] Confirm generated robots.txt, response headers, redirect behavior and search-console cleanup in the deployed non-production environment.
+
+
+## Accessibility and visual preferences
+- [ ] Verify forced-colors / Windows High Contrast retains visible focus indicators, panel boundaries, statuses and notices.
+- [ ] Complete keyboard-only and screen-reader acceptance across sign-in, document intake, question review, solver, syllabus, chapter notes and study planner.
+- [ ] Check text and control contrast at supported zoom levels and viewport widths.
+- [ ] Verify reduced-motion preference is respected by transitions, scrolling and interactive visualizations.
