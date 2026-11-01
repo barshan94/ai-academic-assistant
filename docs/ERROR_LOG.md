@@ -1053,3 +1053,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Added a forward-only Supabase migration that serializes quota decisions per owner with a transaction-scoped advisory lock, checks both limits before writing either counter, and increments both counters only when the request is admitted. The function remains authenticated-only and retains the existing 20-per-UTC-day and 5-per-15-minute limits.
 - Verification: Implementation/source review only. The migration has not been applied to any database; SQL execution, concurrent-request behavior, quota boundary cases and Supabase advisors are deferred to the dedicated testing/fixing phases.
 - Status: Migration committed to `feature/m3-ai-solver`; no tests, typecheck or build were run during implementation.
+
+
+## ERR-098 — Document worker completion and manual approval could persist partial lifecycle state
+
+- Date: 2026-11-01
+- Area: Document processing / review lifecycle transactions
+- Symptom: The background worker committed extracted page replacement and parent-document review state before separately marking the processing job completed. If the second write failed, the document and job could disagree. Manual approval similarly updated all page statuses and the parent document in separate requests, so a partial approval could leave mixed states.
+- Root cause: Related document, page and processing-job lifecycle writes were split across independent PostgREST transactions.
+- Fix: Added the complete_document_processing RPC, which invokes the existing transactional page replacement and marks the matching running job completed within the same database transaction. Added approve_document_review, which locks the owner-scoped document and pages, validates the review state and page-count invariant, then marks all pages complete and the document ready atomically. Updated the worker and server action to use these RPCs and registered both function signatures in types/database.ts.
+- Verification: Source/migration review only. The migration has not been applied to a database; SQL execution, RLS behavior, service-role execution, concurrent processing/approval and rollback scenarios remain deferred to the dedicated testing and fixing phases.
+- Status: Migration, application call sites, database types and documentation committed to feature/m3-ai-solver; no tests, typecheck or build were run during implementation.
