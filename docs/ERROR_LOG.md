@@ -1119,3 +1119,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Added the owner-authorized fail_document_processing RPC. It validates either the trusted service role or authenticated owner, locks the matching running job, updates the owner-scoped document and job failure state in one transaction, and chooses a bounded safe error message from an allow-listed error code. Both manual and background processing routes now call it.
 - Verification: Source/migration review only. The migration has not been applied to a database; RLS, role authorization, rollback and concurrent completion-versus-failure cases remain deferred to the dedicated testing and fixing phases.
 - Status: Migration, both processing routes, database types and documentation committed to feature/m3-ai-solver; no tests, typecheck or build were run during implementation.
+
+
+## ERR-104 — Crashed document jobs could remain running after exhausting all retries
+
+- Date: 2026-11-01
+- Area: Background document worker retry exhaustion
+- Symptom: A worker crash on the final allowed attempt left the job in running state. The retry policy correctly refused another attempt, but the worker also skipped the exhausted job, leaving the document stuck in processing indefinitely.
+- Root cause: The candidate loop skipped every job whose attempt count reached max_attempts without terminalizing stale running leases.
+- Fix: Added the service-role-only terminalize_exhausted_stale_document_job RPC. It locks the exact stale lease observed by the worker, rechecks that the retry budget is exhausted and the lease is still at least 15 minutes old, then marks both the document and job failed in one transaction. The worker passes the observed started_at value so a newer claim cannot be failed by a stale candidate snapshot.
+- Verification: Source/migration review only. The migration has not been applied to a database; stale lease races, final-attempt crashes, timestamp equality, role authorization and rollback behavior remain deferred to the dedicated testing and fixing phases.
+- Status: Migration, worker route, database types and documentation committed to feature/m3-ai-solver; no tests, typecheck or build were run during implementation.
