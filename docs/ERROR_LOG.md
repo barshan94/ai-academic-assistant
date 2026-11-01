@@ -1510,8 +1510,8 @@ ERR-073 closure reconciliation (2026-11-01): the earlier note that page and pare
 - Symptom: The latest pull-request CI run failed ESLint with an unclosed paragraph in `app/login/page.tsx` and two unescaped apostrophes in `app/privacy/page.tsx`.
 - Root cause: The login footnote paragraph was missing its closing tag; JSX text contained literal apostrophes that violate the configured `react/no-unescaped-entities` rule.
 - Fix: Closed the login footnote paragraph and encoded the two apostrophes as `&apos;` in the privacy notice.
-- Verification: The first rerun exposed one missed apostrophe in the phrase “that owner's Drive”; corrected it to `that owner&apos;s Drive`. The next CI run must confirm the complete lint fix.
-- Status: Source fixes committed; verification pending.
+- Verification: The latest foundation CI run on `d74f5d61273c1e1c02fef234dd10cc9ffa630f57` passed ESLint after the complete correction.
+- Status: Fixed and verified by ESLint in the latest foundation CI run.
 
 ## ERR-139 — Fresh local migration chain lacks the private schema
 - Date: 2026-11-01
@@ -1519,8 +1519,8 @@ ERR-073 closure reconciliation (2026-11-01): the earlier note that page and pare
 - Symptom: The latest isolated database workflow failed while applying `20261101040000_validate_mark_scheme_provenance_and_points.sql` with `schema "private" does not exist`; pgTAP tests were skipped.
 - Root cause: The migration creates a trigger function in the `private` schema, but a clean Supabase database created by the workflow has no preceding migration that creates that schema.
 - Fix: The failing migration is absent from the connected project's exact migration ledger snapshot, and the local clean-install chain reaches this migration before any private-schema bootstrap. Added an idempotent private-schema creation and revoked schema access from `public`, `anon` and `authenticated` at the start of this migration. This changes only the repository migration source; no hosted migration was applied. The connected schema still requires reconciliation before any deployment.
-- Verification: Source change committed. A clean isolated database rerun is required to confirm the migration chain proceeds.
-- Status: Source fix committed; isolated migration and pgTAP verification pending.
+- Verification: Fresh isolated migration application passed in database run 41301615575; all repository migrations completed before pgTAP execution. No hosted migration was applied.
+- Status: Fixed and verified on a fresh isolated database. Connected-project migration reconciliation remains a separate release blocker.
 
 
 ## ERR-140 — Middleware passed response objects instead of header collections
@@ -1529,8 +1529,8 @@ ERR-073 closure reconciliation (2026-11-01): the earlier note that page and pare
 - Symptom: CI type-check failed at two middleware call sites because `copyResponsePolicyHeaders` accepts `Headers`, but callers passed `NextResponse` objects.
 - Root cause: The helper's contract was correctly typed for header collections, while middleware call sites did not pass the `.headers` properties.
 - Fix: Updated both call sites to pass `source.headers` / `destination.headers` and `previousResponse.headers` / `response.headers`. Added a unit test that verifies allow-listed policy headers are copied without copying `Set-Cookie` or overwriting unrelated destination headers.
-- Verification: CI identified the two type errors; post-fix type-check and unit-test reruns are pending.
-- Status: Source fix and regression test committed; verification pending.
+- Verification: Latest foundation CI run 41301615500 passed application type-checking and the 132-test Vitest suite; Chromium smoke tests also passed.
+- Status: Fixed and verified by type-check and unit tests in the latest foundation CI run.
 
 
 ## ERR-141 — Three pgTAP files contained malformed SQL expression delimiters
@@ -1539,5 +1539,5 @@ ERR-073 closure reconciliation (2026-11-01): the earlier note that page and pare
 - Symptom: The isolated database schema migrations completed, but `supabase test db` failed to parse SQL expressions in `atomic_document_workflows.test.sql`, `question_solution_access.test.sql` and `question_teacher_invite_expiry.test.sql`. The malformed expressions began with `$select` rather than a valid dollar-quote delimiter, so the test runner stopped before executing the remaining assertions in those files.
 - Root cause: A previous SQL test edit introduced invalid opening and closing dollar-quote delimiters in seven pgTAP expressions; one of the seven expressions already had a doubled closing delimiter.
 - Fix: Replaced all seven malformed openers and the six single-dollar closers with balanced `$$select ... $$` expression bodies. Existing `$test$` and already-valid `$$` expressions were left unchanged.
-- Verification: Confirmed the seven malformed openers and six single-dollar closers from the failing pgTAP output; the edited files contain no remaining single-dollar `$select` openers or `)$,` closers. Full isolated pgTAP rerun is pending.
-- Status: Test-source fix committed; database suite verification pending.
+- Verification: Database run 41301615575 passed all 209 pgTAP assertions across nine SQL test files on a fresh isolated database.
+- Status: Fixed and verified by the complete isolated pgTAP suite.

@@ -13,6 +13,25 @@ Percentages are cumulative scope estimates, not proof of release readiness.
 | M7 | Exam preparation: topic gaps, question sets, exports and revision workflows | 93% |
 | M8 | Production readiness: security, recovery, observability, performance and release | 100% |
 
+
+
+## Latest automated testing checkpoint — 2026-11-01
+
+Tested commit: `d74f5d61273c1e1c02fef234dd10cc9ffa630f57` on `feature/m3-ai-solver`.
+
+- ESLint: passed.
+- Application, Playwright configuration and authenticated-E2E TypeScript checks: passed.
+- Unit tests: 132 passed across 29 test files.
+- Production build: passed.
+- Chromium browser smoke tests: passed.
+- Production dependency audit (`npm audit --omit=dev`): zero vulnerabilities.
+- Fresh isolated Supabase migration application: passed.
+- Database authorization suite: 209 pgTAP assertions passed across 9 SQL files.
+- Authenticated two-account browser acceptance: skipped because dedicated non-production credentials are not configured; this is not a pass.
+- Development dependency advisory ERR-124 remains open; the production-only audit does not clear the development toolchain.
+
+These results verify the automated checks on the tested branch commit only. They do not certify live Google Drive/AI providers, the connected Supabase migration history, production backup restoration, or real two-account authorization behavior.
+
 ## M1 exit criteria
 - Application installs and starts locally.
 - Supabase environment configuration is documented.
