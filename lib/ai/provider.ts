@@ -166,10 +166,21 @@ export async function generateStructuredAnswerWithRouting(
   const allowFallbacks = env.AI_ALLOW_PROVIDER_FALLBACKS === "true";
   const candidates = allowFallbacks ? providers : providers.slice(0, 1);
   let lastError: unknown;
+  // A pool can contain up to eight providers. Bound the complete routing path
+  // so sequential fallbacks cannot exceed a serverless request's useful lifetime.
+  const routingDeadline = Date.now() + 60_000;
 
   for (const config of candidates) {
+    const remainingMs = routingDeadline - Date.now();
+    if (remainingMs <= 0) break;
     try {
-      const answer = await generateStructuredAnswer(questionText, config, fetcher, context);
+      const answer = await generateStructuredAnswer(
+        questionText,
+        config,
+        fetcher,
+        context,
+        Math.min(20_000, remainingMs),
+      );
       return { answer, config };
     } catch (error) {
       lastError = error;
@@ -190,6 +201,7 @@ export async function generateStructuredAnswer(
   config: AIProviderConfig = getAIProviderConfig(),
   fetcher: typeof fetch = fetch,
   context: AcademicContext = {},
+  timeoutMs = 45_000,
 ): Promise<ExamAnswer> {
   const question = questionText.trim();
   if (!question || question.length > 20000) throw new AIProviderError("QUESTION_INVALID");
@@ -258,7 +270,7 @@ export async function generateStructuredAnswer(
           },
         ],
       }),
-      signal: AbortSignal.timeout(45000),
+      signal: AbortSignal.timeout(Math.max(1, Math.min(45_000, timeoutMs))),
       redirect: "error",
     });
   } catch {
