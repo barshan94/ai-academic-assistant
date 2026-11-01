@@ -110,3 +110,16 @@ The feature branch `feature/m3-ai-solver` now contains substantial M1–M7 appli
 - Further resumable-upload client hardening: persisted localStorage entries are validated for token shape/length and exact normalized filename/size before reuse. Reads/writes/removals are best-effort so storage-denied browser contexts do not abort a current upload; invalid entries are discarded. Added ERR-066 and documented the behavior. Commits: `b27d824`, `3ad3617`; no tests run.
 
 - M2 worker resource hardening: found unbounded `arrayBuffer()` for Drive PDF download and `text()` for OCR export despite the 50 MB upload limit. Added streamed hard caps (50 MB PDF, 10 MB OCR text, 64 KiB conversion metadata), strict UTF-8 OCR decoding and retained temporary-file cleanup. Added ERR-067. Commits: `b1b82aa`, `29254a1`; no tests/typecheck/build run.
+
+
+## Latest implementation checkpoint (2026-11-01, M4 teacher verification)
+- Continued on `feature/m3-ai-solver`; `main` and production remain untouched.
+- Added a seven-day default invitation expiry (30-day database maximum), with historical pending invites backfilled from `created_at`. Expiry prevents pending acceptance but does not silently expire already accepted access.
+- Replaced direct invite creation/acceptance/revocation writes with authenticated RPCs. Creation is serialized per owner/question/email and prevents duplicate pending invites or duplicate active accepted teachers. Expired pending and revoked invitations can be re-issued.
+- Acceptance locks the invitation and checks the current Supabase Auth user's confirmed email, self-acceptance, expiry, revocation and replay conditions.
+- Revocation is one-way, owner-checked, row-locked and timestamped by the database. It serializes against teacher review; direct authenticated invite INSERT/acceptance/revocation mutations are denied.
+- Teacher review remains append-only and question-scoped. Only the invitation-checked review RPC can promote/demote `teacher_verified`; owner feedback cannot self-promote. If a teacher account is deleted and its review rows cascade, a database trigger recalculates verification from surviving teacher reviews and clears stale teacher verification when none remain.
+- Added/updated pgTAP files: `supabase/tests/question_teacher_invite_expiry.test.sql`, `supabase/tests/question_solution_access.test.sql`, and `supabase/tests/teacher_review_reviewer_deletion.test.sql`.
+- Applied the M4 invitation-expiry, teacher-review permission, foreign-key index, atomic revocation and reviewer-deletion reconciliation migrations to Supabase project `uqpyzicftxxegajaocxi`.
+- Supabase Security Advisor reports zero lint findings. The unindexed teacher-invite foreign-key finding was fixed; remaining performance findings are unused indexes on low/empty-volume tables.
+- Do not start the separate testing/fixing phase until implementation is explicitly reported complete. The pgTAP files have been added but not executed; real two-account browser acceptance and automatic invitation email delivery remain outstanding.
