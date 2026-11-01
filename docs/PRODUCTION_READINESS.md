@@ -134,6 +134,7 @@ The owner-selected infrastructure constraint remains Supabase Free only. No paid
 - Backup scope and procedure: `docs/BACKUP_RESTORE.md`.
 - Monitoring setup: `docs/OPERATIONS_MONITORING.md`.
 - Database/API security findings: `docs/SECURITY_BOUNDARY_AUDIT.md`.
+- Read-only migration ledger comparison and schema-first reconciliation procedure: `docs/MIGRATION_RECONCILIATION.md`.
 - Security and privacy model: `docs/SECURITY_AND_PRIVACY.md`.
 - Detailed acceptance backlog: `docs/ACCEPTANCE_TESTS.md`.
 - Error and remediation history: `docs/ERROR_LOG.md`.
