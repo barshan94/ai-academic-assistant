@@ -217,13 +217,13 @@
 - [x] Confirm owner checks, duplicate/idempotency handling, document registration, processing-job creation and service_role-only execute grants are covered by the isolated atomic document workflow pgTAP suite (same run).
 - [x] Confirm authenticated and anon roles cannot execute the RPC directly (same run). Hosted-project behavior remains unverified.
 
-- [ ] ERR-125: verify encrypted Drive secrets round-trip; reject non-canonical Base64 keys, extra serialized segments, malformed Base64URL, invalid IV/tag lengths, empty ciphertext and values over the configured size limits.
-- [ ] ERR-126: verify resumable Drive chunk validation rejects unsafe integer totals/lengths while retaining valid 1 MB-aligned chunks and final short chunks.
-- [ ] ERR-127: verify the chemistry atom-count parser rejects empty nested formula groups such as `H()2` while retaining valid nested groups and state symbols.
-- [ ] ERR-128: verify chemistry atom-count checks reject symbols outside the periodic table rather than treating arbitrary capitalized tokens as elements.
+- [x] ERR-125: unit tests verify encrypted Drive secrets round-trip and reject non-canonical Base64 keys, extra serialized segments, malformed/non-canonical segments, invalid IV/tag lengths, empty values and values over configured size limits (Foundation CI `41309812309`, commit `1436fad6e78bd2026883c09fab75262bd4f36cfc`). Live stored-token compatibility remains open.
+- [x] ERR-126: unit tests verify unsafe integer totals are rejected while valid 1 MB-aligned chunks and final short chunks are accepted (Foundation CI `41309812309`, commit `1436fad6e78bd2026883c09fab75262bd4f36cfc`). Live Drive upload acceptance remains open.
+- [x] ERR-127: unit tests verify empty nested formula groups such as `H()2` are uncheckable while valid nested groups and state symbols remain supported (Foundation CI `41309812309`, commit `1436fad6e78bd2026883c09fab75262bd4f36cfc`).
+- [x] ERR-128: unit tests verify unknown element symbols are uncheckable (Foundation CI `41309812309`, commit `1436fad6e78bd2026883c09fab75262bd4f36cfc`).
 
 - [ ] Auth recovery: export active email/password Auth users into the encrypted archive; verify the export contains original UUIDs and supported password hashes but no sessions or plaintext passwords.
 - [ ] Auth recovery: restore into a different isolated project; verify source-project target refusal, original UUID preservation, existing-password sign-in, confirmation state and safe idempotent resume after an interrupted import.
 - [ ] Auth recovery: verify unsupported phone-based, MFA, SSO, anonymous and external-identity accounts are rejected before any account is created; verify logs never contain email addresses, password hashes or service-role credentials.
-- [ ] ERR-129: verify inherited JavaScript object property names are rejected as unknown physics units.
+- [x] ERR-129: unit tests verify inherited property names such as `constructor` and `toString` are rejected as unknown physics units (Foundation CI `41309812309`, commit `1436fad6e78bd2026883c09fab75262bd4f36cfc`).
 - [ ] Auth recovery: verify the importer refuses a target password-hashing algorithm that does not match the source and refuses mixed bcrypt/Argon2 backups before creating any account.
