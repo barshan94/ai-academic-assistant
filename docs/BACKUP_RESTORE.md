@@ -121,7 +121,7 @@ Do not test restore against production or the current shared project.
    age --decrypt --identity "$AGE_IDENTITY_FILE" "$BACKUP_ARCHIVE" | tar -xzOf - auth-users.json > "$AUTH_USERS_BACKUP_FILE"
    chmod 600 "$AUTH_USERS_BACKUP_FILE"
    export RESTORE_TARGET_PROJECT_REF="TARGET_PROJECT_REF"
-   export SUPABASE_URL="https://\${RESTORE_TARGET_PROJECT_REF}.supabase.co"
+   export SUPABASE_URL="https://${RESTORE_TARGET_PROJECT_REF}.supabase.co"
    export SUPABASE_SERVICE_ROLE_KEY
    node scripts/restore-auth-users.mjs "$AUTH_USERS_BACKUP_FILE"
    rm -f "$AUTH_USERS_BACKUP_FILE"
