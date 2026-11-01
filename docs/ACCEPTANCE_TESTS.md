@@ -219,3 +219,4 @@
 
 - [ ] ERR-125: verify encrypted Drive secrets round-trip; reject non-canonical Base64 keys, extra serialized segments, malformed Base64URL, invalid IV/tag lengths, empty ciphertext and values over the configured size limits.
 - [ ] ERR-126: verify resumable Drive chunk validation rejects unsafe integer totals/lengths while retaining valid 1 MB-aligned chunks and final short chunks.
+- [ ] ERR-127: verify the chemistry atom-count parser rejects empty nested formula groups such as `H()2` while retaining valid nested groups and state symbols.
