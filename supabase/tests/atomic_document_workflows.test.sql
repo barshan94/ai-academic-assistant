@@ -199,7 +199,7 @@ select is(
 );
 
 select throws_ok(
-  $select * from public.register_uploaded_document(
+  $$select * from public.register_uploaded_document(
     '12000000-0000-4000-8000-000000000001',
     'zero-pages.pdf',
     1024,
@@ -207,14 +207,14 @@ select throws_ok(
     'drive-zero-pages',
     null,
     0
-  )$,
+  )$$,
   'P0001',
   'Uploaded document metadata is invalid',
   'registration rejects a zero page count'
 );
 
 select throws_ok(
-  $select * from public.register_uploaded_document(
+  $$select * from public.register_uploaded_document(
     '12000000-0000-4000-8000-000000000001',
     'fifty-one-pages.pdf',
     1024,
@@ -222,14 +222,14 @@ select throws_ok(
     'drive-fifty-one-pages',
     null,
     51
-  )$,
+  )$$,
   'P0001',
   'Uploaded document metadata is invalid',
   'registration rejects a page count above fifty'
 );
 
 select throws_ok(
-  $select * from public.register_uploaded_document(
+  $$select * from public.register_uploaded_document(
     '12000000-0000-4000-8000-000000000001',
     'one-hundred-pages.pdf',
     1024,
@@ -237,14 +237,14 @@ select throws_ok(
     'drive-one-hundred-pages',
     null,
     100
-  )$,
+  )$$,
   'P0001',
   'Uploaded document metadata is invalid',
   'registration rejects the legacy one-hundred-page upper bound'
 );
 
 select throws_ok(
-  $select * from public.register_uploaded_document(
+  $$select * from public.register_uploaded_document(
     '12000000-0000-4000-8000-000000000001',
     'invalid-hash.pdf',
     1024,

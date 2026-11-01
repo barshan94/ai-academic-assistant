@@ -118,7 +118,7 @@ set local request.jwt.claim.sub = '10000000-0000-4000-8000-000000000002';
 set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000002","role":"authenticated","email":"rls-teacher@example.test"}';
 select is((select count(*)::integer from public.question_teacher_invites), 1, 'invited teacher can see their pending invite');
 select lives_ok(
-  $select public.accept_question_teacher_invite('60000000-0000-4000-8000-000000000001')$,
+  $$select public.accept_question_teacher_invite('60000000-0000-4000-8000-000000000001')$$,
   'matching verified teacher accepts through the atomic invitation RPC'
 );
 select is((select count(*)::integer from public.questions), 1, 'accepted teacher can read the shared question');
@@ -182,7 +182,7 @@ select throws_ok(
 set local request.jwt.claim.sub = '10000000-0000-4000-8000-000000000001';
 set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000001","role":"authenticated","email":"rls-owner@example.test"}';
 select lives_ok(
-  $select public.revoke_question_teacher_invite('60000000-0000-4000-8000-000000000001')$,
+  $$select public.revoke_question_teacher_invite('60000000-0000-4000-8000-000000000001')$$,
   'owner can revoke an accepted teacher invitation through the atomic RPC'
 );
 select is(

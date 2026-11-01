@@ -1531,3 +1531,13 @@ ERR-073 closure reconciliation (2026-11-01): the earlier note that page and pare
 - Fix: Updated both call sites to pass `source.headers` / `destination.headers` and `previousResponse.headers` / `response.headers`. Added a unit test that verifies allow-listed policy headers are copied without copying `Set-Cookie` or overwriting unrelated destination headers.
 - Verification: CI identified the two type errors; post-fix type-check and unit-test reruns are pending.
 - Status: Source fix and regression test committed; verification pending.
+
+
+## ERR-141 — Three pgTAP files contained malformed SQL expression delimiters
+- Date: 2026-11-01
+- Area: Database authorization and atomic workflow regression tests
+- Symptom: The isolated database schema migrations completed, but `supabase test db` failed to parse SQL expressions in `atomic_document_workflows.test.sql`, `question_solution_access.test.sql` and `question_teacher_invite_expiry.test.sql`. The malformed expressions began with `$select` rather than a valid dollar-quote delimiter, so the test runner stopped before executing the remaining assertions in those files.
+- Root cause: A previous SQL test edit introduced invalid opening and closing dollar-quote delimiters in seven pgTAP expressions; one of the seven expressions already had a doubled closing delimiter.
+- Fix: Replaced all seven malformed openers and the six single-dollar closers with balanced `$$select ... $$` expression bodies. Existing `$test$` and already-valid `$$` expressions were left unchanged.
+- Verification: Confirmed the seven malformed openers and six single-dollar closers from the failing pgTAP output; the edited files contain no remaining single-dollar `$select` openers or `)$,` closers. Full isolated pgTAP rerun is pending.
+- Status: Test-source fix committed; database suite verification pending.

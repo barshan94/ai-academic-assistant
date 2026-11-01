@@ -168,7 +168,7 @@ set local role authenticated;
 set local request.jwt.claim.sub = '11000000-0000-4000-8000-000000000003';
 set local request.jwt.claims = '{"sub":"11000000-0000-4000-8000-000000000003","role":"authenticated","email":"invite-outsider@example.test"}';
 select throws_ok(
-  $select public.accept_question_teacher_invite((select id from public.question_teacher_invites where invited_email = 'invite-outsider@example.test' order by created_at desc limit 1))$,
+  $$select public.accept_question_teacher_invite((select id from public.question_teacher_invites where invited_email = 'invite-outsider@example.test' order by created_at desc limit 1))$$,
   '42501',
   null,
   'expired pending invitation cannot be accepted'
