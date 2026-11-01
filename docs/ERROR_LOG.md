@@ -1342,8 +1342,8 @@ This file records material implementation, CI, integration and release problems 
 - Root cause: The route-level upload limit was tightened without updating the database function's independent validation invariant.
 - Impact: The RPC is revoked from public, anon and authenticated roles and is called only by the server route, so this is not currently a direct browser authorization bypass. It is still an inconsistent defense-in-depth contract and permits invalid registration metadata if another trusted caller is introduced.
 - Fix: Added forward-only migration `20261101140000_tighten_uploaded_document_page_count.sql` (ERR-130). The replacement RPC rejects every non-null page count outside 1–50 while preserving owner validation, advisory locking, duplicate handling, atomic document/job creation and the server-only execute grant. The historical migration remains unchanged.
-- Verification: Source reviewed only. The migration has not been applied; page-count boundary, effective ACL, concurrency and atomicity checks are deferred to the dedicated testing phase.
-- Status: Implementation closed by ERR-130; database acceptance remains pending.
+- Verification: Applied through the complete ordered migration chain on a fresh isolated local Supabase database in CI run `41309812359` at commit `1436fad6e78bd2026883c09fab75262bd4f36cfc`. The atomic document workflow pgTAP suite verifies page counts 1, 50 and null are accepted; 0, 51 and 100 are rejected; duplicate handling, owner-scoped deduplication, document/job atomicity, rollback on job failure, and authenticated/anon execute denial are covered. Hosted-project application and live concurrency acceptance remain outstanding.
+- Status: Isolated database acceptance passed; hosted migration reconciliation and target approval remain open.
 
 ## ERR-124 — Development ESLint toolchain retains a legacy minimatch major
 - Date: 2026-11-01
