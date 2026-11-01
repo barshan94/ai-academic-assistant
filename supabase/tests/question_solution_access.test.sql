@@ -182,10 +182,8 @@ select throws_ok(
 set local request.jwt.claim.sub = '10000000-0000-4000-8000-000000000001';
 set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000001","role":"authenticated","email":"rls-owner@example.test"}';
 select lives_ok(
-  $$update public.question_teacher_invites
-    set revoked_at = now()
-    where id = '60000000-0000-4000-8000-000000000001'$$,
-  'owner can revoke an accepted teacher invitation'
+  $select public.revoke_question_teacher_invite('60000000-0000-4000-8000-000000000001')$,
+  'owner can revoke an accepted teacher invitation through the atomic RPC'
 );
 select is(
   (select count(*)::integer from public.question_solution_reviews),
