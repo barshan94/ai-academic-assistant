@@ -54,7 +54,7 @@ A repository helper now automates the logical export and encrypts the result loc
    This decrypts into a private temporary directory, accepts only the exact expected archive entries, streams each member into a newly created regular file (without extracting archive-controlled paths or link metadata), and verifies every SHA-256 checksum. It proves archive integrity, not successful database restoration.
 6. Copy the encrypted archive to an independent off-site location. Never commit it to this repository.
 
-The helper does not export Auth sessions, MFA factors, SSO/external provider identities, Storage object bytes, Google Drive files, project settings or provider secrets. Its output is not a complete disaster-recovery backup.
+Before encryption, the helper validates the complete Auth export against the restore importer's supported email/password account contract. If any active account is outside that scope (phone, MFA, SSO, anonymous, external provider or unsupported password hash), backup creation fails closed rather than producing an archive whose Auth recovery cannot complete. Resolve that account's separate recovery path before retrying the backup.\n\nThe helper does not export Auth sessions, MFA factors, SSO/external provider identities, Storage object bytes, Google Drive files, project settings or provider secrets. Its output is not a complete disaster-recovery backup.
 
 ### Manual CLI export (alternative)
 
