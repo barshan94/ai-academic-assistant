@@ -252,3 +252,6 @@ Syllabus catalog lifecycle enforcement (2026-11-01): added database triggers acr
 
 
 Syllabus lifecycle regression guard (2026-11-01): owner and shared-reference catalog status triggers now prevent verified catalogs from reverting to draft and retired catalogs from being reactivated. Existing draft-to-verified, draft-to-retired and verified-to-retired flows remain permitted. See ERR-101. Database migration application and transition acceptance remain pending the dedicated testing and fixing phases.
+
+
+Verified syllabus provenance protection (2026-11-01): owner and shared-reference catalog metadata is now immutable after leaving draft, enforced by invoker-security database triggers. Status transitions remain separate and monotonic; verified-to-retired remains permitted without allowing source or syllabus metadata to change. See ERR-102. Database migration application and direct-write acceptance remain pending the dedicated testing and fixing phases.
