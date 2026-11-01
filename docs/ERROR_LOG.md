@@ -1355,3 +1355,21 @@ This file records material implementation, CI, integration and release problems 
 - Verification: Static lockfile inspection only. No npm audit, install, lint, typecheck or build was run in the implementation phase.
 - Status: Open engineering/security blocker; remediation and full dependency audit remain pending.
 
+
+## ERR-125 — Encrypted Drive values accepted non-canonical serialized forms
+- Date: 2026-11-01
+- Area: Google Drive token/session encryption
+- Symptom: The AES-256-GCM decoder split the stored value into four fields but did not reject trailing segments, and Base64/Base64URL decoding relied on Node's permissive decoder without checking canonical representation or IV/tag lengths.
+- Root cause: The persisted-value parser relied on successful cryptographic decoding rather than enforcing the exact versioned wire format and bounded input sizes.
+- Fix: Require exactly four segments, canonical Base64URL encoding, a 12-byte IV, a 16-byte authentication tag, non-empty ciphertext and bounded plaintext/ciphertext sizes. Require the encryption key to use canonical padded Base64 for exactly 32 bytes.
+- Regression coverage: Added \`lib/drive/crypto.test.ts\` for round trips, malformed extra segments, non-canonical keys, invalid IV/tag lengths and size limits. Tests are authored but not executed.
+- Status: Source fix committed; regression and existing-token compatibility checks remain pending the testing phase.
+
+## ERR-126 — Drive resumable chunk validator accepted unsafe total-byte integers
+- Date: 2026-11-01
+- Area: Resumable Google Drive upload validation
+- Symptom: The chunk validator checked safe integer ranges for start/end offsets but did not independently require the parsed total and caller-supplied total byte count to be safe positive integers.
+- Root cause: The total values were compared for equality without validating that JavaScript could represent them exactly.
+- Fix: Require parsed total, caller total and byte length to be safe integers; require total values to be positive before validating chunk alignment and bounds.
+- Regression coverage: Added an unsafe-integer total-size case to \`lib/drive/resumable-upload.test.ts\`. Tests are authored but not executed.
+- Status: Source fix committed; regression tests remain pending the testing phase.
