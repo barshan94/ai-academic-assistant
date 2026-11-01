@@ -1682,3 +1682,13 @@ ERR-073 closure reconciliation (2026-11-01): the earlier note that page and pare
 - Fix: No code change or paid upgrade is appropriate. Stop retrying deployment requests until the provider's rate-limit window resets, then run one preview deployment from the current reviewed feature commit.
 - Verification: GitHub Actions build and browser smoke tests passed on `b929566a8d175ff1f3894da706ba64414e40ccf2`; a fresh Vercel deployment has not yet been verified.
 - Status: External hosting verification blocker; no plan upgrade or production deployment authorized.
+
+
+## ERR-155 — Persisted document-processing failures were reported as successful scheduler runs
+- Date: 2026-11-01
+- Area: Background worker operations / failure visibility
+- Symptom: The worker correctly persisted a failed job and returned a JSON payload with `failed: true`, but used HTTP 200. The GitHub Actions scheduler therefore treated an OCR/provider/database processing failure as a successful invocation.
+- Root cause: The route conflated successful handling/persistence of a failure with successful document processing.
+- Fix: After `fail_document_processing` confirms that the failed state was persisted, the route now returns HTTP 500 with a sanitized error payload. The durable job remains eligible for a later scheduled retry within its attempt budget; no sensitive upstream error is returned.
+- Verification: Pending foundation CI and non-production worker acceptance. Confirm the workflow reports a failed run after a job failure and that a later invocation can retry the persisted job.
+- Status: Source fix committed; CI and live worker acceptance pending.
