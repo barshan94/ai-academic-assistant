@@ -366,3 +366,7 @@ ERR-123 implementation closure (2026-11-01): added forward-only migration `20261
 
 ## ERR-136 implementation note
 The scheduled document worker now uses the shared `createSupabaseServiceRoleClient()` factory rather than constructing a service-role client inline. This closes the ERR-135 transport-policy bypass for worker database and RPC requests. The source change is committed; regression execution and runtime worker acceptance remain deferred.
+
+
+## ERR-137 implementation note
+A shared redirect-rejecting fetch transport now backs the cookie-authenticated Supabase SSR clients in middleware and server routes as well as the service-role client. The regression test is authored and intentionally unexecuted until the testing phase.
