@@ -330,3 +330,8 @@ Middleware response policy now survives Supabase auth-cookie response recreation
 - [x] Correct decimal Content-Length validation in the shared bounded HTTP response reader.
 - [x] Add regression tests for numeric, malformed, oversized and absent Content-Length headers.
 - [ ] Execute the regression tests and provider integration checks in the dedicated testing phase.
+
+
+Document registration page-count contract review (2026-11-01): resumable upload routes enforce 1–50 pages, but the server-only register_uploaded_document RPC still accepts 0–100. This is an inconsistent database invariant, not a currently exposed authenticated-client bypass because the RPC is restricted to service_role. A new forward-only migration must tighten the RPC to 1–50 without altering its atomic registration or grants. The migration has not yet been scaffolded; see ERR-123. Do not mark this item complete until the generated migration is committed and later applied/verified in the authorized testing phase.
+
+ERR-121 and ERR-122 implementation coverage: extracted the response-policy header copier into a testable HTTP utility and authored regression tests for retained cache/CSP/crawler headers. ERR-122 numeric Content-Length fix and its regression tests remain authored but unexecuted. Both sets of tests stay queued for the testing phase.
