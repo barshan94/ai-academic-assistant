@@ -34,30 +34,62 @@ jobs:
             exit 1
           fi
 
-      - name: Check application readiness
+      - name: Check application readiness and latency
         shell: bash
         env:
           APP_BASE_URL: ${{ secrets.APP_BASE_URL }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          READINESS_MAX_SECONDS: "10"
         run: |
           set -Eeuo pipefail
           response_file="$(mktemp)"
           trap 'rm -f "$response_file"' EXIT
 
-          status="$(curl --silent --show-error \
+          result="$(curl --silent --show-error \
             --connect-timeout 10 --max-time 20 \
-            --output "$response_file" --write-out '%{http_code}' \
+            --output "$response_file" --write-out '%{http_code} %{time_total}' \
             --header "Authorization: Bearer ${CRON_SECRET}" \
             "${APP_BASE_URL%/}/api/health/ready")"
+          status="${result%% *}"
+          elapsed="${result#* }"
 
           if [[ "$status" != "200" ]]; then
             echo "::error::Application readiness check failed (HTTP $status)."
             exit 1
           fi
 
-          if ! grep -Eq '"status"[[:space:]]*:[[:space:]]*"ready"' "$response_file"; then
+          if ! grep -Eq '"status'[[:space:]]*:[[:space:]]*'"ready"' "$response_file"; then
             echo "::error::Readiness endpoint returned an unexpected response."
             exit 1
           fi
 
-          echo "Application readiness check passed."
+          if ! awk -v elapsed="$elapsed" -v max="$READINESS_MAX_SECONDS" 'BEGIN { exit !(elapsed <= max) }'; then
+            echo "::error::Readiness response exceeded the ${READINESS_MAX_SECONDS}s latency threshold."
+            exit 1
+          fi
+
+          echo "Application readiness check passed in ${elapsed}s."
+
+      - name: Send optional operations alert
+        if: failure()
+        shell: bash
+        env:
+          ALERT_WEBHOOK_URL: ${{ secrets.ALERT_WEBHOOK_URL }}
+          WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -Eeuo pipefail
+          if [[ -z "$ALERT_WEBHOOK_URL" ]]; then
+            echo "::notice::No alert webhook configured; rely on GitHub Actions failure notifications."
+            exit 0
+          fi
+          if [[ ! "$ALERT_WEBHOOK_URL" =~ ^https:// ]]; then
+            echo "::warning::ALERT_WEBHOOK_URL must use HTTPS; notification skipped."
+            exit 0
+          fi
+
+          payload="$(printf '{"text":"Production readiness monitor failed. Details: %s"}' "$WORKFLOW_URL")"
+          if ! curl --silent --fail --max-time 10 --proto '=https' --max-redirs 0 \
+            --header "Content-Type: application/json" \
+            --data "$payload" "$ALERT_WEBHOOK_URL" >/dev/null 2>&1; then
+            echo "::warning::Operations alert delivery failed."
+          fi
