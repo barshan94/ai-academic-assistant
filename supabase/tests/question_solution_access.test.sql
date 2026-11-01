@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(34);
+select plan(35);
 
 -- Isolated identities and records. This test runs inside a transaction and rolls back.
 insert into auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
@@ -117,10 +117,10 @@ select throws_ok(
 set local request.jwt.claim.sub = '10000000-0000-4000-8000-000000000002';
 set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000002","role":"authenticated","email":"rls-teacher@example.test"}';
 select is((select count(*)::integer from public.question_teacher_invites), 1, 'invited teacher can see their pending invite');
-update public.question_teacher_invites
-set accepted_by = '10000000-0000-4000-8000-000000000002',
-    accepted_at = now()
-where id = '60000000-0000-4000-8000-000000000001';
+select lives_ok(
+  $select public.accept_question_teacher_invite('60000000-0000-4000-8000-000000000001')$,
+  'matching verified teacher accepts through the atomic invitation RPC'
+);
 select is((select count(*)::integer from public.questions), 1, 'accepted teacher can read the shared question');
 select is((select count(*)::integer from public.question_solutions), 1, 'accepted teacher can read the shared solution');
 select is((select count(*)::integer from public.question_solution_mark_schemes), 0, 'teacher cannot read owner-private mark scheme');
