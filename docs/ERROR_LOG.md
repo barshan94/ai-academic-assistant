@@ -1108,3 +1108,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Added invoker-security triggers on both owner and shared-reference catalog tables. Once a catalog leaves draft, every field other than lifecycle status and the automatic updated_at timestamp is immutable. The existing verified-to-retired transition remains allowed, but its metadata cannot change.
 - Verification: Migration/source review only. The migration has not been applied to a database; direct Data API updates, status transitions and RLS behavior remain deferred to the dedicated testing and fixing phases.
 - Status: Migration committed to feature/m3-ai-solver; no tests, typecheck or build were run during implementation.
+
+
+## ERR-103 — Document processing failure state could partially persist
+
+- Date: 2026-11-01
+- Area: Manual and background document-processing failure handling
+- Symptom: Both processing routes updated the document to failed and the running processing job to failed in separate requests. A partial failure could leave a failed document with a running job, or the reverse.
+- Root cause: Failure-state persistence was split across independent PostgREST transactions even though the successful completion path had been made atomic.
+- Fix: Added the owner-authorized fail_document_processing RPC. It validates either the trusted service role or authenticated owner, locks the matching running job, updates the owner-scoped document and job failure state in one transaction, and chooses a bounded safe error message from an allow-listed error code. Both manual and background processing routes now call it.
+- Verification: Source/migration review only. The migration has not been applied to a database; RLS, role authorization, rollback and concurrent completion-versus-failure cases remain deferred to the dedicated testing and fixing phases.
+- Status: Migration, both processing routes, database types and documentation committed to feature/m3-ai-solver; no tests, typecheck or build were run during implementation.
