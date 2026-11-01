@@ -42,6 +42,12 @@ The feature branch `feature/m3-ai-solver` now contains substantial M1–M7 appli
 - Related implementation commit: `42703c118c3135bca1ea78dc0f80cb0abf56cb6d`; roadmap, acceptance plan, README and security notes were updated in subsequent documentation commits.
 - Do not start the separate testing/fixing phase until implementation is explicitly reported complete. CI may execute automatically after commits; record its result without treating that as permission to begin the planned test phase.
 
+## Latest implementation checkpoint (2026-11-01, continued)
+- Added `.github/workflows/health-monitor.yml`: protected readiness endpoint check every 15 minutes plus manual dispatch, HTTPS-origin validation, bounded curl timeouts, generic response validation, and no response-body/secret logging.
+- Added `docs/OPERATIONS_MONITORING.md` with required repository secrets, activation sequence, failure interpretation and explicit scope limitations. Updated M8 roadmap, README and engineering error log (ERR-061).
+- Latest commits: `5a58afd` workflow; `393c3a1` error log; `394736c` monitoring runbook; `333a76c` README; `340c17b` roadmap.
+- Not active until merged to the default branch and repository secrets `APP_BASE_URL` and `CRON_SECRET` are configured. A green readiness check does not validate Google Drive, AI generation, worker throughput, backups or user workflows.
+
 ## Current verified state
 - Supabase project is ACTIVE_HEALTHY on the Free plan.
 - GitHub repository is public by the owner's choice.
