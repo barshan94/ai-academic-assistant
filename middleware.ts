@@ -1,6 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { copyResponsePolicyHeaders } from "@/lib/http/response-policy-headers";
+import { copyResponsePolicyHeaders, isResponsePolicyHeader } from "@/lib/http/response-policy-headers";
 import { supabaseFetch } from "@/lib/supabase/fetch";
 
 function buildContentSecurityPolicy(nonce: string) {
@@ -133,15 +133,8 @@ export async function middleware(request: NextRequest) {
         cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
         // Supabase may return transport headers alongside refreshed cookies.
         // Never allow those headers to replace the app's security/cache policy.
-        const protectedHeaders = new Set([
-          "cache-control",
-          "expires",
-          "pragma",
-          "content-security-policy",
-          "x-robots-tag",
-        ]);
         Object.entries(headers ?? {}).forEach(([key, value]) => {
-          if (!protectedHeaders.has(key.toLowerCase())) response.headers.set(key, value);
+          if (!isResponsePolicyHeader(key)) response.headers.set(key, value);
         });
       },
     },
