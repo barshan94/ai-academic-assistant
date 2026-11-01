@@ -1597,3 +1597,13 @@ ERR-073 closure reconciliation (2026-11-01): the earlier note that page and pare
 - Fix: Made cancellation best-effort in all three rejection branches while preserving the intended `INVALID_RESPONSE_LENGTH` or `RESPONSE_TOO_LARGE` error. Added regression cases where the underlying stream cancellation throws.
 - Verification: Source and regression tests committed; CI rerun pending.
 - Status: Fix committed; verification pending.
+
+## ERR-147 — Production environment preflight was not wired into foundation CI
+- Date: 2026-11-01
+- Area: Deployment configuration / CI contract
+- Symptom: `scripts/validate-production-env.mjs` and `npm run check:production-env` existed, but the foundation workflow never invoked the validator. Configuration drift could therefore go unnoticed until deployment setup.
+- Root cause: The preflight was documented as an operator command but had no automated, credential-free CI contract check.
+- Fix: Added a foundation workflow step that invokes the preflight with synthetic non-secret Supabase, Google OAuth, cron, encryption-key and AI-provider values. The step explicitly does not connect to external services and uses no real credentials.
+- Verification: Workflow change committed; CI execution is pending. A passing fixture check will establish only that the validator accepts the documented configuration shape, not that any provider is reachable or correctly configured.
+- Status: Implementation committed to `feature/m3-ai-solver`; CI verification pending.
+
