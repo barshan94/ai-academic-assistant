@@ -98,3 +98,15 @@ Resumable-upload browser state is validated against the selected file and treate
 
 
 The document worker also enforces streamed response-size limits when downloading PDFs from Drive (50 MB), receiving OCR text (10 MB), and parsing OCR conversion metadata (64 KiB); this protects worker memory independently of the original upload checks.
+
+
+## Outstanding release acceptance gates
+
+The following procedures are committed, but their human/external acceptance steps are deliberately not marked complete:
+
+- [Isolated backup and restore drill](docs/ISOLATED_BACKUP_RESTORE_DRILL.md): the encrypted logical-backup helper and archive-integrity verifier exist; a real isolated restore, original-password sign-in and original Drive-token encryption-key recovery still require execution.
+- [ERR-124 minimatch remediation](docs/ERR-124_MINIMATCH_REMEDIATION.md): the lockfile still contains a legacy minimatch 3.x dependency path. Do not force v11 into legacy consumers; complete the reviewed compatible migration/patch and audit.
+- [Accessibility acceptance](docs/ACCESSIBILITY_ACCEPTANCE.md): automated smoke checks do not replace screen-reader, contrast, zoom/reflow and real-device acceptance.
+- [Academic, privacy and operations acceptance](docs/ACADEMIC_PRIVACY_OPERATIONS_ACCEPTANCE.md): official syllabus validation, independent human grading, qualified privacy/legal review and named primary/backup operators remain required.
+
+A procedure or checklist is not evidence of a successful drill, review or approval. Keep each gate open until its evidence is recorded against the tested commit.
