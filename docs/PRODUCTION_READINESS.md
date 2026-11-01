@@ -170,3 +170,11 @@ Do not check any runtime or external-review item above until the evidence is att
 - [ ] Complete object-by-object reconciliation of all remote migration effects against the repository's ordered migration chain before any hosted migration or authenticated integration acceptance.
 - [ ] Configure and verify Google OAuth/Drive, AI provider, worker scheduler and authenticated test credentials in a non-production environment.
 
+
+
+## Additional hosted privilege audit — 2026-11-01
+
+- [x] Read-only catalog audit confirms no direct anon table privileges in the connected application's public schema, RLS enabled on all 21 public tables, and no public views.
+- [x] Confirmed the only public SECURITY DEFINER function is service-role/postgres-only; no anon or authenticated EXECUTE privilege was found for it.
+- [ ] Validate effective RLS behavior with two disposable authenticated accounts; catalog policy inspection alone is not an IDOR acceptance test.
+- [ ] Reconcile and apply the missing document registration/page-count migrations only after the full migration chain is compared and the owner approves the target and plan.
