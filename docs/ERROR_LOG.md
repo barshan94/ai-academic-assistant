@@ -1442,3 +1442,14 @@ ERR-124 compatibility investigation (2026-11-01): the existing lockfile already 
 - Fix: Added an explicit retryability policy. Fallback is limited to network/timeout unavailability, malformed or empty provider responses, and HTTP 408, 425, 429 or 5xx. Permanent 4xx failures stop immediately. Updated provider setup documentation and added regression cases for permanent 4xx, transient 503 and fallback-disabled behavior.
 - Verification: Source and regression-test changes reviewed only. Tests were not executed in the implementation phase; live provider behavior, actual cost and retry timing remain unverified.
 - Status: Implementation committed to `feature/m3-ai-solver`; regression and provider acceptance deferred to the testing phase.
+
+
+## ERR-133 — Readiness monitor omitted required feature and quota tables
+
+- Date: 2026-11-01
+- Area: M8 production readiness / database schema detection
+- Symptom: The protected readiness endpoint probed the primary workflow tables but omitted persisted tables used by quota enforcement, web-research provenance, mark-scheme review, syllabus evidence, platform-curator access and classification history. A partially migrated database could therefore return `ready` while one or more implemented workflows would fail when used.
+- Root cause: The readiness probe inventory was maintained inline and was not kept in sync as later feature migrations added tables.
+- Fix: Extracted the required table inventory into `lib/health/required-readiness-tables.ts` and added the omitted feature/quota tables. The readiness endpoint still performs bounded zero-row HEAD probes and returns no academic data. Added a regression test for the critical table inventory and duplicate entries.
+- Verification: Source review only. The regression test is authored but not executed; live database readiness behavior remains deferred to the testing phase.
+- Status: Implementation committed to `feature/m3-ai-solver`; runtime verification remains pending.
