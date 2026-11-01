@@ -1321,3 +1321,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Added one shared response-policy header copier and invoke it whenever the middleware rebuilds its response for refreshed auth cookies. Redirect handling uses the same helper, keeping cache, CSP and crawler policy handling consistent.
 - Verification: Source change only. No tests, build, browser, auth-refresh simulation or deployment was performed. Confirm headers on refreshed-cookie success and redirect paths during the dedicated testing phase.
 - Status: Implemented on `feature/m3-ai-solver`; runtime verification remains deferred.
+
+
+## ERR-122 — Bounded HTTP response reader rejected numeric Content-Length headers
+
+- Date: 2026-11-01
+- Area: HTTP response handling / Google and AI provider integrations
+- Symptom: Responses carrying an ordinary numeric `Content-Length` header were rejected as invalid before their bodies could be read. This affected bounded response handling for upstream Google and AI HTTP calls.
+- Root cause: The decimal-digit regular expression was double-escaped in a regular-expression literal, so it matched a literal backslash followed by `d` rather than one or more digits.
+- Fix: Corrected the expression to accept decimal digits while retaining the existing invalid-length and maximum-byte checks. Added focused regression coverage for numeric, malformed, oversized and absent content-length headers.
+- Verification: Not run in the implementation phase. The new regression tests are authored but must be executed in the later testing phase.
+- Status: Source fix and regression tests committed; runtime verification pending.
