@@ -190,3 +190,8 @@
 - [ ] Complete keyboard-only and screen-reader acceptance across sign-in, document intake, question review, solver, syllabus, chapter notes and study planner.
 - [ ] Check text and control contrast at supported zoom levels and viewport widths.
 - [ ] Verify reduced-motion preference is respected by transitions, scrolling and interactive visualizations.
+
+
+## Private response caching
+- [ ] Confirm dashboard pages, API success responses, API errors and unauthenticated dashboard redirects return `Cache-Control: private, no-store`.
+- [ ] Confirm no private academic response is reused after sign-out, account switching, back/forward navigation or browser cache restoration.
