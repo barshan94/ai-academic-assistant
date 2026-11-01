@@ -41,7 +41,7 @@ A repository helper now automates the logical export and encrypts the result loc
 5. Verify the encrypted archive on the trusted workstation before copying it off-site. Point `AGE_IDENTITY_FILE` to the separately stored private age identity and pass the archive path:
    ```bash
    export AGE_IDENTITY_FILE="$HOME/.config/age/keys.txt"
-   bash scripts/verify-backup.sh "$HOME/academic-assistant-backups/academic-assistant-YYYYMMDDTHHMMSSZ.tar.gz.age"
+   bash scripts/verify-backup.sh "$HOME/academic-assistant-backups/academic-assistant-YYYYMMDDTHHMMSSZ-PID.tar.gz.age"
    ```
    This decrypts into a private temporary directory, accepts only the exact expected archive entries, and verifies every SHA-256 checksum. It proves archive integrity, not successful database restoration.
 6. Copy the encrypted archive to an independent off-site location. Never commit it to this repository.
