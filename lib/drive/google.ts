@@ -57,7 +57,7 @@ function isGoogleDriveUploadSessionUri(value: string) {
     const uri = new URL(value);
     return uri.protocol === "https:" && uri.hostname === "www.googleapis.com" &&
       !uri.username && !uri.password &&
-      /^\\/upload\\/drive\\/v3\\/files(?:\\/|$)/.test(uri.pathname);
+      /^\/upload\/drive\/v3\/files(?:\/|$)/.test(uri.pathname);
   } catch {
     return false;
   }
