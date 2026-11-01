@@ -1617,3 +1617,13 @@ ERR-073 closure reconciliation (2026-11-01): the earlier note that page and pare
 - Fix: Added a 60-second total routing deadline and a maximum 20-second timeout for each provider attempt. The router stops when the shared budget expires; the existing opt-in fallback policy and retryable-error classification remain unchanged. Direct single-provider calls retain their 45-second default timeout.
 - Verification: Added a regression test with an eight-provider pool and a simulated clock; it expects routing to stop after three 20-second attempts. The test, lint, typecheck and build have not been run in this implementation phase.
 - Status: Implemented on `feature/m3-ai-solver`; automated and serverless-runtime verification pending.
+
+
+## ERR-149 — Keyboard focus indicator was not globally guaranteed
+- Date: 2026-11-01
+- Area: Accessibility / keyboard navigation
+- Symptom: The application had a skip link and some component-specific focus styling, but no global `:focus-visible` rule guaranteed a consistent keyboard focus indicator for links, buttons and other focusable controls.
+- Root cause: Focus treatment was implemented selectively rather than as a shared baseline.
+- Fix: Added a global three-pixel accent outline with offset for keyboard-visible focus, and added a Chromium smoke test that tabs to the public-page skip link and verifies that it is focused, points to the main content and has a visible outline.
+- Verification: Source and Playwright regression committed; CI execution pending. This does not replace a complete keyboard, screen-reader, contrast or touch-target audit.
+- Status: Implemented on `feature/m3-ai-solver`; CI verification pending.
