@@ -39,12 +39,14 @@ Also configure the Supabase URL and publishable key as documented in `AUTHENTICA
 1. Sign in to the private Academic Assistant account.
 2. Open **Dashboard → Document library**.
 3. Connect the Google account that should own the archive.
-4. Upload one PDF, or select up to 50 JPEG/PNG images. The combined upload limit is 4 MB.
-5. Existing PDFs are uploaded unchanged. Multiple images become one multi-page PDF in the order selected.
-6. The app stores file metadata and the Drive file ID in Supabase.
-7. Select **Extract text**. The app temporarily imports the archived PDF into Google Docs using Drive's conversion/OCR support, exports text, and deletes the temporary Google Doc.
+4. Select one PDF or up to 50 JPEG/PNG images. The browser normalizes image batches into one multi-page PDF in selection order; an existing PDF is preserved without re-encoding.
+5. The normalized PDF is limited to 50 MB and uploaded to Drive in resumable 1 MB chunks. The browser retains an encrypted upload-session token locally so the same file can resume after a network interruption; the server checks Drive's confirmed byte offset before continuing.
+6. After Drive confirms the complete file, the app verifies the returned PDF MIME type and byte size, stores its checksum and Drive file ID in Supabase, and creates the processing job. Duplicate content is detected by SHA-256 per owner.
+7. Select **Extract text** or allow the configured background worker to claim the queued job. The app temporarily imports the archived PDF into Google Docs using Drive's conversion/OCR support, exports text, and deletes the temporary Google Doc.
 8. Review and correct each extracted page. OCR output is not considered verified.
 9. Select **Mark reviewed** only after checking the extracted text against the original in Drive.
+
+Upload sessions expire after six days. If the session expires, reselect the same file to start a new upload. A normalized upload is limited to 50 MB; image batches are limited to 50 images.
 
 The extraction route has a three-attempt limit and a 100-page extracted-text limit. Google Drive conversion and OCR behavior depends on the source document and Google's service availability. It is not a substitute for checking formulas, diagrams, tables, or symbols manually.
 
@@ -53,11 +55,11 @@ The extraction route has a three-attempt limit and a 100-page extracted-text lim
 - OAuth uses a random state value stored in a short-lived, HTTP-only, SameSite=Lax cookie and binds it to the signed-in owner.
 - The refresh token is encrypted with AES-256-GCM before it is stored in the owner-scoped `drive_connections` table.
 - Access tokens are refreshed server-side and never returned to the browser.
-- Only `drive.file` scope is requested.
+- Only `drive.file` scope is requested. The OAuth callback rejects a broader returned scope, and stored connections are checked for the exact file-only grant before use.
 - Temporary Google Docs created for extraction are deleted after export.
 - Supabase stores metadata, extracted text and review state; the original PDF remains in the user's Drive.
 - A disconnect action attempts to revoke the Google refresh token and removes the local encrypted token.
-- Resumable uploads above 4 MB and automatic background workers are not implemented. Processing is started explicitly from the document library.
+- Resumable uploads are implemented for normalized PDFs up to 50 MB in 1 MB chunks. The background worker is implemented and scheduled through GitHub Actions; it still requires deployment configuration and a non-production acceptance run before it is considered operational.
 
 ## Troubleshooting
 

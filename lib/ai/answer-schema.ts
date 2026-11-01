@@ -1,0 +1,38 @@
+import { z } from "zod";
+
+export const examAnswerSchema = z.object({
+  examAnswer: z.string().trim().min(1).max(20000),
+  workingSteps: z.array(z.object({
+    step: z.string().trim().min(1).max(300),
+    explanation: z.string().trim().min(1).max(3000),
+  })).max(30),
+  calculationChecks: z.array(z.object({
+    expression: z.string().trim().min(1).max(200),
+    claimedResult: z.number().finite(),
+    unit: z.string().max(40),
+  })).max(20),
+  chemistryChecks: z.array(z.object({
+    equation: z.string().trim().min(1).max(300),
+    claimedBalanced: z.boolean(),
+  })).max(20),
+  physicsChecks: z.array(z.object({
+    formulaUnit: z.string().trim().min(1).max(100),
+    claimedUnit: z.string().trim().min(1).max(100),
+  })).max(20),
+  bengaliExplanation: z.string().trim().min(1).max(12000),
+  englishExplanation: z.string().trim().min(1).max(12000),
+  keyConcepts: z.array(z.string().trim().min(1).max(300)).max(20),
+  assumptions: z.array(z.string().trim().min(1).max(500)).max(20),
+  limitations: z.array(z.string().trim().min(1).max(500)).max(20),
+});
+
+export type ExamAnswer = z.infer<typeof examAnswerSchema>;
+
+export function parseExamAnswer(raw: string): ExamAnswer {
+  let cleaned = raw.trim().replace(/^\uFEFF/, "");
+  if (cleaned.startsWith(String.fromCharCode(96).repeat(3))) {
+    cleaned = cleaned.replace(/^\x60{3}(?:json)?\s*/i, "").replace(/\s*\x60{3}$/, "");
+  }
+  const parsed: unknown = JSON.parse(cleaned);
+  return examAnswerSchema.parse(parsed);
+}

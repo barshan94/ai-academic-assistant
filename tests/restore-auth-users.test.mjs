@@ -1,0 +1,171 @@
+import { describe, expect, it } from "vitest";
+import {
+  isCompatibleExistingAccount,
+  passwordHashAlgorithm,
+  readJsonResponse,
+  remainingBanDuration,
+  validateBackup,
+} from "../scripts/restore-auth-users.mjs";
+
+const baseUser = {
+  id: "11111111-1111-4111-8111-111111111111",
+  aud: "authenticated",
+  role: "authenticated",
+  email: "owner@example.com",
+  phone: null,
+  password_hash: "$2b$10$" + "A".repeat(53),
+  email_confirm: true,
+  phone_confirm: false,
+  user_metadata: {},
+  app_metadata: { provider: "email", providers: ["email"] },
+  identity_providers: ["email"],
+  mfa_factor_count: 0,
+  is_anonymous: false,
+  is_sso_user: false,
+  banned_until: null,
+};
+
+function backup(user = baseUser) {
+  return { formatVersion: 1, projectRef: "uqpyzicftxxegajaocxi", users: [user] };
+}
+
+describe("Auth account backup validation", () => {
+  it("accepts a supported email/password account and preserves the source project reference", () => {
+    expect(validateBackup(backup())).toEqual([baseUser]);
+  });
+
+  it("rejects a missing source project reference and malformed UUID", () => {
+    expect(() => validateBackup({ ...backup(), projectRef: undefined })).toThrow("source project reference");
+    expect(() => validateBackup(backup({ ...baseUser, id: "not-a-uuid" }))).toThrow("UUID v4");
+  });
+
+  it("identifies supported password hash algorithms and rejects mixed backups", () => {
+    const argon2Hash = "$argon2id$v=19$m=65536,t=3,p=4$" + "A".repeat(22) + "$" + "B".repeat(43);
+    expect(passwordHashAlgorithm(baseUser.password_hash)).toBe("bcrypt");
+    expect(passwordHashAlgorithm(argon2Hash)).toBe("argon2");
+    expect(validateBackup(backup({ ...baseUser, password_hash: argon2Hash }))).toHaveLength(1);
+    expect(() => validateBackup({
+      formatVersion: 1,
+      projectRef: "uqpyzicftxxegajaocxi",
+      users: [
+        baseUser,
+        { ...baseUser, id: "22222222-2222-4222-8222-222222222222", email: "teacher@example.com", password_hash: argon2Hash },
+      ],
+    })).toThrow("mixes password-hash algorithms");
+  });
+
+  it("rejects plaintext passwords and unsupported account types", () => {
+    expect(() => validateBackup(backup({ ...baseUser, password_hash: "plaintext-password" }))).toThrow("bcrypt or Argon2");
+    expect(() => validateBackup(backup({ ...baseUser, phone: "+15555550100" }))).toThrow("Phone-based");
+    expect(() => validateBackup(backup({ ...baseUser, phone_confirm: true }))).toThrow("Phone-based");
+    expect(() => validateBackup(backup({ ...baseUser, identity_providers: ["email", "google"] }))).toThrow("Only email-identity");
+    expect(() => validateBackup(backup({ ...baseUser, app_metadata: { provider: "email", providers: ["email", "google"] } }))).toThrow("email-provider");
+    expect(() => validateBackup(backup({ ...baseUser, mfa_factor_count: 1 }))).toThrow("MFA factors");
+    expect(() => validateBackup(backup({ ...baseUser, is_sso_user: true }))).toThrow("MFA factors");
+    expect(() => validateBackup(backup({ ...baseUser, is_anonymous: true }))).toThrow("MFA factors");
+    expect(() => validateBackup(backup({ ...baseUser, mfa_factor_count: "0" }))).toThrow("MFA, anonymous or SSO state");
+    expect(() => validateBackup(backup({ ...baseUser, phone: undefined }))).toThrow("phone field");
+  });
+
+  it("rejects duplicate account IDs and case-insensitive email addresses", () => {
+    expect(() => validateBackup({
+      formatVersion: 1,
+      projectRef: "uqpyzicftxxegajaocxi",
+      users: [baseUser, { ...baseUser, id: "22222222-2222-4222-8222-222222222222", email: "OWNER@example.com" }],
+    })).toThrow("duplicate");
+  });
+
+  it("converts only active account bans to a remaining duration", () => {
+    expect(remainingBanDuration(new Date(Date.now() + 60_000).toISOString())).toMatch(/s$/);
+    expect(remainingBanDuration(new Date(Date.now() - 60_000).toISOString())).toBeUndefined();
+    expect(remainingBanDuration(null)).toBeUndefined();
+  });
+});
+
+
+
+  it("rejects oversized account sets and malformed email addresses", () => {
+    expect(() => validateBackup({ formatVersion: 1, projectRef: "uqpyzicftxxegajaocxi", users: Array.from({ length: 1001 }, (_, i) => ({ ...baseUser, id: `11111111-1111-4111-8111-${String(i).padStart(12, "0")}`, email: `user${i}@example.com` })) })).toThrow("1,000-account");
+    expect(() => validateBackup(backup({ ...baseUser, email: "not-an-email" }))).toThrow("invalid email");
+    expect(() => validateBackup(backup({ ...baseUser, email: "x".repeat(321) + "@example.com" }))).toThrow("invalid email");
+  });
+
+  it("rejects malformed metadata, Auth roles and confirmation flags", () => {
+    expect(() => validateBackup(backup({ ...baseUser, user_metadata: [] }))).toThrow("metadata");
+    expect(() => validateBackup(backup({ ...baseUser, app_metadata: null }))).toThrow("metadata");
+    expect(() => validateBackup(backup({ ...baseUser, app_metadata: { provider: "google", providers: ["google"] } }))).toThrow("email-provider");
+    expect(() => validateBackup(backup({ ...baseUser, aud: "" }))).toThrow("audience or role");
+    expect(() => validateBackup(backup({ ...baseUser, role: "r".repeat(129) }))).toThrow("audience or role");
+    expect(() => validateBackup(backup({ ...baseUser, email_confirm: 1 }))).toThrow("confirmation-state");
+    expect(() => validateBackup(backup({ ...baseUser, phone_confirm: "false" }))).toThrow("confirmation-state");
+  });
+
+  it("rejects malformed MFA, SSO, anonymous and ban-expiry fields", () => {
+    expect(() => validateBackup(backup({ ...baseUser, mfa_factor_count: -1 }))).toThrow("MFA, anonymous or SSO state");
+    expect(() => validateBackup(backup({ ...baseUser, mfa_factor_count: 0.5 }))).toThrow("MFA, anonymous or SSO state");
+    expect(() => validateBackup(backup({ ...baseUser, is_anonymous: "false" }))).toThrow("MFA, anonymous or SSO state");
+    expect(() => validateBackup(backup({ ...baseUser, banned_until: "not-a-date" }))).toThrow("ban-expiry");
+    expect(() => validateBackup(backup({ ...baseUser, banned_until: 123 }))).toThrow("ban-expiry");
+  });
+
+  it("rejects duplicate UUIDs even when email addresses differ", () => {
+    expect(() => validateBackup({
+      formatVersion: 1,
+      projectRef: "uqpyzicftxxegajaocxi",
+      users: [baseUser, { ...baseUser, email: "different@example.com" }],
+    })).toThrow("duplicate");
+  });
+
+describe("Auth restore idempotency checks", () => {
+  const existingUser = {
+    id: baseUser.id,
+    aud: baseUser.aud,
+    role: baseUser.role,
+    email: baseUser.email,
+    email_confirmed_at: "2026-01-01T00:00:00.000Z",
+    phone: null,
+    phone_confirmed_at: null,
+    user_metadata: {},
+    app_metadata: { provider: "email", providers: ["email"] },
+    is_anonymous: false,
+    is_sso_user: false,
+    banned_until: null,
+  };
+
+  it("accepts an account restored from the same backup", () => {
+    expect(isCompatibleExistingAccount(existingUser, baseUser)).toBe(true);
+  });
+
+  it("rejects matching UUID/email when the restorable account state differs", () => {
+    expect(isCompatibleExistingAccount({ ...existingUser, aud: "public" }, baseUser)).toBe(false);
+    expect(isCompatibleExistingAccount({ ...existingUser, role: "service_role" }, baseUser)).toBe(false);
+    expect(isCompatibleExistingAccount({ ...existingUser, email_confirmed_at: null }, baseUser)).toBe(false);
+    expect(isCompatibleExistingAccount({
+      ...existingUser,
+      user_metadata: { display_name: "different" },
+    }, baseUser)).toBe(false);
+    expect(isCompatibleExistingAccount({
+      ...existingUser,
+      app_metadata: { provider: "email", providers: ["email"], role: "admin" },
+    }, baseUser)).toBe(false);
+    expect(isCompatibleExistingAccount({ ...existingUser, phone: "+15555550100" }, baseUser)).toBe(false);
+    expect(isCompatibleExistingAccount({ ...existingUser, is_sso_user: true }, baseUser)).toBe(false);
+  });
+
+  it("does not require password-hash comparison from the Auth Admin response", () => {
+    // Supabase Auth Admin does not expose the stored password hash in get-user responses.
+    // Original-password sign-in remains a mandatory end-to-end restore-drill check.
+    expect(isCompatibleExistingAccount(existingUser, baseUser)).toBe(true);
+  });
+});
+
+describe("bounded Auth API response reader", () => {
+  it("parses a small JSON response", async () => {
+    await expect(readJsonResponse(new Response(JSON.stringify({ id: "user-id" })))).resolves.toEqual({ id: "user-id" });
+  });
+
+  it("rejects oversized and invalid UTF-8 responses", async () => {
+    await expect(readJsonResponse(new Response("x".repeat(256 * 1024 + 1)))).rejects.toThrow("256 KiB");
+    await expect(readJsonResponse(new Response(new Uint8Array([0xff, 0xfe])))).rejects.toThrow("invalid JSON");
+  });
+});

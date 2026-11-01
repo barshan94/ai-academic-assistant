@@ -24,7 +24,6 @@ export async function GET(request: NextRequest) {
     access_type: "offline",
     prompt: "consent",
     state,
-    include_granted_scopes: "true",
   }).toString();
 
   const response = NextResponse.redirect(authUrl);

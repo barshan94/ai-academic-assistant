@@ -51,8 +51,8 @@ describe("document normalization", () => {
   });
 
   it("rejects uploads above the aggregate size limit", async () => {
-    const file = new File([new Uint8Array(MAX_UPLOAD_BYTES + 1)], "large.png", { type: "image/png" });
-    await expect(normalizeToPdf(file)).rejects.toThrow("smaller than 4 MB");
+    const oversized = { size: MAX_UPLOAD_BYTES + 1 } as unknown as File;
+    await expect(normalizeToPdf(oversized)).rejects.toThrow("50 MB or smaller");
   });
 
   it("sanitizes path separators and control characters from filenames", () => {

@@ -1,6 +1,6 @@
 # Project Memory
 
-Last updated: 2026-10-30
+Last updated: 2026-11-01
 
 ## Project
 AI Academic Assistant — personal academic workspace for Edexcel O Level/A Level, SSC and HSC.
@@ -34,7 +34,25 @@ Physics, Mathematics A, Mathematics B, Further Pure Mathematics, General Mathema
 M1 10% foundation; M2 25% document intelligence; M3 45% solver; M4 58% verification; M5 68% syllabus intelligence; M6 82% chapter intelligence; M7 93% exam preparation; M8 100% production readiness.
 
 ## Current progress estimate
-25% implementation scope reached. This is a development estimate, not a production-readiness claim. Live Supabase authentication and Google Drive integration still require owner configuration and end-to-end testing.
+The feature branch `feature/m3-ai-solver` now contains substantial M1–M7 application implementation and most M8 hardening code. Do not use the old 25% estimate from the initial M1/M2 baseline. The remaining work is split between implementation refinements and separately deferred acceptance/release gates; no percentage should be called complete until the backlog and acceptance evidence are reconciled.
+
+## Latest implementation checkpoint (2026-11-01)
+- Latest work is on `feature/m3-ai-solver`; keep `main` and production untouched.
+- Added a bearer-protected readiness probe that validates configuration and performs a bounded server-only Supabase Data API query against `profiles` without returning rows or secret details. The probe does not verify Google Drive or AI provider connectivity.
+- Related implementation commit: `42703c118c3135bca1ea78dc0f80cb0abf56cb6d`; roadmap, acceptance plan, README and security notes were updated in subsequent documentation commits.
+- Do not start the separate testing/fixing phase until implementation is explicitly reported complete. CI may execute automatically after commits; record its result without treating that as permission to begin the planned test phase.
+
+## Latest implementation checkpoint (2026-11-01, continued)
+- Added `.github/workflows/health-monitor.yml`: protected readiness endpoint check every 15 minutes plus manual dispatch, HTTPS-origin validation, bounded curl timeouts, generic response validation, and no response-body/secret logging.
+- Added `docs/OPERATIONS_MONITORING.md` with required repository secrets, activation sequence, failure interpretation and explicit scope limitations. Updated M8 roadmap, README and engineering error log (ERR-061).
+- Latest commits: `5a58afd` workflow; `393c3a1` error log; `394736c` monitoring runbook; `333a76c` README; `340c17b` roadmap.
+- Not active until merged to the default branch and repository secrets `APP_BASE_URL` and `CRON_SECRET` are configured. A green readiness check does not validate Google Drive, AI generation, worker throughput, backups or user workflows.
+
+## Latest implementation checkpoint (2026-11-01, continued)
+- Strengthened `app/api/health/ready/route.ts`: readiness now probes `profiles`, `documents` and `processing_jobs` concurrently with bounded server-only HEAD queries. A reachable Supabase API with missing core document-processing tables no longer reports ready. No row data is returned.
+- Updated `docs/OPERATIONS_MONITORING.md`, `docs/ROADMAP.md`, `README.md` and added ERR-062 to `docs/ERROR_LOG.md`.
+- Latest commits: `56f3b8d` readiness core-table probes; `b46be40` monitor runbook; `9508bb5` roadmap; `220d161` README; `631af23` error log.
+- No test commands were run; runtime/migration-absence scenarios remain for the later testing phase.
 
 ## Current verified state
 - Supabase project is ACTIVE_HEALTHY on the Free plan.
@@ -59,7 +77,7 @@ M1 10% foundation; M2 25% document intelligence; M3 45% solver; M4 58% verificat
 - Upload accepts one PDF or up to 50 JPEG/PNG images with a 4 MB combined limit. Existing PDFs are preserved unchanged; images are combined into one PDF in selection order.
 - Supabase stores file metadata and extracted text; source PDFs are archived in the owner's Google Drive.
 - Google Drive OCR extraction creates a temporary Google Doc, exports text, then deletes the temporary Doc. Extracted text is editable page-by-page and requires explicit teacher review.
-- Document processing has a three-attempt limit and 100-page text cap; it is manually started from the library. No automatic background worker or resumable large-file upload exists yet.
+- Document processing has a three-attempt limit and 100-page text cap. A scheduled queue worker, resumable PDF uploads up to 50 MB, 1 MB chunks, encrypted upload-session tokens and server-confirmed resume offsets are implemented on the feature branch; live deployment/OAuth acceptance remains pending. Drive authorization is checked before consuming an upload quota slot.
 - Manual question capture is implemented: a teacher can create a question from a reviewed page, add board/qualification/subject/chapter/topic metadata, search the question library and approve/reject records. AI segmentation, classification, answering and verification are not implemented yet.
 - Unit tests cover PDF byte preservation, PNG conversion, multi-image PDF page count/order, filename sanitization, extracted-text splitting, refresh-token encryption/tamper rejection and question input validation.
 - Live Supabase sign-in, Google OAuth, Drive upload and OCR are NOT yet smoke-tested because owner environment credentials and a live authenticated test session have not been configured.
@@ -75,7 +93,48 @@ M1 10% foundation; M2 25% document intelligence; M3 45% solver; M4 58% verificat
 ## Next tasks
 1. Configure deployment/local environment and privately create the owner Supabase account; verify sign-in and protected dashboard.
 2. Configure Google Cloud OAuth and live-test Drive connect, PDF/image batch upload, OCR, correction, approval and disconnect.
-3. Add resumable uploads above 4 MB and a durable background worker.
+3. Complete non-production acceptance for resumable uploads, interruption recovery and the scheduled background worker.
 4. Build AI question segmentation/classification and structured exam-answer generation.
 5. Add math/science verification and teacher-correction versioning.
 6. Continue syllabus/chapter intelligence, revision and production readiness.
+
+
+## Latest implementation checkpoint (2026-11-01, continued)
+- Fixed upload-quota fairness in `app/api/documents/upload/resumable/start/route.ts`: the owner-scoped Google Drive access token is now acquired before the atomic hourly/daily quota RPC. A disconnected or reauthorization-required Drive account therefore does not consume an upload slot. Quota is still consumed before a remote resumable session is created, preserving admission control.
+- Added ERR-063 to `docs/ERROR_LOG.md`; updated `docs/ROADMAP.md` and `README.md` to record the behavior. Corrected stale lower-section project-memory notes that incorrectly said resumable uploads and the worker did not exist.
+- Implementation commit: `606e0a3`; documentation commits: `371d5ee`, `1044ebe`, `5c054bb`, `3f2f86e`.
+- No test commands or live OAuth/Drive calls were run. Regression and integration verification remain in the later testing phase.
+
+- Follow-up M2 hardening: `app/api/documents/upload/resumable/start/route.ts` now reads metadata requests through a 16 KiB bounded stream, validates declared Content-Length, requires a JSON object and returns client errors for malformed/oversized payloads. Added ERR-064 and updated roadmap/README. Source-only change; no tests run.
+
+- Further resumable-upload client hardening: persisted localStorage entries are validated for token shape/length and exact normalized filename/size before reuse. Reads/writes/removals are best-effort so storage-denied browser contexts do not abort a current upload; invalid entries are discarded. Added ERR-066 and documented the behavior. Commits: `b27d824`, `3ad3617`; no tests run.
+
+- M2 worker resource hardening: found unbounded `arrayBuffer()` for Drive PDF download and `text()` for OCR export despite the 50 MB upload limit. Added streamed hard caps (50 MB PDF, 10 MB OCR text, 64 KiB conversion metadata), strict UTF-8 OCR decoding and retained temporary-file cleanup. Added ERR-067. Commits: `b1b82aa`, `29254a1`; no tests/typecheck/build run.
+
+
+## Latest implementation checkpoint (2026-11-01, M4 teacher verification)
+- Continued on `feature/m3-ai-solver`; `main` and production remain untouched.
+- Added a seven-day default invitation expiry (30-day database maximum), with historical pending invites backfilled from `created_at`. Expiry prevents pending acceptance but does not silently expire already accepted access.
+- Replaced direct invite creation/acceptance/revocation writes with authenticated RPCs. Creation is serialized per owner/question/email and prevents duplicate pending invites or duplicate active accepted teachers. Expired pending and revoked invitations can be re-issued.
+- Acceptance locks the invitation and checks the current Supabase Auth user's confirmed email, self-acceptance, expiry, revocation and replay conditions.
+- Revocation is one-way, owner-checked, row-locked and timestamped by the database. It serializes against teacher review; direct authenticated invite INSERT/acceptance/revocation mutations are denied. The invited account can still see the revoked invitation status but cannot access the shared question or answers.
+- Teacher review remains append-only and question-scoped. Only the invitation-checked review RPC can promote/demote `teacher_verified`; owner feedback cannot self-promote. Review timestamps use the database wall clock at insertion. If a teacher account is deleted and its review rows cascade, a database trigger recalculates verification from surviving teacher reviews and clears stale teacher verification when none remain.
+- Added/updated 60 pgTAP assertions across `supabase/tests/question_teacher_invite_expiry.test.sql`, `supabase/tests/question_solution_access.test.sql`, and `supabase/tests/teacher_review_reviewer_deletion.test.sql`. Coverage includes self-invites, unconfirmed email, email mismatch, replay, direct-write bypass, expiry, re-issue, revoked-history visibility, teacher review and reviewer deletion. These assertions have not been executed yet.
+- Applied the M4 invitation-expiry, teacher-review permission, foreign-key index, atomic revocation and reviewer-deletion reconciliation migrations to Supabase project `uqpyzicftxxegajaocxi`.
+- Supabase Security Advisor reports zero lint findings. The unindexed teacher-invite foreign-key finding was fixed; remaining performance findings are unused indexes on low/empty-volume tables.
+- Do not start the separate testing/fixing phase until implementation is explicitly reported complete. The pgTAP files have been added but not executed; real two-account browser acceptance and automatic invitation email delivery remain outstanding.
+
+
+## Latest implementation checkpoint (2026-11-01, readiness schema coverage)
+- Expanded `app/api/health/ready/route.ts` from three core-table probes to bounded, parallel, zero-row HEAD probes for the required document/Drive, question/solution/teacher-review, private/shared syllabus, chapter-note, revision, practice and weekly-calendar tables.
+- The readiness endpoint now fails closed when a partially migrated database is missing a shipped feature table; it returns no academic row data. It still does not validate constraints, RLS policies, functions, Google Drive connectivity or AI inference.
+- Updated `docs/OPERATIONS_MONITORING.md`, `README.md`, `docs/ROADMAP.md` and added ERR-114 to `docs/ERROR_LOG.md`.
+- Commits: route `2c66723`; operations guide `7292ca1`; README `0a2ed70`; roadmap `d09735f`; error log `051e73a`.
+- Implementation-only change. No tests, typecheck, build, workflow run or hosted database migration was performed; retain all runtime verification for the separate testing phase.
+
+
+## Latest implementation checkpoint (2026-11-01, teacher inbox identity edge case)
+- Updated `app/dashboard/teacher-invites/page.tsx` to load current-email invitations and accepted invitations by immutable Auth user ID, merge/de-duplicate them and preserve the newest 50. Accepted/revoked history remains visible if the teacher later changes their Auth email; RLS continues to govern which invitation rows are visible.
+- Updated `docs/TEACHER_REVIEW.md`, `docs/ACCEPTANCE_TESTS.md`, `docs/ROADMAP.md` and added ERR-115 to `docs/ERROR_LOG.md`.
+- Commits: teacher inbox `d4f3084`; review docs `9fcad1d`; acceptance `8dc7e2b`; roadmap `f6df19e`; error log `a108177`.
+- Implementation-only. No tests, typecheck, build, browser acceptance or hosted database changes were performed.

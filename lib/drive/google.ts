@@ -4,6 +4,65 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 const DRIVE_FILE_SCOPE = "https://www.googleapis.com/auth/drive.file";
 
+const MAX_DRIVE_PDF_BYTES = 50 * 1024 * 1024;
+const MAX_OCR_TEXT_BYTES = 10 * 1024 * 1024;
+const MAX_GOOGLE_METADATA_BYTES = 64 * 1024;
+
+async function readResponseBytesBounded(response: Response, maxBytes: number, description: string) {
+  const declaredLength = response.headers.get("content-length");
+  if (declaredLength && /^\d+$/.test(declaredLength) && Number(declaredLength) > maxBytes) {
+    await response.body?.cancel();
+    throw new Error(description + " exceeded its size limit.");
+  }
+  if (!response.body) throw new Error(description + " returned an empty response.");
+  const reader = response.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > maxBytes) {
+        await reader.cancel();
+        throw new Error(description + " exceeded its size limit.");
+      }
+      chunks.push(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  const output = Buffer.allocUnsafe(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    output.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return output;
+}
+
+export async function readGoogleJsonResponseBounded<T>(response: Response, maxBytes: number, description: string): Promise<T> {
+  const bytes = await readResponseBytesBounded(response, maxBytes, description);
+  try {
+    const parsed: unknown = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes));
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("Invalid JSON object.");
+    return parsed as T;
+  } catch {
+    throw new Error(description + " returned invalid JSON.");
+  }
+}
+
+export function isGoogleDriveUploadSessionUri(value: string) {
+  try {
+    const uri = new URL(value);
+    return uri.protocol === "https:" && uri.hostname === "www.googleapis.com" &&
+      !uri.username && !uri.password &&
+      /^\/upload\/drive\/v3\/files(?:\/|$)/.test(uri.pathname);
+  } catch {
+    return false;
+  }
+}
+
 function getGoogleConfig() {
   const clientId = process.env.GOOGLE_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
@@ -25,16 +84,24 @@ export async function getDriveAccessToken() {
 
   const { data, error } = await supabase
     .from("drive_connections")
-    .select("encrypted_refresh_token")
+    .select("encrypted_refresh_token,granted_scope")
     .eq("owner_id", user.id)
     .maybeSingle();
 
   if (error || !data?.encrypted_refresh_token) {
     throw new Error("Connect Google Drive before uploading documents.");
   }
+  if (data.granted_scope !== DRIVE_FILE_SCOPE) {
+    throw new Error("Reconnect Google Drive and grant only the requested file access.");
+  }
 
   const { clientId, clientSecret } = getGoogleConfig();
-  const refreshToken = decryptRefreshToken(data.encrypted_refresh_token);
+  let refreshToken: string;
+  try {
+    refreshToken = decryptRefreshToken(data.encrypted_refresh_token);
+  } catch {
+    throw new Error("The stored Google Drive connection cannot be opened. Reconnect Google Drive.");
+  }
   const response = await fetch("https://oauth2.googleapis.com/token", {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -45,11 +112,13 @@ export async function getDriveAccessToken() {
       grant_type: "refresh_token",
     }),
     cache: "no-store",
+    signal: AbortSignal.timeout(20_000),
+    redirect: "error",
   });
 
-  const payload = await response.json() as { access_token?: string; error?: string; error_description?: string };
+  const payload = await readGoogleJsonResponseBounded<{ access_token?: string }>(response, MAX_GOOGLE_METADATA_BYTES, "Google OAuth response");
   if (!response.ok || !payload.access_token) {
-    throw new Error(payload.error_description || payload.error || "Google Drive token refresh failed.");
+    throw new Error("Google Drive authorization failed. Reconnect your account and try again.");
   }
   return payload.access_token;
 }
@@ -76,11 +145,13 @@ export async function uploadPdfToDrive(input: {
     },
     body,
     cache: "no-store",
+    signal: AbortSignal.timeout(30_000),
+    redirect: "error",
   });
 
-  const result = await response.json() as { id?: string; webViewLink?: string; error?: { message?: string } };
+  const result = await readGoogleJsonResponseBounded<{ id?: string; webViewLink?: string }>(response, MAX_GOOGLE_METADATA_BYTES, "Google Drive upload metadata");
   if (!response.ok || !result.id) {
-    throw new Error(result.error?.message || "Google Drive upload failed.");
+    throw new Error("Google Drive could not save the PDF. Check your connection and available Drive storage.");
   }
   return { id: result.id, webViewLink: result.webViewLink ?? null };
 }
@@ -90,10 +161,14 @@ export async function deleteDriveFile(accessToken: string, fileId: string) {
     method: "DELETE",
     headers: { Authorization: `Bearer ${accessToken}` },
     cache: "no-store",
+    signal: AbortSignal.timeout(15_000),
+    redirect: "error",
   });
   if (!response.ok && response.status !== 404) {
+    await response.body?.cancel().catch(() => {});
     throw new Error("Could not remove the orphaned Google Drive file.");
   }
+  await response.body?.cancel().catch(() => {});
 }
 
 
@@ -103,10 +178,13 @@ export async function extractTextFromDrivePdf(input: {
 }) {
   const sourceResponse = await fetch(
     "https://www.googleapis.com/drive/v3/files/" + encodeURIComponent(input.driveFileId) + "?alt=media",
-    { headers: { Authorization: "Bearer " + input.accessToken }, cache: "no-store" },
+    { headers: { Authorization: "Bearer " + input.accessToken }, cache: "no-store", signal: AbortSignal.timeout(30_000), redirect: "error" },
   );
-  if (!sourceResponse.ok) throw new Error("Could not download the archived PDF from Google Drive.");
-  const sourceBytes = Buffer.from(await sourceResponse.arrayBuffer());
+  if (!sourceResponse.ok) {
+    await sourceResponse.body?.cancel().catch(() => {});
+    throw new Error("Could not download the archived PDF from Google Drive.");
+  }
+  const sourceBytes = await readResponseBytesBounded(sourceResponse, MAX_DRIVE_PDF_BYTES, "Archived PDF");
 
   const boundary = "academic_ocr_" + crypto.randomUUID().replaceAll("-", "");
   const metadata = JSON.stringify({
@@ -130,20 +208,30 @@ export async function extractTextFromDrivePdf(input: {
       },
       body,
       cache: "no-store",
+      signal: AbortSignal.timeout(30_000),
+    redirect: "error",
     },
   );
-  const converted = await convertResponse.json() as { id?: string; error?: { message?: string } };
+  const converted = await readGoogleJsonResponseBounded<{ id?: string }>(
+    convertResponse,
+    MAX_GOOGLE_METADATA_BYTES,
+    "Google Drive OCR conversion metadata",
+  );
   if (!convertResponse.ok || !converted.id) {
-    throw new Error(converted.error?.message || "Google Drive could not extract text from this PDF.");
+    throw new Error("Google Drive could not extract text from this PDF. The file may be unreadable or unsupported.");
   }
 
   try {
     const exportResponse = await fetch(
       "https://www.googleapis.com/drive/v3/files/" + encodeURIComponent(converted.id) + "/export?mimeType=text%2Fplain",
-      { headers: { Authorization: "Bearer " + input.accessToken }, cache: "no-store" },
+      { headers: { Authorization: "Bearer " + input.accessToken }, cache: "no-store", signal: AbortSignal.timeout(20_000), redirect: "error" },
     );
-    if (!exportResponse.ok) throw new Error("Google Drive OCR export failed.");
-    return await exportResponse.text();
+    if (!exportResponse.ok) {
+      await exportResponse.body?.cancel().catch(() => {});
+      throw new Error("Google Drive OCR export failed.");
+    }
+    const extractedBytes = await readResponseBytesBounded(exportResponse, MAX_OCR_TEXT_BYTES, "Extracted OCR text");
+    return new TextDecoder("utf-8", { fatal: true }).decode(extractedBytes);
   } finally {
     await deleteDriveFile(input.accessToken, converted.id);
   }
@@ -151,11 +239,100 @@ export async function extractTextFromDrivePdf(input: {
 
 
 export async function revokeDriveRefreshToken(refreshToken: string) {
-  const response = await fetch("https://oauth2.googleapis.com/revoke", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({ token: refreshToken }),
+  try {
+    const response = await fetch("https://oauth2.googleapis.com/revoke", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ token: refreshToken }),
+      cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
+    redirect: "error",
+    });
+
+    // Google returns 400 when a token is invalid or already revoked. Treat that
+    // response as idempotent success; transient server errors remain retryable.
+    await response.body?.cancel().catch(() => {});
+    return response.ok || response.status === 400;
+  } catch {
+    // Network failures must not be mistaken for a successful revocation.
+    return false;
+  }
+}
+
+export async function initiateResumablePdfUpload(input: {
+  accessToken: string;
+  fileName: string;
+  fileSizeBytes: number;
+}) {
+  const response = await fetch(
+    "https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&fields=id,name,mimeType,webViewLink,size",
+    {
+      method: "POST",
+      headers: {
+        Authorization: "Bearer " + input.accessToken,
+        "Content-Type": "application/json; charset=UTF-8",
+        "X-Upload-Content-Type": "application/pdf",
+        "X-Upload-Content-Length": String(input.fileSizeBytes),
+      },
+      body: JSON.stringify({ name: input.fileName, mimeType: "application/pdf" }),
+      cache: "no-store",
+      signal: AbortSignal.timeout(20_000),
+    redirect: "error",
+    },
+  );
+  const sessionUri = response.headers.get("Location");
+  if (!response.ok || !sessionUri) {
+    await response.body?.cancel().catch(() => {});
+    throw new Error("Google Drive could not start a resumable upload session.");
+  }
+  if (!isGoogleDriveUploadSessionUri(sessionUri)) {
+    throw new Error("Google Drive returned an invalid upload session URL.");
+  }
+  return sessionUri;
+}
+
+export async function sendResumablePdfChunk(input: {
+  accessToken: string;
+  sessionUri: string;
+  contentRange: string;
+  bytes: Uint8Array;
+}) {
+  if (!isGoogleDriveUploadSessionUri(input.sessionUri)) {
+    throw new Error("Invalid Google Drive upload session.");
+  }
+
+  const response = await fetch(input.sessionUri, {
+    method: "PUT",
+    headers: {
+      Authorization: "Bearer " + input.accessToken,
+      "Content-Range": input.contentRange,
+      ...(input.bytes.byteLength ? { "Content-Length": String(input.bytes.byteLength) } : {}),
+    },
+    body: input.bytes.byteLength ? Buffer.from(input.bytes) : undefined,
     cache: "no-store",
+    signal: AbortSignal.timeout(30_000),
+    redirect: "manual",
   });
-  return response.ok || response.status === 400;
+
+  const range = response.headers.get("Range");
+  let file: { id?: string; webViewLink?: string; name?: string; mimeType?: string; size?: string } | null = null;
+  if (response.status === 200 || response.status === 201) {
+    try {
+      file = await readGoogleJsonResponseBounded<{
+        id?: string;
+        webViewLink?: string;
+        name?: string;
+        mimeType?: string;
+        size?: string;
+      }>(response, MAX_GOOGLE_METADATA_BYTES, "Google Drive resumable upload metadata");
+    } catch {
+      throw new Error("Google Drive returned an unreadable upload response.");
+    }
+  } else {
+    // 308 and 404 responses are used only for confirmed offset/session state.
+    // Their bodies are not needed and must not be buffered.
+    await response.body?.cancel().catch(() => {});
+  }
+
+  return { status: response.status, range, file };
 }

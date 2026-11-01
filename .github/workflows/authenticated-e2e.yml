@@ -1,0 +1,73 @@
+name: Authenticated browser acceptance
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: authenticated-e2e
+  cancel-in-progress: false
+
+jobs:
+  authenticated-browser:
+    if: ${{ vars.ENABLE_AUTHENTICATED_E2E == 'true' }}
+    name: Two-account Supabase acceptance
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.E2E_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.E2E_SUPABASE_PUBLISHABLE_KEY }}
+      E2E_OWNER_EMAIL: ${{ secrets.E2E_OWNER_EMAIL }}
+      E2E_OWNER_PASSWORD: ${{ secrets.E2E_OWNER_PASSWORD }}
+      E2E_TEACHER_EMAIL: ${{ secrets.E2E_TEACHER_EMAIL }}
+      E2E_TEACHER_PASSWORD: ${{ secrets.E2E_TEACHER_PASSWORD }}
+      E2E_QUESTION_ID: ${{ secrets.E2E_QUESTION_ID }}
+      E2E_SOLUTION_ID: ${{ secrets.E2E_SOLUTION_ID }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Validate non-production test configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          for name in NEXT_PUBLIC_SUPABASE_URL NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY E2E_OWNER_EMAIL E2E_OWNER_PASSWORD E2E_TEACHER_EMAIL E2E_TEACHER_PASSWORD E2E_QUESTION_ID E2E_SOLUTION_ID; do
+            if [ -z "${!name}" ]; then
+              echo "::error::Missing required repository secret: $name"
+              exit 1
+            fi
+          done
+          if [ "$E2E_OWNER_EMAIL" = "$E2E_TEACHER_EMAIL" ]; then
+            echo "::error::Owner and teacher must be two different accounts."
+            exit 1
+          fi
+
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Set up pinned npm CLI
+        run: npm install --global npm@11.21.1
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Install temporary Playwright runner
+        run: npm install --no-save --package-lock=false @playwright/test@1.56.1
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Build against the configured test Supabase project
+        run: npm run build
+
+      - name: Run authenticated two-account acceptance
+        run: npx playwright test --config=playwright.auth.config.ts

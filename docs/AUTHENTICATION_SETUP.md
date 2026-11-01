@@ -11,7 +11,7 @@ NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=YOUR_SUPABASE_PUBLISHABLE_KEY
 ```
 
-Never use a service-role or secret key in a `NEXT_PUBLIC_` variable. Never commit `.env.local`.
+Never use a service-role or secret key in a `NEXT_PUBLIC_` variable. Never commit `.env.local`. The browser uses only the publishable key. The application also has a narrowly scoped server-only service-role client for privileged operations such as completed-upload registration and readiness probes; its key must be configured as `SUPABASE_SERVICE_ROLE_KEY` only in the server environment.
 
 ## 2. Create the owner account privately
 
@@ -43,5 +43,5 @@ Open `http://localhost:3000/login`, sign in with the privately created owner acc
 - The dashboard independently verifies the current user on the server.
 - Sign-in and sign-out run as server actions.
 - Redirect after sign-in is fixed to `/dashboard`; user-supplied redirect destinations are not trusted.
-- No service-role key is used by the application.
+- The service-role key is never used for browser authentication or ordinary owner-scoped dashboard CRUD. It is isolated in a `server-only` helper and used only by explicitly privileged server routes/RPCs. Keep `SUPABASE_SERVICE_ROLE_KEY` out of client components, `NEXT_PUBLIC_*` variables, middleware and public build arguments.
 - The profile migration is separate and must be reviewed and applied before profile data is used.

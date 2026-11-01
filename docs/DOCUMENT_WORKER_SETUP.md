@@ -1,0 +1,45 @@
+# Document worker deployment setup
+
+The application includes a server-side worker at `GET /api/cron/process-documents`. It claims and processes at most one eligible job per invocation. The worker route is protected by a bearer secret and uses the Supabase service-role key only on the server.
+
+## GitHub Actions scheduler
+
+**Important:** GitHub scheduled workflows run from the repository's default branch, not an unmerged feature branch. This workflow is committed on the feature branch but will not run on its five-minute schedule until the change is merged into the default branch. A manual `workflow_dispatch` can be used on the feature branch after configuring secrets, but only against a non-production target until acceptance is complete.
+
+The repository workflow `.github/workflows/document-worker.yml` invokes the worker every five minutes and can also be run manually from the Actions tab. This repository uses GitHub Actions as the scheduler; it does not configure a Vercel Cron Job. Vercel Hobby's daily-only Cron restriction therefore does not govern this workflow. GitHub's schedule is best-effort and will become active only after the workflow reaches the default branch; do not add a Vercel Cron entry unless the hosting plan and schedule support it.
+
+Configure these repository Actions secrets before enabling real processing:
+
+| Secret | Value |
+| --- | --- |
+| `APP_BASE_URL` | HTTPS base URL of the deployed application, without a trailing slash |
+| `CRON_SECRET` | A long random secret shared with the deployed application's `CRON_SECRET` environment variable |
+
+The deployed application must also have the existing production environment variables required by the worker and Drive integration:
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `GOOGLE_CLIENT_ID`
+- `GOOGLE_CLIENT_SECRET`
+- `DRIVE_TOKEN_ENCRYPTION_KEY` (must match the key used to encrypt saved Drive refresh tokens)
+
+Do not put these values in source files, workflow YAML, issue comments, or logs. Do not use production credentials for test workflows.
+
+## Operational behavior
+
+- GitHub Actions schedules are best-effort; a scheduled run can be delayed. The queue is durable, so later invocations can continue processing.
+- The workflow serializes invocations with a concurrency group and the database worker also uses a conditional claim to prevent duplicate ownership.
+- Each invocation handles at most one job and has a bounded timeout.
+- The worker retries eligible failed/stale jobs up to each job's configured maximum attempts.
+- A failed workflow run means the endpoint was unavailable, rejected the invocation, or persisted a document-processing failure. The worker returns HTTP 500 after successfully recording a failed job so the scheduler visibly reports the failure; the durable job remains eligible for a later retry within its configured attempt budget. Inspect the Actions job without exposing secrets.
+- Use `workflow_dispatch` to trigger a controlled manual run after verifying the target environment and queue.
+- Live processing acceptance still requires a non-production Google Drive connection and Supabase test project. This workflow file alone does not prove that the secrets are configured or that OCR succeeds.
+
+
+## Manual recovery and state transitions
+
+The document detail action is owner-authenticated. For a fresh running lease it refuses to start a second processor. For a stale running job with retry budget remaining, it calls the same atomic claim RPC as the scheduled worker: the database rechecks the exact observed status, attempt count and `started_at`, enforces the 15-minute threshold, increments the attempt, and moves the parent document to processing in one transaction. It does not first mark the job failed and then issue a second claim.
+
+If the stale job has exhausted its retry budget, the manual action uses `recover_stale_document_processing_job` to mark both the job and document failed in one transaction. No further attempt is started.
+
+Manual OCR corrections use `save_document_page_correction`, which locks the job, document and page in a consistent order and saves the corrected page plus the document's `review_required` state atomically. Corrections are refused while a worker is actively processing the document.

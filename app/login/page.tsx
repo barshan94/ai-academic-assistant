@@ -1,4 +1,10 @@
 import Link from "next/link";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Sign in | Academic Assistant",
+  robots: { index: false, follow: false, noarchive: true },
+};
 import { signIn } from "./actions";
 
 type LoginPageProps = {
@@ -32,7 +38,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           <input id="password" name="password" type="password" autoComplete="current-password" required />
           <button className="primary-action auth-submit" type="submit">Sign in <span aria-hidden="true">→</span></button>
         </form>
-        <p className="auth-footnote">Access is limited to the account owner. New accounts are created privately in the Supabase dashboard.</p>
+        <p className="auth-footnote">Access is limited to the account owner. New accounts are created privately in the Supabase dashboard. Read the <Link href="/privacy">privacy notice</Link> before signing in.</p>
       </section>
     </main>
   );
