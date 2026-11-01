@@ -51,6 +51,7 @@
 - [x] Arithmetic, supported chemistry atom-count and physics dimensional checks are implemented with explicit limits.
 - [x] Owner and invited teacher review records are append-only.
 - [x] Teacher access is question-scoped and can be revoked by the owner.
+- [x] Accepted/revoked invitation history is fetched by authenticated user ID as well as current email, so an account email change does not hide the prior accepted invitation; live Auth email-change acceptance remains pending.
 - [x] Authenticated clients cannot INSERT a solution with `machine_checked` or `teacher_verified`; only generated-draft columns are insertable and the database default supplies `generated`.
 - [x] Authenticated clients cannot UPDATE solution verification status; future status promotion requires a separately authorized workflow.
 - [ ] Live AI provider configured and tested with explicit cost approval.
