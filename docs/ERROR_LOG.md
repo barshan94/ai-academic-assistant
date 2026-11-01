@@ -1722,3 +1722,14 @@ ERR-073 closure reconciliation (2026-11-01): the earlier note that page and pare
 - Fix: Added a case-insensitive protected-header allow-list covering cache, CSP, crawler, HSTS, frame, content-type, referrer, permissions and DNS-prefetch policy. Only non-protected Supabase transport headers are copied during auth refresh.
 - Verification: Unit tests verify the protected-header classifier case-insensitively, and the middleware auth-refresh test injects hostile cache/CSP/robots values and confirms application policy wins. Foundation run `41314360350` passed all 176 unit tests and production build.
 - Status: Automated middleware regressions verified; live Supabase auth-refresh acceptance remains open.
+
+
+## ERR-159 — Connected Supabase environment inventory and migration mismatch follow-up
+
+- Date: 2026-11-01
+- Area: Hosted Supabase environment / migration reconciliation
+- Finding: Read-only inspection confirms the `academic-assistant` project is on the Free organization, ACTIVE_HEALTHY, PostgreSQL 17.11 in `ap-south-1`. The connected database has zero Auth users, profiles, documents and processing jobs; it has no Storage buckets or deployed Edge Functions. The public schema contains 21 base tables and 42 policies, with RLS enabled on all 21 tables.
+- Migration evidence: The two timestamp/name mismatch pairs still exist in the 53-entry remote ledger. The schema contains all five shared-reference tables, the `is_platform_admin()` function, and all three indexes created by those repository migrations. This is partial object-level evidence only; it is not sufficient to repair or rewrite the remote migration ledger.
+- Advisor findings: Security advisor returned no findings. Performance advisor returned 60 unused-index informational notices; no indexes were removed because the application tables are empty and these notices do not prove the indexes are unnecessary.
+- Verification: Read-only Supabase project, table, migration, SQL catalog, Edge Function and advisor inspections on 2026-11-01. No SQL mutation, migration, storage change, credential change or deployment was performed.
+- Status: Inventory recorded. Hosted schema/ledger reconciliation remains an open release blocker.
