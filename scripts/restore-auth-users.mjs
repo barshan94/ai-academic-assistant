@@ -182,7 +182,16 @@ async function main() {
     if (existingResponse.ok) {
       const existing = await readJsonResponse(existingResponse);
       const existingUser = isRecord(existing?.user) ? existing.user : existing;
-      if (!isRecord(existingUser) || existingUser.id !== user.id || String(existingUser.email ?? "").toLowerCase() !== user.email.toLowerCase()) {
+      const existingAppMetadata = isRecord(existingUser?.app_metadata) ? existingUser.app_metadata : {};
+      const existingProviders = existingAppMetadata.providers;
+      if (!isRecord(existingUser) ||
+          existingUser.id !== user.id ||
+          String(existingUser.email ?? "").toLowerCase() !== user.email.toLowerCase() ||
+          existingUser.phone ||
+          existingAppMetadata.provider !== "email" ||
+          !Array.isArray(existingProviders) ||
+          existingProviders.length !== 1 ||
+          existingProviders[0] !== "email") {
         throw new Error("An existing Auth account conflicts with an account in the backup.");
       }
       alreadyPresent += 1;
