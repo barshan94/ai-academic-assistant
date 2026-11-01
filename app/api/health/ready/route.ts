@@ -27,6 +27,22 @@ function hasValidSupabaseUrl() {
   }
 }
 
+function hasValidGoogleRedirectUri() {
+  try {
+    const raw = process.env.GOOGLE_DRIVE_REDIRECT_URI;
+    if (!raw) return false;
+    const url = new URL(raw);
+    const localDevelopmentUrl = process.env.NODE_ENV !== "production" &&
+      url.protocol === "http:" &&
+      (url.hostname === "localhost" || url.hostname === "127.0.0.1");
+    return (url.protocol === "https:" || localDevelopmentUrl) &&
+      !url.username && !url.password && !url.search && !url.hash &&
+      url.pathname === "/api/drive/callback";
+  } catch {
+    return false;
+  }
+}
+
 function hasValidDriveEncryptionKey() {
   const encoded = process.env.DRIVE_TOKEN_ENCRYPTION_KEY;
   if (!encoded || !/^[A-Za-z0-9+/]{43}=$/.test(encoded)) return false;
@@ -59,6 +75,7 @@ export async function GET(request: Request) {
     process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() &&
     process.env.GOOGLE_CLIENT_ID?.trim() &&
     process.env.GOOGLE_CLIENT_SECRET?.trim() &&
+    hasValidGoogleRedirectUri() &&
     (process.env.CRON_SECRET?.length ?? 0) >= 32 &&
     hasValidDriveEncryptionKey() &&
     hasAIProvidersForRequiredTasks()
