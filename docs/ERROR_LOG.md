@@ -66,13 +66,13 @@ This file records material implementation, CI, integration and release problems 
 - Status: External blocker; deployment not verified.
 
 ## ERR-007 — Remote Supabase migration history version drift
-- Date: 2026-10-31
+- Date: 2026-10-31; detailed read-only ledger comparison: 2026-11-01
 - Area: Database migration operations
-- Symptom: Two shared-reference migration filenames have timestamp versions that differ from remote migration history entries.
-- Root cause: Local migration files and remote migration ledger use different timestamp identifiers.
-- Fix: Do not blindly apply migrations or rewrite remote history. Reconcile exact schema and ledger against a confirmed non-production environment before applying pending M7 migrations.
-- Verification: Isolated local Supabase migrations pass. Remote migration ledger was not modified.
-- Status: Open; remote schema alignment unverified.
+- Symptom: The connected Supabase ledger contains 53 entries while the feature branch contains 94 migration files. Only 51 version-and-name pairs match exactly. Two shared-reference migrations have matching descriptions but different timestamp versions, and 41 additional repository versions have no exact remote ledger entry.
+- Root cause: Local migration files and the connected project's migration ledger diverged. Matching descriptive names do not prove that two timestamped migrations are equivalent, and missing ledger entries do not prove that their SQL effects are absent from the remote schema.
+- Fix: Added `docs/MIGRATION_RECONCILIATION.md` with the exact observed comparison, mismatched pairs, local-only versions and a safe schema-first reconciliation procedure. Do not blindly apply migrations, rewrite historical files or repair the remote ledger without schema evidence.
+- Verification: Read-only migration ledger comparison only. No hosted migration, ledger repair or schema mutation was performed. Actual remote schema equivalence remains unknown.
+- Status: Open release blocker; requires a clean isolated database and schema-level reconciliation.
 
 ## ERR-008 — Chromium browser smoke test pending
 - Date: 2026-10-31
