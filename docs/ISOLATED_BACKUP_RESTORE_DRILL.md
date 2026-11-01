@@ -16,6 +16,17 @@ Maintain these independently, in an approved password manager or offline secrets
 
 The database backup does not contain the encryption key. Restoring encrypted Drive refresh-token rows without the original encryption identity will not restore the ability to use those tokens. Do not silently generate a replacement key and claim recovery succeeded. If the original key is unavailable, record the Drive connection as unrecoverable and require OAuth reconnection after the restored system is secured.
 
+## Repository backup tooling
+
+The repository currently provides:
+
+- `bash scripts/backup-supabase.sh`: exports Supabase roles, schema and application data, plus a restricted JSON export of supported email/password Auth accounts; creates an encrypted `.tar.gz.age` archive outside the Git repository.
+- `bash scripts/verify-backup.sh /absolute/path/to/archive.tar.gz.age`: decrypts with the separately held age identity and checks the archive member list and SHA-256 checksums. This is an integrity check, not a database restore.
+
+The backup command requires `supabase`, `age`, `psql`, `tar` and `sha256sum` (or `shasum`). Supply `SUPABASE_DB_URL`, `BACKUP_AGE_RECIPIENT` (the public recipient), and `BACKUP_PROJECT_REF` through the current shell's protected environment. Keep the matching age private identity in a separate secure location and set `AGE_IDENTITY_FILE` only when verifying. Never place either identity or database URL in command history or repository files.
+
+The helper explicitly excludes Auth sessions/tokens, MFA factors, SSO and non-email external identities, Supabase Storage objects, project settings and external Drive files. The original PDF files remain in Google Drive. It exports email/password account hashes for a separate Auth Admin API recreation path; this is not the same as restoring managed Auth tables. Confirm the current importer implementation and supported hash compatibility before using it. Do not claim phone, MFA, SSO or session continuity.
+
 ## Drill procedure
 
 ### A. Prepare isolation
