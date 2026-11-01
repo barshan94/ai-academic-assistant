@@ -967,3 +967,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Request the updated document ID and require exactly one returned row before continuing recovery.
 - Verification: Source inspection only; concurrent deletion, owner-scope mismatch and successful stale-recovery cases remain deferred to the separate testing phase.
 - Status: Implemented on the feature branch; no tests, typecheck or build were run during implementation.
+
+
+## ERR-090 — Document processing failure handler did not verify the parent row
+
+- Date: 2026-11-01
+- Area: M5 document processing / failure-state persistence
+- Symptom: The processing catch handler persisted the failed processing-job row and updated the parent document in parallel, but checked only the document update error. A zero-row owner-scoped document update could be mistaken for a fully persisted failure state.
+- Root cause: The parent-document update did not select and verify the affected row, unlike the processing-job update.
+- Fix: Return the updated document ID and require both the parent document and running job updates to return rows before reporting that failure state was persisted.
+- Verification: Source inspection only; provider failures, concurrent state changes and zero-row update cases remain deferred to the separate testing phase.
+- Status: Implemented on the feature branch; no tests, typecheck or build were run during implementation.
