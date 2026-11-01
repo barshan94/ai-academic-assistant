@@ -1667,3 +1667,13 @@ ERR-073 closure reconciliation (2026-11-01): the earlier note that page and pare
 - Fix: No additional code change was needed for this verification checkpoint; run the complete foundation, isolated database and secret-scan workflows against the current feature head.
 - Verification: Commit `b929566a8d175ff1f3894da706ba64414e40ccf2`: foundation run `41306988899` passed ESLint, application and Playwright TypeScript checks, all 155 unit tests across 30 files, synthetic production-environment preflight, production dependency audit and Next.js production build. Chromium smoke tests passed 9 and skipped 1 authenticated two-account test. Database run `41306988908` applied the ordered repository migrations to a fresh isolated local Supabase instance and passed all 209 pgTAP assertions across 9 files. Secret scan run `41306988876` passed. Authenticated two-account acceptance remains skipped; no hosted migration, provider call, backup restore or production deployment was performed.
 - Status: Feature-branch automated verification green. Production readiness remains blocked by hosted schema/migration reconciliation, external credentials and runtime acceptance, recovery drill, full dependency advisory remediation, and owner approval.
+
+
+## ERR-154 — Vercel preview deployment was blocked by account deployment limits
+- Date: 2026-11-01
+- Area: Hosting / preview verification
+- Symptom: Vercel Git integration reported `api-deployments-free-per-day` (more than 100 deployments in the daily window) and a subsequent deployment flood rate limit. A later Vercel bot message also reported that the account can retry after the daily limit resets.
+- Root cause: Hosting-account deployment quota/rate limit, not a demonstrated application build failure. The latest feature-branch GitHub Actions production build passes. The repository uses GitHub Actions for its five-minute worker schedule and does not configure a Vercel Cron Job; the Vercel Hobby daily-cron restriction is not a limitation of the committed GitHub workflow.
+- Fix: No code change or paid upgrade is appropriate. Stop retrying deployment requests until the provider's rate-limit window resets, then run one preview deployment from the current reviewed feature commit.
+- Verification: GitHub Actions build and browser smoke tests passed on `b929566a8d175ff1f3894da706ba64414e40ccf2`; a fresh Vercel deployment has not yet been verified.
+- Status: External hosting verification blocker; no plan upgrade or production deployment authorized.
