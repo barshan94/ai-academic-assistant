@@ -925,6 +925,22 @@ export type Database = {
         };
         Returns: number;
       }
+      complete_document_processing: {
+        Args: {
+          p_document_id: string;
+          p_owner_id: string;
+          p_job_id: string;
+          p_pages: Json;
+        };
+        Returns: number;
+      }
+      approve_document_review: {
+        Args: {
+          p_document_id: string;
+          p_owner_id: string;
+        };
+        Returns: number;
+      }
       consume_document_upload_quota: {
         Args: Record<PropertyKey, never>;
         Returns: boolean;
