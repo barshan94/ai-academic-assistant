@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(16);
+select plan(20);
 
 insert into auth.users (
   id, aud, role, email, encrypted_password, email_confirmed_at,
@@ -10,7 +10,8 @@ insert into auth.users (
 ) values
   ('11000000-0000-4000-8000-000000000001', 'authenticated', 'authenticated', 'invite-owner@example.test', '', now(), '{}'::jsonb, '{}'::jsonb, now(), now()),
   ('11000000-0000-4000-8000-000000000002', 'authenticated', 'authenticated', 'invite-teacher@example.test', '', now(), '{}'::jsonb, '{}'::jsonb, now(), now()),
-  ('11000000-0000-4000-8000-000000000003', 'authenticated', 'authenticated', 'invite-outsider@example.test', '', now(), '{}'::jsonb, '{}'::jsonb, now(), now());
+  ('11000000-0000-4000-8000-000000000003', 'authenticated', 'authenticated', 'invite-outsider@example.test', '', now(), '{}'::jsonb, '{}'::jsonb, now(), now()),
+  ('11000000-0000-4000-8000-000000000004', 'authenticated', 'authenticated', 'invite-unconfirmed@example.test', '', null, '{}'::jsonb, '{}'::jsonb, now(), now());
 
 insert into public.documents (id, owner_id, file_name, mime_type, file_size_bytes)
 values ('21000000-0000-4000-8000-000000000001', '11000000-0000-4000-8000-000000000001', 'invite-fixture.pdf', 'application/pdf', 100);
@@ -27,6 +28,16 @@ set local request.jwt.claims = '{"sub":"11000000-0000-4000-8000-000000000001","r
 select ok(
   public.create_question_teacher_invite('31000000-0000-4000-8000-000000000001', 'INVITE-TEACHER@example.test') is not null,
   'owner can create a normalized teacher invitation'
+);
+select throws_ok(
+  $test$select public.create_question_teacher_invite('31000000-0000-4000-8000-000000000001', 'invite-owner@example.test')$test$,
+  '22023',
+  'Cannot invite the question owner',
+  'owner cannot invite their own account email'
+);
+select ok(
+  public.create_question_teacher_invite('31000000-0000-4000-8000-000000000001', 'invite-unconfirmed@example.test') is not null,
+  'owner can create an invitation for an unconfirmed account that must verify before acceptance'
 );
 select ok(
   (select expires_at > now() and expires_at <= now() + interval '8 days'
@@ -48,6 +59,17 @@ select throws_ok(
   '42501',
   null,
   'owner cannot bypass the invitation creation RPC with direct INSERT'
+);
+
+-- An account whose Auth email is not confirmed cannot accept an invitation.
+set local role authenticated;
+set local request.jwt.claim.sub = '11000000-0000-4000-8000-000000000004';
+set local request.jwt.claims = '{"sub":"11000000-0000-4000-8000-000000000004","role":"authenticated","email":"invite-unconfirmed@example.test"}';
+select throws_ok(
+  $test$select public.accept_question_teacher_invite((select id from public.question_teacher_invites where invited_email = 'invite-unconfirmed@example.test' order by created_at desc limit 1))$test$,
+  '42501',
+  null,
+  'unconfirmed account email cannot accept an invitation'
 );
 
 -- A different signed-in account cannot accept an invitation addressed to the
@@ -77,6 +99,12 @@ select throws_ok(
 select lives_ok(
   $test$select public.accept_question_teacher_invite((select id from public.question_teacher_invites where invited_email = 'invite-teacher@example.test' order by created_at desc limit 1))$test$,
   'matching verified teacher can accept the invitation'
+);
+select throws_ok(
+  $test$select public.accept_question_teacher_invite((select id from public.question_teacher_invites where invited_email = 'invite-teacher@example.test' order by created_at desc limit 1))$test$,
+  '42501',
+  null,
+  'accepted invitation cannot be replayed'
 );
 select is(
   (select count(*)::integer from public.questions),
