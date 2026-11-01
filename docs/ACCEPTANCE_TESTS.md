@@ -3,7 +3,7 @@
 ## Foundation (M1)
 - [ ] Fresh install succeeds from documented steps.
 - [ ] Development server starts.
-- [x] Feature-branch commit `c674d90e911f812fa35ee6f9355c86832e521c49`: lint, application/Playwright type checks, production build and 155 unit tests across 30 files passed (Foundation run `41305831537`); the complete ordered migration chain and all 209 pgTAP assertions across nine files passed on a fresh isolated local Supabase database (Database run `41305831477`). Credential-free Chromium smoke tests are still running for this commit; the prior verified run passed seven with one authenticated test skipped. Two-account Supabase acceptance remains skipped because dedicated non-production credentials are not configured.
+- [x] Latest feature-branch CI on `e04b2d23d450ed78a2ced8efaacf67653cc0d1ca`: lint, application/Playwright type checks, unit tests, production build and credential-free Chromium browser smoke tests all passed (Foundation run `41309335030`). Authenticated two-account Supabase acceptance remains separate and requires dedicated non-production credentials.
 - [x] Protected routes redirect to login when authentication is not configured (Chromium smoke test).
 - [x] Baseline browser security response headers are configured; nonce-based CSP is now enforced by middleware on pages and API routes.
 - [ ] Browser acceptance confirms Next.js nonce propagation, auth refresh, Google OAuth navigation and configured provider connections work without unexpected CSP violations.
