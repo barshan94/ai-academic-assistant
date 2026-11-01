@@ -165,3 +165,6 @@ M6 remaining:
 
 
 Upload client hardening (2026-11-01): persisted session tokens are validated against the selected normalized file's exact name and byte size before reuse. Browser storage is best-effort: malformed entries are discarded, and storage-denied contexts can continue the current upload without persistence. Account-switch rejections clear the stale owner-bound token. ERR-065 and ERR-066 track these behaviors; browser acceptance remains in the later testing phase.
+
+
+Document-processing resource hardening (2026-11-01): the Drive OCR worker now streams and caps the archived PDF download at 50 MB, OCR text export at 10 MB, and conversion metadata at 64 KiB. This closes the previous mismatch where the upload endpoint bounded file size but downstream provider responses were buffered without limits. See ERR-067; runtime acceptance remains pending.
