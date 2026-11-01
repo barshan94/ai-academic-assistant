@@ -37,7 +37,7 @@ select ok(
   'new pending invitations receive a bounded seven-day acceptance window'
 );
 select throws_ok(
-  $$select public.create_question_teacher_invite('31000000-0000-4000-8000-000000000001', 'invite-teacher@example.test')$$,
+  $test$select public.create_question_teacher_invite('31000000-0000-4000-8000-000000000001', 'invite-teacher@example.test')$test$,
   '23505',
   'An active invitation already exists',
   'duplicate pending invitation is rejected atomically'
@@ -49,7 +49,7 @@ set local role authenticated;
 set local request.jwt.claim.sub = '11000000-0000-4000-8000-000000000003';
 set local request.jwt.claims = '{"sub":"11000000-0000-4000-8000-000000000003","role":"authenticated","email":"invite-outsider@example.test"}';
 select throws_ok(
-  $$select public.accept_question_teacher_invite((select id from public.question_teacher_invites where invited_email = 'invite-teacher@example.test' order by created_at desc limit 1))$$,
+  $test$select public.accept_question_teacher_invite((select id from public.question_teacher_invites where invited_email = 'invite-teacher@example.test' order by created_at desc limit 1))$test$,
   '42501',
   null,
   'invitation cannot be accepted by a different verified email'
@@ -60,7 +60,7 @@ set local role authenticated;
 set local request.jwt.claim.sub = '11000000-0000-4000-8000-000000000002';
 set local request.jwt.claims = '{"sub":"11000000-0000-4000-8000-000000000002","role":"authenticated","email":"invite-teacher@example.test"}';
 select lives_ok(
-  $$select public.accept_question_teacher_invite((select id from public.question_teacher_invites where invited_email = 'invite-teacher@example.test' order by created_at desc limit 1))$$,
+  $test$select public.accept_question_teacher_invite((select id from public.question_teacher_invites where invited_email = 'invite-teacher@example.test' order by created_at desc limit 1))$test$,
   'matching verified teacher can accept the invitation'
 );
 select is(
@@ -75,17 +75,17 @@ set local role authenticated;
 set local request.jwt.claim.sub = '11000000-0000-4000-8000-000000000001';
 set local request.jwt.claims = '{"sub":"11000000-0000-4000-8000-000000000001","role":"authenticated","email":"invite-owner@example.test"}';
 select throws_ok(
-  $$select public.create_question_teacher_invite('31000000-0000-4000-8000-000000000001', 'invite-teacher@example.test')$$,
+  $test$select public.create_question_teacher_invite('31000000-0000-4000-8000-000000000001', 'invite-teacher@example.test')$test$,
   '23505',
   'An active invitation already exists',
   'an accepted active invitation cannot be duplicated'
 );
 select lives_ok(
-  $$update public.question_teacher_invites set revoked_at = now()
+  $test$update public.question_teacher_invites set revoked_at = now()
     where question_id = '31000000-0000-4000-8000-000000000001'
       and invited_email = 'invite-teacher@example.test'
       and accepted_by = '11000000-0000-4000-8000-000000000002'
-      and revoked_at is null$$,
+      and revoked_at is null$test$,
   'owner can revoke an accepted invitation once'
 );
 
@@ -94,7 +94,7 @@ set local request.jwt.claim.sub = '11000000-0000-4000-8000-000000000002';
 set local request.jwt.claims = '{"sub":"11000000-0000-4000-8000-000000000002","role":"authenticated","email":"invite-teacher@example.test"}';
 select is((select count(*)::integer from public.questions), 0, 'revoked teacher immediately loses question access');
 select throws_ok(
-  $$select public.accept_question_teacher_invite((select id from public.question_teacher_invites where invited_email = 'invite-teacher@example.test' order by created_at desc limit 1))$$,
+  $test$select public.accept_question_teacher_invite((select id from public.question_teacher_invites where invited_email = 'invite-teacher@example.test' order by created_at desc limit 1))$test$,
   '42501',
   null,
   'revoked invitation cannot be accepted again');
