@@ -4,6 +4,7 @@ import { extractTextFromDrivePdf, readGoogleJsonResponseBounded } from "@/lib/dr
 import { splitExtractedText } from "@/lib/documents/split-extracted-text";
 import { canSafelyReplaceExtractedPages } from "@/lib/documents/reprocessing-safety";
 import { isBackgroundJobClaimable, isBackgroundJobRetryEligible } from "@/lib/documents/worker-policy";
+import { createPersistedWorkerFailureResponse } from "@/lib/documents/worker-response";
 import { logSafeOperationalEvent } from "@/lib/observability/safe-log";
 import { createSupabaseServiceRoleClient } from "@/lib/supabase/service-role";
 
@@ -175,7 +176,7 @@ export async function GET(request: Request) {
           error: "Processing failed and its failure state could not be persisted.",
         }, { status: 500 });
       }
-      return Response.json({ processed: false, job_id: jobId, failed: true, error: message }, { status: 500 });
+      return createPersistedWorkerFailureResponse(jobId);
     }
   }
 
