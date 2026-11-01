@@ -648,3 +648,13 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Treat a missing or non-string scope field as an empty grant and reject it; accept only the exact single `drive.file` scope.
 - Verification: Source-level change only. OAuth behavior must be exercised in the later non-production testing phase.
 - Status: Implemented; verification pending.
+
+## ERR-060 — Backup verifier extracted archive-controlled link metadata
+
+- Date: 2026-11-01
+- Area: M8 backup archive verification / local filesystem safety
+- Symptom: The verifier checked the expected tar member names before extraction, but normal tar extraction can also create archive-supplied symlinks or hardlinks. A crafted archive could therefore attempt filesystem writes outside the private verification directory.
+- Root cause: Member-name allow-listing alone does not constrain archive entry types or link targets.
+- Fix: Replace filesystem extraction with per-member streaming via `tar -xO` into newly created regular files inside the private temporary directory. The verifier no longer creates archive-controlled paths or link metadata.
+- Verification: Source review only. No archive was decrypted or verified, and no security test was run during the implementation phase.
+- Status: Extraction path hardened; formal regression testing remains pending.
