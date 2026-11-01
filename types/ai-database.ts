@@ -126,6 +126,10 @@ export type DatabaseWithAISolutions = Omit<Database, "public"> & {
         Args: { p_invite_id: string };
         Returns: string;
       };
+      revoke_question_teacher_invite: {
+        Args: { p_invite_id: string };
+        Returns: string;
+      };
     };
   };
 };
