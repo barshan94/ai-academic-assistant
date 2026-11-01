@@ -1510,7 +1510,7 @@ ERR-073 closure reconciliation (2026-11-01): the earlier note that page and pare
 - Symptom: The latest pull-request CI run failed ESLint with an unclosed paragraph in `app/login/page.tsx` and two unescaped apostrophes in `app/privacy/page.tsx`.
 - Root cause: The login footnote paragraph was missing its closing tag; JSX text contained literal apostrophes that violate the configured `react/no-unescaped-entities` rule.
 - Fix: Closed the login footnote paragraph and encoded the two apostrophes as `&apos;` in the privacy notice.
-- Verification: Confirmed against the ESLint output from run 41300335750. A post-fix lint rerun is still required.
+- Verification: The first rerun exposed one missed apostrophe in the phrase “that owner's Drive”; corrected it to `that owner&apos;s Drive`. The next CI run must confirm the complete lint fix.
 - Status: Source fixes committed; verification pending.
 
 ## ERR-139 — Fresh local migration chain lacks the private schema
