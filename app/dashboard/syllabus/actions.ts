@@ -178,8 +178,8 @@ export async function verifySyllabusCatalog(formData: FormData) {
   const { data, error } = await supabase.from("syllabus_catalogs").update({
     status: "verified",
     source_checked_at: new Date().toISOString(),
-  }).eq("id", catalogId.data).eq("owner_id", user.id).not("source_url", "is", null)
-    .select("id").maybeSingle();
+  }).eq("id", catalogId.data).eq("owner_id", user.id).eq("status", "draft")
+    .not("source_url", "is", null).select("id").maybeSingle();
   if (error || !data) redirect("/dashboard/syllabus?catalog=source_required");
   revalidatePath("/dashboard/syllabus");
   revalidatePath("/dashboard/questions");
@@ -218,6 +218,11 @@ export async function addSyllabusReferenceEvidence(formData: FormData) {
     .select("id,catalog_id").eq("id", value.chapterId)
     .eq("catalog_id", value.catalogId).eq("owner_id", user.id).maybeSingle();
   if (!chapter) redirect("/dashboard/syllabus?evidence=not_found");
+
+  const { data: catalog } = await supabase.from("syllabus_catalogs")
+    .select("status").eq("id", value.catalogId).eq("owner_id", user.id).maybeSingle();
+  if (!catalog) redirect("/dashboard/syllabus?evidence=not_found");
+  if (catalog.status !== "draft") redirect("/dashboard/syllabus?evidence=catalog_locked");
 
   if (value.topicId) {
     const { data: topic } = await supabase.from("syllabus_topics")
