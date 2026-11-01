@@ -895,3 +895,24 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Require imported source URLs to use HTTPS and contain no embedded username or password.
 - Verification: Source inspection only; deceptive-host, user-info and valid HTTPS import cases remain deferred to the separate testing phase.
 - Status: Implemented on the feature branch; no tests, typecheck or build were run during implementation.
+
+## ERR-083 — Owner syllabus catalog state transitions allowed edits after verification
+
+- Date: 2026-11-01
+- Area: M5 owner syllabus catalog lifecycle
+- Symptom: The owner verification action could re-verify a catalog regardless of its current status, and reference evidence could still be added after a catalog had been verified or retired.
+- Root cause: The verification update did not require the draft state, and the evidence action checked ownership and hierarchy but not the catalog lifecycle state.
+- Fix: Restrict verification to draft catalogs and restrict evidence insertion to draft catalogs. Existing retired/verified catalogs are not silently moved back into the verified state.
+- Verification: Source inspection only; draft, verified, retired and concurrent transition cases remain deferred to the testing phase.
+- Status: Implemented on the feature branch; no tests, typecheck or build were run during implementation.
+
+
+## ERR-084 — Platform reference syllabus catalogs remained editable after verification
+
+- Date: 2026-11-01
+- Area: M5 platform reference catalog lifecycle
+- Symptom: Platform administrators could add chapters, topics or evidence to a catalog after it had been verified or retired.
+- Root cause: The reference chapter, topic and evidence actions validated identifiers and relationships but did not consistently enforce the draft-only editing lifecycle.
+- Fix: Require the reference catalog to be in draft state before adding chapters, topics or evidence. Existing verify and retire actions already enforce their respective source states.
+- Verification: Source inspection only; draft edits, verified/retired rejection and lifecycle race cases remain deferred to the separate testing phase.
+- Status: Implemented on the feature branch; no tests, typecheck or build were run during implementation.
