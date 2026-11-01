@@ -255,7 +255,8 @@ export async function generateStructuredAnswer(
 
   if (!response.ok) {
     // Provider error bodies are untrusted and may echo prompt content or other
-    // sensitive request details. Keep only the HTTP status in application errors.
+    // sensitive request details. Cancel without reading or persisting them.
+    await response.body?.cancel().catch(() => {});
     throw new AIProviderError("AI_PROVIDER_HTTP_" + response.status);
   }
 
