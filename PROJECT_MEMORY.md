@@ -131,3 +131,10 @@ The feature branch `feature/m3-ai-solver` now contains substantial M1–M7 appli
 - Updated `docs/OPERATIONS_MONITORING.md`, `README.md`, `docs/ROADMAP.md` and added ERR-114 to `docs/ERROR_LOG.md`.
 - Commits: route `2c66723`; operations guide `7292ca1`; README `0a2ed70`; roadmap `d09735f`; error log `051e73a`.
 - Implementation-only change. No tests, typecheck, build, workflow run or hosted database migration was performed; retain all runtime verification for the separate testing phase.
+
+
+## Latest implementation checkpoint (2026-11-01, teacher inbox identity edge case)
+- Updated `app/dashboard/teacher-invites/page.tsx` to load current-email invitations and accepted invitations by immutable Auth user ID, merge/de-duplicate them and preserve the newest 50. Accepted/revoked history remains visible if the teacher later changes their Auth email; RLS continues to govern which invitation rows are visible.
+- Updated `docs/TEACHER_REVIEW.md`, `docs/ACCEPTANCE_TESTS.md`, `docs/ROADMAP.md` and added ERR-115 to `docs/ERROR_LOG.md`.
+- Commits: teacher inbox `d4f3084`; review docs `9fcad1d`; acceptance `8dc7e2b`; roadmap `f6df19e`; error log `a108177`.
+- Implementation-only. No tests, typecheck, build, browser acceptance or hosted database changes were performed.
