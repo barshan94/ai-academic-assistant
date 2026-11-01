@@ -952,6 +952,26 @@ export type Database = {
         };
         Returns: boolean;
       }
+      claim_document_processing_job: {
+        Args: {
+          p_document_id: string;
+          p_owner_id: string;
+          p_job_id: string;
+          p_expected_status: string;
+          p_expected_attempt_count: number;
+          p_expected_started_at: string | null;
+        };
+        Returns: boolean;
+      }
+      recover_stale_document_processing_job: {
+        Args: {
+          p_document_id: string;
+          p_owner_id: string;
+          p_job_id: string;
+          p_expected_started_at: string | null;
+        };
+        Returns: boolean;
+      }
       approve_document_review: {
         Args: {
           p_document_id: string;
