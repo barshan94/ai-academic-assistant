@@ -97,3 +97,10 @@ The feature branch `feature/m3-ai-solver` now contains substantial M1–M7 appli
 4. Build AI question segmentation/classification and structured exam-answer generation.
 5. Add math/science verification and teacher-correction versioning.
 6. Continue syllabus/chapter intelligence, revision and production readiness.
+
+
+## Latest implementation checkpoint (2026-11-01, continued)
+- Fixed upload-quota fairness in `app/api/documents/upload/resumable/start/route.ts`: the owner-scoped Google Drive access token is now acquired before the atomic hourly/daily quota RPC. A disconnected or reauthorization-required Drive account therefore does not consume an upload slot. Quota is still consumed before a remote resumable session is created, preserving admission control.
+- Added ERR-063 to `docs/ERROR_LOG.md`; updated `docs/ROADMAP.md` and `README.md` to record the behavior. Corrected stale lower-section project-memory notes that incorrectly said resumable uploads and the worker did not exist.
+- Implementation commit: `606e0a3`; documentation commits: `371d5ee`, `1044ebe`, `5c054bb`, `3f2f86e`.
+- No test commands or live OAuth/Drive calls were run. Regression and integration verification remain in the later testing phase.
