@@ -6,7 +6,7 @@ set search_path = ''
 as $$
 declare
   v_owner_id uuid := (select auth.uid());
-  v_now timestamptz := clock_timestamp();
+  v_now timestamptz;
   v_window_seconds constant integer := 900;
   v_window_started_at timestamptz;
   v_day_started_at timestamptz;
@@ -23,6 +23,10 @@ begin
     0,
     pg_catalog.hashtext(v_owner_id::text)
   );
+
+  -- Take the timestamp after acquiring the lock so a long wait cannot use a
+  -- stale daily or 15-minute quota window.
+  v_now := clock_timestamp();
 
   v_window_started_at := to_timestamp(
     floor(extract(epoch from v_now) / v_window_seconds) * v_window_seconds
