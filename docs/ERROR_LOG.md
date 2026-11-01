@@ -766,3 +766,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Reuse the shared 64 KiB bounded, strict-UTF-8 JSON reader for the callback exchange and reject refresh tokens outside the expected non-empty 4 KiB maximum before encryption.
 - Verification: Source inspection only; malformed/oversized token response tests and live OAuth callback acceptance remain pending for the separate testing phase.
 - Status: Implemented on the feature branch; no tests, typecheck, build or live OAuth request was run during implementation.
+
+
+## ERR-071 — Google Drive upload-session URL checks accepted ambiguous path prefixes
+
+- Date: 2026-11-01
+- Area: M2 resumable upload / outbound request destination validation
+- Symptom: The Drive upload-session URL guard used a broad `startsWith` path check and did not explicitly reject URL user-info components.
+- Root cause: The original guard checked HTTPS and the expected hostname but did not enforce a path-segment boundary or reject embedded credentials.
+- Fix: Centralize URL validation for both newly issued and decrypted resumable session URLs. Require HTTPS, the exact Google API hostname, no username/password, and a pathname matching the expected files endpoint with a segment boundary. Google-provided query parameters remain allowed because Drive uses them for upload session IDs.
+- Verification: Source inspection only; URL edge-case tests and live resumable-upload acceptance remain deferred to the separate testing phase.
+- Status: Implemented on the feature branch; no tests or live provider requests were run during implementation.
