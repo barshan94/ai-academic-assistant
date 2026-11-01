@@ -176,7 +176,7 @@ export async function verifySyllabusCatalog(formData: FormData) {
   if (!catalogId.success) redirect("/dashboard/syllabus?catalog=invalid");
   const { supabase, user } = await requireOwner();
   const { data: catalog, error: catalogError } = await supabase.from("syllabus_catalogs")
-    .select("id,source_url,status").eq("id", catalogId.data)
+    .select("id,source_url,source_title,status").eq("id", catalogId.data)
     .eq("owner_id", user.id).eq("status", "draft").maybeSingle();
   if (catalogError || !catalog) redirect("/dashboard/syllabus?catalog=not_found");
 
@@ -188,11 +188,10 @@ export async function verifySyllabusCatalog(formData: FormData) {
   } catch {
     sourceIsValid = false;
   }
-  if (!sourceIsValid) redirect("/dashboard/syllabus?catalog=source_required");
+  if (!sourceIsValid || !catalog.source_title?.trim()) redirect("/dashboard/syllabus?catalog=source_required");
 
   const { data, error } = await supabase.from("syllabus_catalogs").update({
     status: "verified",
-    source_checked_at: new Date().toISOString(),
   }).eq("id", catalogId.data).eq("owner_id", user.id).eq("status", "draft")
     .select("id").maybeSingle();
   if (error || !data) redirect("/dashboard/syllabus?catalog=verify_failed");
