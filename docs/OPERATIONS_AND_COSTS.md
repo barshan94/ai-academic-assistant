@@ -28,7 +28,7 @@ Recommended alert rules for the hosting platform (these are thresholds to config
 - `upload_session_start_failed`, `upload_chunk_failed` or `google_drive_oauth_failed`: notify after 5 events in 15 minutes.
 - Review quota-exhausted events as abuse/cost signals, but do not page on a single expected user limit response.
 
-Log retention, dashboards, alert thresholds and human on-call review still need setup. Provide backup/export guidance and recovery procedures.
+Log retention, dashboards, alert thresholds and human on-call review still need setup. Encrypted logical-export tooling and a limited restore runbook exist, but full account-and-data recovery is not yet proven.
 
 ## No-charge rule
 Before enabling any external paid feature, confirm the expected cost and obtain explicit approval. If a service cannot operate within the approved free tier, pause and explain the limitation instead of silently upgrading.
