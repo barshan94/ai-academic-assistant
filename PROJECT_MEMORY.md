@@ -123,3 +123,11 @@ The feature branch `feature/m3-ai-solver` now contains substantial M1–M7 appli
 - Applied the M4 invitation-expiry, teacher-review permission, foreign-key index, atomic revocation and reviewer-deletion reconciliation migrations to Supabase project `uqpyzicftxxegajaocxi`.
 - Supabase Security Advisor reports zero lint findings. The unindexed teacher-invite foreign-key finding was fixed; remaining performance findings are unused indexes on low/empty-volume tables.
 - Do not start the separate testing/fixing phase until implementation is explicitly reported complete. The pgTAP files have been added but not executed; real two-account browser acceptance and automatic invitation email delivery remain outstanding.
+
+
+## Latest implementation checkpoint (2026-11-01, readiness schema coverage)
+- Expanded `app/api/health/ready/route.ts` from three core-table probes to bounded, parallel, zero-row HEAD probes for the required document/Drive, question/solution/teacher-review, private/shared syllabus, chapter-note, revision, practice and weekly-calendar tables.
+- The readiness endpoint now fails closed when a partially migrated database is missing a shipped feature table; it returns no academic row data. It still does not validate constraints, RLS policies, functions, Google Drive connectivity or AI inference.
+- Updated `docs/OPERATIONS_MONITORING.md`, `README.md`, `docs/ROADMAP.md` and added ERR-114 to `docs/ERROR_LOG.md`.
+- Commits: route `2c66723`; operations guide `7292ca1`; README `0a2ed70`; roadmap `d09735f`; error log `051e73a`.
+- Implementation-only change. No tests, typecheck, build, workflow run or hosted database migration was performed; retain all runtime verification for the separate testing phase.
