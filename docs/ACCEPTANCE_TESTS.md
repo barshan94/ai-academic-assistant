@@ -172,3 +172,8 @@
 - [ ] Review the notice against the final deployed configuration, provider terms, actual retention settings and applicable legal requirements.
 - [ ] Add and verify a responsible contact channel for access, correction and deletion requests before inviting additional users.
 - [ ] Browser-check notice navigation, keyboard access, mobile layout and screen-reader headings.
+
+
+## Public product information
+- [ ] Confirm the landing page accurately describes each workflow's implemented-versus-accepted status and does not imply external integrations are connected.
+- [ ] Verify the public privacy notice and current product-status copy at desktop and mobile breakpoints.
