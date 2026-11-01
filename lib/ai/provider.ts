@@ -150,7 +150,7 @@ function canFallbackAfterProviderError(error: unknown): error is AIProviderError
     "AI_PROVIDER_INVALID_STRUCTURED_ANSWER",
   ].includes(error.message)) return true;
 
-  const status = /^AI_PROVIDER_HTTP_(\\d{3})$/.exec(error.message)?.[1];
+  const status = /^AI_PROVIDER_HTTP_(\d{3})$/.exec(error.message)?.[1];
   if (!status) return false;
   const code = Number(status);
   return code === 408 || code === 425 || code === 429 || code >= 500;
