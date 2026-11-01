@@ -189,3 +189,6 @@ Reference syllabus date validation (2026-11-01): reference-catalog date fields n
 
 
 Google Drive OCR metadata now uses the common 64 KiB bounded JSON parser, enforcing strict UTF-8 and object-shaped JSON before the temporary file ID is accepted. Resumable upload session URL validation is also shared by the transport and chunk route, including rejection of embedded URL credentials. See ERR-071 and ERR-075; provider boundary regression tests remain deferred.
+
+
+Owner-managed syllabus catalog effective dates now use the same real-calendar-date validation as reference catalogs; impossible dates are rejected and empty optional values remain valid. See ERR-076; regression coverage remains deferred to the testing phase.
