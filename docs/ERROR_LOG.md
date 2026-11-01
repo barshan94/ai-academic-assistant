@@ -1464,3 +1464,13 @@ ERR-124 compatibility investigation (2026-11-01): the existing lockfile already 
 - Fix: Validate `APP_BASE_URL` with Node's URL parser and require HTTPS, a hostname, no embedded credentials, root path only, and no query or fragment. Replaced curl body buffering with a Node fetch stream reader that aborts after 4 KiB, rejects redirects, and checks the generic JSON readiness status without printing response content. The workflow still avoids printing response bodies or secrets.
 - Verification: Workflow source review only. GitHub Actions execution remains deferred to the testing/operational acceptance phase.
 - Status: Implemented on `feature/m3-ai-solver`; scheduled monitor activation still requires deployment and owner-configured repository secrets.
+
+## ERR-135 — Credential-bearing provider requests followed redirects
+
+- Date: 2026-11-01
+- Area: M2 Google Drive integration / M3 AI and web-research providers
+- Symptom: Several outbound requests carrying OAuth credentials, bearer tokens or provider API keys relied on the Fetch default redirect behavior. A provider-controlled or unexpected redirect should not be allowed to change the destination of a credential-bearing request.
+- Root cause: Request timeout and response-size limits were implemented, but redirect policy was not consistently explicit across external provider calls.
+- Fix: Set `redirect: "error"` for AI completion, Brave search, Google OAuth token exchange/revocation, Drive metadata/upload/download/export and worker token-refresh requests. The Drive resumable upload chunk request retains `redirect: "manual"` because its protocol requires the caller to inspect the response status and Google-confirmed offset; the session URL is separately restricted to the exact Google upload host and path. Added regression coverage for AI and Brave request options and rejected redirect behavior.
+- Verification: Source review only. Regression tests are authored but not executed; Google/AI/Brave live provider behavior remains deferred to the testing phase.
+- Status: Implemented on `feature/m3-ai-solver`; no provider credentials were used and no external requests were made.
