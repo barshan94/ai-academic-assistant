@@ -2,7 +2,7 @@ name: Database authorization tests
 
 on:
   push:
-    branches: [main]
+    branches: [main, feature/m3-ai-solver]
   pull_request:
     branches: [main]
   workflow_dispatch:
