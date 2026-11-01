@@ -7,6 +7,7 @@
 - [x] Protected routes redirect to login when authentication is not configured (Chromium smoke test).
 - [x] Baseline browser security response headers are configured; nonce-based CSP is now enforced by middleware on pages and API routes.
 - [ ] Browser acceptance confirms Next.js nonce propagation, auth refresh, Google OAuth navigation and configured provider connections work without unexpected CSP violations.
+- [ ] Google OAuth callback rejects responses with a missing, non-string, broader, or additional granted scope; only the exact single `https://www.googleapis.com/auth/drive.file` grant is accepted.
 - [ ] Authenticated owner can sign in and sign out in a live browser test.
 - [x] Applied schema migrations are mirrored in timestamped repository files.
 - [x] RLS is enabled on current public application tables; owner and question-scoped teacher policies are present.
