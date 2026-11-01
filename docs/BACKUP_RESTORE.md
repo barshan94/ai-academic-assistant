@@ -22,7 +22,7 @@ This runbook now covers an encrypted application-data export plus a limited Auth
 
 ## Backup procedure (manual, before risky changes and at least monthly)
 
-A repository helper now automates the logical export and encrypts the result locally. It requires the Supabase CLI, `psql`, Docker/PostgreSQL tools as required by the CLI, and age installed on the trusted workstation. It does not upload the archive. The Supabase CLI receives the database connection URL as a child-process argument; run it only on a trusted single-user workstation because local process inspection by the same OS account may expose arguments. Use an encrypted local disk and a private temporary directory; deleting temporary files is not a guaranteed secure erase on SSDs.
+A repository helper now automates the logical export and encrypts the result locally. It requires Node.js, the Supabase CLI, `psql`, Docker/PostgreSQL tools as required by the CLI, and `age` installed on the trusted workstation. It does not upload the archive. The Supabase CLI receives the database connection URL as a child-process argument; run it only on a trusted single-user workstation because local process inspection by the same OS account may expose arguments. Use an encrypted local disk and a private temporary directory; deleting temporary files is not a guaranteed secure erase on SSDs.
 
 1. Generate an age key pair on the trusted workstation and store the private identity in a separate secure location. For example, on Linux/macOS/WSL:
    ```bash
