@@ -15,7 +15,7 @@ AI inference and web search may incur charges even when the database and file ar
 ## Health endpoints
 
 - `GET /api/health` is a public liveness response. It confirms only that the Next.js process can serve a request; it does not check Supabase, Google Drive or AI-provider connectivity.
-- `GET /api/health/ready` requires an `Authorization: Bearer <CRON_SECRET>` header. It returns only `ready` or `not_ready` and checks the presence/shape of the required Supabase, Google Drive encryption/OAuth and AI-provider configuration. It does not return missing variable names or secret values and does not perform live upstream calls.
+- `GET /api/health/ready` requires an `Authorization: Bearer <CRON_SECRET>` header. It returns only `ready` or `not_ready` and checks required Supabase and Google Drive OAuth configuration, canonical Base64 encoding of the 32-byte Drive encryption key, and valid AI-provider configuration for both answer and chapter-note tasks. It does not return missing variable names or secret values and does not perform live upstream calls.
 - Keep the readiness endpoint's bearer secret in the monitoring system's secret store. A 200 response is a configuration check, not proof that credentials are accepted or that dependencies are reachable. Real dependency and authenticated workflow checks belong to the separate non-production acceptance phase.
 
 ## Reliability
