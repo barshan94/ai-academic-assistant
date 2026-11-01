@@ -193,5 +193,7 @@ Google Drive OCR metadata now uses the common 64 KiB bounded JSON parser, enforc
 
 Owner-managed syllabus catalog effective dates now use the same real-calendar-date validation as reference catalogs; impossible dates are rejected and empty optional values remain valid. See ERR-076; regression coverage remains deferred to the testing phase.
 
+Owner-managed syllabus catalogs now also reject an effective end date earlier than the effective start date, matching the cross-field range rule used by syllabus imports. Empty optional boundaries remain supported. See ERR-078; regression coverage remains deferred to the testing phase.
+
 
 Owner and reference syllabus evidence URL validation now rejects embedded URL credentials in addition to requiring HTTPS, preventing deceptive links whose user-info prefix can be mistaken for the destination host. See ERR-077; URL-boundary regression testing remains deferred.
