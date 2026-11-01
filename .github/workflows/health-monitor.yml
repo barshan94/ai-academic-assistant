@@ -25,14 +25,21 @@ jobs:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
           set -Eeuo pipefail
-          if [[ -z "$APP_BASE_URL" || ! "$APP_BASE_URL" =~ ^https://[^/]+$ ]]; then
-            echo "::error::APP_BASE_URL must be an HTTPS origin without a path."
-            exit 1
-          fi
-          if [[ -z "$CRON_SECRET" || ${#CRON_SECRET} -lt 32 ]]; then
-            echo "::error::CRON_SECRET is missing or too short."
-            exit 1
-          fi
+          node --input-type=module <<'NODE'
+          const raw = process.env.APP_BASE_URL;
+          let url;
+          try { url = new URL(raw ?? ""); } catch { url = null; }
+          if (!url || url.protocol !== "https:" || !url.hostname ||
+              url.username || url.password || url.pathname !== "/" ||
+              url.search || url.hash) {
+            console.error("::error::APP_BASE_URL must be a clean HTTPS origin without credentials, path, query or fragment.");
+            process.exit(1);
+          }
+          if ((process.env.CRON_SECRET?.length ?? 0) < 32) {
+            console.error("::error::CRON_SECRET is missing or too short.");
+            process.exit(1);
+          }
+          NODE
 
       - name: Check application readiness and latency
         shell: bash
@@ -46,7 +53,7 @@ jobs:
           trap 'rm -f "$response_file"' EXIT
 
           result="$(curl --silent --show-error \
-            --connect-timeout 10 --max-time 20 \
+            --connect-timeout 10 --max-time 20 --max-filesize 4096 \
             --output "$response_file" --write-out '%{http_code} %{time_total}' \
             --header "Authorization: Bearer ${CRON_SECRET}" \
             "${APP_BASE_URL%/}/api/health/ready")"
