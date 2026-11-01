@@ -58,22 +58,32 @@ A personal academic workspace for Edexcel O/A Level, SSC and HSC tutoring. It ac
 2. Copy .env.example to .env.local.
 3. Configure Supabase URL and publishable key for local auth/database access.
 4. Run npm run dev.
-5. Complete the implementation phase first when requested; run npm run lint, npm run typecheck, npm test and npm run build only during the separately approved testing phase.
+5. For a production-like environment, inject the server variables and run `npm run check:production-env`; the check does not contact external services.
+6. Complete the implementation phase first when requested; run npm run lint, npm run typecheck, npm test and npm run build only during the separately approved testing phase.
 
 Never commit .env.local, service-role keys, OAuth tokens, student personal data or private source documents. Applied Supabase migrations are mirrored in supabase/migrations/.
+
+## Operations and release documentation
+
+- Controlled deployment: `docs/DEPLOYMENT.md`.
+- Production release gate and explicit blockers: `docs/PRODUCTION_READINESS.md`.
+- Monitoring setup and limitations: `docs/OPERATIONS_MONITORING.md`.
+- Incident response: `docs/INCIDENT_RESPONSE.md`.
+- Backup scope and recovery limitations: `docs/BACKUP_RESTORE.md`.
+- Database/API security review: `docs/SECURITY_BOUNDARY_AUDIT.md`.
 
 ## Current status (1 November 2026)
 
 M1–M7 application features are substantially implemented in code on `feature/m3-ai-solver`. Recent implementation work tightened Drive OAuth to the exact `drive.file` scope, added owner-scoped upload-session quotas, bounded provider requests, redacted upstream error details, and added exact source locators to saved mark-scheme references.
 
-Implementation is not the same as release acceptance. The remaining work is tracked in `docs/ROADMAP.md` and `docs/ACCEPTANCE_TESTS.md`:
+Implementation is not the same as release acceptance. Production is not approved: the complete migration chain, including the server-only document-registration ACL migration, remains unapplied; external services are not connected/accepted; backup recovery is incomplete; and security, accessibility and performance acceptance remain pending. The remaining work is tracked in `docs/ROADMAP.md` and `docs/ACCEPTANCE_TESTS.md`:
 
 - **M2:** resumable uploads up to 50 MB, upload quotas of 10 new sessions/hour and 50/day per owner, and a one-job-per-invocation worker are implemented in code. Drive authorization is checked before consuming an upload quota slot, and the session-start API bounds metadata requests to 16 KiB. Live Google OAuth/Drive, resumable interruption recovery, worker scheduling, deployment secrets and two-account isolation still require non-production acceptance.
 - **M3–M4:** live provider generation with explicit cost approval, a manually graded golden question set, independent source/mark-scheme review, and real two-account teacher acceptance remain. Mark-scheme references are owner-supplied evidence, not certified official schemes. AI remains disabled until the owner configures provider credentials.
 - **M5:** four Cambridge/Pearson Edexcel science draft catalogues are seeded for curator review (30 chapters, 170 numbered topic headings, 200 source-evidence locators). They are not verified or visible to ordinary users until a real curator checks and publishes them. Lexical suggestions are not calibrated confidence.
 - **M6:** live AI chapter-note evaluation, independent source-quality review, and browser acceptance of downloads/print layout remain.
 - **M7:** revision, practice, analytics and study planning are implemented in code. Isolated database authorization coverage previously passed 37 study-feature assertions; latest-branch acceptance is still pending.
-- **M8:** local encrypted logical-backup creation (`scripts/backup-supabase.sh`) and archive integrity verification (`scripts/verify-backup.sh`) are implemented, but full Supabase Auth/account recovery and end-to-end restore remain unproven. Public liveness and bearer-protected readiness endpoints are implemented; readiness performs bounded Supabase Data API probes for the core `profiles`, `documents` and `processing_jobs` tables but does not validate every migration or prove Google Drive or AI provider connectivity. A scheduled 15-minute GitHub Actions readiness monitor is implemented on the feature branch; activation requires the workflow on the default branch and `APP_BASE_URL`/`CRON_SECRET` repository secrets (see `docs/OPERATIONS_MONITORING.md`). Dedicated log dashboards/alert thresholds, CSP runtime acceptance, accessibility acceptance, performance and release acceptance remain. Allow-listed privacy-safe operational event logging is implemented; external paging is not configured. A nonce-based CSP, keyboard skip link, visible focus indicators and 44px mobile touch targets are implemented but have not yet been browser-validated. Supabase Free backup limitations are documented; a full account-and-data restore is not claimed.
+- **M8:** local encrypted logical-backup creation (`scripts/backup-supabase.sh`) and archive integrity verification (`scripts/verify-backup.sh`) are implemented. A production environment preflight (`npm run check:production-env`), controlled deployment runbook, release-gate checklist and incident-response runbook are now committed. Full Supabase Auth/account recovery and end-to-end restore remain unproven. Public liveness and bearer-protected readiness endpoints are implemented; readiness performs bounded Supabase Data API probes for the core `profiles`, `documents` and `processing_jobs` tables but does not validate every migration or prove Google Drive or AI provider connectivity. A scheduled 15-minute GitHub Actions readiness monitor is implemented on the feature branch; activation requires the workflow on the default branch and `APP_BASE_URL`/`CRON_SECRET` repository secrets (see `docs/OPERATIONS_MONITORING.md`). Dedicated log dashboards/alert thresholds, CSP runtime acceptance, accessibility acceptance, performance and release acceptance remain. Allow-listed privacy-safe operational event logging is implemented; external paging is not configured. A nonce-based CSP, keyboard skip link, visible focus indicators and 44px mobile touch targets are implemented but have not yet been browser-validated. Supabase Free backup limitations are documented; a full account-and-data restore is not claimed.
 
 The branch's automated workflows may run automatically after commits, but this development phase is focused on implementation, not testing. The authenticated two-account workflow remains separately gated by dedicated non-production credentials. The latest M2 upload/web-research quota and source migrations, M3 mark-scheme/knowledge-provenance migrations, and M7 study-planning migrations are committed on this branch but have not been applied to the hosted development Supabase project. No production merge, hosted Supabase migration or deployment is authorized.
 
