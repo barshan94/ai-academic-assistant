@@ -219,3 +219,6 @@ Stale document-processing recovery hardening (2026-11-01): after a stale process
 
 
 Document-processing failure persistence hardening (2026-11-01): the OCR processing catch handler now verifies that both the owner-scoped parent document and active processing-job rows were actually updated before returning the persisted-failure status. A zero-row document update is treated as an unpersisted failure state. See ERR-090; failure-path regression coverage remains deferred to the separate testing phase.
+
+
+Background document-worker failure persistence hardening (2026-11-01): the cron worker now confirms that the owner-scoped parent document and running processing-job rows both changed to failed before reporting a persisted failure. Missing or concurrently changed parent rows now leave the failure outcome explicitly unpersisted. See ERR-091; worker failure-path regression coverage remains deferred to the testing phase.
