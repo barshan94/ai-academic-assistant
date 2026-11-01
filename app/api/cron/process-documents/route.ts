@@ -135,20 +135,14 @@ export async function GET(request: Request) {
       if (!pages.length) throw new Error("No readable text was detected. The file needs manual review.");
       if (pages.length > 100) throw new Error("The document exceeded the 100-page processing limit.");
 
-      const { data: replacedPageCount, error: replaceError } = await supabase.rpc("replace_document_pages", {
+      const { data: completedPageCount, error: completionError } = await supabase.rpc("complete_document_processing", {
         p_document_id: documentId,
         p_owner_id: ownerId,
+        p_job_id: jobId,
         p_pages: pages,
       });
-      if (replaceError || replacedPageCount !== pages.length) {
-        throw new Error("Could not atomically replace extracted document pages.");
-      }
-      const { data: completedJob, error: completionError } = await supabase.from("processing_jobs").update({
-        status: "completed", stage: "ocr", progress: 100, completed_at: new Date().toISOString(),
-        error_code: null, error_message: null,
-      }).eq("id", jobId).eq("owner_id", ownerId).eq("status", "running").select("id").maybeSingle();
-      if (completionError || !completedJob) {
-        throw new Error("The document was processed but the worker could not finalize its job record.");
+      if (completionError || completedPageCount !== pages.length) {
+        throw new Error("Could not atomically complete document page replacement and the processing job.");
       }
       return Response.json({ processed: true, job_id: jobId, page_count: pages.length });
     } catch {
