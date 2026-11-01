@@ -122,6 +122,7 @@ Do not test restore against production or the current shared project.
    chmod 600 "$AUTH_USERS_BACKUP_FILE"
    export RESTORE_TARGET_PROJECT_REF="TARGET_PROJECT_REF"
    export SUPABASE_URL="https://${RESTORE_TARGET_PROJECT_REF}.supabase.co"
+   export RESTORE_PASSWORD_HASH_ALGORITHM="bcrypt" # Use bcrypt or argon2 only after confirming the target Auth project uses the same algorithm as the source.
    export SUPABASE_SERVICE_ROLE_KEY
    node scripts/restore-auth-users.mjs "$AUTH_USERS_BACKUP_FILE"
    rm -f "$AUTH_USERS_BACKUP_FILE"
