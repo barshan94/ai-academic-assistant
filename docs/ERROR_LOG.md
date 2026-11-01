@@ -1474,3 +1474,14 @@ ERR-124 compatibility investigation (2026-11-01): the existing lockfile already 
 - Fix: Set `redirect: "error"` for AI completion, Brave search, Google OAuth token exchange/revocation, Drive metadata/upload/download/export, worker token-refresh and Supabase service-role requests. The protected readiness probes also reject redirects. The Drive resumable upload chunk request retains `redirect: "manual"` because its protocol requires the caller to inspect the response status and Google-confirmed offset; the session URL is separately restricted to the exact Google upload host and path. Added regression coverage for AI, Brave and service-role transport options.
 - Verification: Source review only. Regression tests are authored but not executed; Google/AI/Brave live provider behavior remains deferred to the testing phase.
 - Status: Implemented on `feature/m3-ai-solver`; no provider credentials were used and no external requests were made.
+
+
+## ERR-136 — Document worker bypassed hardened service-role transport
+
+- Date: 2026-11-01
+- Area: M2 background document processing / Supabase service-role transport
+- Symptom: The scheduled document worker constructed its own Supabase service-role client directly. That bypassed the shared client transport added for ERR-135, so worker database requests did not explicitly reject redirects.
+- Root cause: The service-role client hardening was applied to the shared factory and upload route, but the worker retained an older inline client construction.
+- Fix: Replaced the worker's direct Supabase client construction with `createSupabaseServiceRoleClient()`, preserving the existing early 503 response when required credentials are absent. All worker service-role Data API and RPC calls now use the shared redirect-rejecting transport.
+- Verification: Source review only. No tests, typecheck, build, lint, audit, CI or live worker invocation was run. Regression test execution and runtime acceptance remain deferred to the testing phase.
+- Status: Source fix committed to `feature/m3-ai-solver`.
