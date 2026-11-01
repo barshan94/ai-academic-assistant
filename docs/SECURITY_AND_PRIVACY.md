@@ -49,6 +49,10 @@ Use .env.local for local secrets and keep it ignored by Git. Commit only placeho
 
 The current application publishes `/privacy`, linked from the landing page and sign-in screen. It explains the current Supabase, Google Drive, optional AI and web-research data flows, authentication/time-zone cookies, retention limitations and the absence of a complete self-service account/data deletion workflow. This is an implementation disclosure, not legal approval. Before inviting additional users, review it against the final deployed provider configuration and retention settings, add a responsible contact channel, and complete applicable legal/accessibility review.
 
+## Search indexing and private routes
+
+The app publishes crawler rules that disallow `/dashboard/`, `/api/` and `/login`, while allowing the public landing page and privacy notice. Middleware also emits `X-Robots-Tag: noindex, nofollow, noarchive` for dashboard, API and sign-in responses, including authentication redirects. These directives are defense-in-depth only: robots rules are public and are not access controls. Authentication and row-level authorization remain the confidentiality boundary. Already indexed URLs may remain visible until search engines recrawl or are explicitly asked to remove them.
+
 ## Public repository warning
 Anyone can read source code and documentation. Public visibility does not expose secrets that were never committed, but any secret committed historically must be rotated immediately even if later deleted from Git history.
 
