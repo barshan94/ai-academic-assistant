@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  isCompatibleExistingAccount,
   passwordHashAlgorithm,
   readJsonResponse,
   remainingBanDuration,
@@ -114,6 +115,49 @@ describe("Auth account backup validation", () => {
       users: [baseUser, { ...baseUser, email: "different@example.com" }],
     })).toThrow("duplicate");
   });
+
+describe("Auth restore idempotency checks", () => {
+  const existingUser = {
+    id: baseUser.id,
+    aud: baseUser.aud,
+    role: baseUser.role,
+    email: baseUser.email,
+    email_confirmed_at: "2026-01-01T00:00:00.000Z",
+    phone: null,
+    phone_confirmed_at: null,
+    user_metadata: {},
+    app_metadata: { provider: "email", providers: ["email"] },
+    is_anonymous: false,
+    is_sso_user: false,
+    banned_until: null,
+  };
+
+  it("accepts an account restored from the same backup", () => {
+    expect(isCompatibleExistingAccount(existingUser, baseUser)).toBe(true);
+  });
+
+  it("rejects matching UUID/email when the restorable account state differs", () => {
+    expect(isCompatibleExistingAccount({ ...existingUser, aud: "public" }, baseUser)).toBe(false);
+    expect(isCompatibleExistingAccount({ ...existingUser, role: "service_role" }, baseUser)).toBe(false);
+    expect(isCompatibleExistingAccount({ ...existingUser, email_confirmed_at: null }, baseUser)).toBe(false);
+    expect(isCompatibleExistingAccount({
+      ...existingUser,
+      user_metadata: { display_name: "different" },
+    }, baseUser)).toBe(false);
+    expect(isCompatibleExistingAccount({
+      ...existingUser,
+      app_metadata: { provider: "email", providers: ["email"], role: "admin" },
+    }, baseUser)).toBe(false);
+    expect(isCompatibleExistingAccount({ ...existingUser, phone: "+15555550100" }, baseUser)).toBe(false);
+    expect(isCompatibleExistingAccount({ ...existingUser, is_sso_user: true }, baseUser)).toBe(false);
+  });
+
+  it("does not require password-hash comparison from the Auth Admin response", () => {
+    // Supabase Auth Admin does not expose the stored password hash in get-user responses.
+    // Original-password sign-in remains a mandatory end-to-end restore-drill check.
+    expect(isCompatibleExistingAccount(existingUser, baseUser)).toBe(true);
+  });
+});
 
 describe("bounded Auth API response reader", () => {
   it("parses a small JSON response", async () => {
