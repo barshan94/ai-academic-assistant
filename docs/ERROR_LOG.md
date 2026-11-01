@@ -560,3 +560,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Added `scripts/backup-supabase.sh`. It exports roles, schema and application data, validates non-empty outputs, records a non-secret manifest, creates SHA-256 checksums, encrypts the archive to an age public recipient, restricts output permissions, rejects backup destinations inside the repository, and removes incomplete archives and temporary working files on exit. Updated the runbook with setup and invocation instructions, plus the local process-argument and SSD deletion limitations.
 - Verification: Implementation-only source and documentation review. The helper was not executed; no database connection, age key, backup archive or restore was exercised.
 - Status: Repeatable encrypted logical-export implementation added. Supabase Auth identity restoration, Storage objects, project settings and a verified end-to-end restore remain unresolved; this is not a full disaster-recovery solution.
+
+
+## ERR-052 — Encrypted backup archives had no repository-owned integrity verification helper
+
+- Date: 2026-11-01
+- Area: M8 backup operations / archive integrity
+- Symptom: The backup helper generated encrypted archives and checksums, but the runbook had no repeatable way to decrypt a candidate archive and validate its expected contents before off-site retention.
+- Root cause: Backup creation was automated before archive verification was packaged.
+- Fix: Added `scripts/verify-backup.sh`. It decrypts using a separately stored age identity, rejects unexpected archive entry names/order, checks required files and verifies SHA-256 checksums in a private temporary directory. The runbook now documents the integrity-verification command and clearly distinguishes it from a database restore.
+- Verification: Implementation-only source review. The verifier was not run and no archive or private key was created.
+- Status: Archive integrity verification implementation added; restore rehearsal and full disaster-recovery acceptance remain outstanding.
