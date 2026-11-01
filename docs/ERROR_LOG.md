@@ -1461,6 +1461,6 @@ ERR-124 compatibility investigation (2026-11-01): the existing lockfile already 
 - Area: M8 scheduled operational monitor
 - Symptom: The workflow's regular-expression check for `APP_BASE_URL` could accept malformed origin-like strings containing URL components that are not valid for an application origin. The curl response was time-limited but did not have an explicit maximum response size.
 - Root cause: Configuration validation checked only a string prefix/pattern, and the HTTP client relied on the readiness endpoint remaining small.
-- Fix: Validate `APP_BASE_URL` with Node's URL parser and require HTTPS, a hostname, no embedded credentials, root path only, and no query or fragment. Bound the readiness response body to 4 KiB with curl's maximum-file-size option. The workflow still avoids printing response bodies or secrets.
+- Fix: Validate `APP_BASE_URL` with Node's URL parser and require HTTPS, a hostname, no embedded credentials, root path only, and no query or fragment. Replaced curl body buffering with a Node fetch stream reader that aborts after 4 KiB, rejects redirects, and checks the generic JSON readiness status without printing response content. The workflow still avoids printing response bodies or secrets.
 - Verification: Workflow source review only. GitHub Actions execution remains deferred to the testing/operational acceptance phase.
 - Status: Implemented on `feature/m3-ai-solver`; scheduled monitor activation still requires deployment and owner-configured repository secrets.
