@@ -4,7 +4,7 @@
 
 The scheduled GitHub Actions workflow at `.github/workflows/health-monitor.yml` runs every 15 minutes and can also be started manually. It calls the protected `/api/health/ready` route.
 
-The route checks required application configuration and performs a bounded Supabase Data API query. The workflow fails if the endpoint is unreachable, returns a non-200 status, or does not return the generic `ready` status.
+The route checks required application configuration and performs bounded, parallel Supabase Data API probes against `profiles`, `documents` and `processing_jobs`. This catches a reachable database whose core application schema is missing. It does not prove every migration or every feature table is present. The workflow fails if the endpoint is unreachable, returns a non-200 status, or does not return the generic `ready` status.
 
 This monitor does **not** prove Google Drive OAuth, file upload/OCR, AI inference, background-job completion, or end-user authentication. It does not collect application logs, measure latency trends, or page an on-call engineer.
 
