@@ -47,6 +47,8 @@ export async function POST(request: NextRequest) {
     if (duplicateError) return NextResponse.json({ error: "Could not check for duplicate documents." }, { status: 500 });
     if (duplicate) return NextResponse.json({ duplicate: true }, { status: 409 });
 
+    const accessToken = await getDriveAccessToken();
+
     const { data: uploadAllowed, error: quotaError } = await supabase.rpc("consume_document_upload_quota");
     if (quotaError) {
       logSafeOperationalEvent("document_upload_quota_unavailable", { route: "/api/documents/upload/resumable/start", errorCode: "UPLOAD_QUOTA_RPC_FAILED" });
@@ -57,7 +59,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Upload limit reached: no more than 10 new documents per hour or 50 per day. Try again later." }, { status: 429 });
     }
 
-    const accessToken = await getDriveAccessToken();
     const sessionUri = await initiateResumablePdfUpload({ accessToken, fileName, fileSizeBytes });
     const sessionToken = encryptDriveUploadSession(JSON.stringify({
       ownerId: user.id,
