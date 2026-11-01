@@ -1607,3 +1607,13 @@ ERR-073 closure reconciliation (2026-11-01): the earlier note that page and pare
 - Verification: Workflow change committed; CI execution is pending. A passing fixture check will establish only that the validator accepts the documented configuration shape, not that any provider is reachable or correctly configured.
 - Status: Implementation committed to `feature/m3-ai-solver`; CI verification pending.
 
+
+
+## ERR-148 — Multi-provider fallback had no total request-time budget
+- Date: 2026-11-01
+- Area: M3 AI provider routing / serverless reliability and cost control
+- Symptom: A configured pool may contain up to eight providers, and each request previously had an independent 45-second timeout. With fallback enabled, one user action could therefore occupy a server request for several minutes while sequentially contacting providers.
+- Root cause: Per-provider timeouts existed, but the router did not enforce an overall deadline or reduce the timeout for later fallback attempts.
+- Fix: Added a 60-second total routing deadline and a maximum 20-second timeout for each provider attempt. The router stops when the shared budget expires; the existing opt-in fallback policy and retryable-error classification remain unchanged. Direct single-provider calls retain their 45-second default timeout.
+- Verification: Added a regression test with an eight-provider pool and a simulated clock; it expects routing to stop after three 20-second attempts. The test, lint, typecheck and build have not been run in this implementation phase.
+- Status: Implemented on `feature/m3-ai-solver`; automated and serverless-runtime verification pending.
