@@ -39,6 +39,7 @@ function parseFormula(formula: string): Record<string, number> {
       const char = formula[index];
       if (char === ")") {
         if (!nested) throw new FormulaParseError("Unexpected closing parenthesis.");
+        if (!found) throw new FormulaParseError("Chemical formula group contains no elements.");
         index += 1;
         return counts;
       }
