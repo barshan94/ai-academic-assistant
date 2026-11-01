@@ -3,7 +3,7 @@
 ## Foundation (M1)
 - [ ] Fresh install succeeds from documented steps.
 - [ ] Development server starts.
-- [x] Latest feature-branch CI on `443db3ed22bdb3c2086d1ba476b82a33eb870885`: lint, application/Playwright type checks, unit tests (including worker/provider redaction and middleware auth-refresh regressions), production build and Chromium browser smoke tests all passed (Foundation run `41312165056`). The complete ordered migration chain and pgTAP suite also passed on a fresh isolated local Supabase database (Database run `41312165137`); secret scanning passed in `41312165107`. Authenticated two-account Supabase acceptance remains separate and requires dedicated non-production credentials.
+- [x] Latest feature-branch CI on `d0c9ab16bbb0f1f4767448ebc1fd76d039c8589d`: lint, all TypeScript checks, 34 Vitest files / 176 unit tests, production build and Chromium browser smoke tests all passed (Foundation run `41314360350`). The complete ordered migration chain and pgTAP suite passed on a fresh isolated local Supabase database with 220 assertions across 10 SQL files (Database run `41314360274`); secret scanning passed in `41314360198`. Authenticated two-account Supabase acceptance remains separate and requires dedicated non-production credentials.
 - [x] Protected routes redirect to login when authentication is not configured (Chromium smoke test).
 - [x] Baseline browser security response headers are configured; nonce-based CSP is now enforced by middleware on pages and API routes.
 - [ ] Browser acceptance confirms Next.js nonce propagation, auth refresh, Google OAuth navigation and configured provider connections work without unexpected CSP violations.
@@ -194,41 +194,42 @@
 
 
 ## Private response caching
-- [x] Credential-free Chromium smoke test confirms an unauthenticated dashboard redirect and cross-site API 403 response retain `Cache-Control: private, no-store` and `X-Robots-Tag: noindex` (Foundation run `41311258777`, commit `a4846778d5e3364d879296e5467eb5e150a6e06b`).
+- [x] Credential-free Chromium smoke test confirms an unauthenticated dashboard redirect and cross-site API 403 response retain `Cache-Control: private, no-store` and `X-Robots-Tag: noindex` (Foundation run `41314360350`, commit `d0c9ab16bbb0f1f4767448ebc1fd76d039c8589d`).
 - [ ] Verify the same policy on every authenticated API success/error path and after live account switching in the deployed non-production environment.
 - [ ] Confirm no private academic response is reused after sign-out, account switching, back/forward navigation or browser cache restoration.
 
 
 ## Document worker queue fairness
 
-- [x] Isolated pgTAP regression proves ten older exhausted failed jobs cannot occupy the worker's candidate limit or starve queued/retryable jobs; stale running jobs remain eligible and fresh running jobs remain excluded (ERR-156; CI run `41314356739`, commit `d0c9ab16`).
+- [x] Isolated pgTAP regression proves ten older exhausted failed jobs cannot occupy the worker's candidate limit or starve queued/retryable jobs; stale running jobs remain eligible and fresh running jobs remain excluded (ERR-156; CI run `41314360274`, commit `d0c9ab16bbb0f1f4767448ebc1fd76d039c8589d`).
 - [ ] Live non-production scheduler acceptance proves a full page of exhausted jobs does not prevent a later queued job from being processed.
 
 ## Middleware response-policy preservation (ERR-121)
 - [x] Add isolated unit regression tests for copying cache, CSP and crawler policy headers without copying unrelated headers (`lib/http/response-policy-headers.test.ts`).
-- [x] Simulated Supabase `setAll` auth-cookie refresh on a dashboard request retains CSP, `Cache-Control: private, no-store` and `X-Robots-Tag: noindex, nofollow, noarchive` (`tests/middleware-auth-refresh.test.ts`; Foundation run `41312165056`).
+- [x] Simulated Supabase `setAll` auth-cookie refresh on a dashboard request retains CSP, `Cache-Control: private, no-store` and `X-Robots-Tag: noindex, nofollow, noarchive` (`tests/middleware-auth-refresh.test.ts`; Foundation run `41314360350`).
 - [x] Simulated expired-session redirect preserves the applicable response policy headers and refreshed cookie (`tests/middleware-auth-refresh.test.ts`; same run).
 - [x] Verify refreshed cookie `HttpOnly`/`Secure` options and updated downstream request cookie header are retained in the middleware refresh path (same run). Live Supabase refresh remains a separate integration check.
 
 
 ## Bounded upstream HTTP response reader (ERR-122)
-- [ ] Confirm numeric Content-Length headers are accepted and the response body is read.
-- [ ] Confirm malformed and oversized Content-Length headers are rejected before body consumption.
-- [ ] Confirm responses without Content-Length remain bounded by streamed byte counting.
+- [x] Unit test confirms numeric Content-Length headers are accepted and the response body is read (Foundation run `41314360350`).
+- [x] Unit test confirms malformed and oversized Content-Length headers are rejected before body consumption (same run).
+- [x] Unit test confirms responses without Content-Length remain bounded by streamed byte counting (same run).
 - [ ] Exercise Google OAuth/Drive and AI provider response paths with representative Content-Length headers.
 
 
 ## Database registration page-count invariant (ERR-123)
-- [x] Apply the committed forward-only migration `20261101140000_tighten_uploaded_document_page_count.sql` in the fresh isolated CI database; pgTAP confirms the registration RPC rejects non-null page counts 0, 51 and 100 (Database run `41309812359`, commit `1436fad6e78bd2026883c09fab75262bd4f36cfc`).
+- [x] Apply the committed forward-only migration `20261101140000_tighten_uploaded_document_page_count.sql` in the fresh isolated CI database; pgTAP confirms the registration RPC rejects non-null page counts 0, 51 and 100 (Database run `41314360274`, commit `d0c9ab16bbb0f1f4767448ebc1fd76d039c8589d`).
 - [x] Confirm the registration RPC accepts page counts 1 and 50, and preserves null for a document whose page count is not yet known (same isolated pgTAP run).
 - [x] Confirm owner checks, duplicate/idempotency handling, document registration, processing-job creation and service_role-only execute grants are covered by the isolated atomic document workflow pgTAP suite (same run).
 - [x] Confirm authenticated and anon roles cannot execute the RPC directly (same run). Hosted-project behavior remains unverified.
 
-- [x] ERR-125: unit tests verify encrypted Drive secrets round-trip and reject non-canonical Base64 keys, extra serialized segments, malformed/non-canonical segments, invalid IV/tag lengths, empty values and values over configured size limits (Foundation CI `41309812309`, commit `1436fad6e78bd2026883c09fab75262bd4f36cfc`). Live stored-token compatibility remains open.
+- [x] ERR-125: unit tests verify encrypted Drive secrets round-trip and reject non-canonical Base64 keys, extra serialized segments, malformed/non-canonical segments, invalid IV/tag lengths, empty values and values over configured size limits (Foundation CI `41314360350`, commit `d0c9ab16bbb0f1f4767448ebc1fd76d039c8589d`). Live stored-token compatibility remains open.
 - [x] ERR-126: unit tests verify unsafe integer totals are rejected while valid 1 MB-aligned chunks and final short chunks are accepted (Foundation CI `41309812309`, commit `1436fad6e78bd2026883c09fab75262bd4f36cfc`). Live Drive upload acceptance remains open.
 - [x] ERR-127: unit tests verify empty nested formula groups such as `H()2` are uncheckable while valid nested groups and state symbols remain supported (Foundation CI `41309812309`, commit `1436fad6e78bd2026883c09fab75262bd4f36cfc`).
 - [x] ERR-128: unit tests verify unknown element symbols are uncheckable (Foundation CI `41309812309`, commit `1436fad6e78bd2026883c09fab75262bd4f36cfc`).
 
+- [x] Backup helper regression tests verify the Auth export uses psql script mode (`-f`), validates every exported Auth record before archive creation, and normalizes empty phone values to null (Foundation run `41314360350`). This is source-level coverage only; live export and restore remain unverified.
 - [ ] Auth recovery: export active email/password Auth users into the encrypted archive; verify the export contains original UUIDs and supported password hashes but no sessions or plaintext passwords.
 - [ ] Auth recovery: restore into a different isolated project; verify source-project target refusal, original UUID preservation, existing-password sign-in, confirmation state and safe idempotent resume after an interrupted import.
 - [ ] Auth recovery: verify unsupported phone-based, MFA, SSO, anonymous and external-identity accounts are rejected before any account is created; verify logs never contain email addresses, password hashes or service-role credentials.

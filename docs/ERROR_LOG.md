@@ -1319,7 +1319,7 @@ This file records material implementation, CI, integration and release problems 
 - Symptom: When Supabase refreshed authentication cookies during the dashboard middleware request, the cookie callback rebuilt the NextResponse. The replacement response could lose headers assigned before authentication, including the private no-store cache policy and no-index crawler directive.
 - Root cause: The response-recreation path copied the CSP by construction but did not carry forward the other response policy headers already applied to the original response.
 - Fix: Added one shared response-policy header copier and invoke it whenever the middleware rebuilds its response for refreshed auth cookies. Redirect handling uses the same helper, keeping cache, CSP and crawler policy handling consistent.
-- Verification: `lib/http/response-policy-headers.test.ts` and `tests/middleware-auth-refresh.test.ts` passed in Foundation run `41312165056` on commit `443db3ed22bdb3c2086d1ba476b82a33eb870885`. The middleware test simulates Supabase `setAll` on authenticated and expired-session paths and verifies CSP/cache/crawler headers, refreshed cookie attributes, and the updated downstream request cookie. A real Supabase session refresh remains an integration check.
+- Verification: `lib/http/response-policy-headers.test.ts` and `tests/middleware-auth-refresh.test.ts` passed in Foundation run `41314360350` on commit `d0c9ab16bbb0f1f4767448ebc1fd76d039c8589d`. The middleware test simulates Supabase `setAll` on authenticated and expired-session paths and verifies security/cache/crawler headers cannot be overridden, refreshed cookie attributes, and the updated downstream request cookie. A real Supabase session refresh remains an integration check.
 - Status: Unit and middleware-simulation regressions verified; live Supabase refresh acceptance remains open.
 
 
@@ -1330,7 +1330,7 @@ This file records material implementation, CI, integration and release problems 
 - Symptom: Responses carrying an ordinary numeric `Content-Length` header were rejected as invalid before their bodies could be read. This affected bounded response handling for upstream Google and AI HTTP calls.
 - Root cause: The decimal-digit regular expression was double-escaped in a regular-expression literal, so it matched a literal backslash followed by `d` rather than one or more digits.
 - Fix: Corrected the expression to accept decimal digits while retaining the existing invalid-length and maximum-byte checks. Added focused regression coverage for numeric, malformed, oversized and absent content-length headers.
-- Verification: `tests/read-limited-response.test.ts` passed in Foundation run `41312165056` on commit `443db3ed22bdb3c2086d1ba476b82a33eb870885`, alongside the complete unit suite and production build. Live upstream Google/AI response behavior remains a separate integration check.
+- Verification: `tests/read-limited-response.test.ts` passed in Foundation run `41314360350` on commit `d0c9ab16bbb0f1f4767448ebc1fd76d039c8589d`, alongside all 176 unit tests and the production build. Live upstream Google/AI response behavior remains a separate integration check.
 - Status: Unit regression coverage verified; live provider integration remains open.
 
 
@@ -1690,7 +1690,7 @@ ERR-073 closure reconciliation (2026-11-01): the earlier note that page and pare
 - Symptom: The worker correctly persisted a failed job and returned a JSON payload with `failed: true`, but used HTTP 200. The GitHub Actions scheduler therefore treated an OCR/provider/database processing failure as a successful invocation.
 - Root cause: The route conflated successful handling/persistence of a failure with successful document processing.
 - Fix: After `fail_document_processing` confirms that the failed state was persisted, the route now returns HTTP 500 with a sanitized error payload. The durable job remains eligible for a later scheduled retry within its attempt budget; no sensitive upstream error is returned.
-- Verification: The sanitized HTTP 500 response helper and redaction regression tests passed in Foundation run `41312165056` on commit `443db3ed22bdb3c2086d1ba476b82a33eb870885`; lint, type-check, unit tests, production build and Chromium smoke tests all passed. Live non-production worker acceptance must still confirm that GitHub Actions marks a persisted processing failure as failed and that a later invocation retries within the attempt budget.
+- Verification: The sanitized HTTP 500 response helper and redaction regression tests passed in Foundation run `41314360350` on commit `d0c9ab16bbb0f1f4767448ebc1fd76d039c8589d`; lint, type-check, 176 unit tests, production build and Chromium smoke tests all passed. Live non-production worker acceptance must still confirm that GitHub Actions marks a persisted processing failure as failed and that a later invocation retries within the attempt budget.
 - Status: Source fix and automated regressions verified; live worker acceptance remains open.
 
 
@@ -1700,5 +1700,25 @@ ERR-073 closure reconciliation (2026-11-01): the earlier note that page and pare
 - Symptom: The worker selected the oldest queued, failed and stale-running jobs before checking retry eligibility in application code. Ten or more old failed jobs that had already exhausted their retry budgets could occupy the entire candidate page, causing every scheduled invocation to skip them and never reach newer queued or retryable work.
 - Root cause: Candidate filtering happened after the database query's fixed limit, so terminal failed jobs consumed the worker's limited candidate slots.
 - Fix: Added a service-role-only list_claimable_document_jobs RPC. It filters failed jobs against their per-row attempt_count < max_attempts before applying the limit, while retaining stale running jobs for terminalization and excluding fresh running jobs. The worker now obtains candidates through this RPC.
-- Verification: Passed on commit `d0c9ab16bbb0f1f4767448ebc1fd76d039c8589d`: isolated migration/pgTAP run `41314356739` passed all 220 assertions across 10 SQL files; Foundation run `41314356766` passed lint, all TypeScript checks, 176 unit tests across 34 files, production build, and Chromium smoke tests (10 passed, 1 skipped). The new queue regression includes ten older exhausted failed jobs ahead of retryable/queued work, plus stale and fresh running jobs.
+- Verification: Passed on commit `d0c9ab16bbb0f1f4767448ebc1fd76d039c8589d`: isolated migration/pgTAP run `41314360274` passed all 220 assertions across 10 SQL files; Foundation run `41314360350` passed lint, all TypeScript checks, 176 unit tests across 34 files, production build, and Chromium smoke tests (10 passed, 1 skipped). The new queue regression includes ten older exhausted failed jobs ahead of retryable/queued work, plus stale and fresh running jobs.
 - Status: Code-level regression implementation and isolated CI acceptance passed. Live worker scheduling, hosted migration acceptance and deployment remain open.
+
+
+## ERR-157 — Auth account backup export did not substitute the source project reference
+- Date: 2026-11-01
+- Area: Backup / Supabase Auth account export
+- Symptom: The backup helper passed an SQL statement containing the psql variable `:'backup_project_ref'` through `psql -c`. Psql does not perform its script-variable substitution in a `-c` command string, so the Auth JSON export could fail before producing a valid archive.
+- Root cause: The helper used psql command-string mode for a query that relies on psql-specific variable interpolation.
+- Fix: Write the query to a private temporary SQL file and execute it with `psql -f` plus the source project reference variable. Normalize empty phone strings to null for the email-only restore contract, validate the complete Auth export with the existing importer validator before creating an encrypted archive, and require execution from the repository root so the validator import resolves reliably.
+- Verification: Unit regressions verify Bash syntax on Unix-like runners, `psql -f` rather than `-c`, pre-archive Auth validation and empty-phone normalization. Foundation run `41314360350` passed all 176 unit tests. No live Supabase Auth export or encrypted backup was executed.
+- Status: Source-level and CI regression verified; live backup/export and isolated restore drill remain open.
+
+
+## ERR-158 — Supabase auth refresh headers could override application security headers
+- Date: 2026-11-01
+- Area: Middleware / security response policy
+- Symptom: The Supabase SSR cookie-refresh callback applied every returned header to the replacement response. A returned `Cache-Control`, CSP, crawler or other security header could weaken the policy established by application middleware and `next.config.ts`.
+- Root cause: The callback treated Supabase transport headers as trusted application response policy.
+- Fix: Added a case-insensitive protected-header allow-list covering cache, CSP, crawler, HSTS, frame, content-type, referrer, permissions and DNS-prefetch policy. Only non-protected Supabase transport headers are copied during auth refresh.
+- Verification: Unit tests verify the protected-header classifier case-insensitively, and the middleware auth-refresh test injects hostile cache/CSP/robots values and confirms application policy wins. Foundation run `41314360350` passed all 176 unit tests and production build.
+- Status: Automated middleware regressions verified; live Supabase auth-refresh acceptance remains open.
