@@ -95,6 +95,11 @@ export async function middleware(request: NextRequest) {
   if (pathname.startsWith("/dashboard") || pathname.startsWith("/api/") || pathname === "/login") {
     response.headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
   }
+  // Workspace and API responses can contain private academic or account data.
+  // Apply no-store before auth branching so redirects and error paths inherit it.
+  if (pathname.startsWith("/dashboard") || pathname.startsWith("/api/")) {
+    response.headers.set("Cache-Control", "private, no-store");
+  }
 
   // Public pages and API routes receive the same response policy. Only the
   // dashboard path performs the authentication gate below.
