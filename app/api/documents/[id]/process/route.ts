@@ -68,19 +68,30 @@ export async function POST(request: NextRequest, context: RouteContext) {
     })) return redirectToDocument(request, id, "reprocess_blocked");
   }
 
-  if (job.status === "running") {
-    if (!isProcessingJobStale(job.started_at)) return redirectToDocument(request, id, "already_processing");
-    const { data: recovered, error: recoveryError } = await supabase.rpc("recover_stale_document_processing_job", {
-      p_document_id: id,
-      p_owner_id: user.id,
-      p_job_id: job.id,
-      p_expected_started_at: job.started_at,
-    });
-    if (recoveryError || recovered !== true) return redirectToDocument(request, id, "already_processing");
+  const staleRunningJob = job.status === "running" && isProcessingJobStale(job.started_at);
+  if (job.status === "running" && !staleRunningJob) {
+    return redirectToDocument(request, id, "already_processing");
   }
-  if (job.attempt_count >= job.max_attempts) return redirectToDocument(request, id, "retry_limit");
 
-  const expectedStatus = job.status === "running" ? "failed" : job.status;
+  if (job.attempt_count >= job.max_attempts) {
+    // A crashed final attempt must not leave the parent document stuck in
+    // processing. Recover the exact stale lease and fail both rows atomically.
+    if (staleRunningJob) {
+      const { data: recovered, error: recoveryError } = await supabase.rpc("recover_stale_document_processing_job", {
+        p_document_id: id,
+        p_owner_id: user.id,
+        p_job_id: job.id,
+        p_expected_started_at: job.started_at,
+      });
+      if (recoveryError || recovered !== true) return redirectToDocument(request, id, "recovery_failed");
+    }
+    return redirectToDocument(request, id, "retry_limit");
+  }
+
+  // For a stale job with retry budget remaining, the claim RPC itself performs
+  // stale-lease validation, increments the attempt and moves the document back
+  // to processing in one transaction. Avoid a recover-then-claim gap.
+  const expectedStatus = job.status;
   const { data: claimed, error: claimError } = await supabase.rpc("claim_document_processing_job", {
     p_document_id: id,
     p_owner_id: user.id,
