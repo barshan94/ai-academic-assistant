@@ -47,7 +47,7 @@ The owner selected infrastructure constraint remains Supabase Free only. No paid
 - [ ] Reconcile migration-history drift (ERR-007) using the exact ledger comparison and schema-first procedure in `docs/MIGRATION_RECONCILIATION.md`; do not blindly push or repair the ledger.
 - [x] Apply the complete ordered repository migration chain to a fresh isolated local Supabase database in CI; all migrations completed successfully.
 - [ ] Repeat against a dedicated non-production hosted project after migration-history reconciliation and explicit target approval.
-- [ ] Apply `20261101130000_restrict_document_registration_rpc.sql`; confirm authenticated/anon cannot execute the registration RPC and service_role can.
+- [ ] After full migration reconciliation and explicit target approval, apply `20261101130000_restrict_document_registration_rpc.sql`; confirm authenticated/anon cannot execute the registration RPC and service_role can. The fresh connected-schema spot-check found no registration RPC in public/private.
 - [x] Commit the forward-only ERR-123 migration `20261101140000_tighten_uploaded_document_page_count.sql`, tightening `register_uploaded_document` page_count from 0–100 to 1–50. Applying it and confirming locking, idempotency, document/job atomicity and effective execute grants remain testing-phase tasks.
 - [ ] Inspect effective execute grants for every exposed function, including SECURITY DEFINER functions and trigger functions.
 - [ ] Inspect RLS on every exposed-schema table and all table/view grants; check views for security-invoker behavior where required.
