@@ -23,7 +23,7 @@ Tested commit: `d0c9ab16bbb0f1f4767448ebc1fd76d039c8589d` on `feature/m3-ai-solv
 - Application TypeScript, Playwright configuration TypeScript and authenticated-E2E TypeScript: passed.
 - Unit tests: **176 passed across 34 files**.
 - Production build: passed.
-- Production dependency audit (`npm audit --omit=dev`): zero production vulnerabilities; full development dependency advisory ERR-124 remains open (npm install reports 13 moderate development-tree advisories).
+- Production dependency audit (`npm audit --omit=dev`): zero production vulnerabilities; full dev-inclusive dependency finding ERR-124 remains open (npm install reports 13 moderate findings in the full tree).
 - Fresh isolated local Supabase migration application: passed.
 - Database authorization suite: **220 pgTAP assertions passed across 10 SQL files**, including ERR-156 worker queue starvation regression.
 - Chromium browser smoke tests: **10 passed, 1 skipped**. The skipped authenticated two-account test requires dedicated non-production credentials.
