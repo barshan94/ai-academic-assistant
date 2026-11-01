@@ -231,3 +231,6 @@ Owner syllabus date validation correction (2026-11-01): fixed an over-escaped re
 
 
 Owner syllabus lifecycle correction (2026-11-01): chapter and topic creation now require a draft catalog; verified and retired owner catalogs are locked against taxonomy additions through these actions. See ERR-094. The checks are application-level read-then-write guards only; database-level lifecycle enforcement remains required to prevent concurrent bypass.
+
+
+Health readiness authorization correction (2026-11-01): corrected an over-escaped whitespace token in the Bearer-header parser. The readiness endpoint can now extract a correctly formatted bearer credential before performing its constant-time secret comparison. See ERR-095; authorization boundary regression tests remain deferred to the dedicated testing phase.
