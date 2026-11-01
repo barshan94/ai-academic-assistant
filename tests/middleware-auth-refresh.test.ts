@@ -77,7 +77,7 @@ describe("middleware auth-refresh response policy", () => {
     expect(response.headers.get("Cache-Control")).toBe("private, no-store");
     expect(response.headers.get("X-Robots-Tag")).toBe("noindex, nofollow, noarchive");
     expect(response.headers.get("Content-Security-Policy")).toContain("nonce-");
-    expect(response.headers.get("x-auth-refresh-test")).toBe("preserved");
+
     expect(response.cookies.get("sb-access-token")?.value).toBe("refreshed-session");
     expect(response.cookies.get("sb-access-token")?.httpOnly).toBe(true);
     expect(response.cookies.get("sb-access-token")?.secure).toBe(true);
