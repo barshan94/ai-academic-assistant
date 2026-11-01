@@ -93,7 +93,7 @@ async function readJsonResponse(response) {
     reader.releaseLock();
   }
   try {
-    return chunks.length ? JSON.parse(Buffer.concat(chunks).toString("utf8")) : null;
+    return chunks.length ? JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(Buffer.concat(chunks))) : null;
   } catch {
     throw new Error("Auth API returned invalid JSON.");
   }
@@ -166,6 +166,7 @@ async function main() {
       await existingResponse.body?.cancel().catch(() => {});
       throw new Error(`Auth Admin API account lookup failed with HTTP ${existingResponse.status}.`);
     }
+    await existingResponse.body?.cancel().catch(() => {});
 
     const payload = {
       id: user.id,
