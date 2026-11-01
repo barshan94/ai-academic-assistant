@@ -108,21 +108,14 @@ select throws_ok(
 );
 
 reset role;
-set local role authenticated;
-select throws_ok(
-  $$select * from public.list_claimable_document_jobs(now(), 10)$$,
-  '42501',
-  'A trusted worker role is required',
-  'authenticated users cannot enumerate worker queue candidates'
+select ok(
+  not has_function_privilege('authenticated', 'public.list_claimable_document_jobs(timestamptz,integer)', 'EXECUTE'),
+  'authenticated users cannot execute the worker candidate RPC'
 );
 
-reset role;
-set local role anon;
-select throws_ok(
-  $$select * from public.list_claimable_document_jobs(now(), 10)$$,
-  '42501',
-  'A trusted worker role is required',
-  'anonymous users cannot enumerate worker queue candidates'
+select ok(
+  not has_function_privilege('anon', 'public.list_claimable_document_jobs(timestamptz,integer)', 'EXECUTE'),
+  'anonymous users cannot execute the worker candidate RPC'
 );
 
 select * from finish();
