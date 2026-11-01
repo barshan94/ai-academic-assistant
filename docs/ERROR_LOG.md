@@ -1637,3 +1637,13 @@ ERR-073 closure reconciliation (2026-11-01): the earlier note that page and pare
 - Fix: Added a 360px Chromium smoke test for landing/login visibility, document-width overflow and minimum 44px email/password/submit control heights. This reuses the existing mobile CSS and does not claim a full mobile-device or assistive-technology audit.
 - Verification: Test committed; CI execution pending.
 - Status: Regression coverage implemented on `feature/m3-ai-solver`; runtime verification pending.
+
+## ERR-151 — Connected Supabase schema is behind the document-registration implementation
+
+- Date: 2026-11-01
+- Area: Hosted database / migration reconciliation
+- Symptom: The connected `academic-assistant` project has a 53-entry migration ledger while the feature branch contains 95 migration files. A read-only schema query found no `register_uploaded_document` function in the public/private schemas, and `public.documents.page_count` still permits every non-negative value.
+- Root cause: The connected project's migration ledger and actual schema have not been brought into alignment with the feature branch's later document-worker, atomic-registration and page-count migrations.
+- Fix: No hosted change was made. Added fresh schema observations to `docs/MIGRATION_RECONCILIATION.md` and tied the registration/page-count release gates to explicit reconciliation and target approval in `docs/PRODUCTION_READINESS.md`.
+- Verification: Read-only Supabase migration listing, catalog query, table metadata and advisors on 2026-11-01. The local isolated CI migration chain and 209 pgTAP assertions pass; this does not establish hosted schema equivalence.
+- Status: Open release blocker. Do not deploy the current application against the connected schema or selectively apply recent migrations. Reconcile on an explicitly approved isolated target first.
