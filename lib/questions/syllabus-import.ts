@@ -21,8 +21,12 @@ const importCatalogSchema = z.object({
   effectiveFrom: z.iso.date().nullable().optional(),
   effectiveTo: z.iso.date().nullable().optional(),
   sourceUrl: z.string().trim().url().refine((value) => {
-    try { return new URL(value).protocol === "https:"; }
-    catch { return false; }
+    try {
+      const url = new URL(value);
+      return url.protocol === "https:" && !url.username && !url.password;
+    } catch {
+      return false;
+    }
   }),
   sourceTitle: z.string().trim().max(200).optional(),
 }).strict().superRefine((value, context) => {
