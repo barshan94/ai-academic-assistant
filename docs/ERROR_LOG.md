@@ -733,3 +733,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Added streamed response readers with hard byte caps: 50 MB for the archived PDF, 10 MB for extracted OCR text, and 64 KiB for OCR conversion metadata. Content-Length is checked when supplied, while streamed byte counting remains authoritative when it is absent or inaccurate. OCR text decoding is strict UTF-8; temporary Drive OCR files remain deleted in the existing finally block.
 - Verification: Source inspection only; no tests, typecheck, build or worker invocation was run in the implementation phase.
 - Status: Implemented; bounded-stream edge cases and real Drive OCR acceptance remain for the separate testing phase.
+
+
+## ERR-068 — Google OAuth and upload metadata responses were parsed without byte limits
+
+- Date: 2026-11-01
+- Area: M2 Google Drive integration / upstream response resource limits
+- Symptom: OAuth refresh, legacy Drive upload and resumable chunk completion paths parsed upstream JSON or text directly. An unexpectedly large response could be buffered before parsing.
+- Root cause: The archived-PDF/OCR response hardening did not cover the smaller metadata and token-exchange responses used by the other Drive paths.
+- Fix: Added a shared bounded Google JSON response reader with strict UTF-8/object validation and a 64 KiB ceiling. Applied it to user OAuth refresh, background-worker OAuth refresh and legacy Drive upload metadata. Resumable chunk responses now use the same 64 KiB streamed cap; expected 308/404 responses remain body-free.
+- Verification: Source inspection only. No tests, typecheck, build, HTTP requests or live Google calls were run during implementation.
+- Status: Implemented on the feature branch; malformed/oversized upstream response tests and live integration verification are deferred to the separate testing phase.
