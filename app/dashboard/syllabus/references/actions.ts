@@ -259,6 +259,20 @@ export async function verifyReferenceCatalog(formData: FormData) {
   const catalogId = String(formData.get("catalogId") ?? "");
   if (!z.string().uuid().safeParse(catalogId).success) redirect("/dashboard/syllabus/references/manage?result=invalid");
   const supabase = await requirePlatformAdmin();
+  const { data: catalog, error: catalogError } = await supabase.from("reference_syllabus_catalogs")
+    .select("id,source_url,status").eq("id", catalogId).eq("status", "draft").maybeSingle();
+  if (catalogError || !catalog) redirect("/dashboard/syllabus/references/manage?result=not_found");
+
+  let sourceIsValid = false;
+  try {
+    const source = new URL(catalog.source_url ?? "");
+    sourceIsValid = source.protocol === "https:" && Boolean(source.hostname) &&
+      !source.username && !source.password;
+  } catch {
+    sourceIsValid = false;
+  }
+  if (!sourceIsValid) redirect("/dashboard/syllabus/references/manage?result=source_required");
+
   const { data, error } = await supabase.from("reference_syllabus_catalogs")
     .update({ status: "verified" }).eq("id", catalogId).eq("status", "draft").select("id").maybeSingle();
   if (error || !data) redirect("/dashboard/syllabus/references/manage?result=verify_failed");
