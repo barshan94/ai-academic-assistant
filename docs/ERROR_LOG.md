@@ -1373,3 +1373,12 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Require parsed total, caller total and byte length to be safe integers; require total values to be positive before validating chunk alignment and bounds.
 - Regression coverage: Added an unsafe-integer total-size case to \`lib/drive/resumable-upload.test.ts\`. Tests are authored but not executed.
 - Status: Source fix committed; regression tests remain pending the testing phase.
+
+## ERR-127 — Chemistry atom-count checker accepted empty formula groups
+- Date: 2026-11-01
+- Area: Deterministic chemistry equation checks
+- Symptom: A malformed formula such as \`H()2\` could be parsed as if the empty parenthesized group contributed no atoms, allowing an unsupported formula to receive a misleading atom-count result.
+- Root cause: The recursive formula parser accepted a closing parenthesis without requiring at least one element in the group.
+- Fix: Reject nested formula groups that contain no elements before applying their multiplier.
+- Regression coverage: Added an empty-group case to \`tests/chemistry-check.test.ts\`. Tests are authored but not executed.
+- Status: Source fix committed; regression test remains pending the testing phase.
