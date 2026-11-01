@@ -54,9 +54,11 @@ jobs:
           AI_API_BASE_URL: https://api.openai.com/v1
 
       - name: Audit production dependencies
-        # The remaining minimatch advisory is confined to the legacy ESLint dev
-        # toolchain. Its v3 API is not compatible with the patched v11 release.
-        # The nested typescript-estree dependency is pinned to patched v11.0.3.
+        # This intentionally audits runtime dependencies only. It does NOT close
+        # ERR-124: GHSA-g3hv-75wg-jmmj? No — the current tracked advisory is
+        # GHSA-g3hv-75wg-m249 (CVE-2026-118764), which affects minimatch <11.0.1
+        # in the development toolchain. Full-tree audit remains a release gate
+        # until the ESLint/Next.js dependency graph is migrated safely.
         run: npm audit --omit=dev
 
       - name: Install temporary Playwright types for validation
