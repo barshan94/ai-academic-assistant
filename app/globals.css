@@ -537,3 +537,47 @@ h2 { font-size: 24px; letter-spacing: -.04em; margin: 0; font-weight: 600; }
     min-height: 44px;
   }
 }
+
+
+/* Respect operating-system high-contrast / forced-colour settings. */
+@media (forced-colors: active) {
+  .skip-link,
+  a,
+  button,
+  input,
+  select,
+  textarea,
+  summary,
+  [role="button"] {
+    forced-color-adjust: auto;
+  }
+  :where(a, button, input, textarea, select, summary, [tabindex]:not([tabindex="-1"])):focus-visible {
+    outline: 3px solid Highlight;
+    outline-offset: 3px;
+  }
+  .module-card,
+  .question-card,
+  .review-page,
+  .solution-panel,
+  .study-calendar-day,
+  .study-session-card,
+  .auth-card,
+  .drive-panel,
+  .upload-panel,
+  .empty-state {
+    border: 1px solid CanvasText;
+  }
+  .status-dot,
+  .practice-trend-fill,
+  .upload-progress-track span {
+    forced-color-adjust: none;
+    background: Highlight;
+  }
+  .notice-success,
+  .notice-error,
+  .notice-info {
+    border: 1px solid CanvasText;
+    color: CanvasText;
+    background: Canvas;
+  }
+}
