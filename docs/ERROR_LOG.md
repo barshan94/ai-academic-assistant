@@ -527,3 +527,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Added allow-listed event categories for upload, AI-generation and web-research quota exhaustion and quota-RPC unavailability. The affected server routes/actions emit stable event and error codes only; no account IDs, quota counters, request bodies or submitted content are logged. Expected quota-exhaustion events use warning severity; quota-service outages remain error severity. Added recommended hosting-platform alert thresholds to `docs/OPERATIONS_AND_COSTS.md`.
 - Verification: Source and documentation review only. No tests, live quota calls, dashboards or alerts were run/configured in this implementation phase.
 - Status: Event instrumentation committed; alert configuration and test-phase regression coverage remain pending.
+
+
+## ERR-049 — Google Drive OAuth failures lacked redacted operational visibility
+
+- Date: 2026-11-01
+- Area: M8 operational observability / Google Drive connection
+- Symptom: OAuth configuration, token exchange, permission-scope rejection and connection persistence failures returned safe user-facing status codes but were not distinguishable in the platform's structured operational logs.
+- Root cause: The callback normalized provider errors for privacy but did not emit an allow-listed operational event.
+- Fix: Emit `google_drive_oauth_failed` with a stable error code and fixed route label for configuration, token-exchange, scope-mismatch, missing-refresh-token, persistence and unexpected callback failures. No OAuth code, provider response, token, user ID or exception detail is logged.
+- Verification: Source and documentation review only. No OAuth flow, live Google credentials or log pipeline was exercised in this implementation phase.
+- Status: Redacted event instrumentation committed; OAuth acceptance and monitoring configuration remain pending.
