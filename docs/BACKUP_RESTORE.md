@@ -22,7 +22,13 @@ Therefore this runbook currently provides a manual export of application databas
 
 A repository helper now automates the logical export and encrypts the result locally. It requires the Supabase CLI, Docker/PostgreSQL tools as required by the CLI, and age installed on the trusted workstation. It does not upload the archive. The Supabase CLI receives the database connection URL as a child-process argument; run it only on a trusted single-user workstation because local process inspection by the same OS account may expose arguments. Use an encrypted local disk and a private temporary directory; deleting temporary files is not a guaranteed secure erase on SSDs.
 
-1. Generate an age key pair on the trusted workstation and store the private identity in a separate secure location. Use only the public `age1...` recipient value in the backup command.
+1. Generate an age key pair on the trusted workstation and store the private identity in a separate secure location. For example, on Linux/macOS/WSL:
+   ```bash
+   umask 077
+   mkdir -p "$HOME/.config/age"
+   age-keygen -o "$HOME/.config/age/keys.txt"
+   ```
+   Copy the printed public `age1...` recipient into the backup environment variable; keep `keys.txt` private and backed up separately.
 2. Set the database URL in the current shell using a hidden prompt (never place it in command history):
    ```bash
    read -rs SUPABASE_DB_URL
