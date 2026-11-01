@@ -151,8 +151,8 @@ export function ResumableUploadForm({ disabled }: { disabled: boolean }) {
         localStorage.removeItem(activeStorageKey.current);
       }
       setError(errorMessage);
-      setMessage(/session expired/i.test(errorMessage)
-        ? "The previous session expired. Re-select the file and start a new upload."
+      setMessage(/session expired|belongs to another account/i.test(errorMessage)
+        ? "The previous upload session cannot be used. Re-select the file to start a new upload."
         : "Your upload session is kept when it can be resumed. Re-select the same file to continue.");
     } finally {
       setBusy(false);
