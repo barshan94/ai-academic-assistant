@@ -306,3 +306,6 @@ Private syllabus lifecycle enforcement (2026-11-01): PostgreSQL now requires pri
 
 
 Production-readiness documentation and preflight (2026-11-01): added a Node.js environment preflight command, completed the example server environment template with service-role and cron placeholders, and added controlled deployment, release-gate and incident-response runbooks. These are implementation/documentation deliverables only. They do not establish live service connectivity, applied migrations, successful restore, alert delivery, accessibility/performance acceptance or production approval. See ERR-112.
+
+
+User-facing privacy disclosure (2026-11-01): published `/privacy` and linked it from the landing page. The notice explains current Supabase, Google Drive, optional AI and web-search data flows, cookies, retention and deletion limitations, and explicitly avoids claiming complete backup or production approval. It still requires legal/configuration review, a responsible contact channel and browser accessibility acceptance. See ERR-116.
