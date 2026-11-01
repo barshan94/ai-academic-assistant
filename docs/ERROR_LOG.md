@@ -1288,3 +1288,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Added a Next.js robots route allowing only the public landing/privacy pages and disallowing dashboard, API and sign-in paths. Added `noindex, nofollow, noarchive` response headers to dashboard/API/sign-in paths, preserved the header through authentication redirects, and set sign-in metadata to no-index.
 - Verification: Source change only. No tests, build, browser, crawler simulation or deployment was performed. Search engines are not guaranteed to immediately remove already indexed URLs; authorization remains the actual confidentiality boundary.
 - Status: Crawler policy and response metadata committed to `feature/m3-ai-solver`; no database or external service was changed.
+
+
+## ERR-119 — Forced-colors mode lacked explicit application-level affordances
+
+- Date: 2026-11-01
+- Area: Accessibility / operating-system high contrast
+- Symptom: The application had keyboard focus styling and mobile touch-target sizing, but no explicit forced-colors treatment for major panel boundaries, status notices or progress indicators.
+- Root cause: Accessibility styling covered default dark-theme presentation and reduced motion, but did not include a dedicated Windows High Contrast / forced-colors adaptation.
+- Fix: Added a forced-colors media query that retains visible Highlight focus outlines, CanvasText panel/notice boundaries and system-color progress/status indicators without disabling the browser's automatic color adaptation.
+- Verification: Source/CSS and documentation change only. No browser, Windows High Contrast, keyboard, screen-reader or visual-regression testing was performed. Confirm all interactive states and information remain distinguishable during the dedicated acceptance phase.
+- Status: CSS affordance committed to `feature/m3-ai-solver`; accessibility acceptance remains open.
