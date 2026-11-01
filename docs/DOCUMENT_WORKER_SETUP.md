@@ -6,7 +6,7 @@ The application includes a server-side worker at `GET /api/cron/process-document
 
 **Important:** GitHub scheduled workflows run from the repository's default branch, not an unmerged feature branch. This workflow is committed on the feature branch but will not run on its five-minute schedule until the change is merged into the default branch. A manual `workflow_dispatch` can be used on the feature branch after configuring secrets, but only against a non-production target until acceptance is complete.
 
-The repository workflow `.github/workflows/document-worker.yml` invokes the worker every five minutes and can also be run manually from the Actions tab.
+The repository workflow `.github/workflows/document-worker.yml` invokes the worker every five minutes and can also be run manually from the Actions tab. This repository uses GitHub Actions as the scheduler; it does not configure a Vercel Cron Job. Vercel Hobby's daily-only Cron restriction therefore does not govern this workflow. GitHub's schedule is best-effort and will become active only after the workflow reaches the default branch; do not add a Vercel Cron entry unless the hosting plan and schedule support it.
 
 Configure these repository Actions secrets before enabling real processing:
 
