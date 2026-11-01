@@ -38,16 +38,17 @@ fi
 
 timestamp="$(date -u +%Y%m%dT%H%M%SZ)"
 project_suffix="${BACKUP_PROJECT_REF:+-$BACKUP_PROJECT_REF}"
-archive="$backup_root/academic-assistant-$timestamp$project_suffix-$.tar.gz.age"
-[[ ! -e "$archive" ]] || fail "A backup archive already exists at the generated path."
+archive="$backup_root/academic-assistant-$timestamp$project_suffix-$$.tar.gz.age"
+encrypted_temp="$(mktemp "$backup_root/.academic-assistant-encrypted.XXXXXX")"
 workdir="$(mktemp -d "${TMPDIR:-/tmp}/academic-assistant-backup.XXXXXX")"
+archive_created=0
 backup_complete=0
 cleanup() {
   rm -rf "$workdir"
-  if [[ "$backup_complete" -ne 1 ]]; then rm -f "$archive"; fi
+  rm -f "$encrypted_temp"
+  if [[ "$archive_created" -eq 1 && "$backup_complete" -ne 1 ]]; then rm -f "$archive"; fi
 }
 trap cleanup EXIT
-
 printf 'Exporting Supabase roles, schema and application data...\n'
 supabase db dump --db-url "$SUPABASE_DB_URL" --file "$workdir/roles.sql" --role-only
 supabase db dump --db-url "$SUPABASE_DB_URL" --file "$workdir/schema.sql"
