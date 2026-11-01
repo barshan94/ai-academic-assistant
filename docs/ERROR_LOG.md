@@ -700,3 +700,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Read the request stream with a strict 16 KiB ceiling, reject oversized declared or streamed bodies, require a JSON object, reject malformed JSON, and return 413 for oversized payloads or 400 for invalid payloads. Numeric Content-Length validation is explicit.
 - Verification: Source inspection only. No test command or HTTP request was run during the implementation phase.
 - Status: Implemented; request-boundary regression coverage remains for the separate testing phase.
+
+
+## ERR-065 — Account switching retained an unusable resumable upload token
+
+- Date: 2026-11-01
+- Area: M2 resumable upload / browser session lifecycle
+- Symptom: If a user switched accounts in the same browser and re-selected a file with an unfinished upload, the browser reused the locally stored encrypted session token. The server correctly rejected it because the token was bound to the previous owner, but the browser retained the unusable token and repeated the failure.
+- Root cause: The browser cleanup logic cleared local session state on expiry but did not clear it on the server's explicit cross-account rejection. Its follow-up message also incorrectly implied the session remained resumable.
+- Fix: Clear the matching localStorage session after an explicit owner mismatch and tell the user to re-select the file to create a new owner-bound session. The server-side owner check remains unchanged.
+- Verification: Source inspection only; no tests or account-switch HTTP/browser scenarios were run.
+- Status: Implemented; cross-account regression verification deferred to the separate testing phase.
