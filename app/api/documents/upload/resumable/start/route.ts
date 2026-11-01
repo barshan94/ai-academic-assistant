@@ -8,6 +8,47 @@ import { MAX_UPLOAD_BYTES, safeFileName } from "@/lib/documents/upload-limits";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
+const MAX_START_BODY_BYTES = 16 * 1024;
+
+async function readStartRequestBody(request: Request) {
+  const declaredLength = request.headers.get("content-length");
+  if (declaredLength && (!/^\\d+$/.test(declaredLength) || Number(declaredLength) > MAX_START_BODY_BYTES)) {
+    throw new Error("Upload session request is too large.");
+  }
+  if (!request.body) throw new Error("Upload session request body is missing.");
+
+  const reader = request.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > MAX_START_BODY_BYTES) {
+        await reader.cancel();
+        throw new Error("Upload session request is too large.");
+      }
+      chunks.push(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+
+  const bytes = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes)) as {
+    fileName?: string;
+    fileSizeBytes?: number;
+    sha256?: string;
+    pageCount?: number | null;
+  };
+}
+
 export async function POST(request: NextRequest) {
   if (request.headers.get("origin") !== request.nextUrl.origin) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -18,12 +59,7 @@ export async function POST(request: NextRequest) {
   if (authError || !user) return NextResponse.json({ error: "Sign in to upload documents." }, { status: 401 });
 
   try {
-    const body = await request.json() as {
-      fileName?: string;
-      fileSizeBytes?: number;
-      sha256?: string;
-      pageCount?: number | null;
-    };
+    const body = await readStartRequestBody(request);
     const fileSizeBytes = body.fileSizeBytes;
     const sha256 = body.sha256;
     if (!Number.isSafeInteger(fileSizeBytes) || !fileSizeBytes || fileSizeBytes < 1 || fileSizeBytes > MAX_UPLOAD_BYTES) {
