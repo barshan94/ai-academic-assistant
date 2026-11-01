@@ -800,3 +800,14 @@ This file records material implementation, CI, integration and release problems 
 - Limitation: Page and parent-document updates remain separate database statements. An unexpected failure between them can still leave a partial state; making the transition fully atomic requires a dedicated database RPC migration.
 - Verification: Source inspection only; ownership, missing-row and partial-failure regression cases are deferred to the separate testing phase.
 - Status: Implemented on the feature branch; no tests, typecheck, build or live database acceptance was run during implementation.
+
+
+## ERR-074 — Reference syllabus date validation accepted impossible calendar dates
+
+- Date: 2026-11-01
+- Area: M4 reference syllabus administration / input validation
+- Symptom: The date validator checked the YYYY-MM-DD shape and relied on Date.parse, which can normalize impossible dates such as the 31st day of a 30-day month into a different valid date.
+- Root cause: Parsing success was treated as proof that the original calendar date existed.
+- Fix: Parse year, month and day components and compare them with the UTC date components after construction. Reject normalized or impossible dates while continuing to allow empty optional dates.
+- Verification: Source inspection only; leap-year, month-boundary and invalid-day cases remain deferred to the separate testing phase.
+- Status: Implemented on the feature branch; no tests, typecheck or build were run during implementation.
