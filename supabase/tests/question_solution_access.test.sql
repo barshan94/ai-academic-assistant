@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(35);
+select plan(36);
 
 -- Isolated identities and records. This test runs inside a transaction and rolls back.
 insert into auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
@@ -195,6 +195,7 @@ set local request.jwt.claim.sub = '10000000-0000-4000-8000-000000000002';
 set local request.jwt.claims = '{"sub":"10000000-0000-4000-8000-000000000002","role":"authenticated","email":"rls-teacher@example.test"}';
 select is((select count(*)::integer from public.questions), 0, 'revoked teacher can no longer read the shared question');
 select is((select count(*)::integer from public.question_solutions), 0, 'revoked teacher can no longer read the saved solution');
+select is((select count(*)::integer from public.question_teacher_invites), 1, 'revoked teacher can see the revoked invitation status without regaining question access');
 select throws_ok(
   $$select public.record_teacher_solution_review('40000000-0000-4000-8000-000000000001', 'approved', null)$$,
   '42501',
