@@ -116,8 +116,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 413 });
     }
     if (error instanceof SyntaxError || error instanceof TypeError ||
-        (error instanceof Error && error.message === "Upload session request must be a JSON object." ||
-        error.message === "Upload session request body is missing.")) {
+        (error instanceof Error && (
+          error.message === "Upload session request must be a JSON object." ||
+          error.message === "Upload session request body is missing."
+        ))) {
       return NextResponse.json({ error: "Upload session request is invalid." }, { status: 400 });
     }
     logSafeOperationalEvent("upload_session_start_failed", { route: "/api/documents/upload/resumable/start", errorCode: "UPLOAD_SESSION_START_FAILED" });
