@@ -17,17 +17,16 @@ Percentages are cumulative scope estimates, not proof of release readiness.
 
 ## Latest automated testing checkpoint — 2026-11-01
 
-Tested commit: `b929566a8d175ff1f3894da706ba64414e40ccf2` on `feature/m3-ai-solver` (GitHub Actions run `41306988899`; database run `41306988908`; secret scan run `41306988876`).
+Tested commit: `d0c9ab16bbb0f1f4767448ebc1fd76d039c8589d` on `feature/m3-ai-solver` (Foundation run `41314356766`; Database run `41314356739`; Secret scan run `41314360198`).
 
 - ESLint: passed.
-- Application TypeScript: passed.
-- Playwright configuration and authenticated-E2E TypeScript: passed.
-- Unit tests: 155 passed across 30 test files.
+- Application TypeScript, Playwright configuration TypeScript and authenticated-E2E TypeScript: passed.
+- Unit tests: **176 passed across 34 files**.
 - Production build: passed.
-- Production dependency audit (`npm audit --omit=dev`): zero vulnerabilities. The full development dependency advisory ERR-124 remains open.
+- Production dependency audit (`npm audit --omit=dev`): zero production vulnerabilities; full development dependency advisory ERR-124 remains open (npm install reports 13 moderate development-tree advisories).
 - Fresh isolated local Supabase migration application: passed.
-- Database authorization suite: 209 pgTAP assertions passed across 9 SQL files.
-- Chromium browser smoke tests: 9 passed, 1 skipped (the authenticated two-account test is intentionally skipped without dedicated non-production credentials).
+- Database authorization suite: **220 pgTAP assertions passed across 10 SQL files**, including ERR-156 worker queue starvation regression.
+- Chromium browser smoke tests: **10 passed, 1 skipped**. The skipped authenticated two-account test requires dedicated non-production credentials.
 - Secret scanning: passed.
 - Authenticated two-account browser acceptance: workflow skipped because dedicated non-production credentials and enablement are not configured; this is not a pass.
 

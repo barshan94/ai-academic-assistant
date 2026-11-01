@@ -201,7 +201,7 @@
 
 ## Document worker queue fairness
 
-- [ ] Isolated pgTAP regression proves ten older exhausted failed jobs cannot occupy the worker's candidate limit or starve queued/retryable jobs; stale running jobs remain eligible and fresh running jobs remain excluded (ERR-156).
+- [x] Isolated pgTAP regression proves ten older exhausted failed jobs cannot occupy the worker's candidate limit or starve queued/retryable jobs; stale running jobs remain eligible and fresh running jobs remain excluded (ERR-156; CI run `41314356739`, commit `d0c9ab16`).
 - [ ] Live non-production scheduler acceptance proves a full page of exhausted jobs does not prevent a later queued job from being processed.
 
 ## Middleware response-policy preservation (ERR-121)

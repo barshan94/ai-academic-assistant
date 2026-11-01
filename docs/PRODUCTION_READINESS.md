@@ -132,6 +132,7 @@ The owner selected infrastructure constraint remains Supabase Free only. No paid
 - [ ] Record the release date, commit, migration version, operator and incident contact.
 
 ## Current implementation evidence
+- Latest feature-branch CI on `d0c9ab16bbb0f1f4767448ebc1fd76d039c8589d`: lint, all TypeScript checks, 176 unit tests / 34 files, production build, isolated Supabase migration chain and 220 pgTAP assertions / 10 SQL files passed; Chromium smoke 10 passed / 1 skipped; secret scan passed. Authenticated two-account acceptance was skipped for missing dedicated credentials, not passed. ERR-156 worker queue starvation regression is included in the isolated pgTAP suite.
 
 - Environment preflight: `scripts/validate-production-env.mjs` and `npm run check:production-env`.
 - Owner-only provider, credential, backup, legal and operational actions: `docs/OWNER_ACTIONS.md`.
