@@ -63,6 +63,11 @@ A personal academic workspace for Edexcel O/A Level, SSC and HSC tutoring. It ac
 
 Never commit .env.local, service-role keys, OAuth tokens, student personal data or private source documents. Applied Supabase migrations are mirrored in supabase/migrations/.
 
+## Privacy
+
+- User-facing data handling notice: `/privacy`.
+- Engineering security and privacy controls: `docs/SECURITY_AND_PRIVACY.md`.
+
 ## Operations and release documentation
 
 - Controlled deployment: `docs/DEPLOYMENT.md`.
