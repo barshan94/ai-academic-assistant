@@ -76,6 +76,7 @@ Never commit .env.local, service-role keys, OAuth tokens, student personal data 
 - Incident response: `docs/INCIDENT_RESPONSE.md`.
 - Backup scope and recovery limitations: `docs/BACKUP_RESTORE.md`.
 - Database/API security review: `docs/SECURITY_BOUNDARY_AUDIT.md`.
+- Exact repository-versus-connected-project migration ledger comparison: `docs/MIGRATION_RECONCILIATION.md`.
 
 ## Current status (1 November 2026)
 
