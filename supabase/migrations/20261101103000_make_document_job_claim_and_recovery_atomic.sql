@@ -23,6 +23,7 @@ begin
 
   if p_document_id is null or p_owner_id is null or p_job_id is null
     or p_expected_attempt_count is null or p_expected_attempt_count < 0
+    or p_expected_status is null
     or p_expected_status not in ('queued', 'failed', 'running') then
     raise exception 'Document processing claim parameters are invalid';
   end if;
