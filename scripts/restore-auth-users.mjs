@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { readFile, stat } from "node:fs/promises";
+import { readFile, lstat } from "node:fs/promises";
 
 const MAX_BACKUP_BYTES = 10 * 1024 * 1024;
 const MAX_USERS = 1000;
@@ -110,12 +110,12 @@ async function main() {
   }
   if (serviceKey.length < 32) throw new Error("SUPABASE_SERVICE_ROLE_KEY is missing or malformed.");
 
-  const backupStat = await stat(backupPath);
+  const backupStat = await lstat(backupPath);
   if (!backupStat.isFile() || backupStat.size > MAX_BACKUP_BYTES) throw new Error("Auth backup must be a regular file no larger than 10 MiB.");
   const bytes = await readFile(backupPath);
   let parsed;
   try {
-    parsed = JSON.parse(bytes.toString("utf8"));
+    parsed = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes));
   } catch {
     throw new Error("Auth backup is not valid UTF-8 JSON.");
   }
