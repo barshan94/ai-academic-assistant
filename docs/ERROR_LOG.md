@@ -854,3 +854,13 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Add a cross-field schema check that rejects an effectiveTo value earlier than effectiveFrom while continuing to allow either optional date to be empty.
 - Verification: Source inspection only; reversed, equal, one-sided and valid date-range cases remain deferred to the separate testing phase.
 - Status: Implemented on the feature branch; no tests, typecheck or build were run during implementation.
+
+## ERR-079 — Question review action reported updates for missing or malformed IDs
+
+- Date: 2026-11-01
+- Area: M4 question review / owner-scoped server action
+- Symptom: The review action accepted any non-empty question identifier and returned an updated result whenever the database request had no error, including when no owner-scoped question matched.
+- Root cause: The action did not validate the identifier format or request confirmation of the affected row.
+- Fix: Validate the question identifier as a UUID and require the owner-scoped update to return the updated row before reporting success.
+- Verification: Source inspection only; malformed UUID, cross-owner, missing-row and valid status-transition cases remain deferred to the separate testing phase.
+- Status: Implemented on the feature branch; no tests, typecheck or build were run during implementation.
