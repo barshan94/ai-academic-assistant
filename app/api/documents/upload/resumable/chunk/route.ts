@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServiceRoleClient } from "@/lib/supabase/service-role";
 import { logSafeOperationalEvent } from "@/lib/observability/safe-log";
 import { decryptDriveUploadSession } from "@/lib/drive/crypto";
 import { getDriveAccessToken, sendResumablePdfChunk, deleteDriveFile, isGoogleDriveUploadSessionUri } from "@/lib/drive/google";
@@ -20,7 +21,6 @@ type UploadSession = {
 };
 
 async function saveCompletedUpload(
-  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
   session: UploadSession,
   file: { id?: string; webViewLink?: string; mimeType?: string; size?: string },
 ) {
@@ -31,7 +31,10 @@ async function saveCompletedUpload(
     throw new Error("Google Drive returned a file with an unexpected type or size. The incomplete archive was removed.");
   }
 
-  const { data: registrations, error: registrationError } = await supabase.rpc("register_uploaded_document", {
+  // This client is server-only. The caller's session was verified before the
+  // route reached this function; authenticated users cannot call the RPC.
+  const serviceRoleSupabase = createSupabaseServiceRoleClient();
+  const { data: registrations, error: registrationError } = await serviceRoleSupabase.rpc("register_uploaded_document", {
     p_owner_id: session.ownerId,
     p_file_name: session.fileName,
     p_file_size_bytes: session.fileSizeBytes,
@@ -148,7 +151,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Google Drive upload session expired. Start again." }, { status: 410 });
     }
     if (result.status === 200 || result.status === 201) {
-      const saved = await saveCompletedUpload(supabase, session, result.file ?? {});
+      const saved = await saveCompletedUpload(session, result.file ?? {});
       return NextResponse.json({ nextOffset: session.fileSizeBytes, complete: true, ...saved });
     }
     if (result.status === 429 || result.status >= 500) {
