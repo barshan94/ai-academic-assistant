@@ -182,11 +182,12 @@ Do not check any runtime or external-review item above until the evidence is att
 
 ## Latest hosted migration reconciliation — 2026-11-01
 
-- [x] Owner confirmed the existing Free-plan `academic-assistant` project as the dedicated non-production target.
-- [x] Refreshed migration inventory: 96 repository files, 53 hosted ledger entries, 51 exact matches, 2 renamed shared-reference ledger entries, and 43 genuinely pending repository migrations.
-- [x] Read-only object audit found the five shared-reference tables, 13 indexes, four functions, four triggers and 12 policies. Shared-reference seed tables are empty; Cambridge/Edexcel seed migrations remain pending.
-- [x] Identified three trigger-only helper functions with default PUBLIC EXECUTE privileges (ERR-161); they are not SECURITY DEFINER or ordinary PostgREST RPC functions, but require least-privilege revocation in a forward-only migration.
-- [ ] Prepare and review the precise migration-history repair plan for the two renamed migrations; never re-run their CREATE TABLE DDL.
-- [ ] Create and test the ERR-161 trigger-function privilege hardening migration on a clean isolated database.
-- [ ] Apply the 43 genuinely pending migrations in order to the approved non-production target only after a final schema/ledger diff and separate execution approval.
-- [ ] Verify post-migration schema, seed data, RLS/ACLs, advisors and authenticated two-account workflows.
+- [x] Owner confirmed the existing Free-plan `academic-assistant` project as the dedicated non-production target and authorized the two version-history repairs plus the pending migration chain; no reset, other project, production deployment or merge is included.
+- [x] Refreshed inventory: 97 repository migration files, 53 hosted ledger entries, 51 exact version/name matches, and two hosted-only version identifiers whose stored SQL statements were verified byte-for-byte against the corresponding repository files.
+- [x] The two old/new version pairs are identified in `docs/MIGRATION_RECONCILIATION.md`; the pinned-CLI script repairs the old ledger versions as reverted and the exact repository versions as applied without rerunning their DDL.
+- [x] After those two repairs, 44 repository migrations remain to apply in chronological order, including the two Cambridge/Edexcel draft seed migrations and the ERR-161 privilege-hardening migration.
+- [x] Read-only object audit found the five shared-reference tables, 13 indexes, four functions, four triggers and 12 policies. Shared-reference seed tables were empty before the pending seed migrations.
+- [x] The forward-only ERR-161 migration revokes direct EXECUTE on three trigger-only helper functions; fresh isolated CI replay and pgTAP cover the effective privileges and trigger presence.
+- [x] Fresh isolated CI run on `ffd3302775911969c8e54ec282fd9250dcff4122` replayed the complete repository migration chain and passed 236 pgTAP assertions across 11 files.
+- [ ] Execute the pinned Supabase CLI reconciliation script against the already-approved non-production project, beginning with the two version-aware ledger repairs and the full `--include-all --dry-run`; stop on any unexpected migration ordering or schema error.
+- [ ] After the dry-run is reviewed, apply the 44 pending migrations, then verify the 97 expected ledger versions, schema, seed counts, RLS/ACLs, advisors and authenticated two-account workflows.
