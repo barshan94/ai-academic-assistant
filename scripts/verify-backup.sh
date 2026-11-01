@@ -27,8 +27,11 @@ entries="$(tar -tzf "$workdir/backup.tar.gz")"
 expected=$'roles.sql\nschema.sql\ndata.sql\nmanifest.txt\nSHA256SUMS'
 [[ "$entries" == "$expected" ]] || fail "Archive contents do not match the expected backup format."
 
-tar -xzf "$workdir/backup.tar.gz" -C "$workdir"
+# Stream each expected member to a newly created regular file. Do not extract
+# archive-controlled paths or link metadata into the verification directory:
+# a crafted tar can otherwise use symlinks/hardlinks to write outside it.
 for file in roles.sql schema.sql data.sql manifest.txt SHA256SUMS; do
+  tar -xOzf "$workdir/backup.tar.gz" "$file" > "$workdir/$file" || fail "Could not read archive entry: $file"
   [[ -s "$workdir/$file" ]] || fail "Archive entry is missing or empty: $file"
 done
 
