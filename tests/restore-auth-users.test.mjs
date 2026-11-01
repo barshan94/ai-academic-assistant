@@ -81,6 +81,40 @@ describe("Auth account backup validation", () => {
   });
 });
 
+
+
+  it("rejects oversized account sets and malformed email addresses", () => {
+    expect(() => validateBackup({ formatVersion: 1, projectRef: "uqpyzicftxxegajaocxi", users: Array.from({ length: 1001 }, (_, i) => ({ ...baseUser, id: `11111111-1111-4111-8111-${String(i).padStart(12, "0")}`, email: `user${i}@example.com` })) })).toThrow("1,000-account");
+    expect(() => validateBackup(backup({ ...baseUser, email: "not-an-email" }))).toThrow("invalid email");
+    expect(() => validateBackup(backup({ ...baseUser, email: "x".repeat(321) + "@example.com" }))).toThrow("invalid email");
+  });
+
+  it("rejects malformed metadata, Auth roles and confirmation flags", () => {
+    expect(() => validateBackup(backup({ ...baseUser, user_metadata: [] }))).toThrow("metadata");
+    expect(() => validateBackup(backup({ ...baseUser, app_metadata: null }))).toThrow("metadata");
+    expect(() => validateBackup(backup({ ...baseUser, app_metadata: { provider: "google", providers: ["google"] } }))).toThrow("email-provider");
+    expect(() => validateBackup(backup({ ...baseUser, aud: "" }))).toThrow("audience or role");
+    expect(() => validateBackup(backup({ ...baseUser, role: "r".repeat(129) }))).toThrow("audience or role");
+    expect(() => validateBackup(backup({ ...baseUser, email_confirm: 1 }))).toThrow("confirmation-state");
+    expect(() => validateBackup(backup({ ...baseUser, phone_confirm: "false" }))).toThrow("confirmation-state");
+  });
+
+  it("rejects malformed MFA, SSO, anonymous and ban-expiry fields", () => {
+    expect(() => validateBackup(backup({ ...baseUser, mfa_factor_count: -1 }))).toThrow("MFA, anonymous or SSO state");
+    expect(() => validateBackup(backup({ ...baseUser, mfa_factor_count: 0.5 }))).toThrow("MFA, anonymous or SSO state");
+    expect(() => validateBackup(backup({ ...baseUser, is_anonymous: "false" }))).toThrow("MFA, anonymous or SSO state");
+    expect(() => validateBackup(backup({ ...baseUser, banned_until: "not-a-date" }))).toThrow("ban-expiry");
+    expect(() => validateBackup(backup({ ...baseUser, banned_until: 123 }))).toThrow("ban-expiry");
+  });
+
+  it("rejects duplicate UUIDs even when email addresses differ", () => {
+    expect(() => validateBackup({
+      formatVersion: 1,
+      projectRef: "uqpyzicftxxegajaocxi",
+      users: [baseUser, { ...baseUser, email: "different@example.com" }],
+    })).toThrow("duplicate");
+  });
+
 describe("bounded Auth API response reader", () => {
   it("parses a small JSON response", async () => {
     await expect(readJsonResponse(new Response(JSON.stringify({ id: "user-id" })))).resolves.toEqual({ id: "user-id" });
