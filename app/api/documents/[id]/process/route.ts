@@ -80,9 +80,13 @@ export async function POST(request: NextRequest, context: RouteContext) {
       : recoveryQuery.is("started_at", null);
     const { data: recoveredJob, error: recoveryError } = await recoveryQuery.select("id").maybeSingle();
     if (recoveryError || !recoveredJob) return redirectToDocument(request, id, "already_processing");
-    const { error: recoveredDocumentError } = await supabase
-      .from("documents").update({ status: "failed" }).eq("id", id).eq("owner_id", user.id);
-    if (recoveredDocumentError) return redirectToDocument(request, id, "recovery_failed");
+    const { data: recoveredDocument, error: recoveredDocumentError } = await supabase
+      .from("documents").update({ status: "failed" })
+      .eq("id", id).eq("owner_id", user.id)
+      .select("id").maybeSingle();
+    if (recoveredDocumentError || !recoveredDocument) {
+      return redirectToDocument(request, id, "recovery_failed");
+    }
   }
   if (job.attempt_count >= job.max_attempts) return redirectToDocument(request, id, "retry_limit");
 
