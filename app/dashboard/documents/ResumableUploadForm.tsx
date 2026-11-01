@@ -16,6 +16,34 @@ async function sha256Hex(bytes: Uint8Array) {
 
 type StoredSession = { sessionToken: string; fileName: string; fileSizeBytes: number };
 
+function readStoredSession(key: string, fileName: string, fileSizeBytes: number): StoredSession | null {
+  try {
+    const raw = window.localStorage.getItem(key);
+    if (!raw) return null;
+    const candidate: unknown = JSON.parse(raw);
+    if (
+      candidate && typeof candidate === "object" &&
+      typeof (candidate as StoredSession).sessionToken === "string" &&
+      (candidate as StoredSession).sessionToken.length > 0 &&
+      (candidate as StoredSession).sessionToken.length <= 8192 &&
+      (candidate as StoredSession).fileName === fileName &&
+      (candidate as StoredSession).fileSizeBytes === fileSizeBytes
+    ) return candidate as StoredSession;
+    window.localStorage.removeItem(key);
+  } catch {
+    try { window.localStorage.removeItem(key); } catch { /* Storage may be unavailable. */ }
+  }
+  return null;
+}
+
+function writeStoredSession(key: string, session: StoredSession) {
+  try { window.localStorage.setItem(key, JSON.stringify(session)); } catch { /* Upload can continue without persistence. */ }
+}
+
+function removeStoredSession(key: string) {
+  try { window.localStorage.removeItem(key); } catch { /* Storage may be unavailable. */ }
+}
+
 export function ResumableUploadForm({ disabled }: { disabled: boolean }) {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -53,29 +81,7 @@ export function ResumableUploadForm({ disabled }: { disabled: boolean }) {
       const sha256 = await sha256Hex(normalized.bytes);
       const storageKey = STORAGE_PREFIX + sha256;
       activeStorageKey.current = storageKey;
-      let stored: StoredSession | null = null;
-      try {
-        const raw = localStorage.getItem(storageKey);
-        if (raw) {
-          const candidate: unknown = JSON.parse(raw);
-          if (
-            candidate && typeof candidate === "object" &&
-            typeof (candidate as StoredSession).sessionToken === "string" &&
-            (candidate as StoredSession).sessionToken.length > 0 &&
-            typeof (candidate as StoredSession).fileName === "string" &&
-            typeof (candidate as StoredSession).fileSizeBytes === "number" &&
-            Number.isSafeInteger((candidate as StoredSession).fileSizeBytes) &&
-            (candidate as StoredSession).fileSizeBytes === normalized.bytes.byteLength &&
-            (candidate as StoredSession).fileName === normalized.fileName
-          ) {
-            stored = candidate as StoredSession;
-          } else {
-            localStorage.removeItem(storageKey);
-          }
-        }
-      } catch {
-        localStorage.removeItem(storageKey);
-      }
+      let stored = readStoredSession(storageKey, normalized.fileName, normalized.bytes.byteLength);
 
       if (!stored) {
         setMessage("Starting secure Google Drive upload…");
@@ -96,7 +102,7 @@ export function ResumableUploadForm({ disabled }: { disabled: boolean }) {
           fileName: normalized.fileName,
           fileSizeBytes: normalized.bytes.byteLength,
         };
-        localStorage.setItem(storageKey, JSON.stringify(stored));
+        writeStoredSession(storageKey, stored);
       }
 
       let offset = 0;
@@ -155,7 +161,7 @@ export function ResumableUploadForm({ disabled }: { disabled: boolean }) {
         if (!status.complete) throw new Error("The upload is not complete yet. Try again to resume it.");
       }
 
-      localStorage.removeItem(storageKey);
+      removeStoredSession(storageKey);
       setProgress(100);
       setMessage("Document archived and queued for processing.");
       if (inputRef.current) inputRef.current.value = "";
@@ -164,7 +170,7 @@ export function ResumableUploadForm({ disabled }: { disabled: boolean }) {
       const errorMessage = uploadError instanceof Error ? uploadError.message : "Upload failed.";
       if ((/session expired/i.test(errorMessage) || /belongs to another account/i.test(errorMessage)) &&
           activeStorageKey.current) {
-        localStorage.removeItem(activeStorageKey.current);
+        removeStoredSession(activeStorageKey.current);
       }
       setError(errorMessage);
       setMessage(/session expired|belongs to another account/i.test(errorMessage)
