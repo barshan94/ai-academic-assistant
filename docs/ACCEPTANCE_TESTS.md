@@ -208,3 +208,10 @@
 - [ ] Confirm malformed and oversized Content-Length headers are rejected before body consumption.
 - [ ] Confirm responses without Content-Length remain bounded by streamed byte counting.
 - [ ] Exercise Google OAuth/Drive and AI provider response paths with representative Content-Length headers.
+
+
+## Database registration page-count invariant (ERR-123)
+- [ ] After the forward-only migration is committed, confirm the registration RPC rejects non-null page counts 0, 51 and 100.
+- [ ] Confirm the registration RPC accepts page counts 1 and 50, and preserves null for a document whose page count is not yet known.
+- [ ] Confirm owner checks, duplicate/idempotency handling, document registration, processing-job creation and service_role-only execute grants are unchanged.
+- [ ] Confirm authenticated and anon roles cannot execute the RPC directly.
