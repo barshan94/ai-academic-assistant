@@ -110,7 +110,7 @@ The owner-selected infrastructure constraint remains Supabase Free only. No paid
 - [x] Implement encrypted logical database export and archive integrity verification helpers.
 - [ ] Create a non-production encrypted backup, verify checksums with the separately stored age identity and copy the encrypted archive to two independent locations.
 - [ ] Rehearse roles/schema restore, Auth Admin API account recreation with original UUIDs/password hashes, and application-data restore in that order on a new isolated Supabase project.
-- [ ] Verify the restored owner can sign in with the original password; separately account for sessions, phone-based sign-in, MFA, SSO and non-email identities that the current importer intentionally does not restore.
+- [ ] Confirm source and target Auth password-hashing algorithms match; run the importer with the explicit `RESTORE_PASSWORD_HASH_ALGORITHM` acknowledgement and verify the restored owner can sign in with the original password. Separately account for sessions, phone-based sign-in, MFA, SSO and non-email identities that the current importer intentionally does not restore.
 - [ ] Verify the original Drive encryption key and all external credentials are recoverable from the approved secret store.
 - [ ] Define and approve recovery-point and recovery-time objectives based on actual backup cadence and measured restore time.
 - [ ] Complete a restore drill and record the evidence, gaps and corrective actions.
