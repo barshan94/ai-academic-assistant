@@ -497,7 +497,6 @@ This file records material implementation, CI, integration and release problems 
 
 
 ## ERR-046 — Database mark-scheme validator needed null-safe JSON structure checks
-
 - Date: 2026-11-01
 - Area: M3 mark-scheme integrity / direct Data API writes
 - Symptom: Static review of the new database-side mark-point validator found that missing JSON keys could yield SQL NULL in compound conditions, and array-length functions must not be called before the JSON type is confirmed.
@@ -997,8 +996,7 @@ This file records material implementation, CI, integration and release problems 
 - Area: Practice sets / answer recording
 - Symptom: The action validated the submitted item ID and set ID formats, but invoked the answer-recording RPC using only the item ID and then used the unverified submitted set ID for redirects and cache revalidation. A mismatched set ID could therefore update an item while sending the learner to an unrelated practice set route.
 - Root cause: The action did not verify the owner-scoped relationship between the selected practice item and the submitted practice set before recording the answer.
-- Fix: Resolve the item through the owner-scoped item/set relationship before invoking the RPC, then use the database-returned set ID for all redirects and revalidation.
-- Verification: Source inspection only; mismatched IDs, inaccessible items and successful answer recording remain deferred to the separate testing phase.
+- Fix: Resolve the item through the owner-scoped item/set relationship before invoking the RPC, then use the database-returned set ID for all redirects and revalidation.- Verification: Source inspection only; mismatched IDs, inaccessible items and successful answer recording remain deferred to the separate testing phase.
 - Status: Implemented on the feature branch; no tests, typecheck or build were run during implementation.
 
 
@@ -1497,8 +1495,7 @@ ERR-124 compatibility investigation (2026-11-01): the existing lockfile already 
 - Date: 2026-11-01
 - Area: Authentication / Supabase server-side transport
 - Symptom: The authenticated Supabase clients used by Next.js middleware and server routes relied on the Fetch default redirect behavior. A redirect from the configured Supabase origin was not explicitly rejected.
-- Root cause: Redirect hardening covered service-role and provider requests but had not been applied consistently to cookie-backed SSR Auth/Data API clients.
-- Fix: Added a shared `supabaseFetch` transport that sets `redirect: "error"`; applied it to the server-component/server-route client, middleware auth client and service-role client. Added a regression test for the shared transport.
+- Root cause: Redirect hardening covered service-role and provider requests but had not been applied consistently to cookie-backed SSR Auth/Data API clients.- Fix: Added a shared `supabaseFetch` transport that sets `redirect: "error"`; applied it to the server-component/server-route client, middleware auth client and service-role client. Added a regression test for the shared transport.
 - Verification: Source review only. The regression test is authored but not executed. Auth refresh, middleware cookie preservation and live Supabase behavior remain for the testing phase.
 - Status: Source implementation committed to `feature/m3-ai-solver`.
 
@@ -1772,5 +1769,5 @@ ERR-073 closure reconciliation (2026-11-01): the earlier note that page and pare
 - Root cause: The idempotency check compared identity fields but did not compare the restorable account state returned by the Supabase Auth Admin API.
 - Fix: Added a pure compatibility check for the existing Auth Admin user response. It now compares UUID, normalized email, phone absence, email provider identity, audience, role, email-confirmation state, phone-confirmation state, supported anonymous/SSO flags when present, user/app metadata and active-ban state. JSON metadata comparison is key-order independent. A mismatch fails closed rather than silently skipping the account.
 - Password limitation: Supabase Auth Admin user reads do not expose the stored password hash. The importer cannot safely compare hashes for an already-present account; the isolated restore drill must still verify sign-in using the original password. Sessions and MFA remain excluded from this restore scope.
-- Verification: Added regression coverage for a matching interrupted-restore account and mismatches in audience, role, confirmation state, metadata, phone state and SSO state. Foundation CI was triggered on commit `60b995dda4c13cf3e1cdb963f06a6bc2a1171343`; results are pending at the time of this entry. No live Auth users were created or modified.
-- Status: Source fix committed; automated CI verification pending; live isolated restore acceptance remains open.
+- Verification: Added regression coverage for a matching interrupted-restore account and mismatches in audience, role, confirmation state, metadata, phone state and SSO state. Foundation run `41325347370` passed on commit `8cf40ed1d3796a184a99b5698eec3d7c95142742`, including all 179 unit tests across 34 files, lint, application/Playwright type-checks, production dependency audit and production build. Database run `41325347337` applied the full repository migration chain to a fresh isolated local Supabase database and passed 236 pgTAP assertions across 11 files. Chromium smoke tests passed 10 with 1 authenticated two-account test skipped; secret scan run `41325347343` passed. No live Auth users were created or modified.
+- Status: Source fix and automated regression verification passed. Live isolated Auth restore, original-password sign-in and full backup/restore acceptance remain open.
