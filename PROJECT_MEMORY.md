@@ -106,3 +106,5 @@ The feature branch `feature/m3-ai-solver` now contains substantial M1–M7 appli
 - No test commands or live OAuth/Drive calls were run. Regression and integration verification remain in the later testing phase.
 
 - Follow-up M2 hardening: `app/api/documents/upload/resumable/start/route.ts` now reads metadata requests through a 16 KiB bounded stream, validates declared Content-Length, requires a JSON object and returns client errors for malformed/oversized payloads. Added ERR-064 and updated roadmap/README. Source-only change; no tests run.
+
+- Further resumable-upload client hardening: persisted localStorage entries are validated for token shape/length and exact normalized filename/size before reuse. Reads/writes/removals are best-effort so storage-denied browser contexts do not abort a current upload; invalid entries are discarded. Added ERR-066 and documented the behavior. Commits: `b27d824`, `3ad3617`; no tests run.
