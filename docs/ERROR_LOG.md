@@ -1097,3 +1097,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Added database triggers for owner and shared-reference catalogs that reject verified-to-draft and retired-to-any-active-state transitions. Draft-to-verified, draft-to-retired and verified-to-retired transitions remain compatible with the existing application actions.
 - Verification: Migration/source review only. The migration has not been applied to a database; direct status-update authorization and lifecycle transition cases remain deferred to the dedicated testing and fixing phases.
 - Status: Migration committed to feature/m3-ai-solver; no tests, typecheck or build were run during implementation.
+
+
+## ERR-102 — Verified syllabus catalog metadata could be changed without re-verification
+
+- Date: 2026-11-01
+- Area: Owner and shared-reference syllabus catalog provenance
+- Symptom: Even after taxonomy writes and status regressions were blocked, broad owner/admin update policies could still alter a verified catalog's board, qualification, subject, version, effective dates or source provenance while leaving its status verified.
+- Root cause: The database did not make verified/retired catalog metadata immutable; application UI restrictions alone could not protect direct Data API writes.
+- Fix: Added invoker-security triggers on both owner and shared-reference catalog tables. Once a catalog leaves draft, every field other than lifecycle status and the automatic updated_at timestamp is immutable. The existing verified-to-retired transition remains allowed, but its metadata cannot change.
+- Verification: Migration/source review only. The migration has not been applied to a database; direct Data API updates, status transitions and RLS behavior remain deferred to the dedicated testing and fixing phases.
+- Status: Migration committed to feature/m3-ai-solver; no tests, typecheck or build were run during implementation.
