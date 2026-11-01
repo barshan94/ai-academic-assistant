@@ -35,6 +35,8 @@ describe("physics dimensional consistency checks", () => {
       { formulaUnit: "kg*widget/s^2", claimedUnit: "N" },
       { formulaUnit: "kg//s", claimedUnit: "N" },
       { formulaUnit: "kg*m/s^99", claimedUnit: "N" },
+      { formulaUnit: "constructor", claimedUnit: "constructor" },
+      { formulaUnit: "toString", claimedUnit: "toString" },
     ]);
     expect(results.every((item) => item.status === "uncheckable")).toBe(true);
   });
