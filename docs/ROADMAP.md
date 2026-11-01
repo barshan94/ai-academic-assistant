@@ -358,7 +358,7 @@ ERR-123 implementation closure (2026-11-01): added forward-only migration `20261
 - [ ] Execute regression tests and the scheduled workflow during the dedicated testing/operational acceptance phase. The workflow is not active on the scheduled cadence until it is merged to the default branch and its repository secrets are configured.
 
 ### ERR-135 — Reject redirects on credential-bearing outbound requests
-- [x] Explicitly reject redirects for AI, Brave web research, Google OAuth and Google Drive API requests that carry credentials or tokens.
+- [x] Explicitly reject redirects for AI, Brave web research, Google OAuth, Google Drive API and Supabase service-role requests that carry credentials or tokens; the protected readiness probe also rejects redirects.
 - [x] Preserve manual redirect handling only for the Google resumable-upload protocol, with strict upload-session host/path validation.
-- [x] Add unexecuted regression tests for AI and Brave request redirect policies.
+- [x] Add unexecuted regression tests for AI, Brave and Supabase service-role request redirect policies.
 - [ ] Verify behavior with controlled redirect fixtures and non-production provider integrations during the testing phase.
