@@ -195,6 +195,28 @@ export async function addReferenceEvidence(formData: FormData) {
   if (!parsed.success) redirect("/dashboard/syllabus/references/manage?result=evidence_invalid");
   const supabase = await requirePlatformAdmin();
   const value = parsed.data;
+  const { data: chapter, error: chapterError } = await supabase
+    .from("reference_syllabus_chapters")
+    .select("id,catalog_id")
+    .eq("id", value.chapterId)
+    .eq("catalog_id", value.catalogId)
+    .maybeSingle();
+  if (chapterError || !chapter) {
+    redirect("/dashboard/syllabus/references/manage?result=evidence_invalid");
+  }
+
+  if (value.topicId) {
+    const { data: topic, error: topicError } = await supabase
+      .from("reference_syllabus_topics")
+      .select("id")
+      .eq("id", value.topicId)
+      .eq("chapter_id", chapter.id)
+      .maybeSingle();
+    if (topicError || !topic) {
+      redirect("/dashboard/syllabus/references/manage?result=evidence_invalid");
+    }
+  }
+
   const { error } = await supabase.from("reference_syllabus_evidence").insert({
     catalog_id: value.catalogId,
     chapter_id: value.chapterId,
