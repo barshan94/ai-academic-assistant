@@ -1341,9 +1341,9 @@ This file records material implementation, CI, integration and release problems 
 - Symptom: The resumable upload start and chunk routes accept only page counts from 1 through 50, while the server-only register_uploaded_document RPC still accepts 0 through 100.
 - Root cause: The route-level upload limit was tightened without updating the database function's independent validation invariant.
 - Impact: The RPC is revoked from public, anon and authenticated roles and is called only by the server route, so this is not currently a direct browser authorization bypass. It is still an inconsistent defense-in-depth contract and permits invalid registration metadata if another trusted caller is introduced.
-- Required fix: Add a new forward-only migration that recreates the existing RPC without changing its owner checks, advisory lock, duplicate handling, document insert, processing-job insert or execute grants, while changing page-count validation to reject every non-null value outside 1–50. Do not edit the already-committed historical migration.
-- Verification: Not run. The new migration has not been scaffolded or applied; the database boundary and 0/1/50/51/100/null cases belong in the dedicated testing phase after the migration is authored.
-- Status: Open implementation blocker. Existing route validation remains 1–50; the RPC still accepts 0–100 until a properly generated forward migration is committed.
+- Fix: Added forward-only migration `20261101140000_tighten_uploaded_document_page_count.sql` (ERR-130). The replacement RPC rejects every non-null page count outside 1–50 while preserving owner validation, advisory locking, duplicate handling, atomic document/job creation and the server-only execute grant. The historical migration remains unchanged.
+- Verification: Source reviewed only. The migration has not been applied; page-count boundary, effective ACL, concurrency and atomicity checks are deferred to the dedicated testing phase.
+- Status: Implementation closed by ERR-130; database acceptance remains pending.
 
 ## ERR-124 — Development ESLint toolchain retains a legacy minimatch major
 - Date: 2026-11-01
