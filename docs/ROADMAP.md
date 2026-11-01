@@ -73,7 +73,7 @@ M5 exit criteria still outstanding:
 - Populate and maintain the shared reference library with real official-board syllabus versions and citations. The shared schema and curator workflow now exist, and four Cambridge/Pearson Edexcel science shared catalogues have been seeded as curator-only drafts with chapter/topic evidence locators (30 chapters and 170 numbered topic headings total). Separate owner-private JSON imports are also available. Neither shared draft is verified or visible to ordinary users. Detailed learning objectives are not imported; a curator must check every heading against the live official PDF and confirm administrative-zone availability before publication.
 - Improve assisted classification with calibrated confidence; current lexical suggestions remain transparent navigation aids, not probabilities. Exact section-code matches receive an explicit reason, and chapter/topic suggestions now display their owner-recorded source evidence before selection. Never silently guess a syllabus version.
 
-### M6 status — foundation started
+### M6 status — implemented in code, independent evaluation and acceptance pending
 Implemented on feature/m3-ai-solver:
 - Add owner-private, syllabus-chapter-scoped note version records with bounded structured JSON content.
 - Add immutable question/document-page source references; source records contain references and locators, not copied OCR text.
@@ -87,6 +87,7 @@ M6 application status — first usable authoring slice implemented:
 - Draft creation and all source references are saved atomically through an authenticated, owner-scoped database function.
 - Owners can attach only owner-approved questions classified to the selected chapter and their original document pages; cross-owner or cross-chapter source IDs are rejected. The database RPC independently enforces approved status and exact catalogue/chapter classification, and approval revalidates those question sources in case their review state or classification changed after draft creation. Document-page references are also revalidated at approval: each page must still belong to the owner and be linked to an approved question in the same catalogue/chapter; pgTAP regression coverage now includes valid and wrong-chapter page sources.
 - Version history is displayed, revisions can supersede a prior version, and draft approval requires at least one source.
+- Reprocessing through either the AI drafting action or manual authoring always creates a new immutable version through the chapter-note draft RPC. Version numbers are allocated under a per-chapter transaction lock, and the optional `supersedes_id` links the new draft to the prior version; approved content is never updated in place. Regression and browser acceptance remain pending.
 - Note content and source history remain immutable; approval rechecks that every source is still owner-approved and belongs to the selected chapter. Only status transitions are exposed to clients.
 
 M6 remaining:
