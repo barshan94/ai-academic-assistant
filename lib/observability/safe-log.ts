@@ -4,7 +4,13 @@ type SafeOperationalEvent =
   | "upload_session_start_failed"
   | "upload_chunk_failed"
   | "ai_generation_failed"
-  | "web_research_failed";
+  | "web_research_failed"
+  | "document_upload_quota_unavailable"
+  | "document_upload_quota_exhausted"
+  | "ai_generation_quota_unavailable"
+  | "ai_generation_quota_exhausted"
+  | "web_research_quota_unavailable"
+  | "web_research_quota_exhausted";
 
 type SafeOperationalFields = {
   route?: string;
