@@ -1174,3 +1174,27 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Added owner/service-role-authorized claim_document_processing_job and recover_stale_document_processing_job RPCs. Claims now lock and revalidate the exact expected job status, attempt count and lease timestamp, enforce the 15-minute stale threshold in the database, and update both job and document atomically. Manual and background routes now use the RPCs instead of separate writes.
 - Verification: Source/migration review only. The migration has not been applied to a database; concurrent claim, lease renewal, stale recovery, RLS and retry-boundary behavior remain deferred to the dedicated testing and fixing phases.
 - Status: Migration, both processing routes, database types and documentation committed to feature/m3-ai-solver; no tests, typecheck or build were run during implementation.
+
+
+
+
+## ERR-109 — Manual OCR correction could partially update page and document state
+
+- Date: 2026-11-01
+- Area: Manual document review / OCR correction
+- Symptom: Saving a correction updated the page row and parent document status in two separate database requests. A failure between requests could leave corrected text without the parent document returning to review_required, or leave an inconsistent review state.
+- Root cause: The server action treated page content and parent review status as independent writes.
+- Fix: Added the owner-authorized save_document_page_correction RPC. It validates the text and page/document/owner relationship, locks the processing job, document and page in a consistent order, refuses edits during active processing, and commits the manual page text plus parent review_required state as one transaction. The server action now calls only this RPC.
+- Verification: Source/migration review only. No tests, typecheck, build or CI were run during implementation. Database rollback, owner isolation, active-worker race and post-approval correction behavior remain for the dedicated testing phase.
+- Status: Migration, route action, database types and documentation committed to feature/m3-ai-solver; migration not applied to any hosted database.
+
+
+## ERR-110 — Manual stale-job recovery used two transactions before restarting OCR
+
+- Date: 2026-11-01
+- Area: Manual document processing / stale-job recovery
+- Symptom: A stale running job with retry budget remaining was first transitioned to failed, then claimed in a second RPC. Both transitions were individually atomic, but a crash between them left a recoverable failed job and introduced an unnecessary intermediate state.
+- Root cause: The manual route used the stale-recovery RPC before invoking the atomic claim RPC, although the claim RPC already supports an exact stale running lease.
+- Fix: For stale jobs with retry budget remaining, the manual route now calls claim_document_processing_job with the originally observed running status, attempt count and started_at. The database atomically validates staleness, increments the attempt and transitions both job and document to processing. The recovery RPC is retained for exhausted stale jobs, where both rows are terminalized as failed in one transaction.
+- Verification: Source/migration review only. No tests, typecheck, build or CI were run during implementation. Concurrent manual/worker claim races, retry exhaustion and exact lease timestamp checks remain for the dedicated testing phase.
+- Status: Route and operational documentation committed to feature/m3-ai-solver; no database changes applied to a hosted environment.
