@@ -21,6 +21,23 @@ test("protected dashboard redirects to login when auth is unconfigured", async (
   await expect(page.locator("p.auth-error")).toContainText(/authentication is not configured/i);
 });
 
+test("private dashboard redirects and API errors retain no-store and no-index policies", async ({ page }) => {
+  const redirect = await page.request.get("/dashboard", { maxRedirects: 0 });
+  expect(redirect.status()).toBe(307);
+  expect(redirect.headers()["cache-control"]).toContain("private");
+  expect(redirect.headers()["cache-control"]).toContain("no-store");
+  expect(redirect.headers()["x-robots-tag"]).toContain("noindex");
+
+  const apiError = await page.request.post("/api/documents/upload/resumable/start", {
+    headers: { origin: "https://attacker.invalid", "content-type": "application/json" },
+    data: { fileName: "forged.pdf", fileSizeBytes: 1024, sha256: "a".repeat(64), pageCount: null },
+  });
+  expect(apiError.status()).toBe(403);
+  expect(apiError.headers()["cache-control"]).toContain("private");
+  expect(apiError.headers()["cache-control"]).toContain("no-store");
+  expect(apiError.headers()["x-robots-tag"]).toContain("noindex");
+});
+
 test("teacher invitations page is protected when auth is unconfigured", async ({ page }) => {
   await page.goto("/dashboard/teacher-invites");
   await expect(page).toHaveURL(/\/login\?error=configuration$/);
