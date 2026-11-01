@@ -1595,8 +1595,8 @@ ERR-073 closure reconciliation (2026-11-01): the earlier note that page and pare
 - Symptom: The bounded reader awaited response/reader cancellation before throwing its stable invalid-length or too-large error. If the underlying stream's cancellation algorithm rejected, that cancellation error could replace the intended boundary error.
 - Root cause: Cancellation was treated as infallible in the Content-Length and streamed-overrun branches.
 - Fix: Made cancellation best-effort in all three rejection branches while preserving the intended `INVALID_RESPONSE_LENGTH` or `RESPONSE_TOO_LARGE` error. Added regression cases where the underlying stream cancellation throws.
-- Verification: Source and regression tests committed; CI rerun pending.
-- Status: Fix committed; verification pending.
+- Verification: CI run `41306988899` passed all 155 unit tests across 30 files; the shared bounded-reader regression tests are included in that suite.
+- Status: Fixed and verified by CI; live upstream behavior remains separately covered by integration acceptance.
 
 ## ERR-147 — Production environment preflight was not wired into foundation CI
 - Date: 2026-11-01
@@ -1604,8 +1604,8 @@ ERR-073 closure reconciliation (2026-11-01): the earlier note that page and pare
 - Symptom: `scripts/validate-production-env.mjs` and `npm run check:production-env` existed, but the foundation workflow never invoked the validator. Configuration drift could therefore go unnoticed until deployment setup.
 - Root cause: The preflight was documented as an operator command but had no automated, credential-free CI contract check.
 - Fix: Added a foundation workflow step that invokes the preflight with synthetic non-secret Supabase, Google OAuth, cron, encryption-key and AI-provider values. The step explicitly does not connect to external services and uses no real credentials.
-- Verification: Workflow change committed; CI execution is pending. A passing fixture check will establish only that the validator accepts the documented configuration shape, not that any provider is reachable or correctly configured.
-- Status: Implementation committed to `feature/m3-ai-solver`; CI verification pending.
+- Verification: Foundation run `41306988899` passed the synthetic environment-contract preflight. This establishes configuration-shape validation only, not provider reachability or correctness.
+- Status: Implemented and CI-verified; hosted environment acceptance remains open.
 
 
 
@@ -1615,8 +1615,8 @@ ERR-073 closure reconciliation (2026-11-01): the earlier note that page and pare
 - Symptom: A configured pool may contain up to eight providers, and each request previously had an independent 45-second timeout. With fallback enabled, one user action could therefore occupy a server request for several minutes while sequentially contacting providers.
 - Root cause: Per-provider timeouts existed, but the router did not enforce an overall deadline or reduce the timeout for later fallback attempts.
 - Fix: Added a 60-second total routing deadline and a maximum 20-second timeout for each provider attempt. The router stops when the shared budget expires; the existing opt-in fallback policy and retryable-error classification remain unchanged. Direct single-provider calls retain their 45-second default timeout.
-- Verification: Added a regression test with an eight-provider pool and a simulated clock; it expects routing to stop after three 20-second attempts. The test, lint, typecheck and build have not been run in this implementation phase.
-- Status: Implemented on `feature/m3-ai-solver`; automated and serverless-runtime verification pending.
+- Verification: The eight-provider simulated-clock regression test passed as part of the 155-test Vitest suite in foundation run `41306988899`; lint, type-check and production build also passed.
+- Status: Implemented and CI-verified; configured-provider runtime acceptance remains open.
 
 
 ## ERR-149 — Keyboard skip-link focus behavior lacked regression coverage
@@ -1625,8 +1625,8 @@ ERR-073 closure reconciliation (2026-11-01): the earlier note that page and pare
 - Symptom: The application already defined a skip link and a shared `:focus-visible` outline for interactive controls, but no browser regression test protected the first keyboard stop, skip-link destination or visible focus treatment.
 - Root cause: Existing accessibility styling was not covered by the Chromium smoke suite.
 - Fix: Added a Chromium smoke test that tabs to the public-page skip link and verifies that it is focused, points to the main content and has a visible outline. Reused the existing shared focus styling; no duplicate global CSS rule is needed.
-- Verification: Regression test committed; CI execution pending. This does not replace a complete keyboard, screen-reader, contrast or touch-target audit.
-- Status: Test implementation committed on `feature/m3-ai-solver`; CI verification pending.
+- Verification: Chromium smoke run `41306988899` passed the keyboard skip-link/focus regression. This does not replace a complete keyboard, screen-reader or contrast audit.
+- Status: Regression verified in CI; full accessibility acceptance remains open.
 
 ## ERR-150 — Narrow mobile layout lacked browser regression coverage
 
@@ -1635,8 +1635,8 @@ ERR-073 closure reconciliation (2026-11-01): the earlier note that page and pare
 - Symptom: The landing and login pages had responsive CSS, but the Chromium smoke suite did not check for horizontal overflow at a narrow mobile viewport or enforce the intended minimum touch size on login controls.
 - Root cause: Responsive styles existed without a browser-level regression assertion for the public entry points.
 - Fix: Added a 360px Chromium smoke test for landing/login visibility, document-width overflow and minimum 44px email/password/submit control heights. This reuses the existing mobile CSS and does not claim a full mobile-device or assistive-technology audit.
-- Verification: Test committed; CI execution pending.
-- Status: Regression coverage implemented on `feature/m3-ai-solver`; runtime verification pending.
+- Verification: Chromium smoke run `41306988899` passed the 360px viewport overflow and minimum touch-target regression.
+- Status: Regression verified in CI; real-device/mobile accessibility acceptance remains open.
 
 ## ERR-151 — Connected Supabase schema is behind the document-registration implementation
 
@@ -1656,5 +1656,14 @@ ERR-073 closure reconciliation (2026-11-01): the earlier note that page and pare
 - Symptom: The latest inspected Vercel preview build failed during Next.js type validation with "Cannot find module '@playwright/test'" at playwright.auth.config.ts. GitHub CI had hidden the issue by installing Playwright temporarily before its build; Vercel correctly installed only the committed dependency graph.
 - Root cause: The root TypeScript include glob covered the authenticated Playwright configuration and E2E test tree, although Playwright is a CI-only temporary dependency and not part of the application build dependencies.
 - Fix: Excluded playwright.auth.config.ts and e2e/ from the application tsconfig.json, alongside the already excluded regular Playwright config. Dedicated CI steps continue to type-check both Playwright configurations and the authenticated spec after installing the temporary test runner.
-- Verification: The fix is included in commit 4b18ffa75ed1e55a8957472ae5f285f2f8639600. GitHub CI on that commit is pending; a fresh Vercel build is also required. The previous failed deployment was built from older commit b792d1efe18b8c6798198d1b2706352e79c3eac8.
-- Status: Fix committed; verification pending. No new Vercel deployment was triggered because the Vercel Git check reported the account deployment rate limit.
+- Verification: The fix is included in commit `4b18ffa75ed1e55a8957472ae5f285f2f8639600`. Subsequent GitHub CI on `b929566a8d175ff1f3894da706ba64414e40ccf2` passed the application build and dedicated Playwright type-checks. A fresh Vercel deployment is still unverified; Vercel previously reported the account's daily deployment limit.
+- Status: Code-level fix verified by GitHub CI; hosted Vercel build remains open.
+
+
+## ERR-153 — Full branch CI rerun after production-readiness and accessibility fixes
+- Date: 2026-11-01
+- Area: CI / final branch verification
+- Symptom: Earlier verification checkpoints did not include the latest provider deadline, response cancellation, environment preflight, keyboard focus and narrow mobile regression coverage.
+- Fix: No additional code change was needed for this verification checkpoint; run the complete foundation, isolated database and secret-scan workflows against the current feature head.
+- Verification: Commit `b929566a8d175ff1f3894da706ba64414e40ccf2`: foundation run `41306988899` passed ESLint, application and Playwright TypeScript checks, all 155 unit tests across 30 files, synthetic production-environment preflight, production dependency audit and Next.js production build. Chromium smoke tests passed 9 and skipped 1 authenticated two-account test. Database run `41306988908` applied the ordered repository migrations to a fresh isolated local Supabase instance and passed all 209 pgTAP assertions across 9 files. Secret scan run `41306988876` passed. Authenticated two-account acceptance remains skipped; no hosted migration, provider call, backup restore or production deployment was performed.
+- Status: Feature-branch automated verification green. Production readiness remains blocked by hosted schema/migration reconciliation, external credentials and runtime acceptance, recovery drill, full dependency advisory remediation, and owner approval.
