@@ -255,3 +255,6 @@ Syllabus lifecycle regression guard (2026-11-01): owner and shared-reference cat
 
 
 Verified syllabus provenance protection (2026-11-01): owner and shared-reference catalog metadata is now immutable after leaving draft, enforced by invoker-security database triggers. Status transitions remain separate and monotonic; verified-to-retired remains permitted without allowing source or syllabus metadata to change. See ERR-102. Database migration application and direct-write acceptance remain pending the dedicated testing and fixing phases.
+
+
+Document failure-state transaction hardening (2026-11-01): manual and background processing routes now use fail_document_processing to persist the document and job failure states together. The RPC validates owner/service-role authority, locks the running job and restricts stored error messages to an allow-list. See ERR-103. Migration application and failure/rollback/concurrency acceptance remain pending the dedicated testing and fixing phases.
