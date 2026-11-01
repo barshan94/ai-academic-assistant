@@ -58,7 +58,7 @@ export function validateBackup(value) {
     if (typeof user.email_confirm !== "boolean") {
       throw new Error("An account is missing its email confirmation-state flag.");
     }
-    if (user.phone !== null && user.phone !== undefined) {
+    if ((user.phone !== null && user.phone !== undefined) || user.phone_confirm === true) {
       throw new Error("Phone-based account data is outside the email/password restore scope.");
     }
     if (!isRecord(user.user_metadata) || !isRecord(user.app_metadata)) {
