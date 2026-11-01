@@ -23,4 +23,8 @@ describe("encrypted Supabase backup script", () => {
     expect(script).toContain("validateBackup(backup);");
     expect(script.indexOf("validateBackup(backup);")).toBeLessThan(script.indexOf('tar -czf "$workdir/backup.tar.gz"'));
   });
+
+  it("normalizes empty phone values to null for the email-only restore contract", () => {
+    expect(script).toContain("'phone', nullif(u.phone, '')");
+  });
 });
