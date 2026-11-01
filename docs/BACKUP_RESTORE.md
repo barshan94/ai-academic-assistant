@@ -10,17 +10,19 @@ This project is constrained to Supabase Free unless the owner explicitly approve
 - https://supabase.com/docs/guides/platform/migrating-within-supabase/backup-restore
 
 A Supabase CLI logical dump is not a complete platform backup:
-- The CLI excludes Supabase-managed `auth` and `storage` schemas by default. Do not claim this procedure backs up user identities or authentication configuration.
+- The CLI excludes Supabase-managed `auth` and `storage` schemas by default. The repository backup helper now performs a separate read-only `psql` export of active email/password Auth accounts into `auth-users.json`, which is included in the encrypted archive.
+- The Auth export contains the original UUID, email/phone fields, supported password hash, confirmation flags, audience/role and metadata. `scripts/restore-auth-users.mjs` recreates supported accounts through the Supabase Auth Admin API, preserving the original UUIDs. Supabase documents custom user IDs and importing compatible bcrypt/Argon2 hashes in its [Auth0 migration guide](https://supabase.com/kb/guides/migrate-from-auth0).
+- The Auth recovery workflow deliberately does **not** restore sessions/refresh tokens, MFA factors, SSO users or non-email identity providers. The importer rejects unsupported account types rather than silently losing their authentication methods. Users must sign in again after restore.
 - Supabase Storage objects are not included. This app currently stores original PDFs in the owner's Google Drive rather than Supabase Storage; the Drive files must remain in Drive and are not copied by this database backup.
 - Project settings, OAuth provider configuration, API keys, Edge Function secrets and external service configuration are not database data.
 - The Drive token encryption key is required to decrypt the encrypted refresh tokens in the database. Losing it makes existing stored Drive connections unusable.
-- Auth user UUIDs are referenced by owner-scoped application rows. Recreating accounts with new UUIDs is not a drop-in restore and can orphan application data. A complete account-and-data restore is **not yet proven on the Free plan**.
+- Auth account recreation is now implemented as a source-level recovery path, but a complete account-and-data restore is **not yet proven** until the workflow succeeds on a fresh isolated Free-plan project and restored users can sign in with their original credentials.
 
-Therefore this runbook currently provides a manual export of application database schema/data and an isolated schema restore procedure. It is not a verified disaster-recovery guarantee.
+This runbook now covers an encrypted application-data export plus a limited Auth account export/recreation path. It is still not a verified disaster-recovery guarantee until the full isolated restore drill succeeds.
 
 ## Backup procedure (manual, before risky changes and at least monthly)
 
-A repository helper now automates the logical export and encrypts the result locally. It requires the Supabase CLI, Docker/PostgreSQL tools as required by the CLI, and age installed on the trusted workstation. It does not upload the archive. The Supabase CLI receives the database connection URL as a child-process argument; run it only on a trusted single-user workstation because local process inspection by the same OS account may expose arguments. Use an encrypted local disk and a private temporary directory; deleting temporary files is not a guaranteed secure erase on SSDs.
+A repository helper now automates the logical export and encrypts the result locally. It requires the Supabase CLI, `psql`, Docker/PostgreSQL tools as required by the CLI, and age installed on the trusted workstation. It does not upload the archive. The Supabase CLI receives the database connection URL as a child-process argument; run it only on a trusted single-user workstation because local process inspection by the same OS account may expose arguments. Use an encrypted local disk and a private temporary directory; deleting temporary files is not a guaranteed secure erase on SSDs.
 
 1. Generate an age key pair on the trusted workstation and store the private identity in a separate secure location. For example, on Linux/macOS/WSL:
    ```bash
@@ -52,7 +54,7 @@ A repository helper now automates the logical export and encrypts the result loc
    This decrypts into a private temporary directory, accepts only the exact expected archive entries, streams each member into a newly created regular file (without extracting archive-controlled paths or link metadata), and verifies every SHA-256 checksum. It proves archive integrity, not successful database restoration.
 6. Copy the encrypted archive to an independent off-site location. Never commit it to this repository.
 
-The helper intentionally does not export Supabase Auth identities, Storage object bytes, Google Drive files, project settings or provider secrets. Its output is not a complete disaster-recovery backup.
+The helper does not export Auth sessions, MFA factors, SSO/external provider identities, Storage object bytes, Google Drive files, project settings or provider secrets. Its output is not a complete disaster-recovery backup.
 
 ### Manual CLI export (alternative)
 
@@ -112,8 +114,25 @@ Do not test restore against production or the current shared project.
 
    Confirm exact command compatibility with the current Supabase restore guide before running. Do not use `supabase db reset --linked`; it is destructive.
 
-5. **Stop before calling this a full restore.** The CLI dump does not contain Supabase Auth users. Public application rows have foreign keys to Auth identities. A supported method to restore the original user UUIDs and their account state must be established before attempting to restore real user data. Do not manually edit Supabase-managed Auth tables.
-6. Reconfigure OAuth providers, redirect URLs, environment variables, cron secrets and deployment settings in the target. Reuse the exact Drive encryption key if encrypted refresh-token rows are restored.
+5. Extract `auth-users.json` from the encrypted archive into a mode-restricted temporary file, then recreate supported email/password accounts through the Auth Admin API **before restoring application data**. For example:
+   ```bash
+   umask 077
+   age --decrypt --identity "$AGE_IDENTITY_FILE" "$BACKUP_ARCHIVE" | tar -xzOf - auth-users.json > "$AUTH_USERS_BACKUP_FILE"
+   chmod 600 "$AUTH_USERS_BACKUP_FILE"
+   export SUPABASE_URL="https://TARGET_PROJECT_REF.supabase.co"
+   export SUPABASE_SERVICE_ROLE_KEY
+   node scripts/restore-auth-users.mjs "$AUTH_USERS_BACKUP_FILE"
+   ```
+   The importer preserves original UUIDs, uses the exported password hashes and skips already-present matching UUID/email pairs so an interrupted import can be resumed. It refuses unsupported identity providers, MFA, anonymous and SSO accounts. Never print or paste the Auth JSON or service-role key.
+6. Restore application data only after Auth users exist, so foreign keys to Auth identities can resolve:
+   ```bash
+   psql --single-transaction --variable ON_ERROR_STOP=1 \
+     --command 'SET session_replication_role = replica' \
+     --file data.sql \
+     --dbname "$TARGET_DB_URL"
+   ```
+   Check the current Supabase restore guide for compatibility with the target Postgres version. Do not manually edit Supabase-managed Auth tables.
+7. Reconfigure OAuth providers, redirect URLs, environment variables, cron secrets and deployment settings in the target. Reuse the exact Drive encryption key if encrypted refresh-token rows are restored.
 7. Confirm that Google Drive files still exist in their original owner accounts. The app's database backup does not contain those file bytes.
 8. Run the full local migration/pgTAP suite and a dedicated two-account authenticated acceptance suite against the isolated target before considering any migration.
 
@@ -121,7 +140,7 @@ Do not test restore against production or the current shared project.
 
 - [ ] A backup archive is created, encrypted and stored in two independent locations.
 - [ ] A fresh isolated target accepts the schema restore without manual untracked edits.
-- [ ] A supported Auth identity restoration/reconciliation method is proven without editing managed Auth tables.
+- [ ] The Auth Admin API importer recreates every supported original UUID and password hash; restored users can sign in with their existing passwords. Unsupported MFA/SSO/external identities are either separately recovered or explicitly accepted as a documented limitation.
 - [ ] Owner-linked application rows retain correct owner identity and cross-account isolation.
 - [ ] Existing encrypted Drive tokens decrypt using the preserved encryption key.
 - [ ] Drive file references resolve to files that still exist in the owners' Google Drives.
