@@ -956,3 +956,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Reject points JSON strings larger than 256 KiB before JSON.parse; the existing schema continues to enforce per-field and per-array limits after parsing.
 - Verification: Source inspection only; boundary-size, malformed JSON and valid maximum mark-scheme cases remain deferred to the separate testing phase.
 - Status: Implemented on the feature branch; no tests, typecheck or build were run during implementation.
+
+
+## ERR-089 — Stale document recovery could report success without updating the document
+
+- Date: 2026-11-01
+- Area: M5 document processing / stale-job recovery
+- Symptom: After successfully marking a stale processing job as failed, the recovery route updated the parent document but checked only the database error. A zero-row owner-scoped update could therefore be treated as successful, leaving the job and document lifecycle states inconsistent.
+- Root cause: The parent-document recovery update did not return or verify the affected row.
+- Fix: Request the updated document ID and require exactly one returned row before continuing recovery.
+- Verification: Source inspection only; concurrent deletion, owner-scope mismatch and successful stale-recovery cases remain deferred to the separate testing phase.
+- Status: Implemented on the feature branch; no tests, typecheck or build were run during implementation.
