@@ -62,6 +62,7 @@ describe("middleware auth-refresh response policy", () => {
     expect(response.cookies.get("sb-access-token")?.value).toBe("refreshed-session");
     expect(response.cookies.get("sb-access-token")?.httpOnly).toBe(true);
     expect(response.cookies.get("sb-access-token")?.secure).toBe(true);
+    expect(response.headers.get("x-middleware-request-cookie")).toContain("sb-access-token=refreshed-session");
   });
 
   it("preserves private cache, crawler and refreshed cookie policy on sign-in redirects", async () => {
