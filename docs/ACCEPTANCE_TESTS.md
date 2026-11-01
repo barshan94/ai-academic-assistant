@@ -195,3 +195,9 @@
 ## Private response caching
 - [ ] Confirm dashboard pages, API success responses, API errors and unauthenticated dashboard redirects return `Cache-Control: private, no-store`.
 - [ ] Confirm no private academic response is reused after sign-out, account switching, back/forward navigation or browser cache restoration.
+
+
+## Middleware response-policy preservation (ERR-121)
+- [ ] Trigger a Supabase auth-cookie refresh on a dashboard request and confirm the resulting response retains the request CSP, `Cache-Control: private, no-store` and `X-Robots-Tag: noindex, nofollow, noarchive`.
+- [ ] Repeat with an expired/invalid session that redirects to sign-in; confirm all applicable response policy headers survive the redirect and refreshed-cookie handling.
+- [ ] Confirm refreshed auth cookies are still emitted with their original options and the request continues with the updated cookie header.
