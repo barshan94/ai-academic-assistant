@@ -259,6 +259,7 @@ export async function generateStructuredAnswer(
         ],
       }),
       signal: AbortSignal.timeout(45000),
+      redirect: "error",
     });
   } catch {
     throw new AIProviderError("AI_PROVIDER_UNAVAILABLE");
