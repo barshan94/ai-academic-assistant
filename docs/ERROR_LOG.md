@@ -1587,3 +1587,13 @@ ERR-073 closure reconciliation (2026-11-01): the earlier note that page and pare
 - Area: CI / unit, database and browser smoke testing
 - Verification: On commit `cd835f4b6cbb28929d3a75cd5fa4fafeea7bb9a8`, foundation workflow `41303192380` passed lint, application and Playwright TypeScript checks, all 30 Vitest files / 152 tests, and the production build. Database workflow `41303192382` passed all 209 pgTAP assertions across 9 files after applying the full repository migration chain to a fresh isolated local Supabase database. Chromium smoke tests passed 7 tests with 1 skipped in the foundation workflow's browser job. Secret scanning passed in run `41303192377`. The authenticated two-account workflow remained skipped because non-production credentials are not configured.
 - Status: Automated branch test baseline green; live authenticated/provider/hosted-database/recovery/accessibility acceptance remains open.
+
+
+## ERR-146 — Stream cancellation failures could mask response-boundary errors
+- Date: 2026-11-01
+- Area: Shared bounded upstream response reader
+- Symptom: The bounded reader awaited response/reader cancellation before throwing its stable invalid-length or too-large error. If the underlying stream's cancellation algorithm rejected, that cancellation error could replace the intended boundary error.
+- Root cause: Cancellation was treated as infallible in the Content-Length and streamed-overrun branches.
+- Fix: Made cancellation best-effort in all three rejection branches while preserving the intended `INVALID_RESPONSE_LENGTH` or `RESPONSE_TOO_LARGE` error. Added regression cases where the underlying stream cancellation throws.
+- Verification: Source and regression tests committed; CI rerun pending.
+- Status: Fix committed; verification pending.
