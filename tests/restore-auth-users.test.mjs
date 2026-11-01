@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  passwordHashAlgorithm,
   readJsonResponse,
   remainingBanDuration,
   validateBackup,
@@ -35,6 +36,21 @@ describe("Auth account backup validation", () => {
   it("rejects a missing source project reference and malformed UUID", () => {
     expect(() => validateBackup({ ...backup(), projectRef: undefined })).toThrow("source project reference");
     expect(() => validateBackup(backup({ ...baseUser, id: "not-a-uuid" }))).toThrow("UUID v4");
+  });
+
+  it("identifies supported password hash algorithms and rejects mixed backups", () => {
+    const argon2Hash = "$argon2id$v=19$m=65536,t=3,p=4$" + "A".repeat(22) + "$" + "B".repeat(43);
+    expect(passwordHashAlgorithm(baseUser.password_hash)).toBe("bcrypt");
+    expect(passwordHashAlgorithm(argon2Hash)).toBe("argon2");
+    expect(validateBackup(backup({ ...baseUser, password_hash: argon2Hash }))).toHaveLength(1);
+    expect(() => validateBackup({
+      formatVersion: 1,
+      projectRef: "uqpyzicftxxegajaocxi",
+      users: [
+        baseUser,
+        { ...baseUser, id: "22222222-2222-4222-8222-222222222222", email: "teacher@example.com", password_hash: argon2Hash },
+      ],
+    })).toThrow("mixes password-hash algorithms");
   });
 
   it("rejects plaintext passwords and unsupported account types", () => {
