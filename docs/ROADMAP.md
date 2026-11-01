@@ -309,3 +309,6 @@ Production-readiness documentation and preflight (2026-11-01): added a Node.js e
 
 
 User-facing privacy disclosure (2026-11-01): published `/privacy` and linked it from the landing page. The notice explains current Supabase, Google Drive, optional AI and web-search data flows, cookies, retention and deletion limitations, and explicitly avoids claiming complete backup or production approval. It still requires legal/configuration review, a responsible contact channel and browser accessibility acceptance. See ERR-116.
+
+
+Public product copy (2026-11-01): refreshed the landing page to describe the implemented document-intake, question-solver, syllabus/chapter-note and exam-preparation workflows as "In code", and to state that external integrations require setup. Removed the obsolete Foundation/M1 status claim. See ERR-117; browser/mobile copy acceptance remains pending.
