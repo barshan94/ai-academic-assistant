@@ -978,3 +978,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Return the updated document ID and require both the parent document and running job updates to return rows before reporting that failure state was persisted.
 - Verification: Source inspection only; provider failures, concurrent state changes and zero-row update cases remain deferred to the separate testing phase.
 - Status: Implemented on the feature branch; no tests, typecheck or build were run during implementation.
+
+
+## ERR-091 — Background worker failure handler did not verify the parent document row
+
+- Date: 2026-11-01
+- Area: M5 background document worker / failure-state persistence
+- Symptom: The cron worker's failure handler checked the processing-job update but checked only the database error for the owner-scoped parent-document update. If the document row was missing or no longer matched the owner filter, the worker could treat a partial failure-state write as complete.
+- Root cause: The parent-document update did not return and verify the affected row.
+- Fix: Select the updated document ID and require both the document and running-job failure updates to return rows before reporting the failure state as persisted.
+- Verification: Source inspection only; worker failure, missing-document and concurrent state-change cases remain deferred to the separate testing phase.
+- Status: Implemented on the feature branch; no tests, typecheck or build were run during implementation.
