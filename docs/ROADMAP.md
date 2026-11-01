@@ -174,3 +174,6 @@ Google integration resource hardening (2026-11-01): OAuth refresh and Drive uplo
 
 
 Upload and OAuth boundary hardening (2026-11-01): the resumable chunk route now validates every decrypted session claim before using it, including expiry, checksum, file bounds, filename and the exact Google Drive upload-session origin/path. Google OAuth authorization-code callback responses now use the shared 64 KiB bounded JSON reader; refresh-token responses and Drive metadata/chunk-completion responses are bounded as well. See ERR-068 through ERR-070. Source implementation is committed; all malformed/oversized-response, invalid-token and live-provider acceptance remains deferred to the separate testing phase.
+
+
+Google Drive session destination validation (2026-11-01): both issued and decrypted resumable session URLs are now checked through one strict validator requiring HTTPS, the exact Google API hostname, no embedded user-info and a path-segment-bounded Drive files endpoint. Legitimate Drive upload query parameters are preserved. See ERR-071; URL boundary and live upload acceptance remain pending.
