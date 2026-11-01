@@ -55,6 +55,22 @@ describe("readLimitedResponseText", () => {
     await expect(readLimitedResponseText(response, 3)).rejects.toThrow("RESPONSE_TOO_LARGE");
   });
 
+  it("preserves the invalid-length error if cancelling the body fails", async () => {
+    const response = new Response(new ReadableStream<Uint8Array>({
+      start(controller) { controller.enqueue(new Uint8Array([0x61])); },
+      cancel() { throw new Error("transport cancellation failed"); },
+    }), { headers: { "content-length": "invalid" } });
+    await expect(readLimitedResponseText(response, 3)).rejects.toThrow("INVALID_RESPONSE_LENGTH");
+  });
+
+  it("preserves the oversized-body error if cancelling the stream fails", async () => {
+    const response = new Response(new ReadableStream<Uint8Array>({
+      start(controller) { controller.enqueue(new Uint8Array([1, 2, 3, 4])); },
+      cancel() { throw new Error("transport cancellation failed"); },
+    }));
+    await expect(readLimitedResponseText(response, 3)).rejects.toThrow("RESPONSE_TOO_LARGE");
+  });
+
   it("decodes a multibyte UTF-8 character split across chunks", async () => {
     const encoded = new TextEncoder().encode("বাংলা");
     const response = streamedResponse([
