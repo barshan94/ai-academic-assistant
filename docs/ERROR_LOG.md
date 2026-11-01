@@ -1020,3 +1020,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Chapter and topic creation now require an owner-scoped catalog in draft status and return a catalog-locked result for verified or retired catalogs.
 - Verification: Source-level change committed; database-level lifecycle enforcement and concurrency regression coverage remain pending.
 - Status: Application action hardened; a database trigger/RPC is still required to close read-then-write races.
+
+
+## ERR-095 — Readiness endpoint parsed the Bearer separator as a literal escape
+
+- Date: 2026-11-01
+- Area: Health readiness endpoint / cron-secret authorization
+- Symptom: A correctly formatted `Authorization: Bearer <secret>` header was not stripped to the supplied secret, so the protected readiness endpoint rejected valid credentials.
+- Root cause: The regular-expression literal used an over-escaped whitespace token (`\\s`), matching a literal backslash followed by `s` instead of whitespace.
+- Fix: Corrected the expression to use the JavaScript regex whitespace escape (`\s`) before constant-time secret comparison.
+- Verification: Source inspection only; valid, invalid, missing and unequal-length bearer credentials remain deferred to the dedicated testing phase.
+- Status: Implemented on `feature/m3-ai-solver`; tests, typecheck and build were not run during implementation.
