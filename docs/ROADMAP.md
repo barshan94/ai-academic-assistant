@@ -436,4 +436,7 @@ The existing shared `:focus-visible` outline and skip-link styling now have Chro
 - [x] Read-only hosted audit confirms 21 public tables with RLS, 42 public policies, no anon public-table grants, no public views, and one public SECURITY DEFINER function restricted to postgres/service_role.
 - [x] Confirmed the hosted schema is behind the current application: no document-registration RPC and an outdated page-count constraint. Added ERR-159/ERR-160 and updated migration reconciliation, owner actions and production-readiness gates.
 - [x] Latest isolated database authorization CI passed (run 41318724631); latest foundation lint/typecheck/unit/build and Chromium smoke checks passed (run 41318724655).
-- [ ] Owner confirms the existing academic project is the intended non-production target before any hosted migration is applied. No hosted mutation was performed.
+- [x] Owner confirmed the existing `academic-assistant` project as the dedicated non-production reconciliation/testing target.
+- [x] Refreshed the full migration comparison: 96 repository migrations, 53 hosted ledger entries, 51 exact matches, two renamed shared-reference versions and 43 genuinely pending migrations.
+- [x] Object-level audit confirms the shared-reference tables, indexes, functions, triggers and policies exist; seed tables are empty. Identified three trigger-only functions with unnecessary default PUBLIC EXECUTE grants (ERR-161).
+- [ ] Prepare migration-history repair for the two renamed migrations, harden trigger-only function privileges, then apply the 43 pending migrations in order only after a reviewed plan and separate execution approval. No hosted mutation has been performed.
