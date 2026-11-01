@@ -278,3 +278,8 @@ Document job claim/recovery transaction hardening (2026-11-01): manual and sched
 
 
 Document correction and manual stale-claim closure (2026-11-01): manual OCR page correction now uses a single owner-authorized database transaction to update the page and return the parent document to `review_required`; corrections are rejected while processing is active. For stale jobs with retry budget remaining, the manual route now invokes the atomic claim RPC directly instead of performing a separate recover-to-failed step followed by a claim. Exhausted stale jobs still transition both document and job to failed atomically. See ERR-109 and ERR-110. Migration application, rollback, row-lock ordering and stale-lease concurrency acceptance remain deferred to the dedicated testing/fixing phases.
+
+
+
+
+Private syllabus lifecycle enforcement (2026-11-01): PostgreSQL now requires private catalogues to be created as drafts; verifies only with an HTTPS source URL, non-empty source title and at least one chapter; stamps source_checked_at using the database clock; prevents owner transfer and source-check timestamp forgery; permits only draft-to-verified/retired and verified-to-retired transitions; and makes retired catalogues immutable. The dashboard no longer supplies its own verification timestamp. See ERR-111. Migration is committed but not applied to a hosted database; lifecycle, privilege and concurrency acceptance remains for the dedicated testing/fixing phases.
