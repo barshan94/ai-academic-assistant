@@ -72,8 +72,25 @@ export async function GET(request: Request) {
   if (!candidates?.length) return Response.json({ processed: false, reason: "queue_empty" });
 
   for (const candidate of candidates) {
-    if (!isBackgroundJobRetryEligible(candidate.attempt_count, candidate.max_attempts)) continue;
     if (!isBackgroundJobClaimable({ status: candidate.status, startedAt: candidate.started_at })) continue;
+    if (!isBackgroundJobRetryEligible(candidate.attempt_count, candidate.max_attempts)) {
+      if (candidate.status === "running") {
+        const { error: terminalizationError } = await supabase.rpc("terminalize_exhausted_stale_document_job", {
+          p_document_id: candidate.document_id,
+          p_owner_id: candidate.owner_id,
+          p_job_id: candidate.id,
+          p_expected_started_at: candidate.started_at,
+        });
+        if (terminalizationError) {
+          logSafeOperationalEvent("exhausted_document_job_terminalization_failed", {
+            route: "/api/cron/process-documents",
+            errorCode: "EXHAUSTED_JOB_TERMINALIZATION_FAILED",
+            jobId: candidate.id,
+          });
+        }
+      }
+      continue;
+    }
     let claim = supabase.from("processing_jobs").update({
       status: "running",
       stage: "ocr",
