@@ -62,6 +62,8 @@ describe("Auth account backup validation", () => {
     expect(() => validateBackup(backup({ ...baseUser, mfa_factor_count: 1 }))).toThrow("MFA factors");
     expect(() => validateBackup(backup({ ...baseUser, is_sso_user: true }))).toThrow("MFA factors");
     expect(() => validateBackup(backup({ ...baseUser, is_anonymous: true }))).toThrow("MFA factors");
+    expect(() => validateBackup(backup({ ...baseUser, mfa_factor_count: "0" }))).toThrow("MFA, anonymous or SSO state");
+    expect(() => validateBackup(backup({ ...baseUser, phone: undefined }))).toThrow("phone field");
   });
 
   it("rejects duplicate account IDs and case-insensitive email addresses", () => {
