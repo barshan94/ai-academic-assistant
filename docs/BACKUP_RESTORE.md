@@ -46,8 +46,9 @@ A repository helper now automates the logical export and encrypts the result loc
    This decrypts into a private temporary directory, accepts only the exact expected archive entries, and verifies every SHA-256 checksum. It proves archive integrity, not successful database restoration.
 6. Copy the encrypted archive to an independent off-site location. Never commit it to this repository.
 
-The helper intentionally does not export Supabase Auth identities, Storage object bytes, Google Drive files, project settings or provider secrets. Its output is not a complete disaster-recovery backup. For a manual export without the helper, the lower-level CLI procedure remains below.
+The helper intentionally does not export Supabase Auth identities, Storage object bytes, Google Drive files, project settings or provider secrets. Its output is not a complete disaster-recovery backup.
 
+### Manual CLI export (alternative)
 
 1. Use a trusted workstation with the Supabase CLI and Docker installed.
 2. Obtain the database connection string from the Supabase Dashboard's Connect panel. Do not paste it into chat, source code, shell history, or logs.
