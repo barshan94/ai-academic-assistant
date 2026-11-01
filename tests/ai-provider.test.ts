@@ -76,6 +76,33 @@ describe("AI provider fallback policy", () => {
     expect(fetcher).toHaveBeenCalledTimes(2);
   });
 
+  it("bounds sequential fallback attempts to the total routing budget", async () => {
+    const manyProviders = JSON.stringify(Array.from({ length: 8 }, (_, index) => ({
+      name: "provider-" + index,
+      baseUrl: "https://provider-" + index + ".example/v1",
+      apiKey: "test-key",
+      model: "test-model",
+      tasks: ["answer"],
+      priority: index,
+    })));
+    let now = 0;
+    const nowSpy = vi.spyOn(Date, "now").mockImplementation(() => now);
+    const fetcher = vi.fn<typeof fetch>().mockImplementation(async () => {
+      now += 20_000;
+      return new Response("temporary outage", { status: 503 });
+    });
+
+    try {
+      await expect(generateStructuredAnswerWithRouting("Question", fetcher, {}, {
+        AI_PROVIDER_POOL: manyProviders,
+        AI_ALLOW_PROVIDER_FALLBACKS: "true",
+      })).rejects.toThrow("AI_PROVIDER_HTTP_503");
+      expect(fetcher).toHaveBeenCalledTimes(3);
+    } finally {
+      nowSpy.mockRestore();
+    }
+  });
+
   it("does not retry when fallback is not explicitly enabled", async () => {
     const fetcher = vi.fn<typeof fetch>()
       .mockResolvedValueOnce(new Response("temporary outage", { status: 503 }))
