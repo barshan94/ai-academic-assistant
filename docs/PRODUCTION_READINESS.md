@@ -84,6 +84,7 @@ The owner-selected infrastructure constraint remains Supabase Free only. No paid
 ## 6. Security, privacy and accessibility
 
 - [ ] Run the secret scanner against the complete Git history and rotate any credential ever committed, even if later removed.
+- [ ] Resolve ERR-124: remove the legacy minimatch v3 dependency from the development toolchain through a compatible ESLint/Next.js update or a narrowly scoped compatibility patch; then audit the full dependency tree. A production-only audit does not resolve the development-toolchain advisory.
 - [ ] Confirm server-only secrets are absent from `NEXT_PUBLIC_*`, source maps, browser bundles, client logs and build output.
 - [ ] Verify CSP nonce behavior and security headers in a real browser on the deployed non-production origin.
 - [ ] Verify CSRF protections on upload, OAuth and mutation routes.
