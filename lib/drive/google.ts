@@ -10,7 +10,7 @@ const MAX_GOOGLE_METADATA_BYTES = 64 * 1024;
 
 async function readResponseBytesBounded(response: Response, maxBytes: number, description: string) {
   const declaredLength = response.headers.get("content-length");
-  if (declaredLength && /^\\d+$/.test(declaredLength) && Number(declaredLength) > maxBytes) {
+  if (declaredLength && /^\d+$/.test(declaredLength) && Number(declaredLength) > maxBytes) {
     await response.body?.cancel();
     throw new Error(description + " exceeded its size limit.");
   }
