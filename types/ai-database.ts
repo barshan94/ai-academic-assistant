@@ -5,8 +5,8 @@ export type DatabaseWithAISolutions = Omit<Database, "public"> & {
     Tables: Database["public"]["Tables"] & {
       question_teacher_invites: {
         Row: { id: string; question_id: string; owner_id: string; invited_email: string; accepted_by: string | null; accepted_at: string | null; revoked_at: string | null; expires_at: string; created_at: string };
-        Insert: { question_id: string; owner_id: string; invited_email: string };
-        Update: { accepted_by?: string | null; accepted_at?: string | null; revoked_at?: string | null };
+        Insert: never;
+        Update: never;
         Relationships: [{
           foreignKeyName: "question_teacher_invites_question_owner_fk";
           columns: ["question_id", "owner_id"];
