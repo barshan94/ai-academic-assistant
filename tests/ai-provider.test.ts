@@ -183,6 +183,19 @@ describe("structured exam answer generation", () => {
       .rejects.toThrow(new AIProviderError("AI_PROVIDER_INVALID_STRUCTURED_ANSWER"));
   });
 
+  it("converts empty and provider-error payloads into a generic error without leaking upstream messages", async () => {
+    for (const payload of [
+      { choices: [{ message: { content: "" } }] },
+      { error: { message: "private provider diagnostic and echoed prompt" } },
+    ]) {
+      const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
+        new Response(JSON.stringify(payload), { status: 200 }),
+      );
+      await expect(generateStructuredAnswer("Question", config, fetcher))
+        .rejects.toThrow("AI_PROVIDER_EMPTY_RESPONSE");
+    }
+  });
+
   it("converts provider HTTP failures into status-only errors without exposing response bodies", async () => {
     const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
       new Response("provider failure; echoed prompt and private payload", { status: 503 }),
