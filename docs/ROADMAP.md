@@ -125,7 +125,7 @@ M6 remaining:
 ## M6 status — implemented in code, evaluation pending
 
 - Chapter-note generation uses owner-approved question and source-page inputs, bounded citation checks, source records, append-only versions, approval/archive states and dedicated download/print views.
-- The question solver can optionally retrieve up to three latest approved notes from the exact confirmed syllabus chapter. The answer records immutable note IDs, titles and version numbers; the database revalidates ownership, chapter and approval status.
+- The question solver can optionally retrieve up to three latest approved notes from the exact confirmed syllabus chapter. The answer records immutable note IDs, titles and version numbers; the database revalidates ownership, chapter and approval status. Task-aware provider routing, priority ordering and opt-in fallback are implemented; web research stores owner-scoped, HTTPS-filtered source leads from the manually entered query under a daily quota. These are code-complete only; live provider and authenticated acceptance remain pending.
 - Remaining: independent source-quality review, live AI note evaluation, PDF/print browser acceptance, and authenticated owner/teacher review.
 
 ## M7 status — implemented in code, acceptance pending
