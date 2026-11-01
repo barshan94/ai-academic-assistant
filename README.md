@@ -68,7 +68,7 @@ M1–M7 application features are substantially implemented in code on `feature/m
 
 Implementation is not the same as release acceptance. The remaining work is tracked in `docs/ROADMAP.md` and `docs/ACCEPTANCE_TESTS.md`:
 
-- **M2:** resumable uploads up to 50 MB, upload quotas of 10 new sessions/hour and 50/day per owner, and a one-job-per-invocation worker are implemented in code. Live Google OAuth/Drive, resumable interruption recovery, worker scheduling, deployment secrets and two-account isolation still require non-production acceptance.
+- **M2:** resumable uploads up to 50 MB, upload quotas of 10 new sessions/hour and 50/day per owner, and a one-job-per-invocation worker are implemented in code. Drive authorization is checked before consuming an upload quota slot. Live Google OAuth/Drive, resumable interruption recovery, worker scheduling, deployment secrets and two-account isolation still require non-production acceptance.
 - **M3–M4:** live provider generation with explicit cost approval, a manually graded golden question set, independent source/mark-scheme review, and real two-account teacher acceptance remain. Mark-scheme references are owner-supplied evidence, not certified official schemes. AI remains disabled until the owner configures provider credentials.
 - **M5:** four Cambridge/Pearson Edexcel science draft catalogues are seeded for curator review (30 chapters, 170 numbered topic headings, 200 source-evidence locators). They are not verified or visible to ordinary users until a real curator checks and publishes them. Lexical suggestions are not calibrated confidence.
 - **M6:** live AI chapter-note evaluation, independent source-quality review, and browser acceptance of downloads/print layout remain.
