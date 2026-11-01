@@ -4,6 +4,43 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 const DRIVE_FILE_SCOPE = "https://www.googleapis.com/auth/drive.file";
 
+const MAX_DRIVE_PDF_BYTES = 50 * 1024 * 1024;
+const MAX_OCR_TEXT_BYTES = 10 * 1024 * 1024;
+const MAX_GOOGLE_METADATA_BYTES = 64 * 1024;
+
+async function readResponseBytesBounded(response: Response, maxBytes: number, description: string) {
+  const declaredLength = response.headers.get("content-length");
+  if (declaredLength && /^\\d+$/.test(declaredLength) && Number(declaredLength) > maxBytes) {
+    await response.body?.cancel();
+    throw new Error(description + " exceeded its size limit.");
+  }
+  if (!response.body) throw new Error(description + " returned an empty response.");
+  const reader = response.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > maxBytes) {
+        await reader.cancel();
+        throw new Error(description + " exceeded its size limit.");
+      }
+      chunks.push(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  const output = Buffer.allocUnsafe(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    output.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return output;
+}
+
 function getGoogleConfig() {
   const clientId = process.env.GOOGLE_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
@@ -117,7 +154,7 @@ export async function extractTextFromDrivePdf(input: {
     { headers: { Authorization: "Bearer " + input.accessToken }, cache: "no-store", signal: AbortSignal.timeout(30_000) },
   );
   if (!sourceResponse.ok) throw new Error("Could not download the archived PDF from Google Drive.");
-  const sourceBytes = Buffer.from(await sourceResponse.arrayBuffer());
+  const sourceBytes = await readResponseBytesBounded(sourceResponse, MAX_DRIVE_PDF_BYTES, "Archived PDF");
 
   const boundary = "academic_ocr_" + crypto.randomUUID().replaceAll("-", "");
   const metadata = JSON.stringify({
@@ -144,7 +181,10 @@ export async function extractTextFromDrivePdf(input: {
       signal: AbortSignal.timeout(30_000),
     },
   );
-  const converted = await convertResponse.json() as { id?: string };
+  const convertedBytes = await readResponseBytesBounded(convertResponse, MAX_GOOGLE_METADATA_BYTES, "Google Drive OCR conversion metadata");
+  let converted: { id?: string };
+  try { converted = JSON.parse(convertedBytes.toString("utf8")) as { id?: string }; }
+  catch { throw new Error("Google Drive returned invalid OCR conversion metadata."); }
   if (!convertResponse.ok || !converted.id) {
     throw new Error("Google Drive could not extract text from this PDF. The file may be unreadable or unsupported.");
   }
@@ -155,7 +195,8 @@ export async function extractTextFromDrivePdf(input: {
       { headers: { Authorization: "Bearer " + input.accessToken }, cache: "no-store", signal: AbortSignal.timeout(20_000) },
     );
     if (!exportResponse.ok) throw new Error("Google Drive OCR export failed.");
-    return await exportResponse.text();
+    const extractedBytes = await readResponseBytesBounded(exportResponse, MAX_OCR_TEXT_BYTES, "Extracted OCR text");
+    return new TextDecoder("utf-8", { fatal: true }).decode(extractedBytes);
   } finally {
     await deleteDriveFile(input.accessToken, converted.id);
   }
