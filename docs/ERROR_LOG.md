@@ -1255,3 +1255,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Load pending/current-email invitations and accepted-by-current-user invitations separately, merge and de-duplicate by invitation ID, then sort and cap the combined history. RLS remains the authorization boundary; the user-ID query does not grant access to question content.
 - Verification: Source/documentation change only. No tests, typecheck, build, browser run or hosted database change was performed; email-change and revocation visibility acceptance remain in the deferred testing phase.
 - Status: Teacher invitation page and M4 documentation committed to `feature/m3-ai-solver`.
+
+
+## ERR-116 — Privacy disclosures existed only in internal documentation
+
+- Date: 2026-11-01
+- Area: User-facing privacy and data transparency
+- Symptom: The repository documented Google Drive, Supabase, optional AI/search processing and backup limitations, but signed-in users and invited teachers had no public in-app notice explaining those data flows, cookie use, retention gaps or the current self-service deletion limitation.
+- Root cause: Privacy/security documentation was maintained as engineering guidance rather than surfaced as a user-facing product disclosure.
+- Fix: Added `/privacy` with plain-language descriptions of account roles, stored academic records, Google Drive storage and token encryption, opt-in AI/source-page retrieval, manually initiated web research, cookies/time-zone handling, retention/deletion limitations and the current non-production status. Added a persistent landing-page link.
+- Verification: Source/documentation change only. No tests, typecheck, build, browser, legal review or runtime deployment was performed. Confirm wording against the final deployed data flows, add a responsible contact channel, and complete accessibility/legal review during the dedicated testing and release-acceptance phases.
+- Status: Privacy page and landing-page link committed to `feature/m3-ai-solver`; no external service or database was changed.
