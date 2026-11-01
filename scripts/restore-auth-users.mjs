@@ -52,13 +52,20 @@ export function validateBackup(value) {
     if (!Array.isArray(user.identity_providers) || user.identity_providers.length !== 1 || user.identity_providers[0] !== "email") {
       throw new Error("Only email-identity accounts are supported by this restore workflow.");
     }
-    if (Number(user.mfa_factor_count) !== 0 || user.is_anonymous === true || user.is_sso_user === true) {
+    if (!Number.isSafeInteger(user.mfa_factor_count) || user.mfa_factor_count < 0 ||
+        typeof user.is_anonymous !== "boolean" || typeof user.is_sso_user !== "boolean") {
+      throw new Error("An account is missing valid MFA, anonymous or SSO state.");
+    }
+    if (user.mfa_factor_count !== 0 || user.is_anonymous || user.is_sso_user) {
       throw new Error("Accounts with MFA factors, anonymous status or SSO status require a separately designed recovery workflow.");
     }
     if (typeof user.email_confirm !== "boolean" || typeof user.phone_confirm !== "boolean") {
       throw new Error("An account is missing its email or phone confirmation-state flags.");
     }
-    if ((user.phone !== null && user.phone !== undefined) || user.phone_confirm === true) {
+    if (typeof user.phone !== "string" && user.phone !== null) {
+      throw new Error("An account is missing its phone field.");
+    }
+    if (user.phone !== null || user.phone_confirm) {
       throw new Error("Phone-based account data is outside the email/password restore scope.");
     }
     if (!isRecord(user.user_metadata) || !isRecord(user.app_metadata)) {
@@ -70,14 +77,16 @@ export function validateBackup(value) {
         user.app_metadata.providers[0] !== "email") {
       throw new Error("Only email-provider Auth metadata is supported by this restore workflow.");
     }
-    if (typeof user.aud !== "string" || typeof user.role !== "string") {
-      throw new Error("An account is missing its Auth audience or role.");
+    if (typeof user.aud !== "string" || !user.aud || user.aud.length > 128 ||
+        typeof user.role !== "string" || !user.role || user.role.length > 128) {
+      throw new Error("An account is missing a valid Auth audience or role.");
     }
     const normalizedEmail = user.email.toLowerCase();
     if (ids.has(user.id) || emails.has(normalizedEmail)) throw new Error("The backup contains duplicate account IDs or email addresses.");
     ids.add(user.id);
     emails.add(normalizedEmail);
-    if (user.banned_until !== null && user.banned_until !== undefined && !Number.isFinite(Date.parse(user.banned_until))) {
+    if (user.banned_until !== null &&
+        (typeof user.banned_until !== "string" || !Number.isFinite(Date.parse(user.banned_until)))) {
       throw new Error("An account has an invalid ban-expiry timestamp.");
     }
   }
