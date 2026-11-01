@@ -53,7 +53,7 @@ The preflight script reads the current process environment; it does not parse `.
 
 1. Create a separate non-production project. Keep the configured Mumbai region (`ap-south-1`) unless the owner explicitly changes the architecture decision.
 2. Confirm the target is disposable and no real student or owner data is present.
-3. Inspect the migration history and reconcile the known remote migration-history drift (ERR-007). Do not run `supabase db push` blindly.
+3. Inspect the migration history and reconcile the known remote migration-history drift (ERR-007) using `docs/MIGRATION_RECONCILIATION.md`. The latest read-only comparison found 94 repository migrations versus 53 remote ledger entries, only 51 exact matches, two timestamp/name mismatches and 41 repository versions absent from the remote ledger. Do not run `supabase db push` or migration repair blindly.
 4. Review every pending migration, especially grants, RLS, SECURITY DEFINER/INVOKER functions, trigger order and the server-only document registration RPC.
 5. Apply migrations only to the isolated target using the current pinned Supabase CLI procedure. Review the CLI `--help` output and current Supabase docs before selecting commands.
 6. Inspect the resulting schema, effective grants, policies and function execute privileges. The source migration files are not evidence that the hosted target has been updated.
