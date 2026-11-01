@@ -123,7 +123,7 @@ Do not test restore against production or the current shared project.
    export SUPABASE_SERVICE_ROLE_KEY
    node scripts/restore-auth-users.mjs "$AUTH_USERS_BACKUP_FILE"
    ```
-   The importer preserves original UUIDs, uses the exported password hashes and skips already-present matching UUID/email pairs so an interrupted import can be resumed. It refuses unsupported identity providers, MFA, anonymous and SSO accounts. Never print or paste the Auth JSON or service-role key.
+   The importer preserves original UUIDs, uses the exported password hashes and skips already-present matching UUID/email pairs so an interrupted import can be resumed. It refuses phone-based accounts, unsupported identity providers, MFA, anonymous and SSO accounts. Never print or paste the Auth JSON or service-role key.
 6. Restore application data only after Auth users exist, so foreign keys to Auth identities can resolve:
    ```bash
    psql --single-transaction --variable ON_ERROR_STOP=1 \
