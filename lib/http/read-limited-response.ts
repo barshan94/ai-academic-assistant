@@ -6,11 +6,19 @@ export async function readLimitedResponseText(response: Response, maxBytes: numb
   const declaredLength = response.headers.get("content-length");
   if (declaredLength !== null) {
     if (!/^\d+$/.test(declaredLength)) {
-      await response.body?.cancel();
+      try {
+        await response.body?.cancel();
+      } catch {
+        // Preserve the invalid-length classification if transport cancellation fails.
+      }
       throw new Error("INVALID_RESPONSE_LENGTH");
     }
     if (Number(declaredLength) > maxBytes) {
-      await response.body?.cancel();
+      try {
+        await response.body?.cancel();
+      } catch {
+        // Preserve the size-limit classification if transport cancellation fails.
+      }
       throw new Error("RESPONSE_TOO_LARGE");
     }
   }
@@ -25,7 +33,11 @@ export async function readLimitedResponseText(response: Response, maxBytes: numb
       if (done) break;
       totalBytes += value.byteLength;
       if (totalBytes > maxBytes) {
-        await reader.cancel();
+        try {
+          await reader.cancel();
+        } catch {
+          // Preserve the size-limit classification if stream cancellation fails.
+        }
         throw new Error("RESPONSE_TOO_LARGE");
       }
       chunks.push(value);
