@@ -2,6 +2,7 @@ import { timingSafeEqual } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import { getAIProviderConfigs } from "@/lib/ai/provider";
+import { REQUIRED_READINESS_TABLES } from "@/lib/health/required-readiness-tables";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -92,31 +93,7 @@ async function hasLiveSupabaseConnection() {
     // tables required by the shipped document, solver, syllabus, notes and
     // study workflows so a partially migrated database cannot report ready.
     // These are zero-row HEAD requests; no academic content is returned.
-    const requiredTables = [
-      "profiles",
-      "documents",
-      "document_pages",
-      "processing_jobs",
-      "drive_connections",
-      "questions",
-      "question_solutions",
-      "question_teacher_invites",
-      "question_solution_reviews",
-      "syllabus_catalogs",
-      "syllabus_chapters",
-      "syllabus_topics",
-      "reference_syllabus_catalogs",
-      "reference_syllabus_chapters",
-      "reference_syllabus_topics",
-      "reference_syllabus_evidence",
-      "chapter_note_versions",
-      "chapter_note_sources",
-      "question_revision_progress",
-      "practice_sets",
-      "practice_set_items",
-      "weekly_study_sessions",
-    ] as const;
-    const results = await Promise.all(requiredTables.map((table) =>
+    const results = await Promise.all(REQUIRED_READINESS_TABLES.map((table) =>
       supabase.from(table).select("id", { head: true }).limit(1),
     ));
 
