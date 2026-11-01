@@ -1418,3 +1418,15 @@ ERR-123 implementation closure note (2026-11-01): the required forward-only migr
 
 
 ERR-124 compatibility investigation (2026-11-01): the existing lockfile already isolates `minimatch@11.0.3` for `@typescript-eslint/typescript-estree`, but the root `minimatch@3.1.5` remains required by legacy ESLint consumers including `@eslint/config-array`, `@eslint/eslintrc`, `eslint-plugin-import`, `eslint-plugin-jsx-a11y` and `eslint-plugin-react`. The upstream minimatch changelog records that version 9 removed the default export; forcing version 11 across consumers that declare the 3.x range can therefore break their import/API assumptions. Current ESLint 10.14.0 still depends on minimatch 10.2.6, which is below the new advisory's fixed 11.0.1 threshold; upgrading ESLint alone does not close this advisory. Do not apply a global override or hand-edit the lockfile. A safe fix requires compatible upstream consumer releases, a reviewed compatibility shim/fork with reproducible lockfile generation, or an updated advisory assessment proving the 3.x implementation is not affected. No dependency files were changed in this investigation; audit and runtime verification remain pending.
+
+
+
+## ERR-131 — Classification confidence label implied an automated calibrated score
+
+- Date: 2026-11-01
+- Area: M5 syllabus-assisted classification / user-facing accuracy
+- Symptom: The classification editor labelled a manually entered 0–1 value as “Classifier confidence”, which could imply that the application generated or calibrated the score. The current matcher only ranks lexical overlap and does not produce a probability.
+- Root cause: The numeric field was retained from the original classification schema after assisted suggestions were deliberately constrained to transparent text matching.
+- Fix: Renamed the field to “Owner-estimated confidence” and explicitly state that it is a human estimate, not a model prediction or calibrated probability. Users are told to leave it blank when they cannot justify a value; the review-state and source-evidence requirements remain separate.
+- Verification: Source review only. No UI/browser or regression test was run during implementation.
+- Status: UI wording corrected on `feature/m3-ai-solver`; broader calibration remains impossible to claim until a sufficiently sized, independently labelled dataset exists and is evaluated in the later testing/quality phase.
