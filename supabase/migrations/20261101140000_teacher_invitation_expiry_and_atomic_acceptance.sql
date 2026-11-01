@@ -107,9 +107,11 @@ begin
   where invite.owner_id = v_owner_id
     and invite.question_id = p_question_id
     and invite.invited_email = v_email
-    and invite.accepted_by is null
     and invite.revoked_at is null
-    and invite.expires_at > pg_catalog.clock_timestamp()
+    and (
+      invite.accepted_by is not null
+      or invite.expires_at > pg_catalog.clock_timestamp()
+    )
   order by invite.created_at desc
   limit 1
   for update;
