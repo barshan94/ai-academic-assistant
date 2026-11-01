@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { questionCreateSchema } from "@/lib/questions/validation";
 
@@ -8,7 +9,7 @@ export async function savePageCorrection(formData: FormData) {
   const pageId = String(formData.get("pageId") ?? "");
   const documentId = String(formData.get("documentId") ?? "");
   const extractedText = String(formData.get("extractedText") ?? "").trim();
-  if (!pageId || !documentId || !extractedText || extractedText.length > 50000) {
+  if (!z.string().uuid().safeParse(pageId).success || !z.string().uuid().safeParse(documentId).success || !extractedText || extractedText.length > 50000) {
     redirect("/dashboard/documents/" + encodeURIComponent(documentId) + "?review=invalid");
   }
 
@@ -16,16 +17,20 @@ export async function savePageCorrection(formData: FormData) {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) redirect("/login");
 
-  const { error } = await supabase.from("document_pages").update({
+  const { data: updatedPage, error: pageUpdateError } = await supabase.from("document_pages").update({
     extracted_text: extractedText,
     extraction_method: "manual",
     status: "review_required",
-  }).eq("id", pageId).eq("document_id", documentId).eq("owner_id", user.id);
+  }).eq("id", pageId).eq("document_id", documentId).eq("owner_id", user.id).select("id").maybeSingle();
 
-  if (!error) {
-    await supabase.from("documents").update({ status: "review_required" }).eq("id", documentId).eq("owner_id", user.id);
+  if (pageUpdateError || !updatedPage) {
+    redirect("/dashboard/documents/" + encodeURIComponent(documentId) + "?review=save_failed");
   }
-  redirect("/dashboard/documents/" + encodeURIComponent(documentId) + (error ? "?review=save_failed" : "?review=saved"));
+
+  const { data: updatedDocument, error: documentUpdateError } = await supabase.from("documents")
+    .update({ status: "review_required" }).eq("id", documentId).eq("owner_id", user.id).select("id").maybeSingle();
+  redirect("/dashboard/documents/" + encodeURIComponent(documentId) +
+    (documentUpdateError || !updatedDocument ? "?review=save_failed" : "?review=saved"));
 }
 
 export async function approveDocument(formData: FormData) {
