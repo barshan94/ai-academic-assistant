@@ -127,7 +127,7 @@ Do not test restore against production or the current shared project.
    node scripts/restore-auth-users.mjs "$AUTH_USERS_BACKUP_FILE"
    rm -f "$AUTH_USERS_BACKUP_FILE"
    ```
-   The importer preserves original UUIDs, uses the exported password hashes and skips already-present matching UUID/email pairs so an interrupted import can be resumed. It refuses phone-based accounts, unsupported identity providers, MFA, anonymous and SSO accounts. Never print or paste the Auth JSON or service-role key.
+   The importer preserves original UUIDs, uses the exported password hashes and skips already-present matching UUID/email/email-provider accounts so an interrupted import can be resumed. Use it only on a dedicated otherwise-empty target; the Auth Admin API does not expose the existing password hash for comparison, so a matching pre-existing account's password cannot be independently verified by the importer. It refuses phone-based accounts, unsupported identity providers, MFA, anonymous and SSO accounts. Never print or paste the Auth JSON or service-role key.
 6. Restore application data only after Auth users exist, so foreign keys to Auth identities can resolve:
    ```bash
    psql --single-transaction --variable ON_ERROR_STOP=1 \
