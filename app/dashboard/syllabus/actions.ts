@@ -27,7 +27,7 @@ const catalogSchema = z.object({
   effectiveTo: dateOnly,
   sourceUrl: z.string().trim().max(2048).refine((value) => {
     if (!value) return true;
-    try { return new URL(value).protocol === "https:"; }
+    try { const url = new URL(value); return url.protocol === "https:" && !url.username && !url.password; }
     catch { return false; }
   }),
   sourceTitle: z.string().trim().max(200),
