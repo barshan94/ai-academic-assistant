@@ -55,8 +55,8 @@ export function validateBackup(value) {
     if (Number(user.mfa_factor_count) !== 0 || user.is_anonymous === true || user.is_sso_user === true) {
       throw new Error("Accounts with MFA factors, anonymous status or SSO status require a separately designed recovery workflow.");
     }
-    if (typeof user.email_confirm !== "boolean") {
-      throw new Error("An account is missing its email confirmation-state flag.");
+    if (typeof user.email_confirm !== "boolean" || typeof user.phone_confirm !== "boolean") {
+      throw new Error("An account is missing its email or phone confirmation-state flags.");
     }
     if ((user.phone !== null && user.phone !== undefined) || user.phone_confirm === true) {
       throw new Error("Phone-based account data is outside the email/password restore scope.");
