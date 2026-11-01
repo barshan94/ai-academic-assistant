@@ -167,7 +167,7 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
       .eq("owner_id", user.id).in("chapter_id", syllabusChapterIds).order("created_at", { ascending: false })
     : { data: [] };
   const { data: teacherInvites, error: teacherInviteError } = isOwner
-    ? await typedSupabase.from("question_teacher_invites").select("id,invited_email,accepted_by,revoked_at,created_at").eq("question_id", question.id).eq("owner_id", user.id).order("created_at", { ascending: false })
+    ? await typedSupabase.from("question_teacher_invites").select("id,invited_email,accepted_by,revoked_at,expires_at,created_at").eq("question_id", question.id).eq("owner_id", user.id).order("created_at", { ascending: false })
     : { data: [], error: null };
   const { data: researchSources, error: researchError } = isOwner
     ? await typedSupabase.from("question_web_research_sources")
@@ -333,7 +333,8 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
           </form>
           {teacherInvites?.length ? <><h3>Access list</h3><ul className="calculation-checks">
             {teacherInvites.map((invite) => <li key={invite.id}>
-              <strong>{invite.revoked_at ? "REVOKED" : invite.accepted_by ? "ACCEPTED" : "PENDING"}</strong><span>{invite.invited_email}</span>
+              <strong>{invite.revoked_at ? "REVOKED" : invite.accepted_by ? "ACCEPTED — ACTIVE UNTIL REVOKED" : new Date(invite.expires_at).getTime() <= Date.now() ? "EXPIRED" : "PENDING"}</strong><span>{invite.invited_email}</span>
+              {!invite.accepted_by && !invite.revoked_at ? <small>Acceptance deadline: {new Date(invite.expires_at).toLocaleString()}</small> : null}
               {!invite.revoked_at ? <form action={revokeQuestionTeacherInvite}>
                 <input type="hidden" name="inviteId" value={invite.id} />
                 <input type="hidden" name="questionId" value={question.id} />
