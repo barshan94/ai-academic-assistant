@@ -15,11 +15,11 @@ export default async function TeacherInvitesPage({ searchParams }: PageProps) {
   const typedSupabase = supabase as unknown as SupabaseClient<DatabaseWithAISolutions>;
   const [incomingResult, outgoingResult] = await Promise.all([
     typedSupabase.from("question_teacher_invites")
-      .select("id,question_id,owner_id,invited_email,accepted_by,accepted_at,revoked_at,created_at")
+      .select("id,question_id,owner_id,invited_email,accepted_by,accepted_at,revoked_at,expires_at,created_at")
       .eq("invited_email", user.email.toLowerCase())
       .order("created_at", { ascending: false }).limit(50),
     typedSupabase.from("question_teacher_invites")
-      .select("id,question_id,owner_id,invited_email,accepted_by,accepted_at,revoked_at,created_at")
+      .select("id,question_id,owner_id,invited_email,accepted_by,accepted_at,revoked_at,expires_at,created_at")
       .eq("owner_id", user.id)
       .order("created_at", { ascending: false }).limit(50),
   ]);
@@ -41,15 +41,18 @@ export default async function TeacherInvitesPage({ searchParams }: PageProps) {
       <section className="section"><h2>Invitations for you</h2>
         {incoming.length ? incoming.map((invite) => <article className="question-card" key={invite.id}>
           <p className="question-card-meta">Question ID: {invite.question_id}</p><p className="question-card-meta">Invited {new Date(invite.created_at).toLocaleString()}</p>
+          <p className="question-card-meta">Acceptance deadline: {new Date(invite.expires_at).toLocaleString()}</p>
           {invite.revoked_at ? <p className="notice notice-info">This invitation has been revoked.</p>
             : invite.accepted_by ? <p className="notice notice-info">Accepted. <Link href={"/dashboard/questions/" + invite.question_id}>Open shared question →</Link></p>
+            : new Date(invite.expires_at).getTime() <= Date.now() ? <p className="notice notice-info">This invitation has expired. Ask the owner to send a new invitation.</p>
             : <form action={acceptQuestionTeacherInvite}><input type="hidden" name="inviteId" value={invite.id} /><button className="primary-action" type="submit">Accept invitation →</button></form>}
         </article>) : <p className="question-card-meta">No invitations have been sent to this account email.</p>}
       </section>
       <section className="section"><h2>Invitations you sent</h2>
         {outgoing.length ? outgoing.map((invite) => <article className="question-card" key={invite.id}>
           <p>{invite.invited_email}</p><p className="question-card-meta">Question ID: {invite.question_id}</p>
-          <p className="question-card-meta">{invite.revoked_at ? "Revoked" : invite.accepted_by ? "Accepted" : "Waiting for acceptance"}</p>
+          <p className="question-card-meta">{invite.revoked_at ? "Revoked" : invite.accepted_by ? "Accepted" : new Date(invite.expires_at).getTime() <= Date.now() ? "Expired — re-invitation allowed" : "Waiting for acceptance"}</p>
+          <p className="question-card-meta">Expires {new Date(invite.expires_at).toLocaleString()}</p>
         </article>) : <p className="question-card-meta">You have not invited a teacher yet.</p>}
       </section>
     </main>
