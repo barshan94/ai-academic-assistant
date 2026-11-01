@@ -146,7 +146,8 @@ export function ResumableUploadForm({ disabled }: { disabled: boolean }) {
       router.refresh();
     } catch (uploadError) {
       const errorMessage = uploadError instanceof Error ? uploadError.message : "Upload failed.";
-      if (/session expired/i.test(errorMessage) && activeStorageKey.current) {
+      if ((/session expired/i.test(errorMessage) || /belongs to another account/i.test(errorMessage)) &&
+          activeStorageKey.current) {
         localStorage.removeItem(activeStorageKey.current);
       }
       setError(errorMessage);
