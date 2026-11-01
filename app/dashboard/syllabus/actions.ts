@@ -126,7 +126,7 @@ export async function createSyllabusChapter(formData: FormData) {
   const { data: catalog } = await supabase.from("syllabus_catalogs")
     .select("id,status").eq("id", value.catalogId).eq("owner_id", user.id).maybeSingle();
   if (!catalog) redirect("/dashboard/syllabus?chapter=not_found");
-  if (catalog.status === "retired") redirect("/dashboard/syllabus?chapter=retired");
+  if (catalog.status !== "draft") redirect("/dashboard/syllabus?chapter=catalog_locked");
 
   const { error } = await supabase.from("syllabus_chapters").insert({
     owner_id: user.id,
@@ -157,7 +157,7 @@ export async function createSyllabusTopic(formData: FormData) {
   const { data: catalog } = await supabase.from("syllabus_catalogs")
     .select("status").eq("id", chapter.catalog_id).eq("owner_id", user.id).maybeSingle();
   if (!catalog) redirect("/dashboard/syllabus?topic=not_found");
-  if (catalog.status === "retired") redirect("/dashboard/syllabus?topic=retired");
+  if (catalog.status !== "draft") redirect("/dashboard/syllabus?topic=catalog_locked");
 
   const { error } = await supabase.from("syllabus_topics").insert({
     owner_id: user.id,
