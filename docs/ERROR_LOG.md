@@ -1619,11 +1619,11 @@ ERR-073 closure reconciliation (2026-11-01): the earlier note that page and pare
 - Status: Implemented on `feature/m3-ai-solver`; automated and serverless-runtime verification pending.
 
 
-## ERR-149 — Keyboard focus indicator was not globally guaranteed
+## ERR-149 — Keyboard skip-link focus behavior lacked regression coverage
 - Date: 2026-11-01
 - Area: Accessibility / keyboard navigation
-- Symptom: The application had a skip link and some component-specific focus styling, but no global `:focus-visible` rule guaranteed a consistent keyboard focus indicator for links, buttons and other focusable controls.
-- Root cause: Focus treatment was implemented selectively rather than as a shared baseline.
-- Fix: Added a global three-pixel accent outline with offset for keyboard-visible focus, and added a Chromium smoke test that tabs to the public-page skip link and verifies that it is focused, points to the main content and has a visible outline.
-- Verification: Source and Playwright regression committed; CI execution pending. This does not replace a complete keyboard, screen-reader, contrast or touch-target audit.
-- Status: Implemented on `feature/m3-ai-solver`; CI verification pending.
+- Symptom: The application already defined a skip link and a shared `:focus-visible` outline for interactive controls, but no browser regression test protected the first keyboard stop, skip-link destination or visible focus treatment.
+- Root cause: Existing accessibility styling was not covered by the Chromium smoke suite.
+- Fix: Added a Chromium smoke test that tabs to the public-page skip link and verifies that it is focused, points to the main content and has a visible outline. Reused the existing shared focus styling; no duplicate global CSS rule is needed.
+- Verification: Regression test committed; CI execution pending. This does not replace a complete keyboard, screen-reader, contrast or touch-target audit.
+- Status: Test implementation committed on `feature/m3-ai-solver`; CI verification pending.
