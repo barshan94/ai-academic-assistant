@@ -99,7 +99,7 @@ select is((select count(*)::integer from public.question_teacher_invites), 0, 'u
 
 select throws_ok(
   $$insert into public.question_solution_mark_schemes (solution_id, owner_id, title, awarding_body, qualification, subject, source_url, source_locator, points)
-    values ('40000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', 'Forged scheme', 'Example Board', 'A Level', 'Physics', 'https://example.test/forged.pdf', 'Page 1, Question 1', '[]'::jsonb)$$,
+    values ('40000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', 'Forged scheme', 'Example Board', 'A Level', 'Physics', 'https://example.test/forged.pdf', 'Page 1, Question 1', '[{"id":"M1","description":"Fixture point","keyPhrases":["fixture"]}]'::jsonb)$$,
   '42501',
   null,
   'uninvited account cannot insert a mark scheme for another owner'
