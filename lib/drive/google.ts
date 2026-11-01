@@ -113,6 +113,7 @@ export async function getDriveAccessToken() {
     }),
     cache: "no-store",
     signal: AbortSignal.timeout(20_000),
+    redirect: "error",
   });
 
   const payload = await readGoogleJsonResponseBounded<{ access_token?: string }>(response, MAX_GOOGLE_METADATA_BYTES, "Google OAuth response");
@@ -145,6 +146,7 @@ export async function uploadPdfToDrive(input: {
     body,
     cache: "no-store",
     signal: AbortSignal.timeout(30_000),
+    redirect: "error",
   });
 
   const result = await readGoogleJsonResponseBounded<{ id?: string; webViewLink?: string }>(response, MAX_GOOGLE_METADATA_BYTES, "Google Drive upload metadata");
@@ -160,6 +162,7 @@ export async function deleteDriveFile(accessToken: string, fileId: string) {
     headers: { Authorization: `Bearer ${accessToken}` },
     cache: "no-store",
     signal: AbortSignal.timeout(15_000),
+    redirect: "error",
   });
   if (!response.ok && response.status !== 404) {
     await response.body?.cancel().catch(() => {});
@@ -206,6 +209,7 @@ export async function extractTextFromDrivePdf(input: {
       body,
       cache: "no-store",
       signal: AbortSignal.timeout(30_000),
+    redirect: "error",
     },
   );
   const converted = await readGoogleJsonResponseBounded<{ id?: string }>(
@@ -242,6 +246,7 @@ export async function revokeDriveRefreshToken(refreshToken: string) {
       body: new URLSearchParams({ token: refreshToken }),
       cache: "no-store",
       signal: AbortSignal.timeout(15_000),
+    redirect: "error",
     });
 
     // Google returns 400 when a token is invalid or already revoked. Treat that
@@ -272,6 +277,7 @@ export async function initiateResumablePdfUpload(input: {
       body: JSON.stringify({ name: input.fileName, mimeType: "application/pdf" }),
       cache: "no-store",
       signal: AbortSignal.timeout(20_000),
+    redirect: "error",
     },
   );
   const sessionUri = response.headers.get("Location");
