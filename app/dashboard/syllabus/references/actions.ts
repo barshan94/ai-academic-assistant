@@ -32,6 +32,14 @@ const catalogSchema = z.object({
   })()),
   sourceTitle: z.string().trim().max(200),
   sourceCheckedAt: dateOnly,
+}).superRefine((value, context) => {
+  if (value.effectiveFrom && value.effectiveTo && value.effectiveTo < value.effectiveFrom) {
+    context.addIssue({
+      code: "custom",
+      path: ["effectiveTo"],
+      message: "The end date must not be earlier than the start date.",
+    });
+  }
 });
 
 const sourceUpdateSchema = z.object({
