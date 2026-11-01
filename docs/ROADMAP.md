@@ -418,3 +418,8 @@ A shared redirect-rejecting fetch transport now backs the cookie-authenticated S
 - [ ] Live AI provider golden-set run; requires explicit provider/data-processing/cost approval and configured key/model.
 - [ ] Hosted Supabase migration ledger/schema reconciliation; requires read-only schema evidence and explicit owner approval before any migration.
 - [ ] Full dependency advisory resolution (ERR-124), backup/restore drill, accessibility and performance acceptance.
+
+
+### ERR-148 — AI provider routing deadline
+
+The multi-provider router now has a shared 60-second total deadline and caps each provider attempt at 20 seconds, preventing an eight-provider fallback pool from holding a serverless request for several minutes. Fallback remains disabled unless explicitly enabled, and only the existing retryable failures advance to another provider. A simulated-clock regression test was added; execution is deferred to the dedicated testing phase.
