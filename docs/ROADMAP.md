@@ -243,3 +243,6 @@ Web-research quota atomicity (2026-11-01): added a forward-only Supabase migrati
 
 
 Document lifecycle transaction hardening (2026-11-01): worker page replacement and processing-job completion now share one database transaction through complete_document_processing. Manual page approval and parent-document readiness now share one transaction through approve_document_review, with owner checks, row locks and page-count validation. Application call sites and database function types are updated. See ERR-098. Migration application and all SQL/RLS/concurrency/rollback verification remain pending the dedicated testing and fixing phases.
+
+
+Resumable upload transaction hardening (2026-11-01): document creation and initial processing-job creation now use one owner-checked database RPC transaction. Same-owner duplicate-content registration is serialized, and the upload route preserves a potentially committed Drive object when an RPC response is ambiguous rather than deleting a file that a committed row may reference. Database types and the route are updated. See ERR-099. Migration application and SQL/RLS/concurrency/rollback acceptance remain pending the dedicated testing and fixing phases.
