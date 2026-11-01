@@ -70,54 +70,26 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
   if (job.status === "running") {
     if (!isProcessingJobStale(job.started_at)) return redirectToDocument(request, id, "already_processing");
-    let recoveryQuery = supabase.from("processing_jobs").update({
-      status: "failed",
-      error_code: "STALE_PROCESSING_RECOVERED",
-      error_message: "A previous processing attempt stopped responding and was marked recoverable.",
-    }).eq("id", job.id).eq("owner_id", user.id).eq("status", "running");
-    recoveryQuery = job.started_at
-      ? recoveryQuery.eq("started_at", job.started_at)
-      : recoveryQuery.is("started_at", null);
-    const { data: recoveredJob, error: recoveryError } = await recoveryQuery.select("id").maybeSingle();
-    if (recoveryError || !recoveredJob) return redirectToDocument(request, id, "already_processing");
-    const { data: recoveredDocument, error: recoveredDocumentError } = await supabase
-      .from("documents").update({ status: "failed" })
-      .eq("id", id).eq("owner_id", user.id)
-      .select("id").maybeSingle();
-    if (recoveredDocumentError || !recoveredDocument) {
-      return redirectToDocument(request, id, "recovery_failed");
-    }
+    const { data: recovered, error: recoveryError } = await supabase.rpc("recover_stale_document_processing_job", {
+      p_document_id: id,
+      p_owner_id: user.id,
+      p_job_id: job.id,
+      p_expected_started_at: job.started_at,
+    });
+    if (recoveryError || recovered !== true) return redirectToDocument(request, id, "already_processing");
   }
   if (job.attempt_count >= job.max_attempts) return redirectToDocument(request, id, "retry_limit");
 
-  const { data: claimedJob, error: claimError } = await supabase.from("processing_jobs").update({
-    status: "running",
-    stage: "ocr",
-    progress: 10,
-    attempt_count: job.attempt_count + 1,
-    started_at: new Date().toISOString(),
-    error_code: null,
-    error_message: null,
-  }).eq("id", job.id).eq("owner_id", user.id).in("status", ["queued", "failed"]).select("id").maybeSingle();
-  if (claimError || !claimedJob) return redirectToDocument(request, id, "already_processing");
-
-  const { data: processingDocument, error: processingDocumentError } = await supabase
-    .from("documents").update({ status: "processing" })
-    .eq("id", id).eq("owner_id", user.id)
-    .select("id").maybeSingle();
-  if (processingDocumentError || !processingDocument) {
-    const { data: failedJob, error: failedJobError } = await supabase
-      .from("processing_jobs").update({
-        status: "failed",
-        error_code: "DOCUMENT_STATE_UPDATE_FAILED",
-        error_message: "Could not mark the document as processing.",
-      }).eq("id", job.id).eq("owner_id", user.id).eq("status", "running")
-      .select("id").maybeSingle();
-    if (failedJobError || !failedJob) {
-      return redirectToDocument(request, id, "failure_state_unpersisted");
-    }
-    return redirectToDocument(request, id, "processing_failed");
-  }
+  const expectedStatus = job.status === "running" ? "failed" : job.status;
+  const { data: claimed, error: claimError } = await supabase.rpc("claim_document_processing_job", {
+    p_document_id: id,
+    p_owner_id: user.id,
+    p_job_id: job.id,
+    p_expected_status: expectedStatus,
+    p_expected_attempt_count: job.attempt_count,
+    p_expected_started_at: job.started_at,
+  });
+  if (claimError || claimed !== true) return redirectToDocument(request, id, "already_processing");
 
   try {
     const accessToken = await getDriveAccessToken();
