@@ -1244,3 +1244,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Expanded the bounded parallel zero-row HEAD probes to cover document pages and Drive connections, questions/solutions/teacher reviews, private/shared syllabus taxonomy, chapter-note records, revision tracking, practice history and weekly study sessions. No row content is returned. Readiness now fails closed when any required table is missing.
 - Verification: Source/documentation change only. No tests, typecheck, build, workflow run or hosted schema change was performed; runtime behavior and the exact required-table list remain for the dedicated testing phase.
 - Status: Route and operations/README/roadmap documentation committed to `feature/m3-ai-solver`; no hosted database migration was applied.
+
+
+## ERR-115 — Accepted teacher invitation history disappeared after account email change
+
+- Date: 2026-11-01
+- Area: Teacher invitation inbox / identity lifecycle
+- Symptom: The incoming invitation page filtered every row by the account's current email. An accepted teacher who later changed their Auth email could lose the accepted/revoked invitation history from the inbox even though the database correctly retained the relationship by Auth user ID.
+- Root cause: The UI treated email as the durable identity after acceptance instead of using the immutable authenticated user ID for accepted invitation history.
+- Fix: Load pending/current-email invitations and accepted-by-current-user invitations separately, merge and de-duplicate by invitation ID, then sort and cap the combined history. RLS remains the authorization boundary; the user-ID query does not grant access to question content.
+- Verification: Source/documentation change only. No tests, typecheck, build, browser run or hosted database change was performed; email-change and revocation visibility acceptance remain in the deferred testing phase.
+- Status: Teacher invitation page and M4 documentation committed to `feature/m3-ai-solver`.
