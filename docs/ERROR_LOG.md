@@ -1518,6 +1518,6 @@ ERR-073 closure reconciliation (2026-11-01): the earlier note that page and pare
 - Area: Supabase migrations / clean-database bootstrap
 - Symptom: The latest isolated database workflow failed while applying `20261101040000_validate_mark_scheme_provenance_and_points.sql` with `schema "private" does not exist`; pgTAP tests were skipped.
 - Root cause: The migration creates a trigger function in the `private` schema, but a clean Supabase database created by the workflow has no preceding migration that creates that schema.
-- Fix: Pending migration-order and remote-history reconciliation before changing the migration chain. No hosted database was touched.
-- Verification: Confirmed from database workflow run 41300335749. Migration application stopped at the first missing-schema reference.
-- Status: Open database test blocker; must be fixed in a forward-only, fresh-install-safe migration and then rerun on an isolated database.
+- Fix: The failing migration is absent from the connected project's exact migration ledger snapshot, and the local clean-install chain reaches this migration before any private-schema bootstrap. Added an idempotent private-schema creation and revoked schema access from `public`, `anon` and `authenticated` at the start of this migration. This changes only the repository migration source; no hosted migration was applied. The connected schema still requires reconciliation before any deployment.
+- Verification: Source change committed. A clean isolated database rerun is required to confirm the migration chain proceeds.
+- Status: Source fix committed; isolated migration and pgTAP verification pending.
