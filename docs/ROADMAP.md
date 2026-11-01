@@ -249,3 +249,6 @@ Resumable upload transaction hardening (2026-11-01): document creation and initi
 
 
 Syllabus catalog lifecycle enforcement (2026-11-01): added database triggers across owner and shared-reference chapter, topic and evidence tables. All taxonomy inserts, updates and deletes now require draft catalogs, with parent row locks to serialize against concurrent catalog verification/retirement. Application-level draft checks remain as early feedback; the database is now the authoritative invariant. See ERR-100. Migration application and RLS/concurrency verification remain pending the dedicated testing and fixing phases.
+
+
+Syllabus lifecycle regression guard (2026-11-01): owner and shared-reference catalog status triggers now prevent verified catalogs from reverting to draft and retired catalogs from being reactivated. Existing draft-to-verified, draft-to-retired and verified-to-retired flows remain permitted. See ERR-101. Database migration application and transition acceptance remain pending the dedicated testing and fixing phases.
