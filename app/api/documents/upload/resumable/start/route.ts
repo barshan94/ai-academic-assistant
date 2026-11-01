@@ -41,7 +41,11 @@ async function readStartRequestBody(request: Request) {
     bytes.set(chunk, offset);
     offset += chunk.byteLength;
   }
-  return JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes)) as {
+  const parsed: unknown = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes));
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    throw new Error("Upload session request must be a JSON object.");
+  }
+  return parsed as {
     fileName?: string;
     fileSizeBytes?: number;
     sha256?: string;
@@ -107,7 +111,14 @@ export async function POST(request: NextRequest) {
     }));
 
     return NextResponse.json({ sessionToken, chunkSize: 1024 * 1024 });
-  } catch {
+  } catch (error) {
+    if (error instanceof Error && error.message === "Upload session request is too large.") {
+      return NextResponse.json({ error: error.message }, { status: 413 });
+    }
+    if (error instanceof SyntaxError || error instanceof TypeError ||
+        (error instanceof Error && error.message === "Upload session request must be a JSON object.")) {
+      return NextResponse.json({ error: "Upload session request is invalid." }, { status: 400 });
+    }
     logSafeOperationalEvent("upload_session_start_failed", { route: "/api/documents/upload/resumable/start", errorCode: "UPLOAD_SESSION_START_FAILED" });
     return NextResponse.json({ error: "Could not start the Google Drive upload. Check your connection and try again." }, { status: 500 });
   }
