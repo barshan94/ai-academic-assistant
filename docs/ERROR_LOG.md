@@ -926,3 +926,13 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Load the draft catalog's source URL, require a parseable HTTPS URL with a hostname and no embedded credentials, and only then perform the draft-to-verified update.
 - Verification: Source inspection only; missing, malformed, credential-bearing, non-HTTPS and valid HTTPS source cases remain deferred to the separate testing phase.
 - Status: Implemented on the feature branch; no tests, typecheck or build were run during implementation.
+
+## ERR-086 — Owner syllabus catalog verification trusted any non-null source URL
+
+- Date: 2026-11-01
+- Area: M5 owner syllabus catalog verification
+- Symptom: An owner catalog with a legacy or externally modified malformed source URL could pass the verification precondition merely because source_url was non-null.
+- Root cause: The verification action checked only source_url nullability and relied on creation-time validation.
+- Fix: Load the owner-scoped draft catalog and re-validate that its source URL is HTTPS, has a hostname and contains no embedded credentials before updating its status.
+- Verification: Source inspection only; legacy malformed URL and valid-source transition cases remain deferred to the separate testing phase.
+- Status: Implemented on the feature branch; no tests, typecheck or build were run during implementation.
