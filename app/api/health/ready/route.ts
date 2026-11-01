@@ -1,12 +1,14 @@
 import { timingSafeEqual } from "node:crypto";
+import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import { getAIProviderConfigs } from "@/lib/ai/provider";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 function authorized(request: Request) {
   const expected = process.env.CRON_SECRET;
-  const supplied = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
+  const supplied = request.headers.get("authorization")?.replace(/^Bearer\\s+/i, "");
   if (!expected || !supplied) return false;
   const left = Buffer.from(expected);
   const right = Buffer.from(supplied);
@@ -61,6 +63,42 @@ function hasAIProvidersForRequiredTasks() {
   }
 }
 
+/**
+ * Verify the configured Supabase Data API is reachable without returning
+ * database content. The service key is used only in this server-only route;
+ * session persistence and token refresh are disabled.
+ */
+async function hasLiveSupabaseConnection() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !serviceKey) return false;
+
+  try {
+    const supabase = createClient(url, serviceKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+        detectSessionInUrl: false,
+      },
+      global: {
+        fetch: (input, init) => fetch(input, {
+          ...init,
+          signal: AbortSignal.timeout(5_000),
+        }),
+      },
+    });
+
+    const { error } = await supabase
+      .from("profiles")
+      .select("id", { head: true })
+      .limit(1);
+
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
 export async function GET(request: Request) {
   if (!authorized(request)) {
     return NextResponse.json(
@@ -80,11 +118,13 @@ export async function GET(request: Request) {
     hasValidDriveEncryptionKey() &&
     hasAIProvidersForRequiredTasks()
   );
+  const databaseConnected = configured && await hasLiveSupabaseConnection();
+  const ready = Boolean(configured && databaseConnected);
 
   return NextResponse.json(
-    { status: configured ? "ready" : "not_ready" },
+    { status: ready ? "ready" : "not_ready" },
     {
-      status: configured ? 200 : 503,
+      status: ready ? 200 : 503,
       headers: { "Cache-Control": "no-store" },
     },
   );
