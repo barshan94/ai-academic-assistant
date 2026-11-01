@@ -2,7 +2,7 @@
 
 ## Current decision
 
-<badge>NOT APPROVED FOR PRODUCTION</badge>
+> **Status: NOT APPROVED FOR PRODUCTION**
 
 The application has substantial feature and security implementation, but production readiness is not established. This document is the single release-gate checklist. A checkbox is complete only when the named evidence exists; source code or documentation alone does not satisfy a runtime acceptance item.
 
