@@ -180,3 +180,24 @@ A forward-only fix for ERR-161 has now been committed:
 **Hosted execution is not yet performed.** The available connected database interface can apply DDL migrations, but does not expose the Supabase CLI's version-specific `migration repair` operation. The ordinary migration-apply operation also does not accept a repository migration version. Using it for 43 migrations would risk creating a second, timestamp-divergent history rather than reconciling the repository's exact versions. That would recreate the very drift this procedure is meant to eliminate.
 
 Therefore, do not use the generic migration-apply operation or hand-edit `supabase_migrations.schema_migrations` as a shortcut. The remaining safe route is a pinned Supabase CLI session/workflow against this exact project: inspect `supabase migration repair --help` and `supabase db push --help`, repair only the two evidenced old/new version pairs, run a dry-run including out-of-order migrations, then apply the repository's pending chain in chronological order. Re-fetch the ledger and verify the 96 expected repository versions, schema contracts, RLS, grants, triggers, seed counts and advisors afterward. The hosted project remains unchanged as of this note.
+
+## Exact legacy migration statement verification — 2026-11-01
+
+The migration-history comparison was strengthened by reading the stored SQL statement arrays from the two old hosted ledger rows and comparing their PostgreSQL MD5 digests against the exact UTF-8 contents of the corresponding current repository migration files. Both comparisons returned `exact_sql_match = true`:
+
+- Hosted `20261031031132_shared_reference_syllabus_catalogue` exactly matches repository `20261031031012_shared_reference_syllabus_catalogue.sql`.
+- Hosted `20261031031233_index_shared_reference_syllabus_foreign_keys` exactly matches repository `20261031031212_index_shared_reference_syllabus_foreign_keys.sql`.
+
+This is stronger than the earlier object inventory: the stored migration SQL itself is byte-for-byte equivalent to the two current repository files. Therefore, the two old ledger versions can be marked reverted and the two repository versions marked applied without rerunning their DDL, subject to using the Supabase CLI's version-aware migration repair operation.
+
+## Current migration state after ERR-161 hardening — 2026-11-01
+
+- Repository migration files: **97** (the prior 96 plus `20261101160000_revoke_reference_trigger_function_execute.sql`).
+- Hosted migration ledger before repair: **53** entries.
+- Exact original version/name matches: **51**.
+- Old hosted entries with exact-SQL repository replacements: **2**.
+- Repository versions still to apply after repairing those two pairs: **44** (the prior 43 plus the new ERR-161 privilege-hardening migration).
+- New pgTAP file: `supabase/tests/reference_trigger_function_privileges.test.sql`.
+- Latest isolated migration/pgTAP CI run `41322904037`: **passed**.
+
+The owner has authorized the non-production migration operation. The hosted database remains unchanged because the available connected interface does not expose version-specific migration repair, and generic migration application cannot preserve the exact repository versions. Do not hand-edit the ledger or apply the DDL using the generic migration tool. Use the pinned Supabase CLI with the two exact repair pairs, dry-run the complete out-of-order chain with `--include-all`, and only then push the ordered migrations.
