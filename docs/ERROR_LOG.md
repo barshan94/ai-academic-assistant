@@ -68,7 +68,7 @@ This file records material implementation, CI, integration and release problems 
 ## ERR-007 — Remote Supabase migration history version drift
 - Date: 2026-10-31; detailed read-only ledger comparison: 2026-11-01
 - Area: Database migration operations
-- Symptom: The connected Supabase ledger contains 53 entries while the feature branch contains 94 migration files. Only 51 version-and-name pairs match exactly. Two shared-reference migrations have matching descriptions but different timestamp versions, and 41 additional repository versions have no exact remote ledger entry.
+- Symptom: The connected Supabase ledger contains 53 entries while the feature branch contains 96 migration files. Only 51 version-and-name pairs match exactly. Two shared-reference migrations have matching descriptions but different timestamp versions, and 43 additional repository versions have no exact remote ledger entry.
 - Root cause: Local migration files and the connected project's migration ledger diverged. Matching descriptive names do not prove that two timestamped migrations are equivalent, and missing ledger entries do not prove that their SQL effects are absent from the remote schema.
 - Fix: Added `docs/MIGRATION_RECONCILIATION.md` with the exact observed comparison, mismatched pairs, local-only versions and a safe schema-first reconciliation procedure. Do not blindly apply migrations, rewrite historical files or repair the remote ledger without schema evidence.
 - Verification: Read-only migration ledger comparison only. No hosted migration, ledger repair or schema mutation was performed. Actual remote schema equivalence remains unknown.
@@ -1743,3 +1743,15 @@ ERR-073 closure reconciliation (2026-11-01): the earlier note that page and pare
 - Risk: The current application expects a later migration state than the connected hosted schema. Deploying it against this project could cause upload registration failures and schema-contract mismatches. No migration was applied.
 - Verification: Read-only catalog queries on 2026-11-01; no data or schema mutation.
 - Status: Open. Requires full ordered migration reconciliation and explicit owner approval before hosted migration.
+
+
+## ERR-161 — Trigger-only helper functions retain default PUBLIC EXECUTE grants
+
+- Date: 2026-11-01
+- Area: Supabase function privilege hardening
+- Symptom: A read-only privilege audit found that `guard_reference_syllabus_catalog()`, `guard_reference_syllabus_structure()`, and `reject_reference_syllabus_evidence_mutation()` have EXECUTE privilege for anon/authenticated through PostgreSQL's default PUBLIC grant.
+- Root cause: The shared-reference schema migration explicitly revokes the public helper `is_platform_admin()`, but does not revoke EXECUTE from its three trigger-only helper functions.
+- Risk: These functions return `trigger` and are not ordinary PostgREST RPC endpoints, and they are invoker-security rather than SECURITY DEFINER. The audit did not establish a direct remote exploit. The grants are nevertheless broader than necessary and violate least-privilege hardening.
+- Required fix: Add a forward-only migration that revokes EXECUTE from PUBLIC, anon, authenticated and service_role for these trigger-only functions; trigger execution itself must continue to work. Add pgTAP assertions for effective privileges and verify trigger behavior after the change.
+- Verification: Read-only `has_function_privilege` checks on 2026-11-01. No SQL mutation was performed.
+- Status: Open; include in the hosted migration reconciliation plan. The migration must be created through the normal Supabase CLI migration workflow and tested on a fresh isolated database before hosted application.
