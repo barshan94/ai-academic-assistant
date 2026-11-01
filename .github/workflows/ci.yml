@@ -36,6 +36,23 @@ jobs:
       - name: Install locked dependencies
         run: npm ci
 
+      - name: Validate production environment contract with synthetic fixtures
+        # These are deliberately non-secret placeholders. This checks configuration
+        # validation only; it does not connect to Supabase, Google or an AI provider.
+        run: npm run check:production-env
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://fixture.supabase.co
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: fixture-publishable-key
+          SUPABASE_SERVICE_ROLE_KEY: fixture-service-role-key
+          GOOGLE_DRIVE_REDIRECT_URI: https://fixture.example.com/api/drive/callback
+          GOOGLE_CLIENT_ID: fixture-client-id
+          GOOGLE_CLIENT_SECRET: fixture-client-secret
+          CRON_SECRET: fixture-cron-secret-with-at-least-32-characters
+          DRIVE_TOKEN_ENCRYPTION_KEY: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+          AI_API_KEY: fixture-ai-key
+          AI_MODEL: fixture-model
+          AI_API_BASE_URL: https://api.openai.com/v1
+
       - name: Audit production dependencies
         # The remaining minimatch advisory is confined to the legacy ESLint dev
         # toolchain. Its v3 API is not compatible with the patched v11 release.
