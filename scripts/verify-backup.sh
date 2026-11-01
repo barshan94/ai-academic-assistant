@@ -24,7 +24,26 @@ age --decrypt --identity "$AGE_IDENTITY_FILE" --output "$workdir/backup.tar.gz" 
 [[ -s "$workdir/backup.tar.gz" ]] || fail "Decrypted archive is empty."
 
 entries="$(tar -tzf "$workdir/backup.tar.gz")"
-expected=$'roles.sql\nschema.sql\ndata.sql\nmanifest.txt\nSHA256SUMS'
+expected=
+[[ "$entries" == "$expected" ]] || fail "Archive contents do not match the expected backup format."
+
+# Stream each expected member to a newly created regular file. Do not extract
+# archive-controlled paths or link metadata into the verification directory:
+# a crafted tar can otherwise use symlinks/hardlinks to write outside it.
+for file in roles.sql schema.sql data.sql auth-users.json manifest.txt SHA256SUMS; do
+  tar -xOzf "$workdir/backup.tar.gz" "$file" > "$workdir/$file" || fail "Could not read archive entry: $file"
+  [[ -s "$workdir/$file" ]] || fail "Archive entry is missing or empty: $file"
+done
+
+if command -v sha256sum >/dev/null 2>&1; then
+  (cd "$workdir" && sha256sum --check --status SHA256SUMS) || fail "SHA-256 checksum mismatch."
+else
+  (cd "$workdir" && shasum -a 256 --check SHA256SUMS) || fail "SHA-256 checksum mismatch."
+fi
+
+printf 'Backup archive decrypted and all included file checksums match.\n'
+printf 'This confirms archive integrity only; it does not prove database restore, Auth Admin API account recreation or recovery of sessions/MFA/external identities/Storage.\n'
+roles.sql\nschema.sql\ndata.sql\nauth-users.json\nmanifest.txt\nSHA256SUMS'
 [[ "$entries" == "$expected" ]] || fail "Archive contents do not match the expected backup format."
 
 # Stream each expected member to a newly created regular file. Do not extract
