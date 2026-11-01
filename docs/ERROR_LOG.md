@@ -1410,3 +1410,7 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Added forward-only migration `20261101140000_tighten_uploaded_document_page_count.sql`. It recreates the existing function with the 1–50 invariant, retains the owner check, advisory lock, duplicate handling, atomic document/job insertion and explicitly restates the service_role-only execute grant. The historical migration is unchanged.
 - Verification: Migration source reviewed only. It has not been applied and no pgTAP, migration, typecheck, build or runtime test was run. Boundary cases 0, 1, 50, 51, 100 and NULL, effective ACLs and atomic/idempotent behavior remain for the testing phase.
 - Status: Implementation committed to `feature/m3-ai-solver`; hosted database unchanged.
+
+
+
+ERR-123 implementation closure note (2026-11-01): the required forward-only migration is now committed as `supabase/migrations/20261101140000_tighten_uploaded_document_page_count.sql` (ERR-130). ERR-123 is no longer an open source-implementation blocker. Its migration-application, ACL and page-count boundary acceptance remains unverified and is intentionally deferred to the testing phase.
