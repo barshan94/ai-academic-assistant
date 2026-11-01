@@ -43,7 +43,7 @@ The owner-selected infrastructure constraint remains Supabase Free only. No paid
 
 ## 3. Database, authorization and migrations
 
-- [ ] Reconcile known migration-history drift (ERR-007) on the isolated target; do not blindly push the migration chain.
+- [ ] Reconcile migration-history drift (ERR-007) using the exact ledger comparison and schema-first procedure in `docs/MIGRATION_RECONCILIATION.md`; do not blindly push or repair the ledger.
 - [ ] Apply the complete ordered migration chain to a clean isolated project.
 - [ ] Apply `20261101130000_restrict_document_registration_rpc.sql`; confirm authenticated/anon cannot execute the registration RPC and service_role can.
 - [ ] Commit and apply the forward-only ERR-123 migration tightening register_uploaded_document page_count from 0–100 to 1–50; confirm its existing locking, idempotency, document/job atomicity and execute grants remain unchanged.
