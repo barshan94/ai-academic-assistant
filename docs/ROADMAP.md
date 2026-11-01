@@ -273,3 +273,8 @@ AI generation quota hardening (2026-11-01): solution and chapter-note quota admi
 
 
 Document job claim/recovery transaction hardening (2026-11-01): manual and scheduled worker routes now claim the processing job and move the parent document to processing atomically. Manual stale recovery now fails the job and document together, and the database rechecks the exact lease timestamp and 15-minute staleness condition to prevent racing a newer claim. See ERR-108. Migration application and claim/recovery concurrency acceptance remain pending the dedicated testing and fixing phases.
+
+
+
+
+Document correction and manual stale-claim closure (2026-11-01): manual OCR page correction now uses a single owner-authorized database transaction to update the page and return the parent document to `review_required`; corrections are rejected while processing is active. For stale jobs with retry budget remaining, the manual route now invokes the atomic claim RPC directly instead of performing a separate recover-to-failed step followed by a claim. Exhausted stale jobs still transition both document and job to failed atomically. See ERR-109 and ERR-110. Migration application, rollback, row-lock ordering and stale-lease concurrency acceptance remain deferred to the dedicated testing/fixing phases.
