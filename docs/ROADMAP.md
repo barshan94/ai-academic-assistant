@@ -312,3 +312,6 @@ User-facing privacy disclosure (2026-11-01): published `/privacy` and linked it 
 
 
 Public product copy (2026-11-01): refreshed the landing page to describe the implemented document-intake, question-solver, syllabus/chapter-note and exam-preparation workflows as "In code", and to state that external integrations require setup. Removed the obsolete Foundation/M1 status claim. See ERR-117; browser/mobile copy acceptance remains pending.
+
+
+Private-route indexing controls (2026-11-01): added `app/robots.ts` to disallow dashboard, API and sign-in paths while allowing public landing/privacy pages. Middleware now emits `X-Robots-Tag: noindex, nofollow, noarchive` on private workspace/API/sign-in responses and preserves it on dashboard auth redirects; sign-in metadata is no-index. This is defense-in-depth only and does not replace authentication. See ERR-118; crawler/browser acceptance remains pending.
