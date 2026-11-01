@@ -111,7 +111,7 @@
 - [x] Each chapter note can be downloaded as standalone Markdown with its source-reference metadata and unverified-AI warning preserved.
 - [x] Unit tests validate exported note sections, AI/manual provenance warnings, source-reference metadata, empty-section handling and safe filenames.
 - [ ] Browser acceptance validates actual per-note download behavior and print layout.
-- [ ] Reprocessing creates a new note version rather than overwriting teacher-approved content.
+- [x] Reprocessing creates a new immutable note version rather than overwriting teacher-approved content. `generateChapterNoteDraft` and manual draft creation both call `create_chapter_note_draft`; the RPC serializes version-number allocation per chapter, inserts a new `chapter_note_versions` row and records the prior version through `supersedes_id`. Approval state and prior content are not overwritten. Implementation is present; regression and browser acceptance remain in the separate testing phase.
 
 ## Exam preparation (M7)
 - [x] Owner-private confidence tracking for approved questions with explicit 1, 2, 4, 7 and 14 day revision intervals.
