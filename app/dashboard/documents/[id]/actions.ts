@@ -35,9 +35,19 @@ export async function savePageCorrection(formData: FormData) {
 
 export async function approveDocument(formData: FormData) {
   const documentId = String(formData.get("documentId") ?? "");
+  if (!z.string().uuid().safeParse(documentId).success) {
+    redirect("/dashboard/documents?review=invalid");
+  }
+
   const supabase = await createSupabaseServerClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) redirect("/login");
+
+  const { data: document, error: documentError } = await supabase.from("documents")
+    .select("id").eq("id", documentId).eq("owner_id", user.id).maybeSingle();
+  if (documentError || !document) {
+    redirect("/dashboard/documents/" + encodeURIComponent(documentId) + "?review=not_found");
+  }
 
   const { data: pages, error: pageError } = await supabase
     .from("document_pages")
@@ -47,19 +57,26 @@ export async function approveDocument(formData: FormData) {
 
   if (pageError || !pages?.length) redirect("/dashboard/documents/" + encodeURIComponent(documentId) + "?review=empty");
 
-  const { error: updatePagesError } = await supabase
+  const { data: updatedPages, error: updatePagesError } = await supabase
     .from("document_pages")
     .update({ status: "complete" })
     .eq("document_id", documentId)
-    .eq("owner_id", user.id);
-  const { error: updateDocumentError } = await supabase
+    .eq("owner_id", user.id)
+    .select("id");
+  if (updatePagesError || updatedPages?.length !== pages.length) {
+    redirect("/dashboard/documents/" + encodeURIComponent(documentId) + "?review=approve_failed");
+  }
+
+  const { data: updatedDocument, error: updateDocumentError } = await supabase
     .from("documents")
     .update({ status: "ready" })
     .eq("id", documentId)
-    .eq("owner_id", user.id);
+    .eq("owner_id", user.id)
+    .select("id")
+    .maybeSingle();
 
   redirect("/dashboard/documents/" + encodeURIComponent(documentId) +
-    (updatePagesError || updateDocumentError ? "?review=approve_failed" : "?review=approved"));
+    (updateDocumentError || !updatedDocument ? "?review=approve_failed" : "?review=approved"));
 }
 
 export async function createQuestionFromPage(formData: FormData) {
