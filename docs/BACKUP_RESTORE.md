@@ -117,11 +117,14 @@ Do not test restore against production or the current shared project.
 5. Extract `auth-users.json` from the encrypted archive into a mode-restricted temporary file, then recreate supported email/password accounts through the Auth Admin API **before restoring application data**. For example:
    ```bash
    umask 077
+   AUTH_USERS_BACKUP_FILE="$(mktemp)"
    age --decrypt --identity "$AGE_IDENTITY_FILE" "$BACKUP_ARCHIVE" | tar -xzOf - auth-users.json > "$AUTH_USERS_BACKUP_FILE"
    chmod 600 "$AUTH_USERS_BACKUP_FILE"
-   export SUPABASE_URL="https://TARGET_PROJECT_REF.supabase.co"
+   export RESTORE_TARGET_PROJECT_REF="TARGET_PROJECT_REF"
+   export SUPABASE_URL="https://\${RESTORE_TARGET_PROJECT_REF}.supabase.co"
    export SUPABASE_SERVICE_ROLE_KEY
    node scripts/restore-auth-users.mjs "$AUTH_USERS_BACKUP_FILE"
+   rm -f "$AUTH_USERS_BACKUP_FILE"
    ```
    The importer preserves original UUIDs, uses the exported password hashes and skips already-present matching UUID/email pairs so an interrupted import can be resumed. It refuses phone-based accounts, unsupported identity providers, MFA, anonymous and SSO accounts. Never print or paste the Auth JSON or service-role key.
 6. Restore application data only after Auth users exist, so foreign keys to Auth identities can resolve:
