@@ -168,3 +168,6 @@ Upload client hardening (2026-11-01): persisted session tokens are validated aga
 
 
 Document-processing resource hardening (2026-11-01): the Drive OCR worker now streams and caps the archived PDF download at 50 MB, OCR text export at 10 MB, and conversion metadata at 64 KiB. This closes the previous mismatch where the upload endpoint bounded file size but downstream provider responses were buffered without limits. See ERR-067; runtime acceptance remains pending.
+
+
+Google integration resource hardening (2026-11-01): OAuth refresh and Drive upload metadata now use a shared 64 KiB streamed JSON reader with strict UTF-8 and object validation. Resumable chunk completion responses are also capped at 64 KiB; 308/404 offset responses are not read. This extends ERR-067's bounded OCR response handling to the remaining Drive metadata/token paths. Source implementation is committed; verification and live Google acceptance remain in the separate test phase (ERR-068).
