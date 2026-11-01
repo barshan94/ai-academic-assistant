@@ -4,7 +4,7 @@ export type DatabaseWithAISolutions = Omit<Database, "public"> & {
   public: Omit<Database["public"], "Tables" | "Functions"> & {
     Tables: Database["public"]["Tables"] & {
       question_teacher_invites: {
-        Row: { id: string; question_id: string; owner_id: string; invited_email: string; accepted_by: string | null; accepted_at: string | null; revoked_at: string | null; created_at: string };
+        Row: { id: string; question_id: string; owner_id: string; invited_email: string; accepted_by: string | null; accepted_at: string | null; revoked_at: string | null; expires_at: string; created_at: string };
         Insert: { question_id: string; owner_id: string; invited_email: string };
         Update: { accepted_by?: string | null; accepted_at?: string | null; revoked_at?: string | null };
         Relationships: [{
@@ -116,6 +116,14 @@ export type DatabaseWithAISolutions = Omit<Database, "public"> & {
           p_decision: "approved" | "needs_correction";
           p_correction_notes: string | null;
         };
+        Returns: string;
+      };
+      create_question_teacher_invite: {
+        Args: { p_question_id: string; p_invited_email: string };
+        Returns: string;
+      };
+      accept_question_teacher_invite: {
+        Args: { p_invite_id: string };
         Returns: string;
       };
     };
