@@ -17,20 +17,21 @@ Percentages are cumulative scope estimates, not proof of release readiness.
 
 ## Latest automated testing checkpoint — 2026-11-01
 
-Tested commit: `d74f5d61273c1e1c02fef234dd10cc9ffa630f57` on `feature/m3-ai-solver`.
+Tested commit: `c096fa921e1573566562bcf80d7e314c78a50781` on `feature/m3-ai-solver`.
 
 - ESLint: passed.
-- Application, Playwright configuration and authenticated-E2E TypeScript checks: passed.
+- Application TypeScript: passed.
+- Playwright configuration and authenticated-E2E TypeScript: passed.
 - Unit tests: 132 passed across 29 test files.
 - Production build: passed.
-- Chromium browser smoke tests: passed.
-- Production dependency audit (`npm audit --omit=dev`): zero vulnerabilities.
-- Fresh isolated Supabase migration application: passed.
+- Production dependency audit (`npm audit --omit=dev`): zero vulnerabilities. The full development dependency advisory ERR-124 remains open.
+- Fresh isolated local Supabase migration application: passed.
 - Database authorization suite: 209 pgTAP assertions passed across 9 SQL files.
-- Authenticated two-account browser acceptance: skipped because dedicated non-production credentials are not configured; this is not a pass.
-- Development dependency advisory ERR-124 remains open; the production-only audit does not clear the development toolchain.
+- Chromium browser smoke tests: 7 passed, 1 skipped.
+- Secret scanning: passed.
+- Authenticated two-account browser acceptance: workflow skipped because dedicated non-production credentials and enablement are not configured; this is not a pass.
 
-These results verify the automated checks on the tested branch commit only. They do not certify live Google Drive/AI providers, the connected Supabase migration history, production backup restoration, or real two-account authorization behavior.
+The browser smoke tests run with Supabase credentials deliberately omitted and therefore prove fail-closed unauthenticated behavior, not real sign-in or cross-account authorization. The database workflow uses a fresh isolated local Supabase instance, not the connected hosted project. These results do not certify live Google Drive/OAuth, AI-provider inference or quality, connected migration history, backup restoration, mobile accessibility, or production readiness.
 
 ## M1 exit criteria
 - Application installs and starts locally.
@@ -404,3 +405,15 @@ A shared redirect-rejecting fetch transport now backs the cookie-authenticated S
 - [ ] Prove encrypted backup and Auth restore on a fresh isolated Free-plan project; no production restore was attempted.
 - [ ] Resolve ERR-124 dependency advisory for the complete dependency graph, not only production dependencies.
 - [ ] Complete accessibility, performance, CSP/auth-refresh and operational monitoring acceptance.
+
+
+## Testing progress — 2026-11-01
+- [x] First green foundation CI baseline: lint, application type-check, Playwright type-check, 132 unit tests and production build.
+- [x] Fresh isolated Supabase migration chain and all 209 pgTAP assertions.
+- [x] Credential-free Chromium smoke tests (7 passed / 1 skipped).
+- [x] Secret scanning.
+- [ ] Authenticated two-account teacher invitation/review/revocation acceptance; requires owner-provisioned non-production test accounts and GitHub Actions secrets/variable.
+- [ ] Live Google Drive/OAuth and resumable upload/worker acceptance; requires non-production Google credentials and deployment.
+- [ ] Live AI provider golden-set run; requires explicit provider/data-processing/cost approval and configured key/model.
+- [ ] Hosted Supabase migration ledger/schema reconciliation; requires read-only schema evidence and explicit owner approval before any migration.
+- [ ] Full dependency advisory resolution (ERR-124), backup/restore drill, accessibility and performance acceptance.
