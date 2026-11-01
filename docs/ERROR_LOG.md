@@ -1521,3 +1521,13 @@ ERR-073 closure reconciliation (2026-11-01): the earlier note that page and pare
 - Fix: The failing migration is absent from the connected project's exact migration ledger snapshot, and the local clean-install chain reaches this migration before any private-schema bootstrap. Added an idempotent private-schema creation and revoked schema access from `public`, `anon` and `authenticated` at the start of this migration. This changes only the repository migration source; no hosted migration was applied. The connected schema still requires reconciliation before any deployment.
 - Verification: Source change committed. A clean isolated database rerun is required to confirm the migration chain proceeds.
 - Status: Source fix committed; isolated migration and pgTAP verification pending.
+
+
+## ERR-140 — Middleware passed response objects instead of header collections
+- Date: 2026-11-01
+- Area: TypeScript / authentication middleware / response policy preservation
+- Symptom: CI type-check failed at two middleware call sites because `copyResponsePolicyHeaders` accepts `Headers`, but callers passed `NextResponse` objects.
+- Root cause: The helper's contract was correctly typed for header collections, while middleware call sites did not pass the `.headers` properties.
+- Fix: Updated both call sites to pass `source.headers` / `destination.headers` and `previousResponse.headers` / `response.headers`. Added a unit test that verifies allow-listed policy headers are copied without copying `Set-Cookie` or overwriting unrelated destination headers.
+- Verification: CI identified the two type errors; post-fix type-check and unit-test reruns are pending.
+- Status: Source fix and regression test committed; verification pending.
