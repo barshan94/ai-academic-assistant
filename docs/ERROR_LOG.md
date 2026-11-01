@@ -1010,3 +1010,13 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Corrected the date-shape expression to use the digit character class escape `\d` while retaining the UTC round-trip check that rejects impossible calendar dates.
 - Verification: Source inspected and corrected on `feature/m3-ai-solver`; tests remain deferred to the dedicated testing phase.
 - Status: Implementation fixed; regression verification pending.
+
+
+## ERR-094 — Verified owner syllabus taxonomy remained editable
+- Date: 2026-11-01
+- Area: Syllabus catalog lifecycle
+- Symptom: Owner actions allowed chapter and topic insertion into a verified catalog; only retired catalogs were blocked.
+- Root cause: The server actions checked for the retired state rather than requiring the catalog to remain in draft.
+- Fix: Chapter and topic creation now require an owner-scoped catalog in draft status and return a catalog-locked result for verified or retired catalogs.
+- Verification: Source-level change committed; database-level lifecycle enforcement and concurrency regression coverage remain pending.
+- Status: Application action hardened; a database trigger/RPC is still required to close read-then-write races.
