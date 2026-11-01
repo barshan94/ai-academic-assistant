@@ -1453,3 +1453,14 @@ ERR-124 compatibility investigation (2026-11-01): the existing lockfile already 
 - Fix: Extracted the required table inventory into `lib/health/required-readiness-tables.ts` and added the omitted feature/quota tables. The readiness endpoint still performs bounded zero-row HEAD probes and returns no academic data. Added a regression test for the critical table inventory and duplicate entries.
 - Verification: Source review only. The regression test is authored but not executed; live database readiness behavior remains deferred to the testing phase.
 - Status: Implementation committed to `feature/m3-ai-solver`; runtime verification remains pending.
+
+
+## ERR-134 — Readiness monitor accepted non-origin URL forms and unbounded response bodies
+
+- Date: 2026-11-01
+- Area: M8 scheduled operational monitor
+- Symptom: The workflow's regular-expression check for `APP_BASE_URL` could accept malformed origin-like strings containing URL components that are not valid for an application origin. The curl response was time-limited but did not have an explicit maximum response size.
+- Root cause: Configuration validation checked only a string prefix/pattern, and the HTTP client relied on the readiness endpoint remaining small.
+- Fix: Validate `APP_BASE_URL` with Node's URL parser and require HTTPS, a hostname, no embedded credentials, root path only, and no query or fragment. Bound the readiness response body to 4 KiB with curl's maximum-file-size option. The workflow still avoids printing response bodies or secrets.
+- Verification: Workflow source review only. GitHub Actions execution remains deferred to the testing/operational acceptance phase.
+- Status: Implemented on `feature/m3-ai-solver`; scheduled monitor activation still requires deployment and owner-configured repository secrets.
