@@ -44,8 +44,8 @@ This file records material implementation, CI, integration and release problems 
 - Symptom: A request/server interruption after claiming a job could leave it running indefinitely; later attempts returned already_processing.
 - Root cause: Job claiming existed without stale-running recovery.
 - Fix: Added 15-minute stale detection. Recovery updates only a job whose status is still running and whose started_at still matches the originally read value. The existing retry-limit and claim path then applies. The document list exposes a recovery/check action.
-- Verification: Unit tests cover stale, fresh, missing, invalid, future and custom-threshold timestamps. CI pending for this commit.
-- Status: Implemented; verification pending. This is user-triggered recovery, not a durable scheduled worker.
+- Verification: Unit tests cover stale, fresh, missing, invalid, future and custom-threshold timestamps; latest Vitest run on `c096fa921e1573566562bcf80d7e314c78a50781` passed all 132 tests across 29 files.
+- Status: Unit-tested in CI. This is user-triggered recovery, not a durable scheduled worker; scheduled worker deployment acceptance remains separate.
 
 ## ERR-005 — Authenticated two-account acceptance skipped
 - Date: 2026-10-31
@@ -80,8 +80,8 @@ This file records material implementation, CI, integration and release problems 
 - Symptom: Chromium job was still installing Chromium at the checkpoint.
 - Root cause: No failure established; browser install/build/test had not completed.
 - Fix: Await workflow result and inspect logs if it fails. Never classify an in-progress job as a pass.
-- Verification: Pending.
-- Status: Pending CI result.
+- Verification: Chromium smoke suite passed 7 tests with 1 unrelated authenticated two-account test skipped in run `41302672560` on commit `c096fa921e1573566562bcf80d7e314c78a50781`.
+- Status: Credential-free browser smoke verified; authenticated two-account acceptance remains blocked on dedicated non-production test credentials.
 
 ## Known unverified areas
 - Live Google OAuth/Drive acceptance and upload/OCR with an authorized account.
@@ -99,8 +99,8 @@ This file records material implementation, CI, integration and release problems 
 - Symptom: The previous reprocessing flow deleted every document-page row before inserting newly extracted pages. The questions table uses an ON DELETE CASCADE relationship to document pages, so a retry could silently delete saved questions. Immutable chapter-note page references can also reject page deletion.
 - Root cause: Reprocessing treated extracted pages as disposable cache rows even though other academic records depend on their stable IDs.
 - Fix: Before claiming a processing job, the route now checks whether existing document pages are referenced by saved questions or chapter-note sources. If any dependency exists, reprocessing is refused before any page or job mutation and the UI explains that a new document version must be uploaded. If the dependency check fails, processing is also refused safely.
-- Verification: Added pure unit tests for zero references, question references, note references and both reference types. Full CI is pending for this commit.
-- Status: Implemented; CI verification pending. This protects linked academic data but does not yet provide a first-class document versioning/revision workflow.
+- Verification: Pure unit tests for zero references, question references, note references and both reference types passed in the latest 132-test Vitest run on `c096fa921e1573566562bcf80d7e314c78a50781`.
+- Status: Unit-tested in CI. This protects linked academic data but does not yet provide a first-class document versioning/revision workflow.
 
 ## ERR-010 — Document processing depended on a user keeping the browser request alive
 
@@ -1551,3 +1551,12 @@ ERR-073 closure reconciliation (2026-11-01): the earlier note that page and pare
 - Secret scanning: passed. Authenticated browser acceptance workflow: skipped; no authenticated live-account test was performed.
 - Scope: these are reproducible CI results for the branch commit, not proof of live Google Drive, AI provider, OAuth callback, hosted Supabase migration-history reconciliation, production backup restore, or real-account authentication behavior. No hosted database migration or deployment was performed.
 - Result: first complete green foundation + isolated database + unauthenticated browser smoke run. Continue with targeted runtime/provider acceptance and remaining release blockers; do not call production readiness complete.
+
+
+## ERR-142 — Latest branch-wide automated test baseline passed; authenticated and live-provider acceptance remain gated
+- Date: 2026-11-01
+- Area: Foundation CI, isolated Supabase migration tests, Chromium browser smoke, release acceptance
+- Symptom: Initial test runs exposed JSX lint, middleware typing, missing private-schema bootstrap and malformed pgTAP delimiters (ERR-138 through ERR-141).
+- Fix: Corrected those source/test issues and reran the workflows on branch commit `c096fa921e1573566562bcf80d7e314c78a50781`.
+- Verification: Foundation workflow `41302672582` passed ESLint, application TypeScript, Playwright config and authenticated-E2E TypeScript checks, 29 Vitest files / 132 tests, and production build. Production-only audit passed with zero vulnerabilities. Database workflow `41302672592` applied the complete repository migration chain to a fresh isolated local Supabase database and passed all 209 pgTAP assertions across nine files. Chromium smoke suite in the same CI run passed 7 tests with 1 skipped. Secret scanning workflow `41302672562` passed. Authenticated browser workflow `41302672560` was skipped because the non-production test-project enablement variable/credentials are not configured.
+- Status: Automated branch baseline green. Not production approval: live Google Drive/OAuth, live AI generation and golden-set grading, authenticated two-account behavior, connected Supabase migration-history reconciliation, backup/restore, full dependency advisory resolution, accessibility and performance acceptance remain open.
