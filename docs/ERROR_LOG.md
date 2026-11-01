@@ -1755,3 +1755,10 @@ ERR-073 closure reconciliation (2026-11-01): the earlier note that page and pare
 - Required fix: Add a forward-only migration that revokes EXECUTE from PUBLIC, anon, authenticated and service_role for these trigger-only functions; trigger execution itself must continue to work. Add pgTAP assertions for effective privileges and verify trigger behavior after the change.
 - Verification: Read-only `has_function_privilege` checks on 2026-11-01. No SQL mutation was performed.
 - Status: Open; include in the hosted migration reconciliation plan. The migration must be created through the normal Supabase CLI migration workflow and tested on a fresh isolated database before hosted application.
+
+### ERR-161 implementation update — 2026-11-01
+- Added forward-only migration `20261101160000_revoke_reference_trigger_function_execute.sql` revoking EXECUTE from PUBLIC, anon, authenticated and service_role on all three trigger-only helper functions.
+- Added `supabase/tests/reference_trigger_function_privileges.test.sql` covering API-role denial, owner execution and preservation of all four trigger bindings.
+- Verification: isolated Supabase migration/pgTAP workflow run `41322904037` passed after the new migration and test were committed.
+- Hosted status: unchanged. The grant migration has not been applied to the hosted project yet.
+- Status: repository fix and isolated regression verified; hosted execution remains pending migration-history reconciliation.
