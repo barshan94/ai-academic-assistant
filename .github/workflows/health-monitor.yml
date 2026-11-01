@@ -49,33 +49,67 @@ jobs:
           READINESS_MAX_SECONDS: "10"
         run: |
           set -Eeuo pipefail
-          response_file="$(mktemp)"
-          trap 'rm -f "$response_file"' EXIT
+          node --input-type=module <<'NODE'
+          const url = new URL("/api/health/ready", process.env.APP_BASE_URL);
+          const started = performance.now();
+          let response;
+          try {
+            response = await fetch(url, {
+              headers: { Authorization: `Bearer ${process.env.CRON_SECRET}` },
+              cache: "no-store",
+              redirect: "error",
+              signal: AbortSignal.timeout(20_000),
+            });
+          } catch {
+            console.error("::error::Application readiness endpoint could not be reached safely.");
+            process.exit(1);
+          }
 
-          result="$(curl --silent --show-error \
-            --connect-timeout 10 --max-time 20 --max-filesize 4096 \
-            --output "$response_file" --write-out '%{http_code} %{time_total}' \
-            --header "Authorization: Bearer ${CRON_SECRET}" \
-            "${APP_BASE_URL%/}/api/health/ready")"
-          status="${result%% *}"
-          elapsed="${result#* }"
+          if (response.status !== 200) {
+            await response.body?.cancel().catch(() => {});
+            console.error(`::error::Application readiness check failed (HTTP ${response.status}).`);
+            process.exit(1);
+          }
 
-          if [[ "$status" != "200" ]]; then
-            echo "::error::Application readiness check failed (HTTP $status)."
-            exit 1
-          fi
+          const reader = response.body?.getReader();
+          const chunks = [];
+          let totalBytes = 0;
+          if (reader) {
+            try {
+              while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                totalBytes += value.byteLength;
+                if (totalBytes > 4096) {
+                  await reader.cancel().catch(() => {});
+                  throw new Error("Readiness response exceeded 4 KiB.");
+                }
+                chunks.push(Buffer.from(value));
+              }
+            } finally {
+              reader.releaseLock();
+            }
+          }
 
-          if ! grep -Eq '"status"[[:space:]]*:[[:space:]]*"ready"' "$response_file"; then
-            echo "::error::Readiness endpoint returned an unexpected response."
-            exit 1
-          fi
+          let payload;
+          try {
+            payload = JSON.parse(Buffer.concat(chunks).toString("utf8"));
+          } catch {
+            console.error("::error::Readiness endpoint returned invalid JSON.");
+            process.exit(1);
+          }
+          if (payload?.status !== "ready") {
+            console.error("::error::Readiness endpoint did not confirm ready status.");
+            process.exit(1);
+          }
 
-          if ! awk -v elapsed="$elapsed" -v max="$READINESS_MAX_SECONDS" 'BEGIN { exit !(elapsed <= max) }'; then
-            echo "::error::Readiness response exceeded the ${READINESS_MAX_SECONDS}s latency threshold."
-            exit 1
-          fi
-
-          echo "Application readiness check passed in ${elapsed}s."
+          const elapsed = (performance.now() - started) / 1000;
+          if (elapsed > Number(process.env.READINESS_MAX_SECONDS)) {
+            console.error("::error::Readiness response exceeded the configured latency threshold.");
+            process.exit(1);
+          }
+          console.log(`Application readiness check passed in ${elapsed.toFixed(2)}s.`);
+          NODE
 
       - name: Send optional operations alert
         if: failure()
