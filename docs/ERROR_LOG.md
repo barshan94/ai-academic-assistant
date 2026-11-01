@@ -615,3 +615,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Require the exact 44-character Base64 form for 32 bytes, decode it, and require a canonical re-encoding match before reporting readiness.
 - Verification: Source-level change only. Formal tests and runtime readiness checks are deferred to the user's separate testing phase.
 - Status: Implemented; verification pending.
+
+
+## ERR-057 — Readiness omitted the chapter-note AI capability
+
+- Date: 2026-11-01
+- Area: M8 health/readiness configuration validation
+- Symptom: The readiness endpoint could report the AI integration as configured when an AI provider was available for answer generation but none was configured for chapter-note generation.
+- Root cause: The readiness check validated only the answer task, despite the application exposing two separately routed AI tasks.
+- Fix: Require valid provider configuration for both `answer` and `chapter-note` before returning ready.
+- Verification: Source-level change only. Runtime checks and task-specific provider acceptance remain deferred to the testing phase.
+- Status: Implemented; verification pending.
