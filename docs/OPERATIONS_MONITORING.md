@@ -4,9 +4,9 @@
 
 The scheduled GitHub Actions workflow at `.github/workflows/health-monitor.yml` runs every 15 minutes and can also be started manually. It calls the protected `/api/health/ready` route.
 
-The route checks required application configuration and performs bounded, parallel Supabase Data API probes against `profiles`, `documents` and `processing_jobs`. This catches a reachable database whose core application schema is missing. It does not prove every migration or every feature table is present. The workflow fails if the endpoint is unreachable, returns a non-200 status, or does not return the generic `ready` status.
+The route checks required application configuration and performs bounded, parallel Supabase Data API probes against `profiles`, `documents` and `processing_jobs`. This catches a reachable database whose core application schema is missing. It does not prove every migration or every feature table is present. The workflow fails if the endpoint is unreachable, returns a non-200 status, does not return the generic `ready` status, or takes more than the configured 10-second response threshold. The threshold is currently set in the workflow and can be adjusted after a real deployment baseline is measured.
 
-This monitor does **not** prove Google Drive OAuth, file upload/OCR, AI inference, background-job completion, or end-user authentication. It does not collect application logs, measure latency trends, or page an on-call engineer.
+An optional Slack-compatible incoming webhook can receive a generic failure notification. If it is not configured, the workflow relies on GitHub Actions failure notifications. This monitor does **not** prove Google Drive OAuth, file upload/OCR, AI inference, background-job completion, or end-user authentication. It does not aggregate application logs, retain latency trends, or provide guaranteed on-call paging.
 
 ## Required GitHub Actions repository secrets
 
@@ -16,6 +16,7 @@ Configure these secrets under **Repository → Settings → Secrets and variable
 |---|---|
 | `APP_BASE_URL` | The deployed application HTTPS origin only, e.g. `https://your-domain.example`. Do not include a path, query or trailing slash. |
 | `CRON_SECRET` | The same random secret configured as the deployed application's `CRON_SECRET`; use at least 32 characters. |
+| `ALERT_WEBHOOK_URL` (optional) | HTTPS Slack-compatible incoming webhook. The workflow sends only a generic failure message and a link to the GitHub Actions run. |
 
 Do not put secret values in workflow YAML, commit them to the repository, or paste them into issue comments.
 
