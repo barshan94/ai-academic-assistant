@@ -916,3 +916,13 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Require the reference catalog to be in draft state before adding chapters, topics or evidence. Existing verify and retire actions already enforce their respective source states.
 - Verification: Source inspection only; draft edits, verified/retired rejection and lifecycle race cases remain deferred to the separate testing phase.
 - Status: Implemented on the feature branch; no tests, typecheck or build were run during implementation.
+
+## ERR-085 — Reference syllabus catalog could be verified without source evidence
+
+- Date: 2026-11-01
+- Area: M5 platform reference catalog verification
+- Symptom: A draft reference catalog could transition to verified even when its source URL was empty or invalid.
+- Root cause: The verification action checked only the catalog ID and draft status; it did not require a valid source URL before changing lifecycle state.
+- Fix: Load the draft catalog's source URL, require a parseable HTTPS URL with a hostname and no embedded credentials, and only then perform the draft-to-verified update.
+- Verification: Source inspection only; missing, malformed, credential-bearing, non-HTTPS and valid HTTPS source cases remain deferred to the separate testing phase.
+- Status: Implemented on the feature branch; no tests, typecheck or build were run during implementation.
