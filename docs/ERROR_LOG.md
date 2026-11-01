@@ -1332,3 +1332,15 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Corrected the expression to accept decimal digits while retaining the existing invalid-length and maximum-byte checks. Added focused regression coverage for numeric, malformed, oversized and absent content-length headers.
 - Verification: Not run in the implementation phase. The new regression tests are authored but must be executed in the later testing phase.
 - Status: Source fix and regression tests committed; runtime verification pending.
+
+
+## ERR-123 — Resumable upload page-count invariant differs from database registration
+
+- Date: 2026-11-01
+- Area: Document intake / database validation
+- Symptom: The resumable upload start and chunk routes accept only page counts from 1 through 50, while the server-only register_uploaded_document RPC still accepts 0 through 100.
+- Root cause: The route-level upload limit was tightened without updating the database function's independent validation invariant.
+- Impact: The RPC is revoked from public, anon and authenticated roles and is called only by the server route, so this is not currently a direct browser authorization bypass. It is still an inconsistent defense-in-depth contract and permits invalid registration metadata if another trusted caller is introduced.
+- Required fix: Add a new forward-only migration that recreates the existing RPC without changing its owner checks, advisory lock, duplicate handling, document insert, processing-job insert or execute grants, while changing page-count validation to reject every non-null value outside 1–50. Do not edit the already-committed historical migration.
+- Verification: Not run. The new migration has not been scaffolded or applied; the database boundary and 0/1/50/51/100/null cases belong in the dedicated testing phase after the migration is authored.
+- Status: Open implementation blocker. Existing route validation remains 1–50; the RPC still accepts 0–100 until a properly generated forward migration is committed.
