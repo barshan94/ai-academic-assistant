@@ -755,3 +755,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Validate the decrypted payload as a non-array object with a non-empty owner, canonical safe PDF filename, bounded positive file size, SHA-256 checksum, valid page-count range, unexpired safe-integer expiry and HTTPS Google Drive upload-session URI restricted to the expected upload endpoint path. The transport retains its independent URL validation.
 - Verification: Source inspection only; malformed-token, expiry and URL-boundary tests remain for the separate testing phase.
 - Status: Implemented on the feature branch; no test command, typecheck, build or live Drive request was run during implementation.
+
+
+## ERR-070 — Google OAuth callback buffered an unbounded token response
+
+- Date: 2026-11-01
+- Area: M2 Google Drive OAuth / upstream response resource limits
+- Symptom: The authorization-code callback parsed the Google token response directly with `response.json()`, unlike the now-bounded refresh-token paths.
+- Root cause: OAuth callback exchange was not included in the earlier Drive metadata response-size audit.
+- Fix: Reuse the shared 64 KiB bounded, strict-UTF-8 JSON reader for the callback exchange and reject refresh tokens outside the expected non-empty 4 KiB maximum before encryption.
+- Verification: Source inspection only; malformed/oversized token response tests and live OAuth callback acceptance remain pending for the separate testing phase.
+- Status: Implemented on the feature branch; no tests, typecheck, build or live OAuth request was run during implementation.
