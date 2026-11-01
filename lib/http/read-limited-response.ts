@@ -3,18 +3,20 @@ export async function readLimitedResponseText(response: Response, maxBytes: numb
     throw new Error("INVALID_RESPONSE_LIMIT");
   }
 
-  const declaredLength = Number(response.headers.get("content-length"));
-  if (Number.isFinite(declaredLength) && declaredLength > maxBytes) {
-    throw new Error("RESPONSE_TOO_LARGE");
+  const declaredLength = response.headers.get("content-length");
+  if (declaredLength !== null) {
+    if (!/^\\d+$/.test(declaredLength)) {
+      await response.body?.cancel();
+      throw new Error("INVALID_RESPONSE_LENGTH");
+    }
+    if (Number(declaredLength) > maxBytes) {
+      await response.body?.cancel();
+      throw new Error("RESPONSE_TOO_LARGE");
+    }
   }
 
-  const reader = response.body?.getReader();
-  if (!reader) {
-    const body = await response.text();
-    if (new TextEncoder().encode(body).byteLength > maxBytes) throw new Error("RESPONSE_TOO_LARGE");
-    return body;
-  }
-
+  if (!response.body) return "";
+  const reader = response.body.getReader();
   const chunks: Uint8Array[] = [];
   let totalBytes = 0;
   try {
@@ -35,6 +37,8 @@ export async function readLimitedResponseText(response: Response, maxBytes: numb
       // Preserve the original bounded-read failure.
     }
     throw error;
+  } finally {
+    reader.releaseLock();
   }
 
   const combined = new Uint8Array(totalBytes);
@@ -43,5 +47,9 @@ export async function readLimitedResponseText(response: Response, maxBytes: numb
     combined.set(chunk, offset);
     offset += chunk.byteLength;
   }
-  return new TextDecoder().decode(combined);
+  try {
+    return new TextDecoder("utf-8", { fatal: true }).decode(combined);
+  } catch {
+    throw new Error("RESPONSE_INVALID_UTF8");
+  }
 }
