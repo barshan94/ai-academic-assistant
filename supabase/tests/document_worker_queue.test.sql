@@ -59,7 +59,7 @@ select ok(
 );
 
 select is(
-  (select array_agg(status order by created_at)::text
+  (select array_agg(jobs.status order by source.created_at)::text
    from public.list_claimable_document_jobs(now() - interval '15 minutes', 10) as jobs
    join public.processing_jobs as source on source.id = jobs.id),
   '{failed,queued,running}',
