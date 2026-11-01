@@ -20,6 +20,29 @@ Therefore this runbook currently provides a manual export of application databas
 
 ## Backup procedure (manual, before risky changes and at least monthly)
 
+A repository helper now automates the logical export and encrypts the result locally. It requires the Supabase CLI, Docker/PostgreSQL tools as required by the CLI, and age installed on the trusted workstation. It does not upload the archive or send credentials anywhere except the Supabase database connection.
+
+1. Generate an age key pair on the trusted workstation and store the private identity in a separate secure location. Use only the public `age1...` recipient value in the backup command.
+2. Set the database URL in the current shell using a hidden prompt (never place it in command history):
+   ```bash
+   read -rs SUPABASE_DB_URL
+   export SUPABASE_DB_URL
+   ```
+3. Set the age public recipient and, optionally, the Supabase project reference:
+   ```bash
+   export BACKUP_AGE_RECIPIENT='age1...'
+   export BACKUP_PROJECT_REF='your-project-ref'
+   ```
+4. Run the helper from the repository:
+   ```bash
+   bash scripts/backup-supabase.sh
+   ```
+   The helper writes a mode-restricted encrypted `.tar.gz.age` archive under `$HOME/academic-assistant-backups` (or `BACKUP_ROOT`), refuses to place backups inside the Git working tree, creates role/schema/data dumps, writes a metadata manifest and SHA-256 checksums, and removes its temporary plaintext working directory on exit. Keep the private age identity separate from the archive.
+5. Copy the encrypted archive to an independent off-site location. Never commit it to this repository.
+
+The helper intentionally does not export Supabase Auth identities, Storage object bytes, Google Drive files, project settings or provider secrets. Its output is not a complete disaster-recovery backup. For a manual export without the helper, the lower-level CLI procedure remains below.
+
+
 1. Use a trusted workstation with the Supabase CLI and Docker installed.
 2. Obtain the database connection string from the Supabase Dashboard's Connect panel. Do not paste it into chat, source code, shell history, or logs.
 3. Set the connection string in a temporary environment variable in the current terminal session:
