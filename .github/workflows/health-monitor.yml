@@ -58,7 +58,7 @@ jobs:
             exit 1
           fi
 
-          if ! grep -Eq '"status'[[:space:]]*:[[:space:]]*'"ready"' "$response_file"; then
+          if ! grep -Eq '"status"[[:space:]]*:[[:space:]]*"ready"' "$response_file"; then
             echo "::error::Readiness endpoint returned an unexpected response."
             exit 1
           fi
