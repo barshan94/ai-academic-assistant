@@ -91,24 +91,24 @@ export async function GET(request: Request) {
       }
       continue;
     }
-    let claim = supabase.from("processing_jobs").update({
-      status: "running",
-      stage: "ocr",
-      progress: 10,
-      attempt_count: candidate.attempt_count + 1,
-      started_at: new Date().toISOString(),
-      error_code: null,
-      error_message: null,
-    }).eq("id", candidate.id)
-      .eq("owner_id", candidate.owner_id)
-      .eq("status", candidate.status)
-      .eq("attempt_count", candidate.attempt_count);
-
-    if (candidate.started_at) claim = claim.eq("started_at", candidate.started_at);
-    else claim = claim.is("started_at", null);
-
-    const { data: claimed, error: claimError } = await claim.select("id").maybeSingle();
-    if (claimError || !claimed) continue;
+    const { data: claimed, error: claimError } = await supabase.rpc("claim_document_processing_job", {
+      p_document_id: candidate.document_id,
+      p_owner_id: candidate.owner_id,
+      p_job_id: candidate.id,
+      p_expected_status: candidate.status,
+      p_expected_attempt_count: candidate.attempt_count,
+      p_expected_started_at: candidate.started_at,
+    });
+    if (claimError || claimed !== true) {
+      if (claimError) {
+        logSafeOperationalEvent("document_job_claim_failed", {
+          route: "/api/cron/process-documents",
+          errorCode: "DOCUMENT_JOB_CLAIM_FAILED",
+          jobId: candidate.id,
+        });
+      }
+      continue;
+    }
 
     const jobId = candidate.id;
     const ownerId = candidate.owner_id;
@@ -139,13 +139,6 @@ export async function GET(request: Request) {
         })) throw new Error("Reprocessing was blocked to protect saved questions or chapter notes.");
       }
 
-      const { data: processingDocument, error: processingDocumentError } = await supabase
-        .from("documents").update({ status: "processing" })
-        .eq("id", documentId).eq("owner_id", ownerId)
-        .select("id").maybeSingle();
-      if (processingDocumentError || !processingDocument) {
-        throw new Error("Could not mark the source document as processing.");
-      }
       const accessToken = await refreshDriveAccessToken(connection.encrypted_refresh_token);
       const extractedText = await extractTextFromDrivePdf({ accessToken, driveFileId: document.drive_file_id });
       const pages = splitExtractedText(extractedText);
