@@ -36,7 +36,7 @@ A repository helper now automates the logical export and encrypts the result loc
    read -rs SUPABASE_DB_URL
    export SUPABASE_DB_URL
    ```
-3. Set the age public recipient and, optionally, the Supabase project reference:
+3. Set the age public recipient and the required source Supabase project reference (used to prevent restoring Auth accounts back into the source project):
    ```bash
    export BACKUP_AGE_RECIPIENT='age1...'
    export BACKUP_PROJECT_REF='your-project-ref'
