@@ -1233,3 +1233,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Escaped the apostrophe in the notice; added both recovery events to the safe-log union; explicitly narrowed pageCount to number before numeric validation; and supplied a source locator in the shared mark-scheme test fixture. No validation was weakened or skipped.
 - Verification: On feature/m3-ai-solver commit 46aa2aec35f950044b20c3c82f8b115e2f6508cd, Foundation CI completed successfully: ESLint, application type-check, Playwright configuration type-check, authenticated E2E type-check, 23 unit-test files / 121 tests, and production build all passed. Local Supabase migration/pgTAP CI passed 7 SQL files / 177 assertions. Secret scanning passed. Browser Chromium smoke tests were still running when this entry was written; authenticated two-account acceptance was skipped because ENABLE_AUTHENTICATED_E2E and the dedicated non-production Supabase/account secrets are not configured. Live AI-provider generation and production environment preflight remain unverified.
 - Status: Corrections committed to feature/m3-ai-solver. This entry records observed CI results only; it does not declare overall project testing complete or approve production deployment.
+
+
+## ERR-114 — Readiness could report healthy with most feature tables missing
+
+- Date: 2026-11-01
+- Area: Production readiness / partial database migration detection
+- Symptom: The protected readiness endpoint could return `ready` when the Supabase Data API and only the three core tables were reachable, even if solver, teacher-review, syllabus, chapter-note or study-workflow migrations were absent.
+- Root cause: The readiness probe checked connectivity and a minimal document-processing subset rather than the required schema surface used by the shipped application.
+- Fix: Expanded the bounded parallel zero-row HEAD probes to cover document pages and Drive connections, questions/solutions/teacher reviews, private/shared syllabus taxonomy, chapter-note records, revision tracking, practice history and weekly study sessions. No row content is returned. Readiness now fails closed when any required table is missing.
+- Verification: Source/documentation change only. No tests, typecheck, build, workflow run or hosted schema change was performed; runtime behavior and the exact required-table list remain for the dedicated testing phase.
+- Status: Route and operations/README/roadmap documentation committed to `feature/m3-ai-solver`; no hosted database migration was applied.
