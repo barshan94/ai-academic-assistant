@@ -936,3 +936,13 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Load the owner-scoped draft catalog and re-validate that its source URL is HTTPS, has a hostname and contains no embedded credentials before updating its status.
 - Verification: Source inspection only; legacy malformed URL and valid-source transition cases remain deferred to the separate testing phase.
 - Status: Implemented on the feature branch; no tests, typecheck or build were run during implementation.
+
+## ERR-087 — Teacher invite revocation reported success when no invite was changed
+
+- Date: 2026-11-01
+- Area: M5 teacher invitation lifecycle / owner server action
+- Symptom: Revocation could redirect to a success state when the invite did not exist, belonged to another owner/question, or had already been revoked, because the action checked only the database error.
+- Root cause: The update did not request or verify the affected row.
+- Fix: Return the updated invite ID from the owner- and question-scoped update and report failure when no row was changed.
+- Verification: Source inspection only; missing, foreign-owner, already-revoked and valid revocation cases remain deferred to the separate testing phase.
+- Status: Implemented on the feature branch; no tests, typecheck or build were run during implementation.
