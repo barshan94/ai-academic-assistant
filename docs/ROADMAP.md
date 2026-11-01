@@ -209,3 +209,5 @@ Syllabus catalog lifecycle enforcement (2026-11-01): owner catalog verification 
 Reference syllabus verification now requires a valid HTTPS source URL with a hostname and no embedded credentials before a draft catalog can become verified. See ERR-085; URL and lifecycle regression coverage remains deferred to the separate testing phase.
 
 Owner syllabus verification now re-validates the persisted draft catalog source URL (HTTPS, hostname present, no embedded credentials) rather than relying only on non-null source_url. See ERR-086; regression coverage remains deferred to the separate testing phase.
+
+Teacher invitation revocation now confirms that the owner- and question-scoped update actually changed an active invite before reporting success. See ERR-087; missing-row, ownership and repeated-revocation regression coverage remains deferred to the testing phase.
