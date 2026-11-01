@@ -85,6 +85,7 @@ async function hasLiveSupabaseConnection() {
         fetch: (input, init) => fetch(input, {
           ...init,
           signal: AbortSignal.timeout(5_000),
+          redirect: "error",
         }),
       },
     });
