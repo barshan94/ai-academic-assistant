@@ -264,3 +264,6 @@ Worker retry-exhaustion recovery (2026-11-01): a stale running job that has exha
 
 
 Readiness monitoring hardening (2026-11-01): the 15-minute health monitor now enforces a 10-second readiness response threshold and can send a generic failure alert to an optional HTTPS Slack-compatible webhook. Secret handling avoids logging the webhook URL or response body. Operations documentation records setup and limitations. See ERR-105. Deployment, threshold calibration and webhook delivery remain operational acceptance tasks.
+
+
+Document upload quota hardening (2026-11-01): Drive upload admission now serializes each owner's quota decision, captures the time after lock acquisition, checks both hourly and daily caps before changing either counter, and increments both only for admitted uploads. Existing limits remain 10/hour and 50/UTC day. See ERR-106. Database migration application and quota boundary/concurrency acceptance remain pending the dedicated testing and fixing phases.
