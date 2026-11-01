@@ -22,7 +22,7 @@ The owner can share one question with an existing Academic Assistant account. An
 ## Access rules
 - The database, not the UI, enforces invitation acceptance and question-scoped access through RLS.
 - Invitation creation is owner-only.
-- An invitee can accept only an invitation matching the email claim in their authenticated JWT.
+- An invitee can accept only an invitation matching the current email stored on their authenticated Supabase Auth user, and only when `email_confirmed_at` is set. The database does not trust a client-supplied email value.
 - Teacher access is bound to the accepting Supabase user ID.
 - Teachers cannot create new AI answers or edit the owner's question.
 - Teachers can insert append-only review events for the shared question's saved answers.
