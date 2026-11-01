@@ -833,3 +833,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Apply the same strict UTC calendar-date validation used by reference syllabus administration while preserving empty optional dates.
 - Verification: Source inspection only; leap-year, invalid-day and month-boundary regression tests remain deferred to the separate testing phase.
 - Status: Implemented on the feature branch; no tests, typecheck or build were run during implementation.
+
+
+## ERR-077 — Syllabus evidence links accepted deceptive credential-bearing HTTPS URLs
+
+- Date: 2026-11-01
+- Area: M4 syllabus evidence / untrusted source-link validation
+- Symptom: HTTPS-only validation accepted URLs containing embedded username/password components, which can make a link's displayed trusted-looking prefix differ from its actual destination host.
+- Root cause: Source-link schemas checked the URL protocol but did not reject URL user-info components.
+- Fix: Owner-managed and reference syllabus source/evidence URL validators now require HTTPS and reject embedded URL credentials.
+- Verification: Source inspection only; deceptive-host, user-info and valid HTTPS URL regression cases remain deferred to the separate testing phase.
+- Status: Implemented on the feature branch; no tests, typecheck or build were run during implementation.
