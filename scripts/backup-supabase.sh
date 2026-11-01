@@ -38,7 +38,8 @@ fi
 
 timestamp="$(date -u +%Y%m%dT%H%M%SZ)"
 project_suffix="${BACKUP_PROJECT_REF:+-$BACKUP_PROJECT_REF}"
-archive="$backup_root/academic-assistant-$timestamp$project_suffix.tar.gz.age"
+archive="$backup_root/academic-assistant-$timestamp$project_suffix-$.tar.gz.age"
+[[ ! -e "$archive" ]] || fail "A backup archive already exists at the generated path."
 workdir="$(mktemp -d "${TMPDIR:-/tmp}/academic-assistant-backup.XXXXXX")"
 backup_complete=0
 cleanup() {
