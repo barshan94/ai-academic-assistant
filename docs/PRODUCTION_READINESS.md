@@ -178,3 +178,15 @@ Do not check any runtime or external-review item above until the evidence is att
 - [x] Confirmed the only public SECURITY DEFINER function is service-role/postgres-only; no anon or authenticated EXECUTE privilege was found for it.
 - [ ] Validate effective RLS behavior with two disposable authenticated accounts; catalog policy inspection alone is not an IDOR acceptance test.
 - [ ] Reconcile and apply the missing document registration/page-count migrations only after the full migration chain is compared and the owner approves the target and plan.
+
+
+## Latest hosted migration reconciliation — 2026-11-01
+
+- [x] Owner confirmed the existing Free-plan `academic-assistant` project as the dedicated non-production target.
+- [x] Refreshed migration inventory: 96 repository files, 53 hosted ledger entries, 51 exact matches, 2 renamed shared-reference ledger entries, and 43 genuinely pending repository migrations.
+- [x] Read-only object audit found the five shared-reference tables, 13 indexes, four functions, four triggers and 12 policies. Shared-reference seed tables are empty; Cambridge/Edexcel seed migrations remain pending.
+- [x] Identified three trigger-only helper functions with default PUBLIC EXECUTE privileges (ERR-161); they are not SECURITY DEFINER or ordinary PostgREST RPC functions, but require least-privilege revocation in a forward-only migration.
+- [ ] Prepare and review the precise migration-history repair plan for the two renamed migrations; never re-run their CREATE TABLE DDL.
+- [ ] Create and test the ERR-161 trigger-function privilege hardening migration on a clean isolated database.
+- [ ] Apply the 43 genuinely pending migrations in order to the approved non-production target only after a final schema/ledger diff and separate execution approval.
+- [ ] Verify post-migration schema, seed data, RLS/ACLs, advisors and authenticated two-account workflows.
