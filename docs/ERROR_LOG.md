@@ -1042,3 +1042,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Removed the incremental-scope parameter. The flow now requests only the explicitly configured `drive.file` scope, consistent with callback validation and token-use checks.
 - Verification: Source inspection only; Google OAuth consent, scope response, reconnect and refresh-token preservation scenarios remain deferred to the dedicated testing/acceptance phase.
 - Status: Implemented on `feature/m3-ai-solver`; no tests, typecheck or build were run during implementation.
+
+
+## ERR-097 — Rejected web-research requests consumed the other quota allowance
+
+- Date: 2026-11-01
+- Area: Web-research quota enforcement / concurrent request accounting
+- Symptom: A request rejected by the 15-minute rate limit still incremented the daily allowance. The previous implementation also performed the daily and window checks without serializing concurrent requests, allowing simultaneous requests to race past a limit.
+- Root cause: The quota function incremented the daily counter before checking the short-window limit and did not acquire a per-owner transaction lock before reading or updating either counter.
+- Fix: Added a forward-only Supabase migration that serializes quota decisions per owner with a transaction-scoped advisory lock, checks both limits before writing either counter, and increments both counters only when the request is admitted. The function remains authenticated-only and retains the existing 20-per-UTC-day and 5-per-15-minute limits.
+- Verification: Implementation/source review only. The migration has not been applied to any database; SQL execution, concurrent-request behavior, quota boundary cases and Supabase advisors are deferred to the dedicated testing/fixing phases.
+- Status: Migration committed to `feature/m3-ai-solver`; no tests, typecheck or build were run during implementation.
