@@ -1485,3 +1485,14 @@ ERR-124 compatibility investigation (2026-11-01): the existing lockfile already 
 - Fix: Replaced the worker's direct Supabase client construction with `createSupabaseServiceRoleClient()`, preserving the existing early 503 response when required credentials are absent. All worker service-role Data API and RPC calls now use the shared redirect-rejecting transport.
 - Verification: Source review only. No tests, typecheck, build, lint, audit, CI or live worker invocation was run. Regression test execution and runtime acceptance remain deferred to the testing phase.
 - Status: Source fix committed to `feature/m3-ai-solver`.
+
+
+## ERR-137 — Supabase authenticated SSR clients followed redirects
+
+- Date: 2026-11-01
+- Area: Authentication / Supabase server-side transport
+- Symptom: The authenticated Supabase clients used by Next.js middleware and server routes relied on the Fetch default redirect behavior. A redirect from the configured Supabase origin was not explicitly rejected.
+- Root cause: Redirect hardening covered service-role and provider requests but had not been applied consistently to cookie-backed SSR Auth/Data API clients.
+- Fix: Added a shared `supabaseFetch` transport that sets `redirect: "error"`; applied it to the server-component/server-route client, middleware auth client and service-role client. Added a regression test for the shared transport.
+- Verification: Source review only. The regression test is authored but not executed. Auth refresh, middleware cookie preservation and live Supabase behavior remain for the testing phase.
+- Status: Source implementation committed to `feature/m3-ai-solver`.
