@@ -15,6 +15,7 @@ command -v sha256sum >/dev/null 2>&1 || command -v shasum >/dev/null 2>&1 || fai
 
 : "${SUPABASE_DB_URL:?Set SUPABASE_DB_URL in the current shell; do not put it in the script invocation.}"
 : "${BACKUP_AGE_RECIPIENT:?Set BACKUP_AGE_RECIPIENT to the age public recipient key.}"
+: "${BACKUP_PROJECT_REF:?Set BACKUP_PROJECT_REF to the source project reference for restore-target safety.}"
 
 if [[ ! "$BACKUP_AGE_RECIPIENT" =~ ^age1[0-9a-z]{20,}$ ]]; then
   fail "BACKUP_AGE_RECIPIENT does not look like an age public recipient."
