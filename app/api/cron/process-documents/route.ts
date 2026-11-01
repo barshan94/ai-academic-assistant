@@ -1,7 +1,7 @@
 import { timingSafeEqual } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 import { decryptRefreshToken } from "@/lib/drive/crypto";
-import { extractTextFromDrivePdf } from "@/lib/drive/google";
+import { extractTextFromDrivePdf, readGoogleJsonResponseBounded } from "@/lib/drive/google";
 import { splitExtractedText } from "@/lib/documents/split-extracted-text";
 import { canSafelyReplaceExtractedPages } from "@/lib/documents/reprocessing-safety";
 import { isBackgroundJobClaimable, isBackgroundJobRetryEligible } from "@/lib/documents/worker-policy";
@@ -36,7 +36,7 @@ async function refreshDriveAccessToken(encryptedToken: string) {
     cache: "no-store",
     signal: AbortSignal.timeout(15_000),
   });
-  const payload = await response.json() as { access_token?: string; error?: string; error_description?: string };
+  const payload = await readGoogleJsonResponseBounded<{ access_token?: string; error?: string; error_description?: string }>(response, 64 * 1024, "Google OAuth token response");
   if (!response.ok || !payload.access_token) {
     // Never persist or return Google-provided error text: upstream responses
     // may echo credentials, document metadata or other sensitive context.
