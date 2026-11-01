@@ -315,3 +315,6 @@ Public product copy (2026-11-01): refreshed the landing page to describe the imp
 
 
 Private-route indexing controls (2026-11-01): added `app/robots.ts` to disallow dashboard, API and sign-in paths while allowing public landing/privacy pages. Middleware now emits `X-Robots-Tag: noindex, nofollow, noarchive` on private workspace/API/sign-in responses and preserves it on dashboard auth redirects; sign-in metadata is no-index. This is defense-in-depth only and does not replace authentication. See ERR-118; crawler/browser acceptance remains pending.
+
+
+Accessibility implementation note (2026-11-01): added a forced-colors mode that preserves visible keyboard focus and structural boundaries for major workspace panels and notices when the operating system enables high-contrast colors. This is a source-level affordance only; Windows High Contrast / forced-colors, keyboard, screen-reader and contrast acceptance remain outstanding (ERR-119).
