@@ -270,3 +270,6 @@ Document upload quota hardening (2026-11-01): Drive upload admission now seriali
 
 
 AI generation quota hardening (2026-11-01): solution and chapter-note quota admission now serializes per owner/bucket, timestamps the 15-minute window after lock acquisition, and checks the limit before incrementing. Existing limits remain five solutions or three chapter notes per 15 minutes. See ERR-107. Migration application and quota concurrency/window-boundary acceptance remain pending the dedicated testing and fixing phases.
+
+
+Document job claim/recovery transaction hardening (2026-11-01): manual and scheduled worker routes now claim the processing job and move the parent document to processing atomically. Manual stale recovery now fails the job and document together, and the database rechecks the exact lease timestamp and 15-minute staleness condition to prevent racing a newer claim. See ERR-108. Migration application and claim/recovery concurrency acceptance remain pending the dedicated testing and fixing phases.
