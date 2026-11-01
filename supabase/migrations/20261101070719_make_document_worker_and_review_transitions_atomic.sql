@@ -14,7 +14,9 @@ declare
   v_completed_job_id uuid;
 begin
   if current_user not in ('service_role', 'postgres') then
-    raise exception 'A trusted worker role is required' using errcode = '42501';
+    if (select auth.uid()) is null or (select auth.uid()) <> p_owner_id then
+      raise exception 'Document owner does not match the authenticated user' using errcode = '42501';
+    end if;
   end if;
 
   if p_document_id is null or p_owner_id is null or p_job_id is null then
@@ -63,8 +65,8 @@ begin
 end;
 $$;
 
-revoke all on function public.complete_document_processing(uuid, uuid, uuid, jsonb) from public, anon, authenticated;
-grant execute on function public.complete_document_processing(uuid, uuid, uuid, jsonb) to service_role;
+revoke all on function public.complete_document_processing(uuid, uuid, uuid, jsonb) from public, anon;
+grant execute on function public.complete_document_processing(uuid, uuid, uuid, jsonb) to authenticated, service_role;
 
 create or replace function public.approve_document_review(
   p_document_id uuid,
