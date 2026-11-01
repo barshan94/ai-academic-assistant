@@ -941,6 +941,22 @@ export type Database = {
         };
         Returns: number;
       }
+      register_uploaded_document: {
+        Args: {
+          p_owner_id: string;
+          p_file_name: string;
+          p_file_size_bytes: number;
+          p_sha256: string;
+          p_drive_file_id: string;
+          p_drive_web_view_link: string | null;
+          p_page_count: number | null;
+        };
+        Returns: {
+          document_id: string;
+          duplicate: boolean;
+          stored_drive_file_id: string | null;
+        }[];
+      }
       consume_document_upload_quota: {
         Args: Record<PropertyKey, never>;
         Returns: boolean;
