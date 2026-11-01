@@ -1,4 +1,10 @@
 import Link from "next/link";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Sign in | Academic Assistant",
+  robots: { index: false, follow: false, noarchive: true },
+};
 import { signIn } from "./actions";
 
 type LoginPageProps = {
