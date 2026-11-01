@@ -777,3 +777,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Centralize URL validation for both newly issued and decrypted resumable session URLs. Require HTTPS, the exact Google API hostname, no username/password, and a pathname matching the expected files endpoint with a segment boundary. Google-provided query parameters remain allowed because Drive uses them for upload session IDs.
 - Verification: Source inspection only; URL edge-case tests and live resumable-upload acceptance remain deferred to the separate testing phase.
 - Status: Implemented on the feature branch; no tests or live provider requests were run during implementation.
+
+
+## ERR-072 — Shared bounded AI/research response reader did not enforce strict decoding or release its stream lock
+
+- Date: 2026-11-01
+- Area: M6 AI/research integrations / shared HTTP response handling
+- Symptom: The shared limited-response reader decoded malformed UTF-8 with replacement characters and did not explicitly release its reader lock after consuming the stream. It also treated malformed Content-Length values as if no declared length existed.
+- Root cause: The helper enforced the streamed byte ceiling but did not fully validate transport metadata/encoding or close the reader lifecycle explicitly.
+- Fix: Reject malformed declared lengths, preserve the streamed byte ceiling, release the reader lock in a `finally` block, return an empty string only for genuinely body-less responses, and decode UTF-8 in fatal mode. AI and web-research callers already convert these failures into generic provider errors.
+- Verification: Source inspection only; invalid UTF-8, malformed Content-Length and stream cancellation tests remain for the separate testing phase.
+- Status: Implemented on the feature branch; no tests, typecheck or build were run during implementation.
