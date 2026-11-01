@@ -57,8 +57,10 @@ supabase db dump --db-url "$SUPABASE_DB_URL" --file "$workdir/data.sql" --use-co
   -x "storage.buckets_vectors" -x "storage.vector_indexes"
 
 auth_export_sql="$(cat <<'SQL'
-select coalesce(
-  json_agg(
+select json_build_object(
+  'formatVersion', 1,
+  'users', coalesce(
+    json_agg(
     json_build_object(
       'id', u.id::text,
       'aud', u.aud,
@@ -86,6 +88,7 @@ select coalesce(
     ) order by u.created_at
   ),
   '[]'::json
+  )
 )::text
 from auth.users as u
 where u.deleted_at is null;
@@ -108,7 +111,7 @@ git_commit="$(git -C "${repo_root:-$PWD}" rev-parse HEAD 2>/dev/null || printf '
   printf 'project_ref=%s\n' "${BACKUP_PROJECT_REF:-unspecified}"
   printf 'supabase_cli=%s\n' "$cli_version"
   printf 'git_commit=%s\n' "$git_commit"
-  printf 'backup_scope=roles,schema,application_data,email_phone_auth_accounts\n'
+  printf 'backup_scope=roles,schema,application_data,email_password_auth_accounts\n'
   printf 'excluded=auth_sessions,auth_tokens,mfa_factors,external_oauth_identities,storage_objects,project_settings,external_drive_files\n'
 } > "$workdir/manifest.txt"
 
