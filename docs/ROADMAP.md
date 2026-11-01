@@ -186,3 +186,6 @@ Document review action hardening (2026-11-01): manual page correction and docume
 
 
 Reference syllabus date validation (2026-11-01): reference-catalog date fields now validate real UTC calendar dates rather than accepting Date.parse normalization of impossible dates. Optional empty dates remain allowed. See ERR-074; boundary and leap-year regression tests remain in the later testing phase.
+
+
+Google Drive OCR metadata now uses the common 64 KiB bounded JSON parser, enforcing strict UTF-8 and object-shaped JSON before the temporary file ID is accepted. Resumable upload session URL validation is also shared by the transport and chunk route, including rejection of embedded URL credentials. See ERR-071 and ERR-075; provider boundary regression tests remain deferred.
