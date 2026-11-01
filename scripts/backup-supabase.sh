@@ -60,6 +60,7 @@ supabase db dump --db-url "$SUPABASE_DB_URL" --file "$workdir/data.sql" --use-co
 auth_export_sql="$(cat <<'SQL'
 select json_build_object(
   'formatVersion', 1,
+  'projectRef', :'backup_project_ref',
   'users', coalesce(
     json_agg(
     json_build_object(
@@ -98,7 +99,7 @@ SQL
 # Supabase CLI logical dumps intentionally omit managed Auth tables. Export only
 # account attributes that the Auth Admin API can recreate while preserving UUIDs.
 # Sessions, MFA secrets and non-email identity providers are not supported by the restore importer.
-psql "$SUPABASE_DB_URL" -X -q -A -t -v ON_ERROR_STOP=1 -c "$auth_export_sql" > "$workdir/auth-users.json"
+psql "$SUPABASE_DB_URL" -X -q -A -t -v ON_ERROR_STOP=1 -v backup_project_ref="$BACKUP_PROJECT_REF" -c "$auth_export_sql" > "$workdir/auth-users.json"
 [[ -s "$workdir/auth-users.json" ]] || fail "Auth account export is missing or empty."
 
 for file in roles.sql schema.sql data.sql auth-users.json; do
