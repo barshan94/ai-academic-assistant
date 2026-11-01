@@ -159,7 +159,6 @@ export async function GET(request: Request) {
       // Keep provider/database exception text out of persistent job rows and
       // HTTP responses. Detailed diagnostics belong in a separately reviewed,
       // redacted observability channel, not owner-visible job metadata.
-      const message = "Document processing failed. Reconnect Google Drive if the problem persists.";
       logSafeOperationalEvent("document_worker_failed", { route: "/api/cron/process-documents", errorCode: "BACKGROUND_PROCESSING_FAILED", jobId });
       const { data: failurePersisted, error: failureError } = await supabase.rpc("fail_document_processing", {
         p_document_id: documentId,
