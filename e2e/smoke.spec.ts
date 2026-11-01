@@ -84,3 +84,36 @@ test("keyboard navigation exposes the skip link and visible focus", async ({ pag
   const focusStyle = await skipLink.evaluate((element) => getComputedStyle(element).outlineStyle);
   expect(focusStyle).not.toBe("none");
 });
+
+test("mobile landing and login layouts fit a narrow viewport with usable form targets", async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 800 });
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: /turn questions into/i })).toBeVisible();
+  await expect(page.getByRole("link", { name: /sign in/i })).toBeVisible();
+
+  const landingWidth = await page.locator("html").evaluate((element) => ({
+    scrollWidth: element.scrollWidth,
+    clientWidth: element.clientWidth,
+  }));
+  expect(landingWidth.scrollWidth).toBeLessThanOrEqual(landingWidth.clientWidth);
+
+  await page.goto("/login");
+  const email = page.getByLabel("Email address");
+  const password = page.getByLabel("Password");
+  const submit = page.getByRole("button", { name: /sign in/i });
+  await expect(email).toBeVisible();
+  await expect(password).toBeVisible();
+  await expect(submit).toBeVisible();
+
+  for (const control of [email, password, submit]) {
+    const box = await control.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.height).toBeGreaterThanOrEqual(44);
+  }
+
+  const loginWidth = await page.locator("html").evaluate((element) => ({
+    scrollWidth: element.scrollWidth,
+    clientWidth: element.clientWidth,
+  }));
+  expect(loginWidth.scrollWidth).toBeLessThanOrEqual(loginWidth.clientWidth);
+});
