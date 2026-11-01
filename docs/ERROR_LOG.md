@@ -1391,3 +1391,12 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Validate parsed symbols against the 118 recognized chemical element symbols. Unsupported or unknown symbols now produce an uncheckable result.
 - Regression coverage: Added an unknown-symbol equation to \`tests/chemistry-check.test.ts\`. Tests are authored but not executed.
 - Status: Source fix committed; regression test remains pending the testing phase.
+
+## ERR-129 — Physics unit parser treated inherited object properties as unit definitions
+- Date: 2026-11-01
+- Area: Deterministic physics dimensional checks
+- Symptom: Unit names such as \`constructor\` and \`toString\` resolved through the JavaScript object prototype instead of being reported as unknown units.
+- Root cause: The SI unit lookup used a normal object index without checking that the key was an own property.
+- Fix: Require \`Object.hasOwn\` before reading a unit definition; unknown prototype property names now produce an uncheckable result.
+- Regression coverage: Added \`constructor\` and \`toString\` cases to \`tests/physics-unit-check.test.ts\`. Tests are authored but not executed.
+- Status: Source fix committed; regression test remains pending the testing phase.
