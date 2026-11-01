@@ -3,6 +3,7 @@ import {
   AIConfigurationError,
   AIProviderError,
   generateStructuredAnswer,
+  generateStructuredAnswerWithRouting,
   getAIProviderConfig,
 } from "@/lib/ai/provider";
 import { parseExamAnswer } from "@/lib/ai/answer-schema";
@@ -38,6 +39,54 @@ describe("AI provider configuration", () => {
       AI_MODEL: "model",
       AI_API_BASE_URL: "http://example.com/v1",
     })).toThrow(AIConfigurationError);
+  });
+});
+
+describe("AI provider fallback policy", () => {
+  const pool = JSON.stringify([
+    { name: "primary", baseUrl: "https://primary.example/v1", apiKey: "primary-key", model: "primary-model", tasks: ["answer"], priority: 1 },
+    { name: "secondary", baseUrl: "https://secondary.example/v1", apiKey: "secondary-key", model: "secondary-model", tasks: ["answer"], priority: 2 },
+  ]);
+  const env = { AI_PROVIDER_POOL: pool, AI_ALLOW_PROVIDER_FALLBACKS: "true" };
+
+  it("does not retry permanent authentication or request errors", async () => {
+    for (const status of [400, 401, 403, 404, 413, 422]) {
+      const fetcher = vi.fn<typeof fetch>()
+        .mockResolvedValueOnce(new Response("provider error", { status }))
+        .mockResolvedValueOnce(new Response(JSON.stringify({
+          choices: [{ message: { content: JSON.stringify(validAnswer) } }],
+        }), { status: 200 }));
+
+      await expect(generateStructuredAnswerWithRouting("Question", fetcher, {}, env))
+        .rejects.toThrow("AI_PROVIDER_HTTP_" + status);
+      expect(fetcher).toHaveBeenCalledOnce();
+    }
+  });
+
+  it("tries the next provider after a transient server failure", async () => {
+    const fetcher = vi.fn<typeof fetch>()
+      .mockResolvedValueOnce(new Response("temporary outage", { status: 503 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        choices: [{ message: { content: JSON.stringify(validAnswer) } }],
+      }), { status: 200 }));
+
+    const result = await generateStructuredAnswerWithRouting("Question", fetcher, {}, env);
+    expect(result.answer).toEqual(validAnswer);
+    expect(result.config.provider).toBe("secondary");
+    expect(fetcher).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not retry when fallback is not explicitly enabled", async () => {
+    const fetcher = vi.fn<typeof fetch>()
+      .mockResolvedValueOnce(new Response("temporary outage", { status: 503 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        choices: [{ message: { content: JSON.stringify(validAnswer) } }],
+      }), { status: 200 }));
+
+    await expect(generateStructuredAnswerWithRouting("Question", fetcher, {}, {
+      AI_PROVIDER_POOL: pool,
+    })).rejects.toThrow("AI_PROVIDER_HTTP_503");
+    expect(fetcher).toHaveBeenCalledOnce();
   });
 });
 
