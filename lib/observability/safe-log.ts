@@ -46,5 +46,11 @@ export function logSafeOperationalEvent(
       : undefined,
     provider: safeToken(fields.provider, 60),
   };
-  console.error(JSON.stringify(payload));
+  const serialized = JSON.stringify(payload);
+  if (event.endsWith("_exhausted")) {
+    // Expected rate-limit responses are operational signals, not server faults.
+    console.warn(serialized);
+    return;
+  }
+  console.error(serialized);
 }
