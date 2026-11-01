@@ -263,10 +263,10 @@ set local request.jwt.claim.sub = '12000000-0000-4000-8000-000000000002';
 set local request.jwt.claims = '{"sub":"12000000-0000-4000-8000-000000000002","role":"authenticated","email":"atomic-other@example.test"}';
 
 select throws_ok(
-  $select public.approve_document_review(
+  $$select public.approve_document_review(
     '22000000-0000-4000-8000-000000000002',
     '12000000-0000-4000-8000-000000000001'
-  )$,
+  )$$,
   '42501',
   'Document owner does not match the authenticated user',
   'another account cannot approve the document'
