@@ -212,7 +212,7 @@
 
 
 ## Database registration page-count invariant (ERR-123)
-- [ ] After the forward-only migration is committed, confirm the registration RPC rejects non-null page counts 0, 51 and 100.
+- [ ] Apply the committed forward-only migration `20261101140000_tighten_uploaded_document_page_count.sql` in the isolated test project, then confirm the registration RPC rejects non-null page counts 0, 51 and 100.
 - [ ] Confirm the registration RPC accepts page counts 1 and 50, and preserves null for a document whose page count is not yet known.
 - [ ] Confirm owner checks, duplicate/idempotency handling, document registration, processing-job creation and service_role-only execute grants are unchanged.
 - [ ] Confirm authenticated and anon roles cannot execute the RPC directly.
