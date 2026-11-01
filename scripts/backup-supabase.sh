@@ -96,7 +96,7 @@ SQL
 )"
 # Supabase CLI logical dumps intentionally omit managed Auth tables. Export only
 # account attributes that the Auth Admin API can recreate while preserving UUIDs.
-# Sessions, MFA secrets and non-email/phone provider identities are not exported.
+# Sessions, MFA secrets and non-email identity providers are not supported by the restore importer.
 psql "$SUPABASE_DB_URL" -X -q -A -t -v ON_ERROR_STOP=1 -c "$auth_export_sql" > "$workdir/auth-users.json"
 [[ -s "$workdir/auth-users.json" ]] || fail "Auth account export is missing or empty."
 
@@ -132,4 +132,4 @@ archive_created=1
 backup_complete=1
 
 printf 'Encrypted backup created: %s\n' "$archive"
-printf 'Keep the matching age identity key separately. Auth email/phone accounts can be recreated with the Auth Admin API; sessions, MFA factors, external OAuth identities and Storage objects are not included.\n'
+printf 'Keep the matching age identity key separately. Supported email/password accounts can be recreated with the Auth Admin API; sessions, MFA factors, SSO and external identity providers, and Storage objects are not included.\n'
