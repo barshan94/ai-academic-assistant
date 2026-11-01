@@ -162,3 +162,6 @@ M6 remaining:
 - Follow the owner's staged workflow: finish implementation, migrations, integration wiring and documentation before deliberately beginning the separate test/fix phase. CI may run automatically after commits; record it without treating it as permission to switch phases.
 - Never claim an AI answer is verified unless the relevant check actually ran.
 - Keep main and production untouched until explicit merge/release approval.
+
+
+Upload client hardening (2026-11-01): persisted session tokens are validated against the selected normalized file's exact name and byte size before reuse. Browser storage is best-effort: malformed entries are discarded, and storage-denied contexts can continue the current upload without persistence. Account-switch rejections clear the stale owner-bound token. ERR-065 and ERR-066 track these behaviors; browser acceptance remains in the later testing phase.
