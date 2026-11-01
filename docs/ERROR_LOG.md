@@ -1344,3 +1344,14 @@ This file records material implementation, CI, integration and release problems 
 - Required fix: Add a new forward-only migration that recreates the existing RPC without changing its owner checks, advisory lock, duplicate handling, document insert, processing-job insert or execute grants, while changing page-count validation to reject every non-null value outside 1–50. Do not edit the already-committed historical migration.
 - Verification: Not run. The new migration has not been scaffolded or applied; the database boundary and 0/1/50/51/100/null cases belong in the dedicated testing phase after the migration is authored.
 - Status: Open implementation blocker. Existing route validation remains 1–50; the RPC still accepts 0–100 until a properly generated forward migration is committed.
+
+## ERR-124 — Development ESLint toolchain retains a legacy minimatch major
+- Date: 2026-11-01
+- Area: Development dependency security / supply chain
+- Symptom: The lockfile resolves ESLint 9.39.5, whose dependency graph includes `minimatch@3.1.5`. The existing override only changes the minimatch dependency under `@typescript-eslint/typescript-estree`; it does not replace ESLint's own minimatch dependency.
+- Security context: GitHub-reviewed advisory GHSA-g3hv-75wg-m249 / CVE-2026-118764 lists minimatch versions before 11.0.1 as affected and 11.0.1 as fixed. The current legacy v3 dependency therefore remains in the affected range according to the advisory. This is a development-toolchain dependency, not evidence that minimatch is bundled into the production browser/runtime artifact.
+- Root cause: The current Next.js 15 / eslint-config-next 15 / ESLint 9 toolchain constrains the legacy minimatch major. Forcing minimatch 11 into the existing dependency graph without checking CommonJS/named-export and consumer compatibility risks breaking ESLint.
+- Fix plan: Select a supported, compatible lint-toolchain migration (or a narrowly scoped compatibility patch), refresh the lockfile, and ensure every minimatch instance resolves to a version outside the advisory's affected range. Review the Next.js 16 migration requirements before upgrading the app framework; do not blindly bump only eslint-config-next.
+- Verification: Static lockfile inspection only. No npm audit, install, lint, typecheck or build was run in the implementation phase.
+- Status: Open engineering/security blocker; remediation and full dependency audit remain pending.
+
