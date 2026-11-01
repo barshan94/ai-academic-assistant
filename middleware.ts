@@ -76,7 +76,7 @@ function createSecureNextResponse(requestHeaders: Headers, contentSecurityPolicy
 
 function copyAuthResponse(source: NextResponse, destination: NextResponse) {
   source.cookies.getAll().forEach((cookie) => destination.cookies.set(cookie));
-  copyResponsePolicyHeaders(source, destination);
+  copyResponsePolicyHeaders(source.headers, destination.headers);
 }
 
 export async function middleware(request: NextRequest) {
@@ -129,7 +129,7 @@ export async function middleware(request: NextRequest) {
         response = createSecureNextResponse(requestHeaders, contentSecurityPolicy);
         // Rebuilding the response for refreshed auth cookies must not discard
         // private-cache or crawler policy headers assigned before getClaims().
-        copyResponsePolicyHeaders(previousResponse, response);
+        copyResponsePolicyHeaders(previousResponse.headers, response.headers);
         cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
         Object.entries(headers).forEach(([key, value]) => response.headers.set(key, value));
       },
