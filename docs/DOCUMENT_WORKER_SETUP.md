@@ -31,7 +31,7 @@ Do not put these values in source files, workflow YAML, issue comments, or logs.
 - The workflow serializes invocations with a concurrency group and the database worker also uses a conditional claim to prevent duplicate ownership.
 - Each invocation handles at most one job and has a bounded timeout.
 - The worker retries eligible failed/stale jobs up to each job's configured maximum attempts.
-- A failed workflow run means the endpoint was unavailable or rejected the invocation; inspect the Actions job without exposing secrets.
+- A failed workflow run means the endpoint was unavailable, rejected the invocation, or persisted a document-processing failure. The worker returns HTTP 500 after successfully recording a failed job so the scheduler visibly reports the failure; the durable job remains eligible for a later retry within its configured attempt budget. Inspect the Actions job without exposing secrets.
 - Use `workflow_dispatch` to trigger a controlled manual run after verifying the target environment and queue.
 - Live processing acceptance still requires a non-production Google Drive connection and Supabase test project. This workflow file alone does not prove that the secrets are configured or that OCR succeeds.
 
