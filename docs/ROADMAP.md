@@ -135,7 +135,7 @@ M6 remaining:
 
 ## M8 status — implementation largely in place, operational acceptance pending
 
-- Implemented: nonce-based CSP middleware with dynamic rendering, privacy-safe route/global error boundaries, allow-listed operational failure logs, owner-scoped AI/upload/research quotas, bounded upstream requests/responses, strict Google Drive file-only OAuth scope checks, and keyboard skip/focus/mobile touch-target affordances.
+- Implemented: nonce-based CSP middleware with dynamic rendering, privacy-safe route/global error boundaries, allow-listed operational failure logs, owner-scoped AI/upload/research quotas, bounded upstream requests/responses, strict Google Drive file-only OAuth scope checks, and keyboard skip/focus/mobile touch-target affordances. GitHub Actions now use immutable action commit SHAs, and the temporary migration-generation workflow with repository write permission has been removed.
 - Remaining: full backup/restore proof (Supabase Free limitations are documented), platform log dashboards and alert thresholds, development dependency audit remediation, CSP/auth/browser acceptance, accessibility/performance review and release readiness.
 - External setup still required: non-production Google OAuth credentials, worker bearer secret and default-branch schedule, approved AI provider credentials/budget, optional Brave Search key/budget, and isolated two-account test credentials. Feature-branch migrations have not been applied to the hosted development Supabase project.
 
