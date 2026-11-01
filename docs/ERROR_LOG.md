@@ -874,3 +874,24 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Before insertion, load the chapter using both chapter and catalog IDs; when a topic is supplied, confirm it belongs to that exact chapter. Reject mismatched or missing relationships.
 - Verification: Source inspection only; cross-catalog, cross-chapter, missing-row and valid evidence cases remain deferred to the separate testing phase.
 - Status: Implemented on the feature branch; no tests, typecheck or build were run during implementation.
+
+## ERR-081 — Reference syllabus catalog accepted reversed effective dates
+
+- Date: 2026-11-01
+- Area: M5 reference syllabus catalog / date-range validation
+- Symptom: A reference catalog could be created with an effective end date earlier than its effective start date even though both dates were individually valid.
+- Root cause: The reference catalog schema validated calendar dates independently but omitted the cross-field chronological rule.
+- Fix: Reject a non-empty effectiveTo value earlier than effectiveFrom, while preserving optional empty date boundaries.
+- Verification: Source inspection only; reversed, equal, one-sided and valid date-range cases remain deferred to the separate testing phase.
+- Status: Implemented on the feature branch; no tests, typecheck or build were run during implementation.
+
+
+## ERR-082 — Syllabus JSON import accepted credential-bearing HTTPS source URLs
+
+- Date: 2026-11-01
+- Area: M5 syllabus import / source URL validation
+- Symptom: The JSON import path accepted HTTPS URLs containing embedded username/password components, despite the owner and reference catalog forms rejecting them.
+- Root cause: The import schema checked only the HTTPS protocol and did not reject URL user-info.
+- Fix: Require imported source URLs to use HTTPS and contain no embedded username or password.
+- Verification: Source inspection only; deceptive-host, user-info and valid HTTPS import cases remain deferred to the separate testing phase.
+- Status: Implemented on the feature branch; no tests, typecheck or build were run during implementation.
