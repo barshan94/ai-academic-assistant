@@ -8,6 +8,7 @@ const scheme = {
   subject: "Physics",
   paperReference: "P1",
   sourceUrl: "https://example.org/mark-scheme.pdf",
+  sourceLocator: "Page 1, Question 1",
   points: [
     { id: "M1", description: "Use the force equation", keyPhrases: ["resultant force", "mass times acceleration"], marks: 1 },
     { id: "A1", description: "Give the final unit", keyPhrases: ["newton"], marks: 1 },
