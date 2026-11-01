@@ -49,9 +49,11 @@ export async function POST(request: NextRequest) {
 
     const { data: uploadAllowed, error: quotaError } = await supabase.rpc("consume_document_upload_quota");
     if (quotaError) {
+      logSafeOperationalEvent("document_upload_quota_unavailable", { route: "/api/documents/upload/resumable/start", errorCode: "UPLOAD_QUOTA_RPC_FAILED" });
       return NextResponse.json({ error: "Upload protection is temporarily unavailable. Try again shortly." }, { status: 503 });
     }
     if (!uploadAllowed) {
+      logSafeOperationalEvent("document_upload_quota_exhausted", { route: "/api/documents/upload/resumable/start", errorCode: "UPLOAD_QUOTA_REACHED" });
       return NextResponse.json({ error: "Upload limit reached: no more than 10 new documents per hour or 50 per day. Try again later." }, { status: 429 });
     }
 
