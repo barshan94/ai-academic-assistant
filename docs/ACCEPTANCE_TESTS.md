@@ -177,3 +177,9 @@
 ## Public product information
 - [ ] Confirm the landing page accurately describes each workflow's implemented-versus-accepted status and does not imply external integrations are connected.
 - [ ] Verify the public privacy notice and current product-status copy at desktop and mobile breakpoints.
+
+
+## Crawler and private-route metadata
+- [x] Publish crawler rules disallowing dashboard, API and sign-in paths while allowing public landing/privacy pages.
+- [x] Emit response-level no-index metadata for dashboard, API and sign-in routes, including authentication redirects.
+- [ ] Confirm generated robots.txt, response headers, redirect behavior and search-console cleanup in the deployed non-production environment.
