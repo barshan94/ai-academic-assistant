@@ -171,3 +171,6 @@ Document-processing resource hardening (2026-11-01): the Drive OCR worker now st
 
 
 Google integration resource hardening (2026-11-01): OAuth refresh and Drive upload metadata now use a shared 64 KiB streamed JSON reader with strict UTF-8 and object validation. Resumable chunk completion responses are also capped at 64 KiB; 308/404 offset responses are not read. This extends ERR-067's bounded OCR response handling to the remaining Drive metadata/token paths. Source implementation is committed; verification and live Google acceptance remain in the separate test phase (ERR-068).
+
+
+Upload and OAuth boundary hardening (2026-11-01): the resumable chunk route now validates every decrypted session claim before using it, including expiry, checksum, file bounds, filename and the exact Google Drive upload-session origin/path. Google OAuth authorization-code callback responses now use the shared 64 KiB bounded JSON reader; refresh-token responses and Drive metadata/chunk-completion responses are bounded as well. See ERR-068 through ERR-070. Source implementation is committed; all malformed/oversized-response, invalid-token and live-provider acceptance remains deferred to the separate testing phase.
