@@ -32,3 +32,23 @@ The scoped override does not remove the root v3 dependency used by other tools. 
 ## Closure criteria
 
 ERR-124 closes only when the vulnerable path is eliminated or a security-reviewed mitigation is documented, the lockfile is reproducible with `npm ci`, all required CI checks pass, and the resulting audit confirms the advisory is resolved or has an explicitly approved exception.
+
+## Current dependency paths and exposure assessment
+
+The current lockfile contains these declared minimatch consumers:
+
+| Consumer | Locked version | Declared minimatch range |
+| --- | ---: | --- |
+| `@eslint/config-array` | 0.21.2 | `^3.1.5` |
+| `@eslint/eslintrc` | 3.3.7 | `^3.1.5` |
+| `eslint` | 9.39.5 | `^3.1.5` |
+| `eslint-plugin-import` | 2.32.0 | `^3.1.2` |
+| `eslint-plugin-jsx-a11y` | 6.10.2 | `^3.1.2` |
+| `eslint-plugin-react` | 7.37.5 | `^3.1.2` |
+| `@typescript-eslint/typescript-estree` | 8.72.1 | `^10.2.2` |
+
+The lockfile resolves a root `minimatch@3.1.5` and a nested `minimatch@11.0.3` for typescript-estree. Both are marked development dependencies; the application runtime dependency graph does not include minimatch. This materially limits production exposure, but does not satisfy a full dependency-tree security gate.
+
+The current lint configuration imports `FlatCompat` from `@eslint/eslintrc` and extends `next/core-web-vitals` plus `next/typescript`. The remaining v3 consumers therefore belong to the legacy ESLint/Next lint integration, not application runtime code.
+
+As an interim containment measure, keep the package lockfile committed and use `npm ci` in CI; do not process attacker-controlled glob patterns in custom scripts or automation. This is risk containment only, not a patch and not closure of ERR-124. Reassess after the ESLint/Next ecosystem publishes a compatible dependency graph using the fixed minimatch release.
