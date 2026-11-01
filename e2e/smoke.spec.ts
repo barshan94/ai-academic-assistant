@@ -74,3 +74,13 @@ test("application responses include baseline browser security headers", async ({
   expect(headers["permissions-policy"]).toContain("camera=()");
   expect(headers["strict-transport-security"]).toContain("max-age=63072000");
 });
+
+test("keyboard navigation exposes the skip link and visible focus", async ({ page }) => {
+  await page.goto("/");
+  await page.keyboard.press("Tab");
+  const skipLink = page.getByRole("link", { name: "Skip to main content" });
+  await expect(skipLink).toBeFocused();
+  await expect(skipLink).toHaveAttribute("href", "#main-content");
+  const focusStyle = await skipLink.evaluate((element) => getComputedStyle(element).outlineStyle);
+  expect(focusStyle).not.toBe("none");
+});
