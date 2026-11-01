@@ -56,6 +56,7 @@ describe("Auth account backup validation", () => {
   it("rejects plaintext passwords and unsupported account types", () => {
     expect(() => validateBackup(backup({ ...baseUser, password_hash: "plaintext-password" }))).toThrow("bcrypt or Argon2");
     expect(() => validateBackup(backup({ ...baseUser, phone: "+15555550100" }))).toThrow("Phone-based");
+    expect(() => validateBackup(backup({ ...baseUser, phone_confirm: true }))).toThrow("Phone-based");
     expect(() => validateBackup(backup({ ...baseUser, identity_providers: ["email", "google"] }))).toThrow("Only email-identity");
     expect(() => validateBackup(backup({ ...baseUser, mfa_factor_count: 1 }))).toThrow("MFA factors");
     expect(() => validateBackup(backup({ ...baseUser, is_sso_user: true }))).toThrow("MFA factors");
