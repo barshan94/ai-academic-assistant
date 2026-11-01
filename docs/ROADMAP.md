@@ -362,3 +362,7 @@ ERR-123 implementation closure (2026-11-01): added forward-only migration `20261
 - [x] Preserve manual redirect handling only for the Google resumable-upload protocol, with strict upload-session host/path validation.
 - [x] Add unexecuted regression tests for AI, Brave and Supabase service-role request redirect policies.
 - [ ] Verify behavior with controlled redirect fixtures and non-production provider integrations during the testing phase.
+
+
+## ERR-136 implementation note
+The scheduled document worker now uses the shared `createSupabaseServiceRoleClient()` factory rather than constructing a service-role client inline. This closes the ERR-135 transport-policy bypass for worker database and RPC requests. The source change is committed; regression execution and runtime worker acceptance remain deferred.
