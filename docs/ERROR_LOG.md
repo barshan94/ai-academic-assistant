@@ -637,3 +637,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Require a valid HTTPS callback URI in production (localhost HTTP only outside production), with no user-info, query or fragment and the exact `/api/drive/callback` path.
 - Verification: Source-level change only. Runtime configuration and Google OAuth acceptance remain deferred to the testing phase.
 - Status: Implemented; verification pending.
+
+
+## ERR-059 — Google OAuth callback treated a missing scope as the required scope
+
+- Date: 2026-11-01
+- Area: M2 Google Drive OAuth least-privilege validation
+- Symptom: A token response with no `scope` field could pass the strict file-only scope check because the callback substituted the required scope when the provider omitted it.
+- Root cause: The fallback converted absent provider evidence into a successful scope assertion.
+- Fix: Treat a missing or non-string scope field as an empty grant and reject it; accept only the exact single `drive.file` scope.
+- Verification: Source-level change only. OAuth behavior must be exercised in the later non-production testing phase.
+- Status: Implemented; verification pending.
