@@ -103,7 +103,7 @@ When the owner authorizes testing:
 3. Run authenticated two-account browser acceptance against the isolated project.
 4. Complete Google OAuth, Drive upload/resume/OCR, worker, AI provider and readiness acceptance.
 5. Review CI results, dependency audit, secret scan and Supabase advisors.
-6. Create and verify an encrypted backup of the isolated project; rehearse the documented restore limitations.
+6. Create and verify an encrypted backup of the isolated project; rehearse Auth Admin API recreation of supported email/password accounts before restoring application data, then verify original-password sign-in and document unsupported account types.
 7. Review `docs/PRODUCTION_READINESS.md` and close every release-blocking item.
 8. Obtain explicit approval before any production merge, migration or deployment.
 
@@ -117,4 +117,4 @@ When the owner authorizes testing:
 
 ## Explicit non-goals
 
-This repository does not currently provide automatic Supabase Free backups, point-in-time recovery, complete Auth identity backup/restore, Google Drive file backup, guaranteed external paging, or proof of end-to-end provider availability. Do not advertise these capabilities.
+This repository does not currently provide automatic Supabase Free backups, point-in-time recovery, complete Auth identity backup/restore (only a limited email/password account export/import path is implemented and unverified), Google Drive file backup, guaranteed external paging, or proof of end-to-end provider availability. Do not advertise these capabilities.
