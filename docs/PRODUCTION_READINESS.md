@@ -146,3 +146,15 @@ The owner selected infrastructure constraint remains Supabase Free only. No paid
 ## Honest status
 
 The source-level production preflight, Auth account recovery path and release documentation are implemented. Production readiness itself is **not complete** because migrations are unapplied, runtime acceptance and the isolated Auth/data restore drill have not been run, external services are not configured/verified, and security/accessibility/performance acceptance remains outstanding.
+
+
+## Additional acceptance procedures added — 2026-11-01
+
+The following supporting procedures are now committed on this feature branch. Their existence does not close the corresponding runtime or human gate:
+
+- `docs/ISOLATED_BACKUP_RESTORE_DRILL.md` — aligned to the actual encrypted backup and archive-verification scripts; explicitly distinguishes archive integrity from full restore and records excluded Auth/Storage/Drive state.
+- `docs/ERR-124_MINIMATCH_REMEDIATION.md` — records the observed legacy v3 and nested v11 lockfile paths and the safe remediation/verification sequence. ERR-124 remains open.
+- `docs/ACCESSIBILITY_ACCEPTANCE.md` — manual keyboard, NVDA, TalkBack, contrast, zoom/reflow and device acceptance matrix. Manual acceptance remains open.
+- `docs/ACADEMIC_PRIVACY_OPERATIONS_ACCEPTANCE.md` — official syllabus validation, independent grading, privacy/legal review and named primary/backup operator gates. All remain open pending human evidence.
+
+Do not check any runtime or external-review item above until the evidence is attached to the tested commit and reviewed by the release owner.
