@@ -143,7 +143,7 @@ Do not test restore against production or the current shared project.
 
 - [ ] A backup archive is created, encrypted and stored in two independent locations.
 - [ ] A fresh isolated target accepts the schema restore without manual untracked edits.
-- [ ] The Auth Admin API importer recreates every supported original UUID and password hash; restored users can sign in with their existing passwords. Unsupported MFA/SSO/external identities are either separately recovered or explicitly accepted as a documented limitation.
+- [ ] The Auth Admin API importer recreates every supported original UUID and password hash; restored users can sign in with their existing passwords. Unsupported phone-based, MFA/SSO, anonymous and external identities are either separately recovered or explicitly accepted as a documented limitation.
 - [ ] Owner-linked application rows retain correct owner identity and cross-account isolation.
 - [ ] Existing encrypted Drive tokens decrypt using the preserved encryption key.
 - [ ] Drive file references resolve to files that still exist in the owners' Google Drives.
