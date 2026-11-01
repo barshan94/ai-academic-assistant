@@ -52,7 +52,7 @@ The router filters providers by task and orders them by owner-defined priority. 
 
 ## Fallback and cost safety
 
-Fallback is disabled by default. Set `AI_ALLOW_PROVIDER_FALLBACKS=true` only when every configured endpoint is explicitly approved for the possible additional usage charges. When enabled, another provider is attempted after a provider/response failure; invalid local input is never retried against another provider.
+Fallback is disabled by default. Set `AI_ALLOW_PROVIDER_FALLBACKS=true` only when every configured endpoint is explicitly approved for the possible additional usage charges. When enabled, another provider is attempted only after network/timeout unavailability, malformed/empty provider responses, or HTTP 408, 425, 429 and 5xx responses. Permanent 4xx failures (including invalid requests, authentication/authorization failures, missing models and payload-size rejection) stop immediately rather than being retried against another provider. Invalid local input is never retried. This avoids spending on fallback calls that cannot repair a permanent configuration or request error.
 
 The router does not yet estimate per-model token cost or dynamically score quality, latency or historical availability. Priority is a manual owner-controlled choice, not an automatic price optimizer. AI answer and chapter-note request quotas still apply.
 
