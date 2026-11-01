@@ -1075,3 +1075,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Added the register_uploaded_document RPC to validate the authenticated owner and upload metadata, serialize same-owner/same-content registrations with a transaction-scoped advisory lock, preserve duplicate Drive-file identity, and insert the document and initial processing job in one transaction. Updated the upload completion route to use the RPC and avoid deleting a Drive file when an RPC response error leaves commit status ambiguous. Registered the function signature in types/database.ts.
 - Verification: Source/migration review only. The migration has not been applied to a database; SQL execution, RLS permissions, duplicate/concurrent upload behavior, transaction rollback and ambiguous network response recovery remain deferred to the dedicated testing and fixing phases.
 - Status: Migration, upload route, database types and documentation committed to feature/m3-ai-solver; no tests, typecheck or build were run during implementation.
+
+
+## ERR-100 — Syllabus taxonomy lifecycle depended on application-only draft checks
+
+- Date: 2026-11-01
+- Area: Owner and shared-reference syllabus catalog lifecycle
+- Symptom: Application actions checked that catalogs were in draft status before adding taxonomy/evidence, but direct database writes and concurrent status transitions were not protected by a database-enforced invariant.
+- Root cause: The taxonomy tables had owner/admin RLS policies but no database trigger that serialized child-row changes with catalog status transitions.
+- Fix: Added an invoker-security trigger function for owner and shared-reference chapter, topic and evidence tables. Inserts, updates and deletes now lock the relevant chapter/catalog rows in deterministic order and require every affected catalog to remain in draft status. Catalog status changes and taxonomy writes therefore serialize on the parent catalog row. The trigger function is not directly executable by client roles.
+- Verification: Migration/source review only. The migration has not been applied to a database; trigger execution under owner/admin RLS, lifecycle transition races, cross-catalog moves and rollback cases remain deferred to the dedicated testing and fixing phases.
+- Status: Migration committed to feature/m3-ai-solver; no tests, typecheck or build were run during implementation.
