@@ -5,6 +5,7 @@ import { extractTextFromDrivePdf } from "@/lib/drive/google";
 import { splitExtractedText } from "@/lib/documents/split-extracted-text";
 import { canSafelyReplaceExtractedPages } from "@/lib/documents/reprocessing-safety";
 import { isBackgroundJobClaimable, isBackgroundJobRetryEligible } from "@/lib/documents/worker-policy";
+import { logSafeOperationalEvent } from "@/lib/observability/safe-log";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
