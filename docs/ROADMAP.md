@@ -222,3 +222,6 @@ Document-processing failure persistence hardening (2026-11-01): the OCR processi
 
 
 Background document-worker failure persistence hardening (2026-11-01): the cron worker now confirms that the owner-scoped parent document and running processing-job rows both changed to failed before reporting a persisted failure. Missing or concurrently changed parent rows now leave the failure outcome explicitly unpersisted. See ERR-091; worker failure-path regression coverage remains deferred to the testing phase.
+
+
+Practice answer routing hardening (2026-11-01): answer recording now verifies the owner-scoped relationship between the submitted practice item and practice set before invoking the answer RPC. Redirects and cache invalidation use the set ID returned by the database rather than trusting the submitted route identifier. See ERR-092; regression coverage remains deferred to the testing phase.
