@@ -183,3 +183,6 @@ Shared AI/research response handling (2026-11-01): the common bounded HTTP reade
 
 
 Document review action hardening (2026-11-01): manual page correction and document approval now validate UUID inputs, confirm owner-scoped affected rows, and only report success when both page and parent-document updates are confirmed. The two database updates are still separate and require a future transactional RPC migration to eliminate partial-state risk. See ERR-073; all regression testing remains deferred to the dedicated testing phase.
+
+
+Reference syllabus date validation (2026-11-01): reference-catalog date fields now validate real UTC calendar dates rather than accepting Date.parse normalization of impossible dates. Optional empty dates remain allowed. See ERR-074; boundary and leap-year regression tests remain in the later testing phase.
