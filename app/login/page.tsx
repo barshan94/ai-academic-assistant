@@ -32,7 +32,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           <input id="password" name="password" type="password" autoComplete="current-password" required />
           <button className="primary-action auth-submit" type="submit">Sign in <span aria-hidden="true">→</span></button>
         </form>
-        <p className="auth-footnote">Access is limited to the account owner. New accounts are created privately in the Supabase dashboard.</p>
+        <p className="auth-footnote">Access is limited to the account owner. New accounts are created privately in the Supabase dashboard. Read the <Link href="/privacy">privacy notice</Link> before signing in.
       </section>
     </main>
   );
