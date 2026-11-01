@@ -39,6 +39,12 @@ describe("isResponsePolicyHeader", () => {
     expect(isResponsePolicyHeader("Cache-Control")).toBe(true);
     expect(isResponsePolicyHeader("content-security-policy")).toBe(true);
     expect(isResponsePolicyHeader("X-Robots-Tag")).toBe(true);
+    expect(isResponsePolicyHeader("Strict-Transport-Security")).toBe(true);
+    expect(isResponsePolicyHeader("x-frame-options")).toBe(true);
+    expect(isResponsePolicyHeader("X-Content-Type-Options")).toBe(true);
+    expect(isResponsePolicyHeader("referrer-policy")).toBe(true);
+    expect(isResponsePolicyHeader("Permissions-Policy")).toBe(true);
+    expect(isResponsePolicyHeader("x-dns-prefetch-control")).toBe(true);
     expect(isResponsePolicyHeader("x-request-id")).toBe(false);
   });
 });
