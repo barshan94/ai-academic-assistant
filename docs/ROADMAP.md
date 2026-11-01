@@ -246,3 +246,6 @@ Document lifecycle transaction hardening (2026-11-01): worker page replacement a
 
 
 Resumable upload transaction hardening (2026-11-01): document creation and initial processing-job creation now use one owner-checked database RPC transaction. Same-owner duplicate-content registration is serialized, and the upload route preserves a potentially committed Drive object when an RPC response is ambiguous rather than deleting a file that a committed row may reference. Database types and the route are updated. See ERR-099. Migration application and SQL/RLS/concurrency/rollback acceptance remain pending the dedicated testing and fixing phases.
+
+
+Syllabus catalog lifecycle enforcement (2026-11-01): added database triggers across owner and shared-reference chapter, topic and evidence tables. All taxonomy inserts, updates and deletes now require draft catalogs, with parent row locks to serialize against concurrent catalog verification/retirement. Application-level draft checks remain as early feedback; the database is now the authoritative invariant. See ERR-100. Migration application and RLS/concurrency verification remain pending the dedicated testing and fixing phases.
