@@ -1163,3 +1163,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Added a forward-only migration that serializes quota admission per owner and bucket, captures the timestamp after lock acquisition, checks the current bucket count before writing, and increments only admitted requests. Existing limits remain five AI solutions or three chapter notes per 15-minute window.
 - Verification: Source/migration review only. The migration has not been applied to a database; concurrency, window-boundary, legacy over-limit row and rollback behavior remain deferred to the dedicated testing and fixing phases.
 - Status: Migration committed to feature/m3-ai-solver; no tests, typecheck or build were run during implementation.
+
+
+## ERR-108 — Job claims and stale recovery could split document and job lifecycle state
+
+- Date: 2026-11-01
+- Area: Manual and background document-processing claim/recovery
+- Symptom: Both processing routes claimed a job as running and changed the parent document to processing in separate writes. Manual stale recovery also marked the job failed before separately changing the document. A crash or second-write failure could leave mismatched states.
+- Root cause: Claim, stale recovery and parent-document transitions were not grouped into database transactions; application-level stale checks alone could race with a newer worker lease.
+- Fix: Added owner/service-role-authorized claim_document_processing_job and recover_stale_document_processing_job RPCs. Claims now lock and revalidate the exact expected job status, attempt count and lease timestamp, enforce the 15-minute stale threshold in the database, and update both job and document atomically. Manual and background routes now use the RPCs instead of separate writes.
+- Verification: Source/migration review only. The migration has not been applied to a database; concurrent claim, lease renewal, stale recovery, RLS and retry-boundary behavior remain deferred to the dedicated testing and fixing phases.
+- Status: Migration, both processing routes, database types and documentation committed to feature/m3-ai-solver; no tests, typecheck or build were run during implementation.
