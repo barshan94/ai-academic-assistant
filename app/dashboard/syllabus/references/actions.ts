@@ -6,7 +6,7 @@ import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 const httpsUrl = z.string().trim().max(2048).refine((value) => {
-  try { return new URL(value).protocol === "https:"; }
+  try { const url = new URL(value); return url.protocol === "https:" && !url.username && !url.password; }
   catch { return false; }
 }, "A valid HTTPS source URL is required.");
 
@@ -28,7 +28,7 @@ const catalogSchema = z.object({
   effectiveFrom: dateOnly,
   effectiveTo: dateOnly,
   sourceUrl: z.string().trim().max(2048).refine((value) => !value || (() => {
-    try { return new URL(value).protocol === "https:"; } catch { return false; }
+    try { const url = new URL(value); return url.protocol === "https:" && !url.username && !url.password; } catch { return false; }
   })()),
   sourceTitle: z.string().trim().max(200),
   sourceCheckedAt: dateOnly,
@@ -37,7 +37,7 @@ const catalogSchema = z.object({
 const sourceUpdateSchema = z.object({
   catalogId: z.string().uuid(),
   sourceUrl: z.string().trim().max(2048).refine((value) => !value || (() => {
-    try { return new URL(value).protocol === "https:"; } catch { return false; }
+    try { const url = new URL(value); return url.protocol === "https:" && !url.username && !url.password; } catch { return false; }
   })()),
   sourceTitle: z.string().trim().max(200),
   sourceCheckedAt: dateOnly,
