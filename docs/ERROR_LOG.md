@@ -1560,3 +1560,13 @@ ERR-073 closure reconciliation (2026-11-01): the earlier note that page and pare
 - Fix: Corrected those source/test issues and reran the workflows on branch commit `c096fa921e1573566562bcf80d7e314c78a50781`.
 - Verification: Foundation workflow `41302672582` passed ESLint, application TypeScript, Playwright config and authenticated-E2E TypeScript checks, 29 Vitest files / 132 tests, and production build. Production-only audit passed with zero vulnerabilities. Database workflow `41302672592` applied the complete repository migration chain to a fresh isolated local Supabase database and passed all 209 pgTAP assertions across nine files. Chromium smoke suite in the same CI run passed 7 tests with 1 skipped. Secret scanning workflow `41302672562` passed. Authenticated browser workflow `41302672560` was skipped because the non-production test-project enablement variable/credentials are not configured.
 - Status: Automated branch baseline green. Not production approval: live Google Drive/OAuth, live AI generation and golden-set grading, authenticated two-account behavior, connected Supabase migration-history reconciliation, backup/restore, full dependency advisory resolution, accessibility and performance acceptance remain open.
+
+
+## ERR-143 — Shared bounded upstream response reader lacked direct regression coverage
+- Date: 2026-11-01
+- Area: Provider/API response handling and resource bounds
+- Symptom: The shared `readLimitedResponseText` helper was used by AI, Brave and Google Drive response paths, but the current test tree had no direct test file for its Content-Length parsing, streamed-byte enforcement or UTF-8 decoding behavior. Earlier roadmap notes incorrectly described this regression coverage as already authored.
+- Root cause: The helper implementation was added without a dedicated test module; downstream provider tests covered selected failure paths but did not directly exercise all shared-reader boundaries.
+- Fix: Added `tests/read-limited-response.test.ts` covering exact byte limits, absent/malformed/oversized Content-Length, actual streamed overrun, split multibyte UTF-8, invalid UTF-8, empty bodies and invalid configured limits.
+- Verification: Test source committed; latest CI execution is pending.
+- Status: Regression coverage added; rerun required before closing ERR-143.
