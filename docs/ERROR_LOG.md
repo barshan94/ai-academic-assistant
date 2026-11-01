@@ -844,3 +844,13 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Owner-managed and reference syllabus source/evidence URL validators now require HTTPS and reject embedded URL credentials.
 - Verification: Source inspection only; deceptive-host, user-info and valid HTTPS URL regression cases remain deferred to the separate testing phase.
 - Status: Implemented on the feature branch; no tests, typecheck or build were run during implementation.
+
+## ERR-078 — Owner syllabus catalog accepted reversed effective dates
+
+- Date: 2026-11-01
+- Area: M4 owner syllabus catalog / date-range validation
+- Symptom: A catalog could be created with an effective end date earlier than its effective start date, despite both values being individually valid calendar dates.
+- Root cause: The owner catalog schema validated date shape and calendar validity but did not enforce chronological ordering.
+- Fix: Add a cross-field schema check that rejects an effectiveTo value earlier than effectiveFrom while continuing to allow either optional date to be empty.
+- Verification: Source inspection only; reversed, equal, one-sided and valid date-range cases remain deferred to the separate testing phase.
+- Status: Implemented on the feature branch; no tests, typecheck or build were run during implementation.
