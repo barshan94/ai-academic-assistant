@@ -6,7 +6,7 @@
 
 The application has substantial feature and security implementation, but production readiness is not established. This document is the single release-gate checklist. A checkbox is complete only when the named evidence exists; source code or documentation alone does not satisfy a runtime acceptance item.
 
-The owner-selected infrastructure constraint remains Supabase Free only. No paid upgrade, production migration, merge to `main`, or hosted deployment is authorized by this document.
+The owner-selected infrastructure constraint remains Supabase Free only. No paid upgrade, production migration, merge to `main`, or hosted deployment is authorized by this document. Actions requiring provider credentials, legal decisions, account provisioning or an assigned human operator are listed in [OWNER_ACTIONS.md](./OWNER_ACTIONS.md).
 
 ## Release principles
 
@@ -46,6 +46,7 @@ The owner-selected infrastructure constraint remains Supabase Free only. No paid
 - [ ] Reconcile known migration-history drift (ERR-007) on the isolated target; do not blindly push the migration chain.
 - [ ] Apply the complete ordered migration chain to a clean isolated project.
 - [ ] Apply `20261101130000_restrict_document_registration_rpc.sql`; confirm authenticated/anon cannot execute the registration RPC and service_role can.
+- [ ] Commit and apply the forward-only ERR-123 migration tightening register_uploaded_document page_count from 0–100 to 1–50; confirm its existing locking, idempotency, document/job atomicity and execute grants remain unchanged.
 - [ ] Inspect effective execute grants for every exposed function, including SECURITY DEFINER functions and trigger functions.
 - [ ] Inspect RLS on every exposed-schema table and all table/view grants; check views for security-invoker behavior where required.
 - [ ] Run Supabase security/performance advisors and resolve findings or document a justified exception.
@@ -128,6 +129,7 @@ The owner-selected infrastructure constraint remains Supabase Free only. No paid
 ## Current implementation evidence
 
 - Environment preflight: `scripts/validate-production-env.mjs` and `npm run check:production-env`.
+- Owner-only provider, credential, backup, legal and operational actions: `docs/OWNER_ACTIONS.md`.
 - Deployment runbook: `docs/DEPLOYMENT.md`.
 - Backup scope and procedure: `docs/BACKUP_RESTORE.md`.
 - Monitoring setup: `docs/OPERATIONS_MONITORING.md`.
