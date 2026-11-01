@@ -161,7 +161,7 @@
 - [ ] Appoint the first real platform curator, check every seeded heading against current official documents and administrative-zone availability, then explicitly verify/publish the catalogue.
 - [ ] Test verified-only read access and admin write restrictions with two real authenticated accounts; no test accounts or syllabus rows have been fabricated.
 
-- [ ] Replace or upgrade the legacy ESLint dependency chain so the full development dependency tree can pass `npm audit` without the minimatch v3 compatibility exception. Until then, production dependencies are audited with `npm audit --omit=dev`; the development-toolchain advisory remains documented and is not represented as resolved.
+- [ ] Resolve ERR-124: migrate or compatibly patch the ESLint/minimatch development toolchain so no installed minimatch version remains in the GHSA-g3hv-75wg-m249 affected range; then run the complete development dependency audit. Do not force a major-version override without compatibility evidence.
 
 - [ ] AI provider HTTP and empty-response errors exclude upstream response bodies and provider-supplied messages from application errors (status-only regression test added; CI pending).
 
