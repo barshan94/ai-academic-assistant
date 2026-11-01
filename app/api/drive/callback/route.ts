@@ -60,6 +60,7 @@ export async function GET(request: NextRequest) {
       }),
       cache: "no-store",
       signal: AbortSignal.timeout(15_000),
+      redirect: "error",
     });
 
     const tokenData = await readGoogleJsonResponseBounded<GoogleTokenResponse>(tokenResponse, 64 * 1024, "Google OAuth callback response");
