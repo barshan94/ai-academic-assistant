@@ -17,17 +17,17 @@ Percentages are cumulative scope estimates, not proof of release readiness.
 
 ## Latest automated testing checkpoint — 2026-11-01
 
-Tested commit: `cd835f4b6cbb28929d3a75cd5fa4fafeea7bb9a8` on `feature/m3-ai-solver`.
+Tested commit: `b929566a8d175ff1f3894da706ba64414e40ccf2` on `feature/m3-ai-solver` (GitHub Actions run `41306988899`; database run `41306988908`; secret scan run `41306988876`).
 
 - ESLint: passed.
 - Application TypeScript: passed.
 - Playwright configuration and authenticated-E2E TypeScript: passed.
-- Unit tests: 152 passed across 30 test files.
+- Unit tests: 155 passed across 30 test files.
 - Production build: passed.
 - Production dependency audit (`npm audit --omit=dev`): zero vulnerabilities. The full development dependency advisory ERR-124 remains open.
 - Fresh isolated local Supabase migration application: passed.
 - Database authorization suite: 209 pgTAP assertions passed across 9 SQL files.
-- Chromium browser smoke tests: 7 passed, 1 skipped.
+- Chromium browser smoke tests: 9 passed, 1 skipped (the authenticated two-account test is intentionally skipped without dedicated non-production credentials).
 - Secret scanning: passed.
 - Authenticated two-account browser acceptance: workflow skipped because dedicated non-production credentials and enablement are not configured; this is not a pass.
 
