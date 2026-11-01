@@ -155,9 +155,13 @@ export async function generateQuestionSolution(formData: FormData) {
 
 export async function saveQuestionSolutionMarkScheme(formData: FormData) {
   const solutionId = z.string().uuid().safeParse(String(formData.get("solutionId") ?? ""));
+  const pointsJson = String(formData.get("points") ?? "");
+  if (pointsJson.length > 262144) {
+    redirect("/dashboard/questions?mark_scheme=too_large");
+  }
   let rawPoints: unknown;
   try {
-    rawPoints = JSON.parse(String(formData.get("points") ?? ""));
+    rawPoints = JSON.parse(pointsJson);
   } catch {
     redirect("/dashboard/questions?mark_scheme=invalid_json");
   }
