@@ -234,9 +234,9 @@ export function ClassificationForm({
         <option value="uncertain">Uncertain — needs checking</option>
         <option value="confirmed">Confirmed by owner</option>
       </select>
-      <label htmlFor="classification-confidence">Classifier confidence (optional, 0–1)</label>
+      <label htmlFor="classification-confidence">Owner-estimated confidence (optional, 0–1)</label>
       <input id="classification-confidence" name="classificationConfidence" type="number" min="0" max="1" step="0.01" defaultValue={question.classification_confidence ?? ""} placeholder="Leave blank if unknown" />
-      <p className="question-card-meta">Confidence is a separate numeric estimate, not a substitute for human review.</p>
+      <p className="question-card-meta">This is your own estimate, not a model prediction or calibrated probability. Leave it blank if you cannot justify a numeric estimate. It never replaces the separate review state or source-evidence requirement.</p>
       <button className="primary-action" type="submit">Save syllabus classification →</button>
     </form>
   );
