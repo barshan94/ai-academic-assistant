@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { logSafeOperationalEvent } from "@/lib/observability/safe-log";
 import { decryptDriveUploadSession } from "@/lib/drive/crypto";
-import { getDriveAccessToken, sendResumablePdfChunk, deleteDriveFile } from "@/lib/drive/google";
+import { getDriveAccessToken, sendResumablePdfChunk, deleteDriveFile, isGoogleDriveUploadSessionUri } from "@/lib/drive/google";
 import { isValidDriveChunk, parseDriveUploadOffset, readDriveUploadChunk } from "@/lib/drive/resumable-upload";
 import { MAX_UPLOAD_BYTES, safeFileName } from "@/lib/documents/upload-limits";
 
@@ -93,14 +93,7 @@ function isValidUploadSession(value: unknown): value is UploadSession {
     typeof session.sessionUri !== "string"
   ) return false;
 
-  try {
-    const uri = new URL(session.sessionUri);
-    return uri.protocol === "https:" && uri.hostname === "www.googleapis.com" &&
-      /^\/upload\/drive\/v3\/files(?:\/|$)/.test(uri.pathname);
-
-  } catch {
-    return false;
-  }
+  return isGoogleDriveUploadSessionUri(session.sessionUri);
 }
 
 export async function POST(request: NextRequest) {
