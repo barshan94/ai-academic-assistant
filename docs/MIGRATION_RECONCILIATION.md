@@ -72,6 +72,19 @@ The following repository migrations did not have exact version entries in the co
 
 These are not automatically safe to apply. Some may already be represented in the remote schema under a different version, some may be genuinely pending, and some may depend on prior schema state. The actual schema must be inspected before a migration plan is approved.
 
+
+## Fresh connected-schema spot-check — 2026-11-01
+
+A second read-only inspection was performed against the connected `academic-assistant` Supabase project after the repository inventory refresh. No SQL mutation, migration, ledger repair or deployment was performed.
+
+- The remote migration ledger still contains **53 entries**: 51 exact version/name matches and the same two timestamp/name mismatches listed above.
+- The remote `public.documents.page_count` check remains `page_count IS NULL OR page_count >= 0`; it does not enforce the repository's 1–50 non-null page-count contract.
+- A catalog query found no `public.register_uploaded_document` function in the connected schema. A broader read-only query for public/private document, upload and worker functions also returned no rows.
+- The Supabase security advisor returned no findings at the time of inspection. This is not evidence that repository migrations have been applied or that application-level authorization is accepted.
+- The performance advisor reported 60 unused-index notices. The application tables currently report zero rows, so these notices are not grounds to drop indexes.
+
+**Interpretation:** the connected project's schema is not at the feature branch's current migration state. In particular, the server-only registration RPC and page-count invariant are not present there. Do not deploy the current application against this schema or attempt to fix it by selectively applying the newest migrations. Reconcile the entire ledger and schema on an explicitly approved isolated target first.
+
 ## Required reconciliation procedure
 
 1. Freeze writes to the target while collecting a schema and migration-history snapshot, or use a disposable isolated target. Do not perform this against production.
