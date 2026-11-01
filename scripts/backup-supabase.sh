@@ -21,7 +21,7 @@ if [[ ! "$BACKUP_AGE_RECIPIENT" =~ ^age1[0-9a-z]{20,}$ ]]; then
   fail "BACKUP_AGE_RECIPIENT does not look like an age public recipient."
 fi
 
-if [[ -n "${BACKUP_PROJECT_REF:-}" && ! "${BACKUP_PROJECT_REF}" =~ ^[a-z0-9-]{5,40}$ ]]; then
+if [[ ! "$BACKUP_PROJECT_REF" =~ ^[a-z0-9-]{5,40}$ ]]; then
   fail "BACKUP_PROJECT_REF must contain only lowercase letters, digits and hyphens."
 fi
 
@@ -39,7 +39,7 @@ if [[ -n "$repo_root" ]]; then
 fi
 
 timestamp="$(date -u +%Y%m%dT%H%M%SZ)"
-project_suffix="${BACKUP_PROJECT_REF:+-$BACKUP_PROJECT_REF}"
+project_suffix="-$BACKUP_PROJECT_REF"
 archive="$backup_root/academic-assistant-$timestamp$project_suffix-$$.tar.gz.age"
 encrypted_temp="$(mktemp "$backup_root/.academic-assistant-encrypted.XXXXXX")"
 workdir="$(mktemp -d "${TMPDIR:-/tmp}/academic-assistant-backup.XXXXXX")"
@@ -110,7 +110,7 @@ cli_version="$(supabase --version 2>/dev/null | tr '\n' ' ' | cut -c1-120)"
 git_commit="$(git -C "${repo_root:-$PWD}" rev-parse HEAD 2>/dev/null || printf 'unknown')"
 {
   printf 'created_at_utc=%s\n' "$timestamp"
-  printf 'project_ref=%s\n' "${BACKUP_PROJECT_REF:-unspecified}"
+  printf 'project_ref=%s\n' "$BACKUP_PROJECT_REF"
   printf 'supabase_cli=%s\n' "$cli_version"
   printf 'git_commit=%s\n' "$git_commit"
   printf 'backup_scope=roles,schema,application_data,email_password_auth_accounts\n'
