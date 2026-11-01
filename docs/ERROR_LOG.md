@@ -1627,3 +1627,13 @@ ERR-073 closure reconciliation (2026-11-01): the earlier note that page and pare
 - Fix: Added a Chromium smoke test that tabs to the public-page skip link and verifies that it is focused, points to the main content and has a visible outline. Reused the existing shared focus styling; no duplicate global CSS rule is needed.
 - Verification: Regression test committed; CI execution pending. This does not replace a complete keyboard, screen-reader, contrast or touch-target audit.
 - Status: Test implementation committed on `feature/m3-ai-solver`; CI verification pending.
+
+## ERR-150 — Narrow mobile layout lacked browser regression coverage
+
+- Date: 2026-11-01
+- Area: Responsive accessibility / mobile usability
+- Symptom: The landing and login pages had responsive CSS, but the Chromium smoke suite did not check for horizontal overflow at a narrow mobile viewport or enforce the intended minimum touch size on login controls.
+- Root cause: Responsive styles existed without a browser-level regression assertion for the public entry points.
+- Fix: Added a 360px Chromium smoke test for landing/login visibility, document-width overflow and minimum 44px email/password/submit control heights. This reuses the existing mobile CSS and does not claim a full mobile-device or assistive-technology audit.
+- Verification: Test committed; CI execution pending.
+- Status: Regression coverage implemented on `feature/m3-ai-solver`; runtime verification pending.
