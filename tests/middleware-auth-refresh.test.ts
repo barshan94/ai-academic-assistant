@@ -20,7 +20,7 @@ type CookieToSet = {
 
 function mockAuthRefresh(claims: Record<string, unknown> | null, error: Error | null = null) {
   vi.mocked(createServerClient).mockImplementation((_url, _key, options) => {
-    options.cookies.setAll(
+    options.cookies?.setAll?.(
       [{
         name: "sb-access-token",
         value: "refreshed-session",
