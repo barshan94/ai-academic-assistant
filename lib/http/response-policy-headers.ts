@@ -4,6 +4,12 @@ const RESPONSE_POLICY_HEADERS = new Set([
   "pragma",
   "content-security-policy",
   "x-robots-tag",
+  "strict-transport-security",
+  "x-frame-options",
+  "x-content-type-options",
+  "referrer-policy",
+  "permissions-policy",
+  "x-dns-prefetch-control",
 ]);
 
 export function isResponsePolicyHeader(name: string) {
