@@ -197,5 +197,7 @@ Owner-managed syllabus catalogs now also reject an effective end date earlier th
 
 Question review actions now validate UUID identifiers and confirm that an owner-scoped question row was actually updated before reporting success. See ERR-079; regression coverage remains deferred to the testing phase.
 
+Reference syllabus evidence creation now confirms the selected chapter belongs to the selected catalog and any selected topic belongs to that chapter, preventing cross-catalog evidence associations. See ERR-080; regression coverage remains deferred to the testing phase.
+
 
 Owner and reference syllabus evidence URL validation now rejects embedded URL credentials in addition to requiring HTTPS, preventing deceptive links whose user-info prefix can be mistaken for the destination host. See ERR-077; URL-boundary regression testing remains deferred.
