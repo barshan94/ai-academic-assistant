@@ -1277,3 +1277,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Replaced the stale planned modules with the current document-intake, question-solver, syllabus/chapter-note and exam-preparation workflows. The page now labels them "In code" and explicitly says external integrations require setup; it no longer implies the branch is only a Foundation build.
 - Verification: Source/documentation change only. No tests, typecheck, build or browser acceptance was run. Confirm copy against the shipped branch and verify mobile presentation during the dedicated testing phase.
 - Status: Landing page updated on `feature/m3-ai-solver`; no deployment or external service was changed.
+
+
+## ERR-118 — Private workspace URLs lacked explicit crawler exclusion
+
+- Date: 2026-11-01
+- Area: Privacy metadata / search indexing
+- Symptom: Authentication middleware protected dashboard content, but the application had no explicit crawler policy and no `X-Robots-Tag` response header for dashboard/API routes. The sign-in page also inherited indexable root metadata.
+- Root cause: Authorization and search-indexing controls were treated as the same concern; robots directives and response-level no-index metadata had not been implemented.
+- Fix: Added a Next.js robots route allowing only the public landing/privacy pages and disallowing dashboard, API and sign-in paths. Added `noindex, nofollow, noarchive` response headers to dashboard/API/sign-in paths, preserved the header through authentication redirects, and set sign-in metadata to no-index.
+- Verification: Source change only. No tests, build, browser, crawler simulation or deployment was performed. Search engines are not guaranteed to immediately remove already indexed URLs; authorization remains the actual confidentiality boundary.
+- Status: Crawler policy and response metadata committed to `feature/m3-ai-solver`; no database or external service was changed.
