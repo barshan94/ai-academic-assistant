@@ -626,3 +626,14 @@ This file records material implementation, CI, integration and release problems 
 - Fix: Require valid provider configuration for both `answer` and `chapter-note` before returning ready.
 - Verification: Source-level change only. Runtime checks and task-specific provider acceptance remain deferred to the testing phase.
 - Status: Implemented; verification pending.
+
+
+## ERR-058 — Readiness omitted the Google OAuth callback URI
+
+- Date: 2026-11-01
+- Area: M8 health/readiness configuration validation
+- Symptom: The readiness endpoint could report Google Drive OAuth as configured when the client ID and secret existed but the callback URI was missing, malformed, insecure in production, or pointed at an unexpected path.
+- Root cause: The check validated OAuth credentials but did not validate the redirect URI required by both authorization and token exchange.
+- Fix: Require a valid HTTPS callback URI in production (localhost HTTP only outside production), with no user-info, query or fragment and the exact `/api/drive/callback` path.
+- Verification: Source-level change only. Runtime configuration and Google OAuth acceptance remain deferred to the testing phase.
+- Status: Implemented; verification pending.
