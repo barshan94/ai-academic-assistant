@@ -237,3 +237,6 @@ Health readiness authorization correction (2026-11-01): corrected an over-escape
 
 
 Google Drive OAuth scope alignment (2026-11-01): removed incremental-scope authorization because the application intentionally accepts only the single `drive.file` grant. This keeps the consent request aligned with callback validation and token refresh checks. See ERR-096; live Google consent and reconnect acceptance remain pending.
+
+
+Web-research quota atomicity (2026-11-01): added a forward-only Supabase migration to serialize quota admission per owner, check the daily and 15-minute limits before mutating either counter, and avoid consuming quota on rejected requests. See ERR-097. The migration is committed but intentionally not applied to a database; migration execution, concurrency/boundary tests and Supabase advisor review remain for the dedicated testing and fixing phases.
