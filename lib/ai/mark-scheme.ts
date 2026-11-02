@@ -59,5 +59,5 @@ export function compareAnswerToMarkScheme(answer: string, scheme: MarkScheme): M
 }
 
 function normalize(value: string): string {
-  return value.normalize("NFKC").toLocaleLowerCase().replace(/[^\\p{L}\\p{N}]+/gu, " ").trim().replace(/\\s+/g, " ");
+  return value.normalize("NFKC").toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim().replace(/\s+/g, " ");
 }
