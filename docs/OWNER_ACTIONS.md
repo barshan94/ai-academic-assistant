@@ -4,6 +4,11 @@ This document separates repository implementation from actions that require the 
 
 ## 1. Environment and provider setup
 
+### Verified preview configuration — 2026-11-02
+
+Read-only inspection of the Vercel preview project's environment-variable inventory found only the Supabase URL, Supabase publishable key, and `DRIVE_TOKEN_ENCRYPTION_KEY` entry. The Drive encryption-key entry is present but has an empty value; no Google OAuth client credentials or AI provider configuration were present in the returned inventory. No secret values were read or changed. The preview's public health endpoint returns HTTP 200, but this does not prove Supabase readiness or authenticated application functionality. Configure the missing values only after the owner approves the corresponding provider, account, budget and data-processing terms.
+
+
 - [ ] Confirm the non-production Vercel deployment target and deploy only after the implementation branch is ready for the testing phase.
 - [x] Inventory the existing Supabase organization and projects. Reuse the existing Free-plan `academic-assistant` project as the non-production candidate; do not create another account or project by default.
 - [x] Owner confirmed `academic-assistant` as the dedicated non-production reconciliation/testing target; no reset is proposed. `durga-map` remains excluded because it contains existing application data.
