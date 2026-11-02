@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { nextMarkPointId } from "@/lib/ai/mark-scheme";
+import { nextMarkPointId } from "@/lib/ai/mark-scheme-point-id";
 import { saveQuestionSolutionMarkScheme } from "./actions";
 
 type PointDraft = {
