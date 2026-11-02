@@ -25,13 +25,6 @@ export const markSchemeSchema = z.object({
   });
 });
 
-export function nextMarkPointId(existingIds: string[]): string {
-  const used = new Set(existingIds);
-  let candidate = 1;
-  while (used.has("M" + candidate)) candidate += 1;
-  return "M" + candidate;
-}
-
 export type MarkScheme = z.infer<typeof markSchemeSchema>;
 export type MarkPointReview = {
   id: string;
