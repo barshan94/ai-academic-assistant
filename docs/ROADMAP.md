@@ -437,9 +437,10 @@ The existing shared `:focus-visible` outline and skip-link styling now have Chro
 - [x] Confirmed the hosted schema is behind the current application: no document-registration RPC and an outdated page-count constraint. Added ERR-159/ERR-160 and updated migration reconciliation, owner actions and production-readiness gates.
 - [x] Latest isolated database authorization CI passed (run 41318724631); latest foundation lint/typecheck/unit/build and Chromium smoke checks passed (run 41318724655).
 - [x] Owner confirmed the existing `academic-assistant` project as the dedicated non-production reconciliation/testing target.
-- [x] Refreshed the full migration comparison: 96 repository migrations, 53 hosted ledger entries, 51 exact matches, two renamed shared-reference versions and 43 genuinely pending migrations.
+- [x] Refreshed the full migration comparison: 97 repository migrations, 53 hosted ledger entries, 51 exact version/name matches, two hosted-only version identifiers with byte-identical repository SQL, and 44 genuinely pending migrations after version-aware repair.
 - [x] Object-level audit confirms the shared-reference tables, indexes, functions, triggers and policies exist; seed tables are empty. Identified three trigger-only functions with unnecessary default PUBLIC EXECUTE grants (ERR-161).
-- [ ] Prepare migration-history repair for the two renamed migrations, harden trigger-only function privileges, then apply the 43 pending migrations in order only after a reviewed plan and separate execution approval. No hosted mutation has been performed.
+- [x] Prepare the version-aware migration-history repair and pinned Supabase CLI script; the owner has already authorized the two ledger repairs and the 44 pending migrations for this non-production project.
+- [ ] Execute the pinned Supabase CLI script. The connected database tools do not provide the CLI session required to run `supabase migration repair`, full `--include-all --dry-run`, and ordered `db push`; do not substitute generic SQL or `apply_migration` calls. No hosted migration mutation has been performed.
 
 ## Migration hardening and hosted execution status — 2026-11-01
 - [x] Owner explicitly authorized migration-history reconciliation and 43 pending migrations on the dedicated `academic-assistant` non-production project.
@@ -447,3 +448,19 @@ The existing shared `:focus-visible` outline and skip-link styling now have Chro
 - [x] Latest isolated database workflow run `41322904037` passed with the new migration and test.
 - [ ] Hosted reconciliation remains blocked until a version-aware Supabase CLI session is available. Do not use generic migration apply or direct ledger DML because neither preserves the repository's exact migration versions safely.
 - [ ] After CLI reconciliation and ordered push: verify hosted ledger, schema, trigger grants, seed counts and advisors; then create disposable Auth test accounts and continue live integration acceptance.
+
+
+## Latest verification checkpoint — 2026-11-02
+
+Latest verified tested commit: `a28ad9f43443db8e535c2cb2a67fbefec77f072e`.
+
+- [x] Foundation CI: ESLint, application/Playwright type-checks, 179 unit tests across 34 files, production build, environment contract fixtures and production dependency audit passed.
+- [x] Isolated database CI: complete repository migration chain replayed on a fresh local Supabase database; 236 pgTAP assertions across 11 SQL files passed.
+- [x] Chromium smoke: 10 passed; 1 authenticated two-account test skipped because test credentials/environment are not configured.
+- [x] Secret scanning passed.
+- [x] Latest read-only hosted inventory: 97 repository migrations, 53 hosted ledger entries; after the two version-history repairs, 44 migrations remain pending. All 21 public tables have RLS enabled; security advisor reports zero findings; 60 performance unused-index notices are informational while tables remain empty.
+- [ ] Hosted CLI reconciliation and ordered application of 44 pending migrations. Owner authorization exists; execution is blocked by the lack of an available pinned Supabase CLI session.
+- [ ] Disposable owner/teacher Auth accounts and authenticated browser acceptance.
+- [ ] Google Drive OAuth/worker, approved AI-provider golden set, encrypted backup/restore, full dependency advisory, accessibility and operational acceptance.
+
+This checkpoint supersedes the earlier 2026-11-01 CI counts and the older 96/43 migration inventory above. It does not establish production readiness.
