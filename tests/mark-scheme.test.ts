@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { compareAnswerToMarkScheme, markSchemeSchema, nextMarkPointId } from "@/lib/ai/mark-scheme";
+import { compareAnswerToMarkScheme, markSchemeSchema } from "@/lib/ai/mark-scheme";
+import { nextMarkPointId } from "@/lib/ai/mark-scheme-point-id";
 
 const scheme = {
   title: "Physics Paper 1 Mark Scheme",
