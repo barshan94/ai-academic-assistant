@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { compareAnswerToMarkScheme, markSchemeSchema } from "@/lib/ai/mark-scheme";
+import { compareAnswerToMarkScheme, markSchemeSchema, nextMarkPointId } from "@/lib/ai/mark-scheme";
 
 const scheme = {
   title: "Physics Paper 1 Mark Scheme",
@@ -37,6 +37,14 @@ describe("mark scheme review checklist", () => {
   it("normalizes case, punctuation and Unicode compatibility", () => {
     const result = compareAnswerToMarkScheme("RESULTANT-FORCE is proportional.", scheme);
     expect(result[0].matchedPhrases).toContain("resultant force");
+  });
+
+  it("generates the lowest unused default ID after arbitrary point removal", () => {
+    expect(nextMarkPointId(["M1", "M2", "M3"])).toBe("M4");
+    // Reproduces the editor sequence: remove M2 from M1/M2/M3, then add.
+    expect(nextMarkPointId(["M1", "M3"])).toBe("M2");
+    // Custom and malformed IDs do not block the generated M-series.
+    expect(nextMarkPointId(["A1", "M1", "M3", "m2"])).toBe("M2");
   });
 
   it("rejects duplicate mark-point IDs and non-HTTPS source URLs", () => {
