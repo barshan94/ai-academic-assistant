@@ -25,6 +25,13 @@ export const markSchemeSchema = z.object({
   });
 });
 
+export function nextMarkPointId(existingIds: string[]): string {
+  const used = new Set(existingIds);
+  let candidate = 1;
+  while (used.has("M" + candidate)) candidate += 1;
+  return "M" + candidate;
+}
+
 export type MarkScheme = z.infer<typeof markSchemeSchema>;
 export type MarkPointReview = {
   id: string;
@@ -59,5 +66,5 @@ export function compareAnswerToMarkScheme(answer: string, scheme: MarkScheme): M
 }
 
 function normalize(value: string): string {
-  return value.normalize("NFKC").toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim().replace(/\s+/g, " ");
+  return value.normalize("NFKC").toLocaleLowerCase().replace(/[^\\p{L}\\p{N}]+/gu, " ").trim().replace(/\\s+/g, " ");
 }
