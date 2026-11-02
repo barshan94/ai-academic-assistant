@@ -1,16 +1,18 @@
 # Supabase migration-history reconciliation
 
-## Snapshot
+## Current snapshot — 2026-11-02
 
-Read-only comparison performed on 2026-11-01 between the `feature/m3-ai-solver` repository tree and the connected Supabase project's migration ledger. Both the repository tree and hosted migration ledger were refreshed in the same read-only session on 2026-11-01.
+The latest read-only comparison is against the `feature/m3-ai-solver` repository tree and the connected `academic-assistant` project's hosted migration ledger.
 
-- Repository migration files: **96**
-- Remote migration-ledger entries: **53**
+- Repository migration files: **97**
+- Hosted migration-ledger entries: **53**
 - Exact version-and-name matches: **51**
-- Remote entries whose version/name does not exactly match a repository filename: **2**
-- Repository migration files with no exact remote ledger entry: **45** (43 genuinely pending versions plus the two renamed-version counterparts below)
+- Hosted-only version identifiers with byte-identical repository SQL counterparts: **2**
+- Repository migration files without exact hosted ledger entries: **46** — the two renamed-version counterparts plus **44 genuinely pending migrations** after version-aware repair.
 
-This is a migration-history comparison only. It does not prove that the remote schema matches either migration sequence. No migration was applied, repaired, deleted, renamed or otherwise changed during this inspection.
+The owner authorized the two exact-SQL version-history repairs and the ordered application of the 44 pending migrations to this existing non-production project on 2026-11-01. No reset, production change, merge or deployment is included. The hosted project remains unchanged because the connected Supabase interface does not expose the pinned CLI's version-specific migration repair operation. Run `scripts/reconcile-nonprod-supabase-migrations.sh` with Supabase CLI **2.122.0** when that CLI session is available; do not substitute generic SQL or migration-apply calls.
+
+This is a migration-history comparison, not proof that the hosted schema matches the repository chain. The historical 2026-11-01 inventory and migration list below are retained as audit evidence; their old counts are superseded by this current snapshot.
 
 ## Version/name mismatches
 
@@ -96,7 +98,7 @@ A second read-only inspection was performed against the connected `academic-assi
 5. Determine which repository migrations are already represented by schema changes, which are truly pending, and which need a safe forward-only replacement migration.
 6. Reconstruct the intended ordered migration chain on a clean isolated database and apply the full chain there.
 7. Run all pgTAP, permission, RLS, lifecycle and concurrency acceptance on that isolated database during the separately authorized testing phase.
-8. Only after the owner explicitly approves a target and a reviewed migration plan may any hosted migration be applied.
+8. The owner has already approved this exact non-production target and reviewed migration plan. Execute only through the pinned CLI procedure above; any different target, reset, production migration or deployment requires separate explicit approval.
 
 ## Prohibited shortcuts
 
