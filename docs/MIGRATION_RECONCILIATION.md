@@ -201,3 +201,15 @@ This is stronger than the earlier object inventory: the stored migration SQL its
 - Latest isolated migration/pgTAP CI run `41322904037`: **passed**.
 
 The owner has authorized the non-production migration operation. The hosted database remains unchanged because the available connected interface does not expose version-specific migration repair, and generic migration application cannot preserve the exact repository versions. Do not hand-edit the ledger or apply the DDL using the generic migration tool. Use the pinned Supabase CLI with the two exact repair pairs, dry-run the complete out-of-order chain with `--include-all`, and only then push the ordered migrations.
+
+
+## Fresh read-only verification — 2026-11-02
+
+The connected project's live state was rechecked after the latest feature-branch CI completed. This was read-only; no migration, ledger repair, SQL mutation, Auth account creation, Storage change or deployment was performed.
+
+- The hosted migration ledger still contains **53 entries**, ending at `20261101073144_retain_revoked_invitation_history_for_invitee`. The repository still contains **97 migration files**; after the two exact-SQL version repairs, **44 migrations remain pending**.
+- The connected public schema still reports **21 tables**, with RLS enabled on all 21. All 21 currently report zero rows. No hosted Auth users, Storage buckets or deployed Edge Functions were reported in the previous project inventory; no integration setup was performed in this verification.
+- The current security advisor response contains **zero findings**. The performance advisor reports **60 unused-index informational notices**; these are not grounds to drop indexes while the application tables are empty.
+- Latest feature-branch CI on `a28ad9f43443db8e535c2cb2a67fbefec77f072e` passed lint, application and Playwright type-checks, **179 unit tests across 34 files**, production build, production dependency audit, Chromium smoke (**10 passed, 1 skipped**), full isolated migration replay and **236 pgTAP assertions across 11 files**; secret scanning passed. The skipped test is the authenticated two-account flow, not a passing authorization test.
+
+**Decision unchanged:** the connected hosted project has not been reconciled or migrated. Do not point the current application at it for acceptance until the version-aware repair and ordered 44-migration execution are completed through the pinned Supabase CLI procedure described above. Hosted RLS/IDOR, Google Drive, AI-provider, backup/restore and real-browser acceptance remain open.
