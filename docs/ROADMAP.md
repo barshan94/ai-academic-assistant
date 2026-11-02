@@ -452,13 +452,13 @@ The existing shared `:focus-visible` outline and skip-link styling now have Chro
 
 ## Latest verification checkpoint — 2026-11-02
 
-Latest verified tested commit: `a28ad9f43443db8e535c2cb2a67fbefec77f072e`.
+Latest fully verified feature-branch commit: `ca078d446af7f1f4a085ead1ed1e22f5d38747fd`.
 
-- [x] Foundation CI: ESLint, application/Playwright type-checks, 179 unit tests across 34 files, production build, environment contract fixtures and production dependency audit passed.
-- [x] Isolated database CI: complete repository migration chain replayed on a fresh local Supabase database; 236 pgTAP assertions across 11 SQL files passed.
-- [x] Chromium smoke: 10 passed; 1 authenticated two-account test skipped because test credentials/environment are not configured.
-- [x] Secret scanning passed.
-- [x] Latest read-only hosted inventory: 97 repository migrations, 53 hosted ledger entries; after the two version-history repairs, 44 migrations remain pending. All 21 public tables have RLS enabled; security advisor reports zero findings; 60 performance unused-index notices are informational while tables remain empty.
+- [x] Foundation CI: ESLint, application/Playwright type-checks, 179 unit tests across 34 files, production build, environment contract fixtures and production dependency audit passed (run `41383987668`).
+- [x] Isolated database CI: complete repository migration chain replayed on a fresh local Supabase database; 236 pgTAP assertions across 11 SQL files passed (run `41383987808`).
+- [x] Chromium smoke: 10 passed; 1 authenticated two-account test skipped because dedicated credentials/environment are not configured (foundation run `41383987668`).
+- [x] Secret scanning passed (run `41383987634`).
+- [x] Latest read-only hosted inventory: 97 repository migrations, 53 hosted ledger entries; after the two version-history repairs, 44 migrations remain pending. All 21 public tables have RLS enabled; security advisor reports zero findings; 60 performance unused-index notices remain informational while tables are empty.
 - [ ] Hosted CLI reconciliation and ordered application of 44 pending migrations. Owner authorization exists; execution is blocked by the lack of an available pinned Supabase CLI session.
 - [ ] Disposable owner/teacher Auth accounts and authenticated browser acceptance.
 - [ ] Google Drive OAuth/worker, approved AI-provider golden set, encrypted backup/restore, full dependency advisory, accessibility and operational acceptance.
