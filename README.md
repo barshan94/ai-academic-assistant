@@ -80,7 +80,7 @@ Never commit .env.local, service-role keys, OAuth tokens, student personal data 
 
 ## Current status (2 November 2026)
 
-M1–M7 application features are substantially implemented in code on `feature/m3-ai-solver`. The latest verified automated checkpoint on commit `a28ad9f43443db8e535c2cb2a67fbefec77f072e` passed lint, application/Playwright type-checks, 179 unit tests across 34 files, production build, production dependency audit, secret scanning, full isolated migration replay with 236 pgTAP assertions across 11 SQL files, and Chromium smoke (10 passed, 1 skipped). The skipped test is the authenticated two-account flow; it is not a pass.
+M1–M7 application features are substantially implemented in code on `feature/m3-ai-solver`. The latest verified automated checkpoint on commit `ca078d446af7f1f4a085ead1ed1e22f5d38747fd` passed lint, application/Playwright type-checks, 179 unit tests across 34 files, production build, production dependency audit, secret scanning, full isolated migration replay with 236 pgTAP assertions across 11 SQL files, and Chromium smoke (10 passed, 1 skipped). The skipped test is the authenticated two-account flow; it is not a pass. CI run IDs and exact scope are recorded in `docs/PRODUCTION_READINESS.md`.
 
 Implementation is not the same as release acceptance. Production is not approved: the hosted Supabase migration chain remains unreconciled/unapplied, external services are not connected/accepted, backup recovery is incomplete, and security, accessibility and performance acceptance remain pending. The remaining work is tracked in `docs/ROADMAP.md`, `docs/ACCEPTANCE_TESTS.md` and `docs/PRODUCTION_READINESS.md`.
 
