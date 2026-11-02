@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { nextMarkPointId } from "@/lib/ai/mark-scheme";
 import { saveQuestionSolutionMarkScheme } from "./actions";
 
 type PointDraft = {
@@ -29,7 +30,7 @@ export function MarkSchemeEditor({ solutionId, board, qualification, subject }: 
   const addPoint = () => {
     setPoints((current) => current.length >= 80 ? current : [
       ...current,
-      { id: "M" + (current.length + 1), description: "", keyPhrases: "", marks: "1" },
+      { id: nextMarkPointId(current.map((point) => point.id.trim())), description: "", keyPhrases: "", marks: "1" },
     ]);
   };
 
@@ -40,7 +41,7 @@ export function MarkSchemeEditor({ solutionId, board, qualification, subject }: 
   const serializedPoints = JSON.stringify(points.map((point) => ({
     id: point.id.trim(),
     description: point.description.trim(),
-    keyPhrases: point.keyPhrases.split("\n").map((phrase) => phrase.trim()).filter(Boolean),
+    keyPhrases: point.keyPhrases.split("\\n").map((phrase) => phrase.trim()).filter(Boolean),
     ...(point.marks.trim() === "" ? {} : { marks: Number(point.marks) }),
   })));
 
@@ -77,7 +78,7 @@ export function MarkSchemeEditor({ solutionId, board, qualification, subject }: 
               <textarea value={point.description} required maxLength={1000} rows={2} onChange={(event) => updatePoint(index, "description", event.target.value)} />
             </label>
             <label>Key phrases (one per line)
-              <textarea value={point.keyPhrases} maxLength={1600} rows={3} placeholder={"e.g. resultant force\nacceleration is proportional"} onChange={(event) => updatePoint(index, "keyPhrases", event.target.value)} />
+              <textarea value={point.keyPhrases} maxLength={1600} rows={3} placeholder={"e.g. resultant force\\nacceleration is proportional"} onChange={(event) => updatePoint(index, "keyPhrases", event.target.value)} />
             </label>
             <label>Marks listed in source
               <input type="number" min="0" max="20" step="1" value={point.marks} onChange={(event) => updatePoint(index, "marks", event.target.value)} />
