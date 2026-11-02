@@ -7,6 +7,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Json } from "@/types/database";
 import { consumeAIGenerationQuota } from "@/lib/security/ai-generation-quota";
 import { logSafeOperationalEvent } from "@/lib/observability/safe-log";
+import { AIConfigurationError, getAIProviderConfigs } from "@/lib/ai/provider";
 
 const noteSchema = z.object({
   catalogId: z.string().uuid(),
@@ -113,6 +114,15 @@ export async function generateChapterNoteDraft(formData: FormData) {
     : { data: [], error: null };
   if (pageError) redirect("/dashboard/chapters?ai=source_error");
   const pageMap = new Map((pages ?? []).map((page) => [page.id, page]));
+
+  // Avoid charging quota when no chapter-note provider is configured.
+  try {
+    getAIProviderConfigs("chapter-note");
+  } catch (error) {
+    if (error instanceof AIConfigurationError) redirect("/dashboard/chapters?ai=not_configured");
+    throw error;
+  }
+
   const quota = await consumeAIGenerationQuota(supabase, "ai-chapter-note");
   if (quota !== "allowed") {
     logSafeOperationalEvent(quota === "limited" ? "ai_generation_quota_exhausted" : "ai_generation_quota_unavailable", {
