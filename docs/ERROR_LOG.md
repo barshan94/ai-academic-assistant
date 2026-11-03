@@ -1800,3 +1800,13 @@ ERR-073 closure reconciliation (2026-11-01): the earlier note that page and pare
 - Fix: Changed the protected worker handler to `POST`, updated the GitHub Actions scheduler to send POST, and documented the distinction. Authorization remains bearer-secret protected; no credentials or database state were changed.
 - Verification: Fresh foundation, database and secret-scanning workflows were triggered on commit `36cec8a5869130bd7c18866021442ce5d76c88c9`; results pending at the time of this entry.
 - Status: Source and scheduler updated; CI verification pending. Live worker invocation remains blocked on deployment secrets and hosted migration reconciliation.
+
+
+## ERR-165 — Worker scheduler retried a non-idempotent POST after ambiguous failures
+- Date: 2026-11-03
+- Area: Background worker / scheduler retry semantics
+- Symptom: After changing the worker to POST, the scheduler still used curl's `--retry-all-errors`. If the server claimed/completed a job but the response was lost or the client timed out, curl could repeat the POST and process another job in the same scheduled invocation.
+- Root cause: Transport-level retries are unsafe for this endpoint: each successful invocation intentionally claims at most one job, but the request itself is not idempotent across invocations.
+- Fix: Removed automatic curl retries. The five-minute schedule remains the retry mechanism; database job leases and attempt budgets continue to govern processing retries.
+- Verification: Added a regression assertion that the scheduled workflow does not enable curl retry flags. CI for the updated commit is pending.
+- Status: Source-level correction committed; CI verification pending. Live scheduling remains unaccepted until deployment secrets and hosted migration reconciliation are completed.
