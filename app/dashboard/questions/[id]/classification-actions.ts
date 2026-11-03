@@ -8,24 +8,24 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export async function updateQuestionClassification(formData: FormData) {
   const parsed = questionClassificationSchema.safeParse({
-    questionId: String(formData.get("questionId") ?? ""),
-    catalogId: String(formData.get("catalogId") ?? ""),
-    chapterId: String(formData.get("chapterId") ?? ""),
-    topicId: String(formData.get("topicId") ?? ""),
-    board: String(formData.get("board") ?? ""),
-    qualification: String(formData.get("qualification") ?? ""),
-    subject: String(formData.get("subject") ?? ""),
-    syllabusVersion: String(formData.get("syllabusVersion") ?? ""),
-    chapter: String(formData.get("chapter") ?? ""),
-    topic: String(formData.get("topic") ?? ""),
-    classificationStatus: String(formData.get("classificationStatus") ?? ""),
-    classificationConfidence: String(formData.get("classificationConfidence") ?? ""),
+    questionId: formData.get("questionId") ?? "",
+    catalogId: formData.get("catalogId") ?? "",
+    chapterId: formData.get("chapterId") ?? "",
+    topicId: formData.get("topicId") ?? "",
+    board: formData.get("board") ?? "",
+    qualification: formData.get("qualification") ?? "",
+    subject: formData.get("subject") ?? "",
+    syllabusVersion: formData.get("syllabusVersion") ?? "",
+    chapter: formData.get("chapter") ?? "",
+    topic: formData.get("topic") ?? "",
+    classificationStatus: formData.get("classificationStatus") ?? "",
+    classificationConfidence: formData.get("classificationConfidence") ?? "",
   });
 
   if (!parsed.success) {
-    const questionId = z.string().uuid().safeParse(String(formData.get("questionId") ?? ""));
+    const questionId = z.string().uuid().safeParse(formData.get("questionId") ?? "");
     if (questionId.success) {
-      const status = String(formData.get("classificationStatus") ?? "");
+      const status = formData.get("classificationStatus") ?? "";
       redirect("/dashboard/questions/" + questionId.data + "?classification=" + (status === "confirmed" ? "incomplete" : "invalid"));
     }
     redirect("/dashboard/questions?classification=invalid");
