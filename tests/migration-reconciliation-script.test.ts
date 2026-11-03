@@ -43,8 +43,8 @@ describe("non-production Supabase migration reconciliation script", () => {
   });
   it("keeps the hosted migration runner manual, branch-restricted and pinned", () => {
     expect(workflow).toContain("workflow_dispatch:");
-    expect(workflow).not.toContain("\\n  push:");
-    expect(workflow).not.toContain("\\n  pull_request:");
+    expect(workflow).not.toContain("  push:");
+    expect(workflow).not.toContain("  pull_request:");
     expect(workflow).toContain("refs/heads/feature/m3-ai-solver");
     expect(workflow).toContain("version: 2.122.0");
     expect(workflow).toContain("supabase/setup-cli@a9de0f0e1ffcf6ec895b135e292ddc76592d3c83");
