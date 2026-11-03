@@ -1779,3 +1779,14 @@ ERR-073 closure reconciliation (2026-11-01): the earlier note that page and pare
 - The repository's locked minimatch 3.1.5 consumers are therefore not demonstrated to contain the described optimizer path by the advisory's technical explanation. This is not a blanket statement that minimatch 3.1.5 is free of all vulnerabilities, and the scanner finding must not be suppressed or the lockfile altered solely to make the audit green.
 - Decision: keep ERR-124 open pending advisory-owner clarification or a reviewed, compatible lint-toolchain migration. No dependency override, lockfile edit, or scanner suppression was made. Production runtime remains unaffected by this development-only dependency finding; the full development dependency audit remains unresolved.
 - Verification: current publisher advisory, GitHub Advisory Database entry, and public clarification issue reviewed on 2026-11-03. No code or dependency tests were run as part of this investigation.
+
+
+## ERR-163 — Secret scan false positive from synthetic CI fixture
+
+- Date: 2026-11-03
+- Area: CI / Secret scanning
+- Symptom: Gitleaks failed the pull-request history scan on the `CRON_SECRET` fixture in `.github/workflows/ci.yml` line 50.
+- Finding review: The detected value was an explicitly synthetic environment-validation fixture, not a live credential. The finding originated in commit `680ea72f74768a25e31b89aea9dac034b1ea75c2` and remained in the pull-request commit history after the current fixture value was replaced.
+- Fix: Replaced the high-entropy fixture with a 48-character low-entropy placeholder; enabled secret scanning on pushes to `feature/m3-ai-solver`; added `.gitleaks.toml` with a single exact historical fingerprint allowlist entry scoped to that commit, file, rule and line. All other findings remain fatal.
+- Verification: Secret-scanning workflow run `41589168202` passed on commit `45e7829fa3fdcaabcee8573b8704a237afc7e59b`. Foundation and database workflows were still pending at the time of this entry. Authenticated browser acceptance remains skipped because non-production credentials are unavailable.
+- Status: Historical synthetic false positive resolved; continue monitoring secret scanning on feature-branch pushes. No live secret was exposed by this finding and no secret rotation was required.
