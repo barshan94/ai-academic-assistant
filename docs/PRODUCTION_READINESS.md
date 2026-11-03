@@ -216,3 +216,12 @@ Feature-branch commit `bfb4cd96361d16aca395983416de2952e18b978f` completed the f
 A fresh read-only inspection of the existing non-production Supabase project on 2026-11-03 found 53 hosted migration-ledger entries against 97 repository migrations, 21/21 public tables with RLS enabled, zero security-advisor findings, and 60 informational unused-index notices. The migration ledger remains unreconciled; see `docs/MIGRATION_RECONCILIATION.md`. No hosted migration, ledger repair, schema mutation, production deployment or merge was performed.
 
 These results validate the feature-branch CI snapshot only. They do not establish hosted migration parity, live Google Drive/OAuth, live AI provider behavior, authenticated two-account authorization, restore readiness, accessibility acceptance or production approval. The release decision remains **NOT APPROVED FOR PRODUCTION**.
+
+
+## Superseding operational checkpoint — 2026-11-03
+
+- Current feature branch head at this documentation update: `1865aa2be3a1a2e695fd595af3f0888b222f7726`. The application-code baseline remains `086c19c21b20187758330dbbd5053b05cf1535eb`; later code changes are limited to migration-runner credential handling and its regression tests.
+- Commit `134faae82e4bbf945e8e19535f39d39eb9106253` passed foundation, Chromium smoke, isolated database authorization and secret scanning. The next code/tooling commit `b234a8e9fc855c12a5870b366e894ddad9f65cb8` adds a regression check for exactly one xtrace disable and credential export; its CI was still running at the last check. Current documentation-only commits have secret scanning passed; foundation/database workflows are queued or running. Authenticated two-account acceptance remains skipped.
+- Operations-only PR #2 is merged to `main` as `fbca5d21cc6325b43a47ecbd7a5d5f487b7579c4`; the manual non-production migration workflow is now available. It has not run because the two repository Actions secrets are not configured.
+- Hosted Supabase remains unchanged at 53 migration-ledger entries. No ledger repair, pending DDL, production merge, or deployment has occurred.
+- The release decision remains **NOT APPROVED FOR PRODUCTION**. Hosted migration reconciliation, two-account acceptance, Google Drive/OAuth and AI provider runtime tests, backup/restore drill, accessibility and academic/privacy review remain outstanding. Full dev dependency audit remains at 13 moderate findings (ERR-124); production-only audit is clean.
