@@ -24,7 +24,7 @@ export async function savePageCorrection(formData: FormData) {
   if (authError || !user) redirect("/login");
 
   const { data: correctionSaved, error: correctionError } = await supabase.rpc("save_document_page_correction", {
-    p_document_id: documentId.data,
+    p_document_id: documentId,
     p_owner_id: user.id,
     p_page_id: pageId,
     p_extracted_text: extractedText,
