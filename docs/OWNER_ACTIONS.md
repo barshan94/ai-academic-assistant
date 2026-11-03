@@ -6,19 +6,25 @@ This document separates repository implementation from actions that require the 
 
 ### Verified preview configuration — 2026-11-03
 
-Read-only inspection of the Vercel project environment-variable inventory (including a non-disclosing check of whether sensitive values are populated) found only three entries: the Supabase URL, Supabase publishable key, and `DRIVE_TOKEN_ENCRYPTION_KEY`. The Drive encryption key is **not populated**. `SUPABASE_SERVICE_ROLE_KEY`, `CRON_SECRET`, and Google OAuth client credentials are absent. No secret values were changed or displayed. The app also has no configured owner AI provider acceptance yet. The preview's public `/api/health` endpoint returns HTTP 200, but this is only a process-level health check; it does not prove Supabase connectivity, database schema readiness, or authenticated application functionality. Configure the missing values only after the owner approves the corresponding provider, account, budget and data-processing terms.
+Read-only inspection of the Vercel project `ai-academic-assistant` on the Hobby team confirmed that the latest feature-branch deployment for commit `311b3ac2e0abbd950d3c5a732f5e12d60466f4df` is **READY**. The project has no runtime error clusters in the last 24 hours. The preview build being READY does not mean the application integrations are configured or accepted.
+
+The Vercel environment inventory contains only:
+- `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, both set for preview, production and development.
+- `DRIVE_TOKEN_ENCRYPTION_KEY`, present as a sensitive variable but with an empty value.
+
+The following are absent: `SUPABASE_SERVICE_ROLE_KEY`, `CRON_SECRET`, Google OAuth client ID/secret, and AI provider credentials/model. No secret values were requested, changed or displayed. Do not add credentials until the owner approves the provider, account, budget and data-processing terms. The preview's deployment readiness and process-level health check do not prove Supabase connectivity, database schema readiness, authenticated application functionality, or live provider integrations.
 
 ### Latest implementation-branch verification — 2026-11-03
 
-Current feature-branch head: `520f9bdb393a57bee52ca236d4035393166c44a6`.
+Current feature-branch head: `311b3ac2e0abbd950d3c5a732f5e12d60466f4df`.
 
-- Foundation workflow `41579182459`: ESLint, application/Playwright TypeScript checks, unit tests, production build, and Chromium browser smoke tests all passed.
-- Database authorization workflow `41579182445`: isolated local Supabase migration chain and pgTAP tests passed.
-- Secret scanning workflow `41579182544`: passed.
-- Authenticated two-account workflow `41579182465`: skipped because dedicated non-production credentials/enablement are not configured. This is not a pass.
+- Foundation workflow `41580104055`: lint, application/Playwright TypeScript checks, unit tests, production build and Chromium browser smoke job all passed.
+- Database authorization workflow `41580104051`: isolated local Supabase migration chain and pgTAP tests passed.
+- Secret scanning workflow `41580104041`: passed.
+- Authenticated two-account workflow `41580104044`: skipped because dedicated non-production credentials/enablement are not configured. This is not a pass.
 - Pull request #1 remains open and draft. No merge or production deployment occurred.
 
-The latest source changes close the chemistry parser's documented coefficient-width mismatch and bound nested formula atom counts. The latest Chromium smoke-test job completed successfully on the preceding implementation commit; the current documentation-only commit has green foundation, database-authorization and secret-scanning workflows. These CI results validate the current source branch and an isolated local database only. They do not establish hosted Supabase migration completion, real Google Drive OAuth/upload/OCR, live AI-provider quality, authenticated two-account isolation, or backup/restore recovery. A successful build and smoke test are not accepted integration evidence.
+These CI results validate source checks and an isolated local database only. They do not establish hosted Supabase migration completion, real Google Drive OAuth/upload/OCR, live AI-provider quality, authenticated two-account isolation, or backup/restore recovery. A successful preview build and credential-free browser smoke suite are not accepted integration evidence.
 
 - [ ] Confirm the non-production Vercel deployment target and deploy only after the implementation branch is ready for the testing phase.
 - [x] Inventory the existing Supabase organization and projects. Reuse the existing Free-plan `academic-assistant` project as the non-production candidate; do not create another account or project by default.
