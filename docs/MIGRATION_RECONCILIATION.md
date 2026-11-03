@@ -232,3 +232,13 @@ The connected `academic-assistant` project was rechecked after the feature-branc
 - Project status remains `ACTIVE_HEALTHY`, Free plan, PostgreSQL 17.11, `ap-south-1`.
 
 **Decision unchanged:** migration reconciliation remains an open release blocker. The connected project was not modified.
+
+
+## Phone-accessible execution path — 2026-11-03
+
+The repository includes a manually dispatched GitHub Actions workflow at `.github/workflows/reconcile-nonprod-migrations.yml` so the owner does not need a local computer. It is restricted to `feature/m3-ai-solver`, installs Supabase CLI 2.122.0, uses the fixed project ref in the script, and accepts only two operations:
+
+1. `reconcile-and-dry-run` (default): repairs the two previously verified exact-SQL version mismatches, then runs `supabase db push --include-all --dry-run`; it does not apply the 44 pending migration DDLs.
+2. `reconcile-and-apply`: requires the exact confirmation phrase `APPLY uqpyzicftxxegajaocxi`, repeats the dry-run, then applies the 44 pending repository migrations and prints the final ledger.
+
+Before dispatch, add repository Actions secrets `SUPABASE_ACCESS_TOKEN` and `SUPABASE_DB_PASSWORD`. Do not paste either value into chat or commit them. Review the complete dry-run output before selecting apply. The workflow does not merge or deploy the application. If the workflow stops after the two ledger repairs, inspect the remote ledger before retrying; do not assume no metadata change occurred.
