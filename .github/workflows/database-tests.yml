@@ -35,11 +35,16 @@ jobs:
       - name: Initialize local Supabase configuration
         run: |
           supabase init
-          # GitHub-hosted runners can already occupy Supabase CLI's default
-          # PostgreSQL host port (54322). Use dedicated high ports for the
-          # isolated database and shadow database in this job.
-          sed -i '/^\[db\]$/,/^\[/ s/^port = 54322$/port = 55432/' supabase/config.toml
-          sed -i '/^\[db\]$/,/^\[/ s/^shadow_port = 54320$/shadow_port = 55430/' supabase/config.toml
+          # Select currently free wildcard-bindable ports rather than assuming
+          # a fixed high port is unused on the hosted runner.
+          DB_PORT="$(python3 -c 'import socket; s=socket.socket(); s.bind(("0.0.0.0", 0)); print(s.getsockname()[1]); s.close()')"
+          SHADOW_PORT="$(python3 -c 'import socket; s=socket.socket(); s.bind(("0.0.0.0", 0)); print(s.getsockname()[1]); s.close()')"
+          while [ "$SHADOW_PORT" = "$DB_PORT" ]; do
+            SHADOW_PORT="$(python3 -c 'import socket; s=socket.socket(); s.bind(("0.0.0.0", 0)); print(s.getsockname()[1]); s.close()')"
+          done
+          echo "Using isolated Supabase database port $DB_PORT and shadow port $SHADOW_PORT"
+          sed -i "/^\[db\]$/,/^\[/ s/^port = .*/port = $DB_PORT/" supabase/config.toml
+          sed -i "/^\[db\]$/,/^\[/ s/^shadow_port = .*/shadow_port = $SHADOW_PORT/" supabase/config.toml
 
       - name: Start isolated local database and apply migrations
         run: supabase db start
