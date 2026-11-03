@@ -76,6 +76,9 @@ async function hasLiveSupabaseConnection() {
   if (!url || !serviceKey) return false;
 
   try {
+    // The external monitor expects a response within 10 seconds. Share one
+    // deadline across all batches so sequential probes cannot exceed it.
+    const readinessDeadline = AbortSignal.timeout(8_000);
     const supabase = createClient(url, serviceKey, {
       auth: {
         autoRefreshToken: false,
@@ -85,7 +88,7 @@ async function hasLiveSupabaseConnection() {
       global: {
         fetch: (input, init) => fetch(input, {
           ...init,
-          signal: AbortSignal.timeout(5_000),
+          signal: AbortSignal.any([AbortSignal.timeout(5_000), readinessDeadline]),
           redirect: "error",
         }),
       },
