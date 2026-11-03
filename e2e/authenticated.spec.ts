@@ -15,7 +15,9 @@ const configured = Object.values(config).every(Boolean);
 
 type TestFixture = {
   supabase: SupabaseClient;
+  ownerId: string;
   documentId: string;
+  pageId: string;
   questionId: string;
   solutionId: string;
 };
@@ -46,6 +48,7 @@ async function createTestFixture(): Promise<TestFixture> {
   }
 
   let documentId: string | undefined;
+  let pageId: string | undefined;
   let questionId: string | undefined;
   try {
     const marker = randomUUID();
@@ -77,6 +80,7 @@ async function createTestFixture(): Promise<TestFixture> {
       .select("id")
       .single();
     if (pageError || !page) throw new Error("Could not create the isolated E2E page fixture.");
+    pageId = page.id;
 
     const { data: question, error: questionError } = await supabase
       .from("questions")
@@ -113,7 +117,7 @@ async function createTestFixture(): Promise<TestFixture> {
       .single();
     if (solutionError || !solution) throw new Error("Could not create the isolated E2E answer fixture.");
 
-    return { supabase, documentId, questionId, solutionId: solution.id };
+    return { supabase, ownerId: auth.user.id, documentId, pageId, questionId, solutionId: solution.id };
   } catch (error) {
     if (questionId) await supabase.from("questions").delete().eq("id", questionId);
     if (documentId) await supabase.from("documents").delete().eq("id", documentId);
@@ -143,6 +147,9 @@ test("two-account teacher invitation, review, and revocation lifecycle", async (
   if (!configured) return;
 
   const fixture = await createTestFixture();
+  const teacherApi = createClient(config.supabaseUrl, config.publishableKey, {
+    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+  });
   const ownerContext = await browser.newContext();
   const teacherContext = await browser.newContext();
   const owner = await ownerContext.newPage();
@@ -150,6 +157,27 @@ test("two-account teacher invitation, review, and revocation lifecycle", async (
   const questionUrl = `/dashboard/questions/${fixture.questionId}`;
 
   try {
+    const { data: teacherAuth, error: teacherAuthError } = await teacherApi.auth.signInWithPassword({
+      email: config.teacherEmail,
+      password: config.teacherPassword,
+    });
+    if (teacherAuthError || !teacherAuth.user) {
+      throw new Error("Could not authenticate the teacher API client for cross-account checks.");
+    }
+
+    // Before an invitation exists, the teacher must not see any owner fixture.
+    const [privateDocumentBefore, privatePageBefore, privateQuestionBefore, privateSolutionBefore] =
+      await Promise.all([
+        teacherApi.from("documents").select("id").eq("id", fixture.documentId),
+        teacherApi.from("document_pages").select("id").eq("id", fixture.pageId),
+        teacherApi.from("questions").select("id").eq("id", fixture.questionId),
+        teacherApi.from("question_solutions").select("id").eq("id", fixture.solutionId),
+      ]);
+    for (const result of [privateDocumentBefore, privatePageBefore, privateQuestionBefore, privateSolutionBefore]) {
+      expect(result.error).toBeNull();
+      expect(result.data).toEqual([]);
+    }
+
     // The invited account must not see the owner's question before acceptance.
     await signIn(teacher, config.teacherEmail, config.teacherPassword);
     const deniedBeforeInvite = await teacher.goto(questionUrl);
@@ -170,6 +198,23 @@ test("two-account teacher invitation, review, and revocation lifecycle", async (
     await expect(teacher).toHaveURL(new RegExp(`/dashboard/questions/${fixture.questionId}\\?invite=accepted`));
     await teacher.goto(`${questionUrl}?solution=${fixture.solutionId}`);
     await expect(teacher.getByRole("heading", { name: "Answer draft" })).toBeVisible();
+
+    // Invitation grants question/answer access only, not the original source document/page.
+    const [sharedQuestion, sharedSolution, privateDocumentAfterInvite, privatePageAfterInvite] =
+      await Promise.all([
+        teacherApi.from("questions").select("id,owner_id").eq("id", fixture.questionId).maybeSingle(),
+        teacherApi.from("question_solutions").select("id,owner_id").eq("id", fixture.solutionId).maybeSingle(),
+        teacherApi.from("documents").select("id").eq("id", fixture.documentId),
+        teacherApi.from("document_pages").select("id,extracted_text").eq("id", fixture.pageId),
+      ]);
+    expect(sharedQuestion.error).toBeNull();
+    expect(sharedQuestion.data).toMatchObject({ id: fixture.questionId, owner_id: fixture.ownerId });
+    expect(sharedSolution.error).toBeNull();
+    expect(sharedSolution.data).toMatchObject({ id: fixture.solutionId, owner_id: fixture.ownerId });
+    expect(privateDocumentAfterInvite.error).toBeNull();
+    expect(privateDocumentAfterInvite.data).toEqual([]);
+    expect(privatePageAfterInvite.error).toBeNull();
+    expect(privatePageAfterInvite.data).toEqual([]);
 
     // An accepted teacher can approve a draft through the independent
     // verification RPC; the saved answer must show teacher_verified.
@@ -195,9 +240,20 @@ test("two-account teacher invitation, review, and revocation lifecycle", async (
     // Revocation must remove the teacher's access even in an already signed-in session.
     const deniedAfterRevoke = await teacher.goto(questionUrl);
     expect(deniedAfterRevoke?.status()).toBe(404);
+
+    // Revocation must also remove the teacher's direct Data API access.
+    const [revokedQuestion, revokedSolution] = await Promise.all([
+      teacherApi.from("questions").select("id").eq("id", fixture.questionId),
+      teacherApi.from("question_solutions").select("id").eq("id", fixture.solutionId),
+    ]);
+    expect(revokedQuestion.error).toBeNull();
+    expect(revokedQuestion.data).toEqual([]);
+    expect(revokedSolution.error).toBeNull();
+    expect(revokedSolution.data).toEqual([]);
   } finally {
     await ownerContext.close();
     await teacherContext.close();
+    await teacherApi.auth.signOut();
     await cleanupTestFixture(fixture);
   }
 });
