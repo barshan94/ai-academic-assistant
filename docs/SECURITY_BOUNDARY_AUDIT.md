@@ -1,12 +1,12 @@
 # Database, API and Security Boundary Review
 
-- Review date: 2026-11-01
+- Review date: 2026-11-03
 - Branch: `feature/m3-ai-solver`
-- Current reviewed branch revision: `04b9043f299938a718c28587882cc580d275900a` (`feature/m3-ai-solver`).
-- Review type: static source and migration review, supplemented by fresh isolated GitHub CI. No connected/hosted database was queried and no hosted migration was applied.
-- Foundation run `41315165441`: lint, TypeScript checks, unit tests, production build and Chromium smoke tests passed.
-- Database run `41315165466`: fresh isolated local migration chain and pgTAP authorization suite passed.
-- Secret scan `41315170179`: passed. Authenticated two-account browser acceptance `41315169864`: skipped because dedicated non-production credentials are not configured; it is not a pass.
+- Current reviewed branch revision: `086c19c21b20187758330dbbd5053b05cf1535eb`.
+- Review type: static source and migration review, supplemented by fresh isolated GitHub CI. No connected/hosted database was mutated.
+- Foundation run `41595253539`: lint, application/Playwright type-checks, production environment contract check, production-dependency audit, production build and 207 unit tests across 40 files passed; Chromium smoke passed 10 tests with the authenticated test skipped.
+- Database run `41595253518`: fresh isolated local migration chain and 236 pgTAP assertions across 11 files passed.
+- Secret scan `41595253441`: passed. Authenticated two-account browser acceptance `41595259318`: skipped because dedicated non-production credentials are not configured; it is not a pass.
 
 ## Executive result
 
