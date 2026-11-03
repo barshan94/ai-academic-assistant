@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import { getAIProviderConfigs } from "@/lib/ai/provider";
 import { REQUIRED_READINESS_TABLES } from "@/lib/health/required-readiness-tables";
+import { runBoundedChecks } from "@/lib/health/run-bounded-checks";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -94,11 +95,10 @@ async function hasLiveSupabaseConnection() {
     // tables required by the shipped document, solver, syllabus, notes and
     // study workflows so a partially migrated database cannot report ready.
     // These are zero-row HEAD requests; no academic content is returned.
-    const results = await Promise.all(REQUIRED_READINESS_TABLES.map((table) =>
-      supabase.from(table).select("*", { head: true }).limit(1),
-    ));
-
-    return results.every(({ error }) => !error);
+    return await runBoundedChecks(REQUIRED_READINESS_TABLES, 5, async (table) => {
+      const { error } = await supabase.from(table).select("*", { head: true }).limit(1);
+      return !error;
+    });
   } catch {
     return false;
   }
