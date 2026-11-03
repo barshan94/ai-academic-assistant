@@ -2,44 +2,30 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Json } from "@/types/database";
 import { consumeAIGenerationQuota } from "@/lib/security/ai-generation-quota";
 import { logSafeOperationalEvent } from "@/lib/observability/safe-log";
 import { AIConfigurationError, getAIProviderConfigs } from "@/lib/ai/provider";
-
-const noteSchema = z.object({
-  catalogId: z.string().uuid(),
-  chapterId: z.string().uuid(),
-  title: z.string().trim().min(1).max(200),
-  summary: z.string().trim().max(4000),
-  concepts: z.string().max(8000),
-  formulas: z.string().max(5000),
-  workedExamples: z.string().max(10000),
-  revisionPrompts: z.string().max(5000),
-  questionIds: z.array(z.string().uuid()).max(20),
-  documentPageIds: z.array(z.string().uuid()).max(20),
-  supersedesId: z.union([z.string().uuid(), z.literal("")]),
-});
+import { parseChapterNoteDraftInput, parseChapterNoteGenerationInput, parseChapterNoteStatusInput } from "@/lib/chapters/note-form";
 
 function lines(value: string, maxItems: number): string[] {
   return value.split("\n").map((item) => item.trim()).filter(Boolean).slice(0, maxItems);
 }
 
 export async function createChapterNoteDraft(formData: FormData) {
-  const parsed = noteSchema.safeParse({
-    catalogId: String(formData.get("catalogId") ?? ""),
-    chapterId: String(formData.get("chapterId") ?? ""),
-    title: String(formData.get("title") ?? ""),
-    summary: String(formData.get("summary") ?? ""),
-    concepts: String(formData.get("concepts") ?? ""),
-    formulas: String(formData.get("formulas") ?? ""),
-    workedExamples: String(formData.get("workedExamples") ?? ""),
-    revisionPrompts: String(formData.get("revisionPrompts") ?? ""),
-    questionIds: formData.getAll("questionIds").map(String),
-    documentPageIds: formData.getAll("documentPageIds").map(String),
-    supersedesId: String(formData.get("supersedesId") ?? ""),
+  const parsed = parseChapterNoteDraftInput({
+    catalogId: formData.get("catalogId") ?? "",
+    chapterId: formData.get("chapterId") ?? "",
+    title: formData.get("title") ?? "",
+    summary: formData.get("summary") ?? "",
+    concepts: formData.get("concepts") ?? "",
+    formulas: formData.get("formulas") ?? "",
+    workedExamples: formData.get("workedExamples") ?? "",
+    revisionPrompts: formData.get("revisionPrompts") ?? "",
+    questionIds: formData.getAll("questionIds"),
+    documentPageIds: formData.getAll("documentPageIds"),
+    supersedesId: formData.get("supersedesId") ?? "",
   });
   if (!parsed.success) redirect("/dashboard/chapters?create=invalid");
 
@@ -82,14 +68,10 @@ export async function createChapterNoteDraft(formData: FormData) {
 
 
 export async function generateChapterNoteDraft(formData: FormData) {
-  const parsed = z.object({
-    catalogId: z.string().uuid(),
-    chapterId: z.string().uuid(),
-    supersedesId: z.union([z.string().uuid(), z.literal("")]),
-  }).safeParse({
-    catalogId: String(formData.get("catalogId") ?? ""),
-    chapterId: String(formData.get("chapterId") ?? ""),
-    supersedesId: String(formData.get("supersedesId") ?? ""),
+  const parsed = parseChapterNoteGenerationInput({
+    catalogId: formData.get("catalogId") ?? "",
+    chapterId: formData.get("chapterId") ?? "",
+    supersedesId: formData.get("supersedesId") ?? "",
   });
   if (!parsed.success) redirect("/dashboard/chapters?ai=invalid");
 
@@ -201,17 +183,19 @@ export async function generateChapterNoteDraft(formData: FormData) {
 }
 
 export async function updateChapterNoteStatus(formData: FormData) {
-  const noteId = z.string().uuid().safeParse(String(formData.get("noteId") ?? ""));
-  const status = z.enum(["approved", "archived"]).safeParse(String(formData.get("status") ?? ""));
-  if (!noteId.success || !status.success) redirect("/dashboard/chapters?status=invalid");
+  const parsed = parseChapterNoteStatusInput({
+    noteId: formData.get("noteId") ?? "",
+    status: formData.get("status") ?? "",
+  });
+  if (!parsed.success) redirect("/dashboard/chapters?status=invalid");
 
   const supabase = await createSupabaseServerClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) redirect("/login");
 
   const { data, error } = await supabase.from("chapter_note_versions")
-    .update({ status: status.data })
-    .eq("id", noteId.data)
+    .update({ status: parsed.data.status })
+    .eq("id", parsed.data.noteId)
     .eq("owner_id", user.id)
     .select("id")
     .maybeSingle();
