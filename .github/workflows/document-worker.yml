@@ -39,7 +39,6 @@ jobs:
             --request POST \
             --header "Authorization: Bearer $CRON_SECRET" \
             --max-time 65 \
-            --retry 1 --retry-delay 5 --retry-all-errors \
             "${APP_BASE_URL%/}/api/cron/process-documents")"
           cat "$response_file"
           rm -f "$response_file"
