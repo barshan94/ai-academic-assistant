@@ -230,7 +230,7 @@ test("two-account teacher invitation, review, and revocation lifecycle", async (
     await teacher.getByRole("button", { name: /save review record/i }).click();
     await expect(teacher).toHaveURL(/review=needs_correction/);
     await expect(teacher.getByRole("status")).toContainText(/correction feedback was saved/i);
-    await expect(teacher.getByText("generated", { exact: true })).toBeVisible();
+    await expect(teacher.locator("span.document-status", { hasText: /^generated$/ })).toBeVisible();
 
     // Owner can see the independent teacher review and revoke access.
     await owner.goto(questionUrl);
