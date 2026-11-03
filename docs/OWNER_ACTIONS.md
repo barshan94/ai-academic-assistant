@@ -10,15 +10,15 @@ Read-only inspection of the Vercel project environment-variable inventory (inclu
 
 ### Latest implementation-branch verification — 2026-11-03
 
-The current feature-branch head `ffe1b3fe29ccdcba32fb5de9f75b14e110d2b5ab` passed the following automated checks:
+Current feature-branch head: `8864ced0d2b8c8039ca641d2d2a6797b6e979890`.
 
-- Foundation workflow `41576695431`: ESLint, application TypeScript, Playwright configuration TypeScript, authenticated E2E configuration TypeScript, unit tests, production build, and Chromium browser smoke tests all passed.
-- Database authorization workflow `41576695496`: isolated local Supabase migration chain and pgTAP tests passed.
-- Secret scanning workflow `41576695407`: passed.
-- Authenticated two-account workflow `41576695406`: skipped because dedicated non-production credentials/enablement are not configured. This is not a pass.
+- Foundation workflow `41577754552`: ESLint, application/Playwright TypeScript checks, unit tests, production build, and Chromium browser smoke tests all passed.
+- Database authorization workflow `41577754739`: isolated local Supabase migration chain and pgTAP tests passed.
+- Secret scanning workflow `41577754535`: passed.
+- Authenticated two-account workflow `41577754508`: skipped because dedicated non-production credentials/enablement are not configured. This is not a pass.
 - Pull request #1 remains open and draft. No merge or production deployment occurred.
 
-These results establish source-level and isolated-CI validation only. They do not establish hosted Supabase migration completion, real Google Drive OAuth/upload/OCR, live AI-provider quality, authenticated two-account isolation, or backup/restore recovery. A successful build and smoke test are not accepted integration evidence.
+The latest source changes also close the chemistry parser's documented coefficient-width mismatch and bound nested formula atom counts. These CI results validate the current source branch and an isolated local database only. They do not establish hosted Supabase migration completion, real Google Drive OAuth/upload/OCR, live AI-provider quality, authenticated two-account isolation, or backup/restore recovery. A successful build and smoke test are not accepted integration evidence.
 
 - [ ] Confirm the non-production Vercel deployment target and deploy only after the implementation branch is ready for the testing phase.
 - [x] Inventory the existing Supabase organization and projects. Reuse the existing Free-plan `academic-assistant` project as the non-production candidate; do not create another account or project by default.
