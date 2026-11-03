@@ -16,18 +16,23 @@ The following are absent: `SUPABASE_SERVICE_ROLE_KEY`, `CRON_SECRET`, Google OAu
 
 ### Latest implementation-branch verification — 2026-11-03
 
-Latest verified application-code commit: `086c19c21b20187758330dbbd5053b05cf1535eb`. Current branch head is `5d63d32a56aa7c1a717cdcef4023d3c8580ee46a`; later commits changed documentation only.
+Latest verified application-code commit: `086c19c21b20187758330dbbd5053b05cf1535eb`. Current branch head is `cd25c72efde45f00984bb5e7d23ae59b8ca30086`; subsequent commits are documentation-only.
 
-The complete CI set for the current branch head `5d63d32a56aa7c1a717cdcef4023d3c8580ee46a` completed successfully:
-- Foundation workflow `41596518661`: ESLint, application and Playwright type-checks, production environment contract validation, production dependency audit, production build, and unit tests passed.
-- Chromium browser smoke in the same workflow: **10 passed, 1 skipped**. The skipped test is the authenticated two-account lifecycle.
-- Database authorization workflow `41596518471`: fresh isolated local Supabase migration replay and **236 pgTAP assertions across 11 SQL files** passed.
-- Secret scanning workflow `41596518490`: passed.
-- Authenticated browser workflow `41596518526`: skipped because dedicated non-production credentials and enablement are not configured. This is not a pass.
+Current-head CI is green where runnable:
+- Foundation workflow `41597601824`: lint, application/Playwright type-checks, production environment contract validation, production dependency audit, production build and **207 unit tests across 40 files** passed.
+- Chromium browser smoke in the same run: **10 passed, 1 skipped**. The skipped test is the authenticated two-account lifecycle.
+- Database authorization workflow `41597602010`: fresh isolated local Supabase migration replay and **236 pgTAP assertions across 11 files** passed.
+- Secret scanning workflow `41597602016`: passed.
+- Authenticated browser workflow `41597601831`: skipped because dedicated non-production credentials and enablement are not configured. This is not a pass.
+- The full dev-inclusive npm audit still reports **13 moderate findings**; the production-only audit reports zero. ERR-124 remains open and is not suppressed.
 
-The application-code test baseline at `086c19c` contains **207 unit tests across 40 files**; OAuth connect/callback route regressions cover state and account binding, exact least-privilege scope, encrypted token persistence and generic provider-error handling. These are mocked tests, not live Google OAuth acceptance.
+Fresh read-only hosted Supabase inspection on 2026-11-03:
+- Existing `academic-assistant` project remains `ACTIVE_HEALTHY`, PostgreSQL 17.11, Free plan, region `ap-south-1`.
+- Hosted migration ledger remains **53 entries**; the same two version/name mismatches remain, with **44 genuinely pending migrations** after version-aware reconciliation.
+- The hosted `public.documents.page_count` constraint still allows any non-negative value or NULL; it does not match the branch's intended 1–50 non-null contract.
+- Security advisor returned zero findings. Performance advisor returned 60 informational unused-index notices; the project tables are empty, so no indexes were dropped.
 
-The green current-head CI validates source checks, unauthenticated browser smoke, secret scanning and an isolated local database. It does not establish hosted migration completion, live Google Drive/OCR, live AI quality, authenticated two-account isolation, or backup/restore recovery. PR #1 remains open and draft. No merge, hosted migration or production deployment occurred.
+No hosted migration or data was changed. The hosted schema remains behind the branch and must not receive this application until the approved version-aware reconciliation is executed and verified. The CI results above prove local isolated migration replay, not hosted schema parity or live integrations. PR #1 remains open and draft; no merge or production deployment occurred.
 
 - [ ] Confirm the non-production Vercel deployment target and deploy only after the implementation branch is ready for the testing phase.
 - [x] Inventory the existing Supabase organization and projects. Reuse the existing Free-plan `academic-assistant` project as the non-production candidate; do not create another account or project by default.

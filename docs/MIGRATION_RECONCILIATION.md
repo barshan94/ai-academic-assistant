@@ -1,8 +1,8 @@
 # Supabase migration-history reconciliation
 
-## Current snapshot — 2026-11-02
+## Current snapshot — 2026-11-03
 
-The latest read-only comparison is against the `feature/m3-ai-solver` repository tree and the connected `academic-assistant` project's hosted migration ledger.
+The latest read-only comparison is against the `feature/m3-ai-solver` repository tree and the connected `academic-assistant` project's hosted migration ledger. A refresh on 2026-11-03 confirmed the hosted ledger remains unchanged at 53 entries.
 
 - Repository migration files: **97**
 - Hosted migration-ledger entries: **53**

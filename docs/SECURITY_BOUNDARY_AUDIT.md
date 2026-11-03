@@ -2,11 +2,12 @@
 
 - Review date: 2026-11-03
 - Branch: `feature/m3-ai-solver`
-- Current reviewed application-code revision: `086c19c21b20187758330dbbd5053b05cf1535eb` (current branch head `5d63d32a56aa7c1a717cdcef4023d3c8580ee46a` contains documentation-only changes).
-- Review type: static source and migration review, supplemented by fresh isolated GitHub CI. No connected/hosted database was mutated.
-- Current-head Foundation run `41596518661`: lint, application/Playwright type-checks, production environment contract check, production-dependency audit and production build passed; Chromium smoke passed 10 tests and skipped the authenticated test.
-- Current-head Database run `41596518471`: fresh isolated local migration chain and 236 pgTAP assertions across 11 files passed.
-- Current-head Secret scan `41596518490`: passed. Authenticated two-account browser acceptance `41596518526`: skipped because dedicated non-production credentials are not configured; it is not a pass.
+- Current reviewed application-code revision: `086c19c21b20187758330dbbd5053b05cf1535eb` (current branch head `cd25c72efde45f00984bb5e7d23ae59b8ca30086` contains documentation-only changes).
+- Review type: static source and migration review, supplemented by fresh isolated GitHub CI and read-only hosted catalog inspection. No connected/hosted database was mutated.
+- Current-head Foundation run `41597601824`: lint, application/Playwright type-checks, production environment contract check, production-dependency audit, production build and 207 unit tests across 40 files passed; Chromium smoke passed 10 tests and skipped the authenticated test.
+- Current-head Database run `41597602010`: fresh isolated local migration chain and 236 pgTAP assertions across 11 files passed.
+- Current-head Secret scan `41597602016`: passed. Authenticated two-account browser acceptance `41597601831`: skipped because dedicated non-production credentials are not configured; it is not a pass.
+- Fresh hosted inspection: 53 ledger entries, 44 genuinely pending migrations after version-aware repair; hosted page_count constraint still does not enforce the branch's 1–50 range. Security advisor has zero findings; performance advisor has 60 informational unused-index notices. No hosted changes were made.
 - The 207-unit-test application-code baseline is commit `086c19c21b20187758330dbbd5053b05cf1535eb`; subsequent branch-head changes are documentation-only.
 
 ## Executive result

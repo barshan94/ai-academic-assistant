@@ -17,16 +17,17 @@ Percentages are cumulative scope estimates, not proof of release readiness.
 
 ## Latest automated testing checkpoint — 2026-11-03
 
-Current branch head: `5d63d32a56aa7c1a717cdcef4023d3c8580ee46a` (documentation-only commits after the latest application-code commit `086c19c21b20187758330dbbd5053b05cf1535eb`).
+Current branch head: `cd25c72efde45f00984bb5e7d23ae59b8ca30086` (documentation-only changes after application-code commit `086c19c21b20187758330dbbd5053b05cf1535eb`).
 
-- Foundation workflow `41596518661`: ESLint, application TypeScript, Playwright configuration TypeScript, authenticated-E2E TypeScript, production environment contract validation, production dependency audit and production build passed.
-- Unit-test baseline on application-code commit `086c19c`: **207 tests across 40 files** passed.
-- Chromium browser smoke on current branch head: **10 passed, 1 skipped**. The skipped test is the authenticated two-account teacher invitation/review/revocation lifecycle.
-- Fresh isolated local Supabase migration replay and database authorization workflow `41596518471`: **236 pgTAP assertions across 11 SQL files** passed.
-- Secret scanning workflow `41596518490`: passed.
-- Authenticated two-account workflow `41596518526`: skipped because dedicated non-production credentials and enablement are not configured; this is not a pass.
+- Foundation workflow `41597601824`: ESLint, application TypeScript, Playwright configuration TypeScript, authenticated-E2E TypeScript, production environment contract validation, production dependency audit and production build passed.
+- Unit tests: **207 passed across 40 files**.
+- Chromium browser smoke: **10 passed, 1 skipped**. The skipped test is the authenticated two-account teacher invitation/review/revocation lifecycle.
+- Fresh isolated local Supabase migration replay and database authorization workflow `41597602010`: **236 pgTAP assertions across 11 SQL files** passed.
+- Secret scanning workflow `41597602016`: passed.
+- Authenticated two-account workflow `41597601831`: skipped because dedicated non-production credentials and enablement are not configured; this is not a pass.
+- Production-only dependency audit reports zero vulnerabilities. Full dev-inclusive audit still reports 13 moderate findings; ERR-124 remains open.
 
-The browser smoke suite runs without authenticated Supabase credentials and therefore proves fail-closed unauthenticated behavior, not real sign-in or cross-account authorization. The database workflow uses a fresh isolated local Supabase instance, not the connected hosted project. These results do not certify live Google Drive/OAuth, AI-provider inference or quality, connected migration history, backup restoration, mobile accessibility, or production readiness.
+Fresh hosted Supabase inspection confirms the existing project is healthy but not schema-current: 53 ledger entries and 44 genuinely pending migrations after version-aware repair; the hosted page-count check is weaker than the intended application contract. Security advisor returned zero findings; performance advisor returned 60 informational unused-index notices. No hosted migration or data was changed.
 
 ## M1 exit criteria
 - Application installs and starts locally.

@@ -19,7 +19,14 @@ The owner selected infrastructure constraint remains Supabase Free only. No paid
 
 ## Latest verified checkpoint — 2026-11-03
 
-Current branch head `5d63d32a56aa7c1a717cdcef4023d3c8580ee46a` has successful Foundation (`41596518661`), database authorization (`41596518471`) and secret scanning (`41596518490`) workflows. Foundation includes lint, application/Playwright type-checks, production environment contract validation, production dependency audit, production build and unit tests; Chromium smoke passed **10** and skipped **1** authenticated two-account test. The database workflow replayed the full migration chain on a fresh isolated local Supabase instance and passed **236 pgTAP assertions across 11 files**. The authenticated browser workflow (`41596518526`) was skipped because dedicated non-production credentials are not configured. These runs do not validate the connected hosted database or live provider integrations.
+Current branch head `cd25c72efde45f00984bb5e7d23ae59b8ca30086`:
+- Foundation `41597601824`: lint, application/Playwright type-checks, environment contract validation, production dependency audit, build and **207 unit tests across 40 files** passed. Production-only npm audit: zero findings; full development dependency tree: **13 moderate findings** (ERR-124 remains open).
+- Chromium smoke: **10 passed, 1 skipped** (authenticated two-account lifecycle).
+- Database authorization `41597602010`: fresh isolated local migration replay and **236 pgTAP assertions across 11 files** passed.
+- Secret scan `41597602016`: passed.
+- Authenticated browser workflow `41597601831`: skipped because dedicated non-production credentials are absent; not a pass.
+
+Fresh read-only hosted Supabase inspection on 2026-11-03 confirms project `academic-assistant` is ACTIVE_HEALTHY on Free/PostgreSQL 17.11/ap-south-1, but its ledger remains at 53 migrations with 44 genuinely pending after the two exact version/name mismatches are reconciled. The hosted `documents.page_count` constraint remains weaker than the branch's intended 1–50 contract. Security advisor: zero findings; performance advisor: 60 informational unused-index notices. No hosted changes were made. The local CI database is not the hosted project.
 
 ## 1. Application and release artifact
 
