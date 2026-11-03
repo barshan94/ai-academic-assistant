@@ -1810,3 +1810,13 @@ ERR-073 closure reconciliation (2026-11-01): the earlier note that page and pare
 - Fix: Removed automatic curl retries. The five-minute schedule remains the retry mechanism; database job leases and attempt budgets continue to govern processing retries.
 - Verification: Added a regression assertion that the scheduled workflow does not enable curl retry flags. CI for the updated commit is pending.
 - Status: Source-level correction committed; CI verification pending. Live scheduling remains unaccepted until deployment secrets and hosted migration reconciliation are completed.
+
+
+## ERR-166 — Worker scheduler could print raw HTTP response bodies into Actions logs
+- Date: 2026-11-03
+- Area: Background worker / operational log privacy
+- Symptom: The scheduled workflow printed the complete worker HTTP response body to GitHub Actions logs.
+- Root cause: The workflow used `cat` on the curl response file. Although current worker responses are designed to be generic, logging arbitrary response bodies creates an unnecessary disclosure path if a future error response contains sensitive data or upstream diagnostics.
+- Fix: Discard response bodies at the scheduler boundary and retain only the HTTP status code for success/failure handling.
+- Verification: Added regression assertions that the workflow discards the body and does not print the former response file. CI verification pending.
+- Status: Source-level correction committed; CI verification pending.
