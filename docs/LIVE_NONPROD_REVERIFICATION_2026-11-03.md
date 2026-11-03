@@ -21,7 +21,7 @@ This report records a fresh read-only inspection performed against the existing 
 - Chromium smoke: **success** — **10 passed, 1 skipped**.
 - Database authorization: **success** — isolated local migration replay and **236 pgTAP assertions across 11 files**.
 - Secret scanning: **success**.
-- Authenticated two-account browser acceptance: **skipped**, not passed. Workflow run `41597601831` was skipped because `ENABLE_AUTHENTICATED_E2E` was not enabled.
+- Authenticated two-account browser acceptance: **skipped**, not passed. Workflow run `41597601831` was skipped because `ENABLE_AUTHENTICATED_E2E` was not enabled at that time.
 
 These CI checks use an isolated local database. They do not prove live Google OAuth/Drive, live AI generation, hosted two-account IDOR behavior, or a full restore.
 
@@ -38,7 +38,7 @@ The workflow requires these six repository Actions secrets:
 - `E2E_TEACHER_EMAIL`
 - `E2E_TEACHER_PASSWORD`
 
-The owner reported entering these six secrets. Secret values cannot be read back through the available GitHub connection, so their presence and correctness are not independently verified here. The repository Actions variable `ENABLE_AUTHENTICATED_E2E=true` is still required. Enable it only after confirming both accounts are disposable, non-production test identities, then dispatch the authenticated browser workflow on `feature/m3-ai-solver`.
+The owner reported entering these six secrets; their values cannot be read back through the available GitHub connection. The owner has now confirmed setting the repository Actions variable `ENABLE_AUTHENTICATED_E2E=true`. A new commit on the existing PR branch is being used to trigger the pull-request workflow because the connected GitHub integration does not expose workflow dispatch. Confirm both accounts are disposable, non-production test identities before relying on the run.
 
 ## Remaining release blockers
 
@@ -59,4 +59,3 @@ The owner reported entering these six secrets. Secret values cannot be read back
 - Do not touch `durga-map`.
 - Do not merge the application feature branch or deploy production without separate explicit approval.
 - A passing build, a complete migration ledger, or a READY preview deployment does not equal production acceptance.
-
