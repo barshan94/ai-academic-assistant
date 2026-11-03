@@ -13,6 +13,8 @@ export type ChemistryEquationResult = {
 
 class FormulaParseError extends Error {}
 
+const MAX_FORMULA_ATOM_COUNT = 100_000;
+
 const ELEMENT_SYMBOLS = new Set(
   "H He Li Be B C N O F Ne Na Mg Al Si P S Cl Ar K Ca Sc Ti V Cr Mn Fe Co Ni Cu Zn Ga Ge As Se Br Kr Rb Sr Y Zr Nb Mo Tc Ru Rh Pd Ag Cd In Sn Sb Te I Xe Cs Ba La Ce Pr Nd Pm Sm Eu Gd Tb Dy Ho Er Tm Yb Lu Hf Ta W Re Os Ir Pt Au Hg Tl Pb Bi Po At Rn Fr Ra Ac Th Pa U Np Pu Am Cm Bk Cf Es Fm Md No Lr Rf Db Sg Bh Hs Mt Ds Rg Cn Nh Fl Mc Lv Ts Og".split(" "),
 );
@@ -53,7 +55,11 @@ function parseFormula(formula: string): Record<string, number> {
         const inner = group(true);
         const multiplier = readNumber();
         for (const [element, count] of Object.entries(inner)) {
-          counts[element] = (counts[element] ?? 0) + count * multiplier;
+          const nextCount = (counts[element] ?? 0) + count * multiplier;
+          if (!Number.isSafeInteger(nextCount) || nextCount > MAX_FORMULA_ATOM_COUNT) {
+            throw new FormulaParseError("Formula atom count is outside the supported range.");
+          }
+          counts[element] = nextCount;
         }
         found = true;
         continue;
@@ -65,7 +71,11 @@ function parseFormula(formula: string): Record<string, number> {
       }
       index += element.length;
       const multiplier = readNumber();
-      counts[element] = (counts[element] ?? 0) + multiplier;
+      const nextCount = (counts[element] ?? 0) + multiplier;
+      if (!Number.isSafeInteger(nextCount) || nextCount > MAX_FORMULA_ATOM_COUNT) {
+        throw new FormulaParseError("Formula atom count is outside the supported range.");
+      }
+      counts[element] = nextCount;
       found = true;
     }
 
