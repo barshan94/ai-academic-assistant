@@ -78,9 +78,9 @@ Never commit .env.local, service-role keys, OAuth tokens, student personal data 
 - Database/API security review: `docs/SECURITY_BOUNDARY_AUDIT.md`.
 - Exact repository-versus-connected-project migration ledger comparison: `docs/MIGRATION_RECONCILIATION.md`.
 
-## Current status (2 November 2026)
+## Current status (3 November 2026)
 
-M1–M7 application features are substantially implemented in code on `feature/m3-ai-solver`. The latest verified automated checkpoint on commit `ca078d446af7f1f4a085ead1ed1e22f5d38747fd` passed lint, application/Playwright type-checks, 179 unit tests across 34 files, production build, production dependency audit, secret scanning, full isolated migration replay with 236 pgTAP assertions across 11 SQL files, and Chromium smoke (10 passed, 1 skipped). The skipped test is the authenticated two-account flow; it is not a pass. CI run IDs and exact scope are recorded in `docs/PRODUCTION_READINESS.md`.
+M1–M7 application features are substantially implemented in code on `feature/m3-ai-solver`. Current branch head `5d63d32a56aa7c1a717cdcef4023d3c8580ee46a` passed Foundation checks (`41596518661`), isolated database authorization (`41596518471`) and secret scanning (`41596518490`). Foundation includes lint, application/Playwright type-checks, production environment contract validation, production dependency audit and production build. The latest application-code commit `086c19c21b20187758330dbbd5053b05cf1535eb` passed 207 unit tests across 40 files. Chromium smoke on the current head passed 10 tests and skipped one authenticated two-account test; the separate authenticated workflow (`41596518526`) was also skipped because test credentials are not configured. The isolated database suite passed 236 pgTAP assertions across 11 SQL files. CI run IDs and scope are recorded in `docs/PRODUCTION_READINESS.md`.
 
 Implementation is not the same as release acceptance. Production is not approved: the hosted Supabase migration chain remains unreconciled/unapplied, external services are not connected/accepted, backup recovery is incomplete, and security, accessibility and performance acceptance remain pending. The remaining work is tracked in `docs/ROADMAP.md`, `docs/ACCEPTANCE_TESTS.md` and `docs/PRODUCTION_READINESS.md`.
 

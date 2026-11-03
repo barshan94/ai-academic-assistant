@@ -2,11 +2,12 @@
 
 - Review date: 2026-11-03
 - Branch: `feature/m3-ai-solver`
-- Current reviewed application-code revision: `086c19c21b20187758330dbbd5053b05cf1535eb` (subsequent commits only refreshed documentation).
+- Current reviewed application-code revision: `086c19c21b20187758330dbbd5053b05cf1535eb` (current branch head `5d63d32a56aa7c1a717cdcef4023d3c8580ee46a` contains documentation-only changes).
 - Review type: static source and migration review, supplemented by fresh isolated GitHub CI. No connected/hosted database was mutated.
-- Foundation run `41595253539`: lint, application/Playwright type-checks, production environment contract check, production-dependency audit, production build and 207 unit tests across 40 files passed; Chromium smoke passed 10 tests with the authenticated test skipped.
-- Database run `41595253518`: fresh isolated local migration chain and 236 pgTAP assertions across 11 files passed.
-- Secret scan `41595253441`: passed. Authenticated two-account browser acceptance `41595259318`: skipped because dedicated non-production credentials are not configured; it is not a pass.
+- Current-head Foundation run `41596518661`: lint, application/Playwright type-checks, production environment contract check, production-dependency audit and production build passed; Chromium smoke passed 10 tests and skipped the authenticated test.
+- Current-head Database run `41596518471`: fresh isolated local migration chain and 236 pgTAP assertions across 11 files passed.
+- Current-head Secret scan `41596518490`: passed. Authenticated two-account browser acceptance `41596518526`: skipped because dedicated non-production credentials are not configured; it is not a pass.
+- The 207-unit-test application-code baseline is commit `086c19c21b20187758330dbbd5053b05cf1535eb`; subsequent branch-head changes are documentation-only.
 
 ## Executive result
 

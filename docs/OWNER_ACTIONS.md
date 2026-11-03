@@ -16,16 +16,18 @@ The following are absent: `SUPABASE_SERVICE_ROLE_KEY`, `CRON_SECRET`, Google OAu
 
 ### Latest implementation-branch verification — 2026-11-03
 
-Latest verified implementation-code commit: `086c19c21b20187758330dbbd5053b05cf1535eb` (subsequent commits only refreshed documentation).
+Latest verified application-code commit: `086c19c21b20187758330dbbd5053b05cf1535eb`. Current branch head is `5d63d32a56aa7c1a717cdcef4023d3c8580ee46a`; later commits changed documentation only.
 
-- Foundation workflow `41595253539`: ESLint, application and Playwright type-checks, production environment contract check, production-dependency audit, production build, and **207 unit tests across 40 files** passed.
-- Chromium browser smoke in the same run: **10 passed**; the authenticated two-account test was skipped because dedicated non-production credentials are not configured.
-- Database authorization workflow `41595253518`: fresh isolated local Supabase migration replay and **236 pgTAP assertions across 11 files** passed.
-- Secret scanning workflow `41595253441`: passed.
-- Authenticated two-account workflow `41595259318`: skipped because the workflow is not enabled with dedicated non-production credentials. This is not a pass.
-- Pull request #1 remains open and draft. No merge, hosted migration, or production deployment occurred.
+The complete CI set for the current branch head `5d63d32a56aa7c1a717cdcef4023d3c8580ee46a` completed successfully:
+- Foundation workflow `41596518661`: ESLint, application and Playwright type-checks, production environment contract validation, production dependency audit, production build, and unit tests passed.
+- Chromium browser smoke in the same workflow: **10 passed, 1 skipped**. The skipped test is the authenticated two-account lifecycle.
+- Database authorization workflow `41596518471`: fresh isolated local Supabase migration replay and **236 pgTAP assertions across 11 SQL files** passed.
+- Secret scanning workflow `41596518490`: passed.
+- Authenticated browser workflow `41596518526`: skipped because dedicated non-production credentials and enablement are not configured. This is not a pass.
 
-These results validate source checks, browser smoke behavior without authenticated data, and an isolated local database only. They do not establish hosted Supabase migration completion, real Google Drive OAuth/upload/OCR, live AI-provider quality, authenticated two-account isolation, or backup/restore recovery.
+The application-code test baseline at `086c19c` contains **207 unit tests across 40 files**; OAuth connect/callback route regressions cover state and account binding, exact least-privilege scope, encrypted token persistence and generic provider-error handling. These are mocked tests, not live Google OAuth acceptance.
+
+The green current-head CI validates source checks, unauthenticated browser smoke, secret scanning and an isolated local database. It does not establish hosted migration completion, live Google Drive/OCR, live AI quality, authenticated two-account isolation, or backup/restore recovery. PR #1 remains open and draft. No merge, hosted migration or production deployment occurred.
 
 - [ ] Confirm the non-production Vercel deployment target and deploy only after the implementation branch is ready for the testing phase.
 - [x] Inventory the existing Supabase organization and projects. Reuse the existing Free-plan `academic-assistant` project as the non-production candidate; do not create another account or project by default.

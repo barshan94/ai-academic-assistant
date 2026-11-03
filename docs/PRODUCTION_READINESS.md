@@ -17,6 +17,10 @@ The owner selected infrastructure constraint remains Supabase Free only. No paid
 - Prefer a reviewed forward database migration to a speculative rollback.
 - Do not exceed the approved free-tier and external-provider budgets. AI and web search can incur charges.
 
+## Latest verified checkpoint — 2026-11-03
+
+Current branch head `5d63d32a56aa7c1a717cdcef4023d3c8580ee46a` has successful Foundation (`41596518661`), database authorization (`41596518471`) and secret scanning (`41596518490`) workflows. Foundation includes lint, application/Playwright type-checks, production environment contract validation, production dependency audit, production build and unit tests; Chromium smoke passed **10** and skipped **1** authenticated two-account test. The database workflow replayed the full migration chain on a fresh isolated local Supabase instance and passed **236 pgTAP assertions across 11 files**. The authenticated browser workflow (`41596518526`) was skipped because dedicated non-production credentials are not configured. These runs do not validate the connected hosted database or live provider integrations.
+
 ## 1. Application and release artifact
 
 - [ ] Freeze the implementation scope and publish a reviewed release candidate commit.
