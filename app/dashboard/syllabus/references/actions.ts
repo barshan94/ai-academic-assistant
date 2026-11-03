@@ -93,15 +93,15 @@ function refreshReferencePages(catalogId?: string) {
 
 export async function createReferenceCatalog(formData: FormData) {
   const parsed = catalogSchema.safeParse({
-    board: String(formData.get("board") ?? ""),
-    qualification: String(formData.get("qualification") ?? ""),
-    subject: String(formData.get("subject") ?? ""),
-    version: String(formData.get("version") ?? ""),
-    effectiveFrom: String(formData.get("effectiveFrom") ?? ""),
-    effectiveTo: String(formData.get("effectiveTo") ?? ""),
-    sourceUrl: String(formData.get("sourceUrl") ?? ""),
-    sourceTitle: String(formData.get("sourceTitle") ?? ""),
-    sourceCheckedAt: String(formData.get("sourceCheckedAt") ?? ""),
+    board: formData.get("board") ?? "",
+    qualification: formData.get("qualification") ?? "",
+    subject: formData.get("subject") ?? "",
+    version: formData.get("version") ?? "",
+    effectiveFrom: formData.get("effectiveFrom") ?? "",
+    effectiveTo: formData.get("effectiveTo") ?? "",
+    sourceUrl: formData.get("sourceUrl") ?? "",
+    sourceTitle: formData.get("sourceTitle") ?? "",
+    sourceCheckedAt: formData.get("sourceCheckedAt") ?? "",
   });
   if (!parsed.success) redirect("/dashboard/syllabus/references/manage?result=invalid");
 
@@ -125,10 +125,10 @@ export async function createReferenceCatalog(formData: FormData) {
 
 export async function updateReferenceCatalogSource(formData: FormData) {
   const parsed = sourceUpdateSchema.safeParse({
-    catalogId: String(formData.get("catalogId") ?? ""),
-    sourceUrl: String(formData.get("sourceUrl") ?? ""),
-    sourceTitle: String(formData.get("sourceTitle") ?? ""),
-    sourceCheckedAt: String(formData.get("sourceCheckedAt") ?? ""),
+    catalogId: formData.get("catalogId") ?? "",
+    sourceUrl: formData.get("sourceUrl") ?? "",
+    sourceTitle: formData.get("sourceTitle") ?? "",
+    sourceCheckedAt: formData.get("sourceCheckedAt") ?? "",
   });
   if (!parsed.success) redirect("/dashboard/syllabus/references/manage?result=invalid");
   const supabase = await requirePlatformAdmin();
@@ -147,10 +147,10 @@ export async function updateReferenceCatalogSource(formData: FormData) {
 
 export async function createReferenceChapter(formData: FormData) {
   const parsed = chapterSchema.safeParse({
-    catalogId: String(formData.get("catalogId") ?? ""),
-    title: String(formData.get("title") ?? ""),
-    code: String(formData.get("code") ?? ""),
-    sortOrder: String(formData.get("sortOrder") ?? "0"),
+    catalogId: formData.get("catalogId") ?? "",
+    title: formData.get("title") ?? "",
+    code: formData.get("code") ?? "",
+    sortOrder: formData.get("sortOrder") ?? "0",
   });
   if (!parsed.success) redirect("/dashboard/syllabus/references/manage?result=invalid");
   const supabase = await requirePlatformAdmin();
@@ -172,10 +172,10 @@ export async function createReferenceChapter(formData: FormData) {
 
 export async function createReferenceTopic(formData: FormData) {
   const parsed = topicSchema.safeParse({
-    chapterId: String(formData.get("chapterId") ?? ""),
-    title: String(formData.get("title") ?? ""),
-    code: String(formData.get("code") ?? ""),
-    sortOrder: String(formData.get("sortOrder") ?? "0"),
+    chapterId: formData.get("chapterId") ?? "",
+    title: formData.get("title") ?? "",
+    code: formData.get("code") ?? "",
+    sortOrder: formData.get("sortOrder") ?? "0",
   });
   if (!parsed.success) redirect("/dashboard/syllabus/references/manage?result=invalid");
   const supabase = await requirePlatformAdmin();
@@ -200,13 +200,13 @@ export async function createReferenceTopic(formData: FormData) {
 
 export async function addReferenceEvidence(formData: FormData) {
   const parsed = evidenceSchema.safeParse({
-    catalogId: String(formData.get("catalogId") ?? ""),
-    chapterId: String(formData.get("chapterId") ?? ""),
-    topicId: String(formData.get("topicId") ?? ""),
-    sourceUrl: String(formData.get("sourceUrl") ?? ""),
-    sourceTitle: String(formData.get("sourceTitle") ?? ""),
-    sourceLocator: String(formData.get("sourceLocator") ?? ""),
-    evidenceExcerpt: String(formData.get("evidenceExcerpt") ?? ""),
+    catalogId: formData.get("catalogId") ?? "",
+    chapterId: formData.get("chapterId") ?? "",
+    topicId: formData.get("topicId") ?? "",
+    sourceUrl: formData.get("sourceUrl") ?? "",
+    sourceTitle: formData.get("sourceTitle") ?? "",
+    sourceLocator: formData.get("sourceLocator") ?? "",
+    evidenceExcerpt: formData.get("evidenceExcerpt") ?? "",
   });
   if (!parsed.success) redirect("/dashboard/syllabus/references/manage?result=evidence_invalid");
   const supabase = await requirePlatformAdmin();
@@ -256,7 +256,7 @@ export async function addReferenceEvidence(formData: FormData) {
 }
 
 export async function verifyReferenceCatalog(formData: FormData) {
-  const catalogId = String(formData.get("catalogId") ?? "");
+  const catalogId = formData.get("catalogId") ?? "";
   if (!z.string().uuid().safeParse(catalogId).success) redirect("/dashboard/syllabus/references/manage?result=invalid");
   const supabase = await requirePlatformAdmin();
   const { data: catalog, error: catalogError } = await supabase.from("reference_syllabus_catalogs")
@@ -281,7 +281,7 @@ export async function verifyReferenceCatalog(formData: FormData) {
 }
 
 export async function retireReferenceCatalog(formData: FormData) {
-  const catalogId = String(formData.get("catalogId") ?? "");
+  const catalogId = formData.get("catalogId") ?? "";
   if (!z.string().uuid().safeParse(catalogId).success) redirect("/dashboard/syllabus/references/manage?result=invalid");
   const supabase = await requirePlatformAdmin();
   const { data, error } = await supabase.from("reference_syllabus_catalogs")
