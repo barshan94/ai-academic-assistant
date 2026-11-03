@@ -8,6 +8,18 @@ This document separates repository implementation from actions that require the 
 
 Read-only inspection of the Vercel project environment-variable inventory (including a non-disclosing check of whether sensitive values are populated) found only three entries: the Supabase URL, Supabase publishable key, and `DRIVE_TOKEN_ENCRYPTION_KEY`. The Drive encryption key is **not populated**. `SUPABASE_SERVICE_ROLE_KEY`, `CRON_SECRET`, and Google OAuth client credentials are absent. No secret values were changed or displayed. The app also has no configured owner AI provider acceptance yet. The preview's public `/api/health` endpoint returns HTTP 200, but this is only a process-level health check; it does not prove Supabase connectivity, database schema readiness, or authenticated application functionality. Configure the missing values only after the owner approves the corresponding provider, account, budget and data-processing terms.
 
+### Latest implementation-branch verification — 2026-11-03
+
+The current feature-branch head `65d67357e43a0b200566a5309be7d5a8530ff0cd` passed the following automated checks:
+
+- Foundation workflow `41566989914`: lint, application TypeScript, Playwright configuration TypeScript, authenticated E2E configuration TypeScript, unit tests, production build, and Chromium browser smoke tests all passed.
+- Database authorization workflow `41566989885`: isolated local Supabase migration chain and pgTAP tests passed.
+- Secret scanning workflow `41566989889`: passed.
+- Vercel preview deployment `dpl_26Fg3HRkWkPYJDZv97rT9E9hhLMD`: state `READY`, built from the same commit.
+- Authenticated two-account workflow `41566989906`: skipped because dedicated non-production credentials/enablement are not configured. This is not a pass.
+- Pull request #1 remains open and draft. No merge or production deployment occurred.
+
+These results establish source-level and isolated-CI validation only. They do not establish hosted Supabase migration completion, real Google Drive OAuth/upload/OCR, live AI-provider quality, authenticated two-account isolation, or backup/restore recovery. The preview deployment is a build artifact, not an accepted integration environment.
 
 - [ ] Confirm the non-production Vercel deployment target and deploy only after the implementation branch is ready for the testing phase.
 - [x] Inventory the existing Supabase organization and projects. Reuse the existing Free-plan `academic-assistant` project as the non-production candidate; do not create another account or project by default.
@@ -44,7 +56,7 @@ Configure repository Actions secrets from the deployment dashboard; never commit
 - [ ] Run scripts/verify-backup.sh with the separately stored age identity.
 - [ ] Copy the encrypted archive to two independent locations and record archive date, project reference, CLI version and checksum evidence without recording secrets.
 - [ ] Rehearse roles/schema restore on a dedicated otherwise-empty target, then run scripts/restore-auth-users.mjs against the target Auth Admin API, then restore application data so original Auth UUID foreign keys resolve. Existing matching UUID/email accounts are skipped to support interrupted imports; their password hashes are not compared.
-- [ ] Confirm the target Auth project uses the same password-hashing algorithm as the source and set `RESTORE_PASSWORD_HASH_ALGORITHM` accordingly before importing. The importer refuses mixed hash algorithms.
+- [ ] Confirm the target Auth project uses the same password-hashing algorithm as the source and set RESTORE_PASSWORD_HASH_ALGORITHM accordingly before importing. The importer refuses mixed hash algorithms.
 - [ ] Confirm the restored email/password owner can sign in with the existing password. The importer deliberately rejects phone-based, MFA, SSO, anonymous and non-email identity accounts; sessions and refresh tokens must be re-established. Storage objects, project settings and Google Drive files are separate recovery concerns.
 - [ ] Preserve the exact original DRIVE_TOKEN_ENCRYPTION_KEY in an approved secret manager. A newly generated key cannot decrypt existing tokens.
 - [ ] Approve realistic RPO/RTO targets only after a restore drill measures backup cadence and restore time.
