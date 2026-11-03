@@ -16,12 +16,12 @@ The following are absent: `SUPABASE_SERVICE_ROLE_KEY`, `CRON_SECRET`, Google OAu
 
 ### Latest implementation-branch verification — 2026-11-03
 
-Current feature-branch head: `311b3ac2e0abbd950d3c5a732f5e12d60466f4df`.
+Latest implementation verification commit: `a1a8655fb4a4143462d7323b7a20a767cca92ee5`. This documentation checkpoint is a subsequent docs-only commit; its own CI reruns are tracked separately.
 
-- Foundation workflow `41580104055`: lint, application/Playwright TypeScript checks, unit tests, production build and Chromium browser smoke job all passed.
-- Database authorization workflow `41580104051`: isolated local Supabase migration chain and pgTAP tests passed.
-- Secret scanning workflow `41580104041`: passed.
-- Authenticated two-account workflow `41580104044`: skipped because dedicated non-production credentials/enablement are not configured. This is not a pass.
+- Foundation workflow `41580995665`: lint, application/Playwright TypeScript checks, unit tests, production build and Chromium browser smoke job all passed.
+- Database authorization workflow `41580995673`: isolated local Supabase migration chain and pgTAP tests passed.
+- Secret scanning workflow `41580995678`: passed.
+- Authenticated two-account workflow `41580995675`: skipped because dedicated non-production credentials/enablement are not configured. This is not a pass.
 - Pull request #1 remains open and draft. No merge or production deployment occurred.
 
 These CI results validate source checks and an isolated local database only. They do not establish hosted Supabase migration completion, real Google Drive OAuth/upload/OCR, live AI-provider quality, authenticated two-account isolation, or backup/restore recovery. A successful preview build and credential-free browser smoke suite are not accepted integration evidence.
