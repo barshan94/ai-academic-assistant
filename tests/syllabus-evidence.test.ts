@@ -31,6 +31,12 @@ describe("syllabus source evidence input", () => {
     expect(parseSyllabusEvidenceInput({ ...valid, evidenceExcerpt: "x".repeat(601) }).success).toBe(false);
   });
 
+  it("rejects File values instead of coercing them into evidence fields", () => {
+    expect(parseSyllabusEvidenceInput({ ...valid, catalogId: new File(["x"], "id.txt") }).success).toBe(false);
+    expect(parseSyllabusEvidenceInput({ ...valid, sourceUrl: new File(["https://example.com"], "url.txt") }).success).toBe(false);
+    expect(parseSyllabusEvidenceInput({ ...valid, evidenceExcerpt: new File(["evidence"], "excerpt.txt") }).success).toBe(false);
+  });
+
   it("allows chapter-level evidence without a topic ID", () => {
     expect(parseSyllabusEvidenceInput({ ...valid, topicId: "" }).success).toBe(true);
   });
