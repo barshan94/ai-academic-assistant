@@ -292,8 +292,58 @@ test("two-account teacher invitation, review, and revocation lifecycle", async (
     // Owner can see the independent teacher review and revoke access.
     await owner.goto(questionUrl);
     await expect(owner.getByText(/teacher requested corrections/i)).toBeVisible();
+    const revokeActionRequests: { method: string; url: string; nextAction: string | null }[] = [];
+    const revokeActionResponses: { status: number; url: string; location: string | null }[] = [];
+    const revokeRequestFailures: string[] = [];
+    owner.on("request", async (request) => {
+      if (request.method() === "POST") {
+        const headers = await request.allHeaders();
+        revokeActionRequests.push({
+          method: request.method(),
+          url: request.url(),
+          nextAction: headers["next-action"] ?? null,
+        });
+      }
+    });
+    owner.on("requestfailed", (request) => {
+      if (request.method() === "POST") revokeRequestFailures.push(
+        request.url() + ": " + (request.failure()?.errorText ?? "unknown request failure")
+      );
+    });
+    owner.on("response", async (response) => {
+      if (response.request().method() === "POST") {
+        const headers = await response.allHeaders();
+        revokeActionResponses.push({
+          status: response.status(),
+          url: response.url(),
+          location: headers.location ?? null,
+        });
+      }
+    });
+    const revokeForm = owner.locator("form").filter({
+      has: owner.getByRole("button", { name: "Revoke access" }),
+    });
+    const revokeFormState = await revokeForm.evaluate((form) => {
+      const button = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+      return {
+        action: form.getAttribute("action"),
+        method: form.getAttribute("method") ?? "get",
+        hiddenInputs: Array.from(form.querySelectorAll<HTMLInputElement>('input[type="hidden"]'))
+          .map((input) => ({ name: input.name, hasValue: Boolean(input.value) })),
+        buttonDisabled: button?.disabled ?? true,
+      };
+    });
     await owner.getByRole("button", { name: "Revoke access" }).click();
-    await expect(owner).toHaveURL(/invite=revoked/);
+    await owner.waitForURL(/invite=revoked/, { timeout: 15_000 }).catch(async () => {
+      throw new Error("Revocation action diagnostics: " + JSON.stringify({
+        formState: revokeFormState,
+        requests: revokeActionRequests,
+        responses: revokeActionResponses,
+        requestFailures: revokeRequestFailures,
+        visibleAlerts: await owner.getByRole("alert").allTextContents(),
+        currentUrl: owner.url(),
+      }));
+    });
 
     // Revocation must remove the teacher's access even in an already signed-in session.
     const deniedAfterRevoke = await teacher.goto(questionUrl);
