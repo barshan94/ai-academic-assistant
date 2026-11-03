@@ -1,6 +1,6 @@
 # Background document worker setup
 
-The feature branch includes a scheduled server-side worker at `GET /api/cron/process-documents`. It claims at most one job per invocation, uses conditional database updates to prevent duplicate claims, processes queued/failed jobs, reclaims stale running jobs after 15 minutes, and respects each job's `max_attempts` value.
+The feature branch includes a scheduled server-side worker at `POST /api/cron/process-documents`. It claims at most one job per invocation, uses conditional database updates to prevent duplicate claims, processes queued/failed jobs, reclaims stale running jobs after 15 minutes, and respects each job's `max_attempts` value.
 
 ## Required deployment environment
 
@@ -24,7 +24,7 @@ This uses GitHub Actions rather than a five-minute Vercel Cron expression becaus
 
 ## Operational behavior
 
-- The worker returns HTTP 401 without the exact bearer secret.
+- The worker accepts POST only and returns HTTP 401 without the exact bearer secret.
 - It returns HTTP 503 when required database credentials are missing.
 - It uses the Supabase service-role key only inside the server route; every row operation is still constrained by the job's owner and document IDs.
 - A conditional update on job ID, owner ID, current status, attempt count and prior start time is the atomic claim. Concurrent invocations cannot both claim the same observed job state.
@@ -32,7 +32,7 @@ This uses GitHub Actions rather than a five-minute Vercel Cron expression becaus
 - Retry attempts stop at the row's configured `max_attempts`.
 - The worker refuses to replace extracted pages referenced by saved questions or chapter-note sources.
 - A job failure is persisted as a bounded error message and can be retried while its retry budget remains.
-- The worker processes one job per invocation; backlog throughput therefore depends on the scheduler frequency.
+- The worker processes one job per invocation; backlog throughput therefore depends on the scheduler frequency. The GitHub Actions scheduler discards response bodies, logs only HTTP status, and does not automatically retry POST requests; the next scheduled invocation is the retry opportunity.
 
 ## Before production use
 
