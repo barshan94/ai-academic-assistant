@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       operation:
-        description: "IMPORTANT: The default is DRY RUN only. To apply the 44 migrations, select reconcile-and-apply from this dropdown; do not leave the default."
+        description: "IMPORTANT: Safe ledger-repair/dry-run is the default. Select apply only after reviewing the exact non-production target and migration plan."
         required: true
         type: choice
         options:
@@ -12,7 +12,7 @@ on:
           - reconcile-and-apply
         default: reconcile-and-dry-run
       confirmation:
-        description: "Required only when operation is reconcile-and-apply. Exact text: APPLY uqpyzicftxxegajaocxi"
+        description: "For apply only, type exactly: APPLY uqpyzicftxxegajaocxi"
         required: false
         type: string
 
@@ -70,7 +70,7 @@ jobs:
           fi
           echo "Secrets are present; values are not displayed."
 
-      - name: Reconcile migration history and execute the selected dry-run or apply operation
+      - name: Reconcile the approved project and run the reviewed dry-run or explicitly confirmed apply
         shell: bash
         run: |
           set -euo pipefail
