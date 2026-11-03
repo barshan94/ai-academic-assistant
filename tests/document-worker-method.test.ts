@@ -17,5 +17,6 @@ describe("document worker HTTP method", () => {
     expect(workflow).toContain("--request POST");
     expect(workflow).not.toContain("--request GET");
     expect(workflow).toContain("--header \"Authorization: Bearer $CRON_SECRET\"");
+    expect(workflow).not.toContain("--retry");
   });
 });
