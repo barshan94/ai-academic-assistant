@@ -7,8 +7,8 @@ import { bulkClassificationReviewSchema } from "@/lib/questions/bulk-classificat
 
 export async function bulkUpdateClassificationStatus(formData: FormData) {
   const parsed = bulkClassificationReviewSchema.safeParse({
-    questionIds: formData.getAll("questionIds").map(String),
-    targetStatus: String(formData.get("targetStatus") ?? ""),
+    questionIds: formData.getAll("questionIds"),
+    targetStatus: formData.get("targetStatus") ?? "",
   });
   if (!parsed.success) redirect("/dashboard/syllabus/review?bulk=invalid");
 
