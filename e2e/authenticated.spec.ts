@@ -1,15 +1,134 @@
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { randomUUID } from "node:crypto";
 import { expect, test, type Page } from "@playwright/test";
 
 const config = {
+  supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
+  publishableKey: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? "",
   ownerEmail: process.env.E2E_OWNER_EMAIL ?? "",
   ownerPassword: process.env.E2E_OWNER_PASSWORD ?? "",
   teacherEmail: process.env.E2E_TEACHER_EMAIL ?? "",
   teacherPassword: process.env.E2E_TEACHER_PASSWORD ?? "",
-  questionId: process.env.E2E_QUESTION_ID ?? "",
-  solutionId: process.env.E2E_SOLUTION_ID ?? "",
 };
 
 const configured = Object.values(config).every(Boolean);
+
+type TestFixture = {
+  supabase: SupabaseClient;
+  documentId: string;
+  questionId: string;
+  solutionId: string;
+};
+
+const answerFixture = {
+  examAnswer: "A test answer created only for the authenticated browser acceptance.",
+  workingSteps: [{ step: "Test step", explanation: "A deterministic fixture step." }],
+  calculationChecks: [],
+  chemistryChecks: [],
+  physicsChecks: [],
+  bengaliExplanation: "এটি কেবল স্বয়ংক্রিয় পরীক্ষার জন্য তৈরি একটি নমুনা উত্তর।",
+  englishExplanation: "This is a deterministic answer fixture for the automated test.",
+  keyConcepts: ["E2E fixture"],
+  assumptions: [],
+  limitations: ["Not an academic answer; test data only."],
+};
+
+async function createTestFixture(): Promise<TestFixture> {
+  const supabase = createClient(config.supabaseUrl, config.publishableKey, {
+    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+  });
+  const { data: auth, error: authError } = await supabase.auth.signInWithPassword({
+    email: config.ownerEmail,
+    password: config.ownerPassword,
+  });
+  if (authError || !auth.user) {
+    throw new Error("Could not authenticate the E2E owner to create isolated test records.");
+  }
+
+  let documentId: string | undefined;
+  let questionId: string | undefined;
+  try {
+    const marker = randomUUID();
+    const { data: document, error: documentError } = await supabase
+      .from("documents")
+      .insert({
+        owner_id: auth.user.id,
+        file_name: "E2E fixture " + marker + ".pdf",
+        mime_type: "application/pdf",
+        file_size_bytes: 1,
+        status: "ready",
+        page_count: 1,
+      })
+      .select("id")
+      .single();
+    if (documentError || !document) throw new Error("Could not create the isolated E2E document fixture.");
+    documentId = document.id;
+
+    const { data: page, error: pageError } = await supabase
+      .from("document_pages")
+      .insert({
+        owner_id: auth.user.id,
+        document_id: documentId,
+        page_number: 1,
+        extracted_text: "E2E fixture source page. No real student or customer content.",
+        extraction_method: "manual",
+        status: "complete",
+      })
+      .select("id")
+      .single();
+    if (pageError || !page) throw new Error("Could not create the isolated E2E page fixture.");
+
+    const { data: question, error: questionError } = await supabase
+      .from("questions")
+      .insert({
+        owner_id: auth.user.id,
+        document_id: documentId,
+        document_page_id: page.id,
+        question_number: "E2E",
+        question_text: "E2E fixture: explain why automated acceptance tests use isolated records.",
+        board: "Test Board",
+        qualification: "Test",
+        subject: "Computer Science",
+        chapter: "Automated testing",
+        topic: "Isolated fixtures",
+        review_status: "approved",
+      })
+      .select("id")
+      .single();
+    if (questionError || !question) throw new Error("Could not create the isolated E2E question fixture.");
+    questionId = question.id;
+
+    const { data: solution, error: solutionError } = await supabase
+      .from("question_solutions")
+      .insert({
+        owner_id: auth.user.id,
+        question_id: questionId,
+        provider: "e2e-fixture",
+        model: "deterministic-test",
+        prompt_version: "authenticated-e2e-fixture-v1",
+        answer_json: answerFixture,
+        verification_status: "generated",
+      })
+      .select("id")
+      .single();
+    if (solutionError || !solution) throw new Error("Could not create the isolated E2E answer fixture.");
+
+    return { supabase, documentId, questionId, solutionId: solution.id };
+  } catch (error) {
+    if (questionId) await supabase.from("questions").delete().eq("id", questionId);
+    if (documentId) await supabase.from("documents").delete().eq("id", documentId);
+    await supabase.auth.signOut();
+    throw error;
+  }
+}
+
+async function cleanupTestFixture(fixture: TestFixture) {
+  // Delete only the unique question/document created by this test. Cascades
+  // remove its solution and invitation/review children; unrelated records stay.
+  await fixture.supabase.from("questions").delete().eq("id", fixture.questionId);
+  await fixture.supabase.from("documents").delete().eq("id", fixture.documentId);
+  await fixture.supabase.auth.signOut();
+}
 
 async function signIn(page: Page, email: string, password: string) {
   await page.goto("/login");
@@ -20,13 +139,15 @@ async function signIn(page: Page, email: string, password: string) {
 }
 
 test("two-account teacher invitation, review, and revocation lifecycle", async ({ browser }) => {
-  test.skip(!configured, "Requires dedicated Supabase E2E project credentials and seeded question/solution IDs.");
+  test.skip(!configured, "Requires the six Supabase URL/key and owner/teacher credential secrets.");
+  if (!configured) return;
 
+  const fixture = await createTestFixture();
   const ownerContext = await browser.newContext();
   const teacherContext = await browser.newContext();
   const owner = await ownerContext.newPage();
   const teacher = await teacherContext.newPage();
-  const questionUrl = `/dashboard/questions/${config.questionId}`;
+  const questionUrl = `/dashboard/questions/${fixture.questionId}`;
 
   try {
     // The invited account must not see the owner's question before acceptance.
@@ -46,8 +167,8 @@ test("two-account teacher invitation, review, and revocation lifecycle", async (
     await teacher.goto("/dashboard/teacher-invites");
     await expect(teacher.getByRole("heading", { name: "Teacher invitations." })).toBeVisible();
     await teacher.getByRole("button", { name: /accept invitation/i }).click();
-    await expect(teacher).toHaveURL(new RegExp(`/dashboard/questions/${config.questionId}\\?invite=accepted`));
-    await teacher.goto(`${questionUrl}?solution=${config.solutionId}`);
+    await expect(teacher).toHaveURL(new RegExp(`/dashboard/questions/${fixture.questionId}\\?invite=accepted`));
+    await teacher.goto(`${questionUrl}?solution=${fixture.solutionId}`);
     await expect(teacher.getByRole("heading", { name: "Answer draft" })).toBeVisible();
 
     // An accepted teacher can approve a draft through the independent
@@ -77,5 +198,6 @@ test("two-account teacher invitation, review, and revocation lifecycle", async (
   } finally {
     await ownerContext.close();
     await teacherContext.close();
+    await cleanupTestFixture(fixture);
   }
 });
