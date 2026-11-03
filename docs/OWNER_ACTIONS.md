@@ -10,15 +10,15 @@ Read-only inspection of the Vercel project environment-variable inventory (inclu
 
 ### Latest implementation-branch verification — 2026-11-03
 
-Current feature-branch head: `f19b4fb3a21947a2a030ef73b6bce89c603eb16f`.
+Current feature-branch head: `520f9bdb393a57bee52ca236d4035393166c44a6`.
 
-- Foundation workflow `41578506243`: ESLint, application/Playwright TypeScript checks, unit tests, production build, and Chromium browser smoke tests all passed.
-- Database authorization workflow `41578506220`: isolated local Supabase migration chain and pgTAP tests passed.
-- Secret scanning workflow `41578506302`: passed.
-- Authenticated two-account workflow `41577754508`: skipped because dedicated non-production credentials/enablement are not configured. This is not a pass.
+- Foundation workflow `41579182459`: ESLint, application/Playwright TypeScript checks, unit tests, production build, and Chromium browser smoke tests all passed.
+- Database authorization workflow `41579182445`: isolated local Supabase migration chain and pgTAP tests passed.
+- Secret scanning workflow `41579182544`: passed.
+- Authenticated two-account workflow `41579182465`: skipped because dedicated non-production credentials/enablement are not configured. This is not a pass.
 - Pull request #1 remains open and draft. No merge or production deployment occurred.
 
-The latest source changes also close the chemistry parser's documented coefficient-width mismatch and bound nested formula atom counts; the latest Chromium smoke-test job completed successfully. These CI results validate the current source branch and an isolated local database only. They do not establish hosted Supabase migration completion, real Google Drive OAuth/upload/OCR, live AI-provider quality, authenticated two-account isolation, or backup/restore recovery. A successful build and smoke test are not accepted integration evidence.
+The latest source changes close the chemistry parser's documented coefficient-width mismatch and bound nested formula atom counts. The latest Chromium smoke-test job completed successfully on the preceding implementation commit; the current documentation-only commit has green foundation, database-authorization and secret-scanning workflows. These CI results validate the current source branch and an isolated local database only. They do not establish hosted Supabase migration completion, real Google Drive OAuth/upload/OCR, live AI-provider quality, authenticated two-account isolation, or backup/restore recovery. A successful build and smoke test are not accepted integration evidence.
 
 - [ ] Confirm the non-production Vercel deployment target and deploy only after the implementation branch is ready for the testing phase.
 - [x] Inventory the existing Supabase organization and projects. Reuse the existing Free-plan `academic-assistant` project as the non-production candidate; do not create another account or project by default.
