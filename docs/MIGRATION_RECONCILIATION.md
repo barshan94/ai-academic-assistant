@@ -242,3 +242,10 @@ The repository now contains a manually dispatched GitHub Actions workflow at `.g
 2. `reconcile-and-apply`: requires the exact confirmation phrase `APPLY uqpyzicftxxegajaocxi`, repeats the dry-run, then applies the 44 pending repository migrations and prints the final ledger.
 
 Before dispatch, add repository Actions secrets `SUPABASE_ACCESS_TOKEN` and `SUPABASE_DB_PASSWORD`. Do not paste either value into chat or commit them. Review the complete dry-run output before selecting apply. The workflow does not merge or deploy the application. If the workflow stops after the two ledger repairs, inspect the remote ledger before retrying; do not assume no metadata change occurred.
+
+
+## Runner availability update — 2026-11-03
+
+The operations-only pull request #2 was merged to the default branch as `fbca5d21cc6325b43a47ecbd7a5d5f487b7579c4`. This exposes the manual `Non-production Supabase migration reconciliation` workflow in GitHub Actions without merging or deploying application PR #1. The workflow is restricted to the exact `feature/m3-ai-solver` ref, checks out that branch, pins Supabase CLI 2.122.0, and defaults to ledger reconciliation plus a dry-run. Applying pending DDL requires a separate `reconcile-and-apply` dispatch and the exact confirmation phrase shown in the workflow.
+
+The workflow has **not** been dispatched: repository Actions secrets `SUPABASE_ACCESS_TOKEN` and `SUPABASE_DB_PASSWORD` still need to be configured by the owner in GitHub Settings → Secrets and variables → Actions. Do not paste either value into chat or commit them. The helper now passes the database password through its environment rather than its process arguments and disables shell xtrace. The hosted ledger remains at 53 entries; no hosted ledger repair or DDL has been executed.
