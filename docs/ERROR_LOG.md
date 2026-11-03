@@ -1790,3 +1790,13 @@ ERR-073 closure reconciliation (2026-11-01): the earlier note that page and pare
 - Fix: Replaced the high-entropy fixture with a 48-character low-entropy placeholder; enabled secret scanning on pushes to `feature/m3-ai-solver`; added `.gitleaks.toml` with a single exact historical fingerprint allowlist entry scoped to that commit, file, rule and line. All other findings remain fatal.
 - Verification: Secret-scanning workflow run `41589168202` passed on commit `45e7829fa3fdcaabcee8573b8704a237afc7e59b`. Foundation and database workflows were still pending at the time of this entry. Authenticated browser acceptance remains skipped because non-production credentials are unavailable.
 - Status: Historical synthetic false positive resolved; continue monitoring secret scanning on feature-branch pushes. No live secret was exposed by this finding and no secret rotation was required.
+
+
+## ERR-164 — Document worker used a mutating GET endpoint
+- Date: 2026-11-03
+- Area: Background worker / HTTP method safety
+- Symptom: The scheduled document worker invoked `GET /api/cron/process-documents`, while the handler claimed jobs, called Google Drive and changed processing/document records.
+- Root cause: Queue processing was exposed through a safe-method HTTP verb. Crawlers, link scanners, browser prefetchers or intermediaries can issue GET requests without an explicit user intent to mutate state.
+- Fix: Changed the protected worker handler to `POST`, updated the GitHub Actions scheduler to send POST, and documented the distinction. Authorization remains bearer-secret protected; no credentials or database state were changed.
+- Verification: Fresh foundation, database and secret-scanning workflows were triggered on commit `36cec8a5869130bd7c18866021442ce5d76c88c9`; results pending at the time of this entry.
+- Status: Source and scheduler updated; CI verification pending. Live worker invocation remains blocked on deployment secrets and hosted migration reconciliation.
