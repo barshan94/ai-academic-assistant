@@ -23,6 +23,17 @@ describe("bulk classification review", () => {
     }
   });
 
+  it("rejects File values in batch IDs and target status", () => {
+    expect(bulkClassificationReviewSchema.safeParse({
+      questionIds: [new File(["x"], "id.txt")],
+      targetStatus: "uncertain",
+    }).success).toBe(false);
+    expect(bulkClassificationReviewSchema.safeParse({
+      questionIds: [first],
+      targetStatus: new File(["uncertain"], "status.txt"),
+    }).success).toBe(false);
+  });
+
   it("rejects more than 50 selected questions", () => {
     const ids = Array.from({ length: 51 }, (_, index) =>
       `00000000-0000-4000-8000-${String(index).padStart(12, "0")}`);
