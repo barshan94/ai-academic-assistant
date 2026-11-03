@@ -131,36 +131,36 @@ select lives_ok(
 -- Even the owner cannot bypass the validated RPC workflows with direct table writes.
 -- The Data API grants are intentionally SELECT-only for these append/update workflows.
 select throws_ok(
-  $insert into public.question_revision_progress
+  $sql$insert into public.question_revision_progress
     (owner_id, question_id, confidence, status, next_review_at)
-    values ('11000000-0000-4000-8000-000000000001', '31000000-0000-4000-8000-000000000001', 4, 'confident', now() + interval '7 days')$,
+    values ('11000000-0000-4000-8000-000000000001', '31000000-0000-4000-8000-000000000001', 4, 'confident', now() + interval '7 days')$sql$,
   '42501', null,
   'owner cannot bypass the revision RPC with a direct table insert'
 );
 select throws_ok(
-  $insert into public.practice_sets
+  $sql$insert into public.practice_sets
     (owner_id, title, question_count)
-    values ('11000000-0000-4000-8000-000000000001', 'Direct-write bypass', 1)$,
+    values ('11000000-0000-4000-8000-000000000001', 'Direct-write bypass', 1)$sql$,
   '42501', null,
   'owner cannot bypass practice-set validation with a direct table insert'
 );
 select throws_ok(
-  $update public.practice_set_items
+  $sql$update public.practice_set_items
     set outcome = 'correct'
-    where owner_id = '11000000-0000-4000-8000-000000000001'$,
+    where owner_id = '11000000-0000-4000-8000-000000000001'$sql$,
   '42501', null,
   'owner cannot bypass practice-answer RPC validation with a direct table update'
 );
 select throws_ok(
-  $insert into public.weekly_study_sessions
+  $sql$insert into public.weekly_study_sessions
     (owner_id, session_date, title, planned_minutes)
-    values ('11000000-0000-4000-8000-000000000001', date '2026-10-31', 'Direct-write bypass', 30)$,
+    values ('11000000-0000-4000-8000-000000000001', date '2026-10-31', 'Direct-write bypass', 30)$sql$,
   '42501', null,
   'owner cannot bypass calendar validation with a direct table insert'
 );
 select throws_ok(
-  $delete from public.weekly_study_sessions
-    where owner_id = '11000000-0000-4000-8000-000000000001'$,
+  $sql$delete from public.weekly_study_sessions
+    where owner_id = '11000000-0000-4000-8000-000000000001'$sql$,
   '42501', null,
   'owner cannot bypass planned-session deletion rules with a direct table delete'
 );
