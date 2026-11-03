@@ -40,8 +40,6 @@ jobs:
             --header "Authorization: Bearer $CRON_SECRET" \
             --max-time 65 \
             "${APP_BASE_URL%/}/api/cron/process-documents")"
-          cat "$response_file"
-          rm -f "$response_file"
           case "$status" in
             2*) ;;
             *) echo "::error::Document worker returned HTTP $status"; exit 1 ;;
