@@ -4,9 +4,9 @@ This document separates repository implementation from actions that require the 
 
 ## 1. Environment and provider setup
 
-### Verified preview configuration — 2026-11-02
+### Verified preview configuration — 2026-11-03
 
-Read-only inspection of the Vercel preview project's environment-variable inventory found only three entries: the Supabase URL, Supabase publishable key, and `DRIVE_TOKEN_ENCRYPTION_KEY`. The Drive encryption-key entry is present but has an empty value. `SUPABASE_SERVICE_ROLE_KEY` and `CRON_SECRET` are absent, as are Google OAuth client credentials and AI provider configuration. No secret values were decrypted or changed. The preview's public `/api/health` endpoint returns HTTP 200, but this is only a process-level health check; it does not prove Supabase connectivity, database schema readiness, or authenticated application functionality. Configure the missing values only after the owner approves the corresponding provider, account, budget and data-processing terms.
+Read-only inspection of the Vercel project environment-variable inventory (including a non-disclosing check of whether sensitive values are populated) found only three entries: the Supabase URL, Supabase publishable key, and `DRIVE_TOKEN_ENCRYPTION_KEY`. The Drive encryption key is **not populated**. `SUPABASE_SERVICE_ROLE_KEY`, `CRON_SECRET`, and Google OAuth client credentials are absent. No secret values were changed or displayed. The app also has no configured owner AI provider acceptance yet. The preview's public `/api/health` endpoint returns HTTP 200, but this is only a process-level health check; it does not prove Supabase connectivity, database schema readiness, or authenticated application functionality. Configure the missing values only after the owner approves the corresponding provider, account, budget and data-processing terms.
 
 
 - [ ] Confirm the non-production Vercel deployment target and deploy only after the implementation branch is ready for the testing phase.
