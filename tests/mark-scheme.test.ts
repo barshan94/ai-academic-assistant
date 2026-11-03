@@ -53,6 +53,11 @@ describe("mark scheme review checklist", () => {
     expect(markSchemeSchema.safeParse({ ...scheme, sourceUrl: "http://example.org/file.pdf" }).success).toBe(false);
   });
 
+  it("rejects File values in mark-scheme metadata", () => {
+    expect(markSchemeSchema.safeParse({ ...scheme, title: new File(["x"], "title.txt") }).success).toBe(false);
+    expect(markSchemeSchema.safeParse({ ...scheme, sourceUrl: new File(["https://example.org"], "source.txt") }).success).toBe(false);
+  });
+
   it("rejects empty or oversized mark schemes", () => {
     expect(markSchemeSchema.safeParse({ ...scheme, points: [] }).success).toBe(false);
     expect(markSchemeSchema.safeParse({ ...scheme, points: Array(81).fill(scheme.points[0]) }).success).toBe(false);
