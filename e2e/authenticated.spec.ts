@@ -111,7 +111,8 @@ async function createTestFixture(): Promise<TestFixture> {
         model: "deterministic-test",
         prompt_version: "authenticated-e2e-fixture-v1",
         answer_json: answerFixture,
-        verification_status: "generated",
+        // verification_status is intentionally omitted: the database default
+        // creates a generated draft, and authenticated clients cannot set it.
       })
       .select("id")
       .single();
