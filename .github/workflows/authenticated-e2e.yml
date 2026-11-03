@@ -45,6 +45,10 @@ jobs:
             echo "::error::Owner and teacher must be two different accounts."
             exit 1
           fi
+          if [ "$NEXT_PUBLIC_SUPABASE_URL" != "https://uqpyzicftxxegajaocxi.supabase.co" ]; then
+            echo "::error::Authenticated E2E is locked to the approved non-production academic-assistant project."
+            exit 1
+          fi
 
       - name: Set up Node.js
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
