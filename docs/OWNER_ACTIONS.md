@@ -16,15 +16,16 @@ The following are absent: `SUPABASE_SERVICE_ROLE_KEY`, `CRON_SECRET`, Google OAu
 
 ### Latest implementation-branch verification — 2026-11-03
 
-Latest verified branch commit: `294491308b897f2b635b188c0646b0cb010f9072`.
+Latest verified branch commit: `086c19c21b20187758330dbbd5053b05cf1535eb`.
 
-- Foundation workflow `41591075388`: lint, application and Playwright type-checks, unit tests, production build and production-dependency audit passed; Chromium browser smoke passed 10 credential-free tests.
-- Database authorization workflow `41591075210`: isolated local Supabase migration replay and pgTAP authorization tests passed.
-- Secret scanning workflow `41591075272`: passed.
-- Authenticated two-account workflow `41591075349`: skipped because dedicated non-production credentials/enablement are not configured. This is not a pass.
-- Pull request #1 remains open and draft. No merge or production deployment occurred.
+- Foundation workflow `41595253539`: ESLint, application and Playwright type-checks, production environment contract check, production-dependency audit, production build, and **207 unit tests across 40 files** passed.
+- Chromium browser smoke in the same run: **10 passed**; the authenticated two-account test was skipped because dedicated non-production credentials are not configured.
+- Database authorization workflow `41595253518`: fresh isolated local Supabase migration replay and **236 pgTAP assertions across 11 files** passed.
+- Secret scanning workflow `41595253441`: passed.
+- Authenticated two-account workflow `41595259318`: skipped because the workflow is not enabled with dedicated non-production credentials. This is not a pass.
+- Pull request #1 remains open and draft. No merge, hosted migration, or production deployment occurred.
 
-These results validate source checks and an isolated local database only. They do not establish hosted Supabase migration completion, real Google Drive OAuth/upload/OCR, live AI-provider quality, authenticated two-account isolation, or backup/restore recovery.
+These results validate source checks, browser smoke behavior without authenticated data, and an isolated local database only. They do not establish hosted Supabase migration completion, real Google Drive OAuth/upload/OCR, live AI-provider quality, authenticated two-account isolation, or backup/restore recovery.
 
 - [ ] Confirm the non-production Vercel deployment target and deploy only after the implementation branch is ready for the testing phase.
 - [x] Inventory the existing Supabase organization and projects. Reuse the existing Free-plan `academic-assistant` project as the non-production candidate; do not create another account or project by default.
