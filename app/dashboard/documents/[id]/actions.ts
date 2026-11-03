@@ -24,7 +24,7 @@ export async function savePageCorrection(formData: FormData) {
   if (authError || !user) redirect("/login");
 
   const { data: correctionSaved, error: correctionError } = await supabase.rpc("save_document_page_correction", {
-    p_document_id: documentId,
+    p_document_id: documentId.data,
     p_owner_id: user.id,
     p_page_id: pageId,
     p_extracted_text: extractedText,
@@ -35,8 +35,8 @@ export async function savePageCorrection(formData: FormData) {
 }
 
 export async function approveDocument(formData: FormData) {
-  const documentId = String(formData.get("documentId") ?? "");
-  if (!z.string().uuid().safeParse(documentId).success) {
+  const documentId = z.string().uuid().safeParse(formData.get("documentId") ?? "");
+  if (!documentId.success) {
     redirect("/dashboard/documents?review=invalid");
   }
 
@@ -49,7 +49,7 @@ export async function approveDocument(formData: FormData) {
     p_owner_id: user.id,
   });
 
-  redirect("/dashboard/documents/" + encodeURIComponent(documentId) +
+  redirect("/dashboard/documents/" + encodeURIComponent(documentId.data) +
     (approvalError ? "?review=approve_failed" : "?review=approved"));
 }
 
