@@ -34,8 +34,7 @@ jobs:
           APP_BASE_URL: ${{ secrets.APP_BASE_URL }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
-          response_file="$(mktemp)"
-          status="$(curl --silent --show-error --output "$response_file" --write-out "%{http_code}" \
+          status="$(curl --silent --show-error --output /dev/null --write-out "%{http_code}" \
             --request POST \
             --header "Authorization: Bearer $CRON_SECRET" \
             --max-time 65 \
