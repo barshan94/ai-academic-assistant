@@ -54,17 +54,20 @@ export async function approveDocument(formData: FormData) {
 }
 
 export async function createQuestionFromPage(formData: FormData) {
-  const documentId = String(formData.get("documentId") ?? "");
+  const rawDocumentId = formData.get("documentId");
+  const documentId = typeof rawDocumentId === "string" ? rawDocumentId : "";
+  // Keep non-string FormData entries intact so Zod rejects File/Blob values
+  // instead of coercing them to the accepted literal string "[object File]".
   const parsed = questionCreateSchema.safeParse({
-    documentId,
-    documentPageId: String(formData.get("documentPageId") ?? ""),
-    questionText: String(formData.get("questionText") ?? ""),
-    questionNumber: String(formData.get("questionNumber") ?? ""),
-    board: String(formData.get("board") ?? ""),
-    qualification: String(formData.get("qualification") ?? ""),
-    subject: String(formData.get("subject") ?? ""),
-    chapter: String(formData.get("chapter") ?? ""),
-    topic: String(formData.get("topic") ?? ""),
+    documentId: rawDocumentId ?? "",
+    documentPageId: formData.get("documentPageId") ?? "",
+    questionText: formData.get("questionText") ?? "",
+    questionNumber: formData.get("questionNumber") ?? "",
+    board: formData.get("board") ?? "",
+    qualification: formData.get("qualification") ?? "",
+    subject: formData.get("subject") ?? "",
+    chapter: formData.get("chapter") ?? "",
+    topic: formData.get("topic") ?? "",
   });
 
   if (!parsed.success) {
