@@ -225,3 +225,19 @@ These results validate the feature-branch CI snapshot only. They do not establis
 - Operations-only PR #2 is merged to `main` as `fbca5d21cc6325b43a47ecbd7a5d5f487b7579c4`; the manual non-production migration workflow is now available. It has not run because the two repository Actions secrets are not configured.
 - Hosted Supabase remains unchanged at 53 migration-ledger entries. No ledger repair, pending DDL, production merge, or deployment has occurred.
 - The release decision remains **NOT APPROVED FOR PRODUCTION**. Hosted migration reconciliation, two-account acceptance, Google Drive/OAuth and AI provider runtime tests, backup/restore drill, accessibility and academic/privacy review remain outstanding. Full dev dependency audit remains at 13 moderate findings (ERR-124); production-only audit is clean.
+
+
+## Superseding hosted migration checkpoint — 2026-11-03 12:15 UTC
+
+The guarded workflow completed successfully on feature-branch head `950e67404a99f5479bbb3b1476c482bd36813a37` (run [41634053668](https://github.com/barshan94/ai-academic-assistant/actions/runs/41634053668)).
+
+- [x] Confirmed the workflow checked out `feature/m3-ai-solver`, validated the two repository Actions secrets, linked only to approved non-production project `uqpyzicftxxegajaocxi`, and used pinned Supabase CLI `2.122.0`.
+- [x] Reconciled the two byte-identical migration-history pairs: hosted-only versions `20261031031132` and `20261031031233` were marked reverted; repository versions `20261031031012` and `20261031031212` were marked applied. Their DDL was not rerun.
+- [x] Full `--include-all` dry-run completed successfully and enumerated **44 pending migrations** (from `20261031061000` through `20261101160000`).
+- [x] Confirmed the workflow stopped after dry-run with `APPLY_PENDING_MIGRATIONS=false`. **No pending migration DDL was applied.** No reset or production deployment occurred.
+- [ ] Review the 44-migration plan and obtain explicit owner authorization before running the guarded apply operation.
+- [ ] After an approved apply, verify the hosted schema, expected 97-version migration ledger, seed counts, page-count constraint, effective grants/RLS, advisors and authenticated two-account behavior.
+
+Latest CI on the same feature head: Foundation `41624009496`, Database authorization `41624009512`, and Secret scanning `41624009500` passed. Authenticated browser acceptance `41624009442` was skipped because dedicated test credentials are not configured. PR #1 remains open, draft and unmerged.
+
+The successful dry-run is a meaningful migration-readiness milestone, not production approval. External Google Drive/OAuth and AI-provider acceptance, two-account authorization, backup/restore rehearsal, accessibility, academic/privacy review, and ERR-124 development dependency remediation remain open.
