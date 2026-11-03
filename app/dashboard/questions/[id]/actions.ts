@@ -19,7 +19,7 @@ import { assertWebResearchConfigured, searchWebSources, WebResearchConfiguration
 const questionIdSchema = z.string().uuid();
 
 export async function generateQuestionSolution(formData: FormData) {
-  const questionId = questionIdSchema.safeParse(String(formData.get("questionId") ?? ""));
+  const questionId = questionIdSchema.safeParse(formData.get("questionId") ?? "");
   if (!questionId.success) redirect("/dashboard/questions?solve=invalid");
 
   const supabase = await createSupabaseServerClient();
@@ -154,8 +154,8 @@ export async function generateQuestionSolution(formData: FormData) {
 }
 
 export async function saveQuestionSolutionMarkScheme(formData: FormData) {
-  const solutionId = z.string().uuid().safeParse(String(formData.get("solutionId") ?? ""));
-  const pointsJson = String(formData.get("points") ?? "");
+  const solutionId = z.string().uuid().safeParse(formData.get("solutionId") ?? "");
+  const pointsJson = formData.get("points") ?? "";
   if (pointsJson.length > 262144) {
     redirect("/dashboard/questions?mark_scheme=too_large");
   }
@@ -166,14 +166,14 @@ export async function saveQuestionSolutionMarkScheme(formData: FormData) {
     redirect("/dashboard/questions?mark_scheme=invalid_json");
   }
   const parsedScheme = markSchemeSchema.safeParse({
-    title: String(formData.get("title") ?? ""),
-    awardingBody: String(formData.get("awardingBody") ?? ""),
-    qualification: String(formData.get("qualification") ?? ""),
-    subject: String(formData.get("subject") ?? ""),
-    paperReference: String(formData.get("paperReference") ?? "") || undefined,
-    sourceUrl: String(formData.get("sourceUrl") ?? ""),
-    sourceLocator: String(formData.get("sourceLocator") ?? ""),
-    sourceDocumentVersion: String(formData.get("sourceDocumentVersion") ?? "") || undefined,
+    title: formData.get("title") ?? "",
+    awardingBody: formData.get("awardingBody") ?? "",
+    qualification: formData.get("qualification") ?? "",
+    subject: formData.get("subject") ?? "",
+    paperReference: formData.get("paperReference") ?? "" || undefined,
+    sourceUrl: formData.get("sourceUrl") ?? "",
+    sourceLocator: formData.get("sourceLocator") ?? "",
+    sourceDocumentVersion: formData.get("sourceDocumentVersion") ?? "" || undefined,
     points: rawPoints,
   });
   if (!solutionId.success || !parsedScheme.success) {
@@ -221,9 +221,9 @@ const solutionReviewSchema = z.object({
 
 export async function reviewQuestionSolution(formData: FormData) {
   const parsed = solutionReviewSchema.safeParse({
-    solutionId: String(formData.get("solutionId") ?? ""),
-    decision: String(formData.get("decision") ?? ""),
-    correctionNotes: String(formData.get("correctionNotes") ?? ""),
+    solutionId: formData.get("solutionId") ?? "",
+    decision: formData.get("decision") ?? "",
+    correctionNotes: formData.get("correctionNotes") ?? "",
   });
   if (!parsed.success) redirect("/dashboard/questions?review=invalid");
 
@@ -283,7 +283,7 @@ const teacherInviteSchema = z.object({
 });
 
 export async function createQuestionTeacherInvite(formData: FormData) {
-  const parsed = teacherInviteSchema.safeParse({ questionId: String(formData.get("questionId") ?? ""), email: String(formData.get("email") ?? "") });
+  const parsed = teacherInviteSchema.safeParse({ questionId: formData.get("questionId") ?? "", email: formData.get("email") ?? "" });
   if (!parsed.success) redirect("/dashboard/questions?invite=invalid");
   const supabase = await createSupabaseServerClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -303,7 +303,7 @@ export async function createQuestionTeacherInvite(formData: FormData) {
 }
 
 export async function acceptQuestionTeacherInvite(formData: FormData) {
-  const inviteId = z.string().uuid().safeParse(String(formData.get("inviteId") ?? ""));
+  const inviteId = z.string().uuid().safeParse(formData.get("inviteId") ?? "");
   if (!inviteId.success) redirect("/dashboard/teacher-invites?invite=invalid");
   const supabase = await createSupabaseServerClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -319,8 +319,8 @@ export async function acceptQuestionTeacherInvite(formData: FormData) {
 }
 
 export async function revokeQuestionTeacherInvite(formData: FormData) {
-  const inviteId = z.string().uuid().safeParse(String(formData.get("inviteId") ?? ""));
-  const questionId = z.string().uuid().safeParse(String(formData.get("questionId") ?? ""));
+  const inviteId = z.string().uuid().safeParse(formData.get("inviteId") ?? "");
+  const questionId = z.string().uuid().safeParse(formData.get("questionId") ?? "");
   if (!inviteId.success || !questionId.success) redirect("/dashboard/questions?invite=invalid");
   const supabase = await createSupabaseServerClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -345,8 +345,8 @@ const webResearchSchema = z.object({
 
 export async function searchQuestionWebSources(formData: FormData) {
   const parsed = webResearchSchema.safeParse({
-    questionId: String(formData.get("questionId") ?? ""),
-    query: String(formData.get("query") ?? ""),
+    questionId: formData.get("questionId") ?? "",
+    query: formData.get("query") ?? "",
   });
   if (!parsed.success) redirect("/dashboard/questions?research=invalid");
 
