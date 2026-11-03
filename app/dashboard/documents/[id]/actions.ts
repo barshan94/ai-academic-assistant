@@ -45,7 +45,7 @@ export async function approveDocument(formData: FormData) {
   if (authError || !user) redirect("/login");
 
   const { error: approvalError } = await supabase.rpc("approve_document_review", {
-    p_document_id: documentId,
+    p_document_id: documentId.data,
     p_owner_id: user.id,
   });
 
