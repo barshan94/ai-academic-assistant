@@ -1,6 +1,6 @@
 # Document worker deployment setup
 
-The application includes a server-side worker at `GET /api/cron/process-documents`. It claims and processes at most one eligible job per invocation. The worker route is protected by a bearer secret and uses the Supabase service-role key only on the server.
+The application includes a server-side worker at `POST /api/cron/process-documents`. It claims and processes at most one eligible job per invocation. The worker route accepts POST only and is protected by a bearer secret and uses the Supabase service-role key only on the server.
 
 ## GitHub Actions scheduler
 
