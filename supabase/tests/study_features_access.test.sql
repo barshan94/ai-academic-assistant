@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(37);
+select plan(42);
 
 -- Isolated owner and outsider fixtures. The entire test rolls back.
 insert into auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
@@ -126,6 +126,43 @@ select lives_ok(
 select lives_ok(
   $$select public.delete_planned_weekly_study_session((select id from public.weekly_study_sessions where title = 'Disposable planned session'))$$,
   'owner can delete a planned session'
+);
+
+-- Even the owner cannot bypass the validated RPC workflows with direct table writes.
+-- The Data API grants are intentionally SELECT-only for these append/update workflows.
+select throws_ok(
+  $insert into public.question_revision_progress
+    (owner_id, question_id, confidence, status, next_review_at)
+    values ('11000000-0000-4000-8000-000000000001', '31000000-0000-4000-8000-000000000001', 4, 'confident', now() + interval '7 days')$,
+  '42501', null,
+  'owner cannot bypass the revision RPC with a direct table insert'
+);
+select throws_ok(
+  $insert into public.practice_sets
+    (owner_id, title, question_count)
+    values ('11000000-0000-4000-8000-000000000001', 'Direct-write bypass', 1)$,
+  '42501', null,
+  'owner cannot bypass practice-set validation with a direct table insert'
+);
+select throws_ok(
+  $update public.practice_set_items
+    set outcome = 'correct'
+    where owner_id = '11000000-0000-4000-8000-000000000001'$,
+  '42501', null,
+  'owner cannot bypass practice-answer RPC validation with a direct table update'
+);
+select throws_ok(
+  $insert into public.weekly_study_sessions
+    (owner_id, session_date, title, planned_minutes)
+    values ('11000000-0000-4000-8000-000000000001', date '2026-10-31', 'Direct-write bypass', 30)$,
+  '42501', null,
+  'owner cannot bypass calendar validation with a direct table insert'
+);
+select throws_ok(
+  $delete from public.weekly_study_sessions
+    where owner_id = '11000000-0000-4000-8000-000000000001'$,
+  '42501', null,
+  'owner cannot bypass planned-session deletion rules with a direct table delete'
 );
 
 -- Outsider: all owner data stays invisible and owner-scoped RPCs reject foreign IDs.
