@@ -35,6 +35,7 @@ describe("deterministic chemistry equation checks", () => {
       { equation: "Mg(OH -> MgO + H2O", claimedBalanced: true },
       { equation: "H()2 + O2 -> H2O", claimedBalanced: true },
       { equation: "Xx2 + O2 -> Xx2O2", claimedBalanced: true },
+      { equation: "(H10000)10000 -> H2", claimedBalanced: true },
     ]);
     expect(results.every((item) => item.status === "uncheckable")).toBe(true);
   });
