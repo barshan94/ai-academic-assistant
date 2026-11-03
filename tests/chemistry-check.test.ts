@@ -21,11 +21,12 @@ describe("deterministic chemistry equation checks", () => {
     expect(mismatch.atomCounts.O).toEqual({ left: 2, right: 1 });
   });
 
-  it("supports state symbols and different arrow forms", () => {
-    const [result] = checkChemicalEquations([
+  it("supports state symbols, different arrow forms and the maximum documented coefficient", () => {
+    const results = checkChemicalEquations([
       { equation: "2Na(s) + Cl2(g) = 2NaCl(s)", claimedBalanced: true },
+      { equation: "10000H2 + 5000O2 -> 10000H2O", claimedBalanced: true },
     ]);
-    expect(result.status).toBe("balanced");
+    expect(results.map((result) => result.status)).toEqual(["balanced", "balanced"]);
   });
 
   it("marks ionic charges, hydrates and malformed formulae as uncheckable", () => {
