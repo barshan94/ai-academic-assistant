@@ -37,6 +37,8 @@ describe("question capture validation", () => {
   });
 
   it("rejects File values instead of coercing them into question text or metadata", () => {
+    expect(questionCreateSchema.safeParse({ ...validInput, documentId: new File(["x"], "document.txt") }).success).toBe(false);
+    expect(questionCreateSchema.safeParse({ ...validInput, documentPageId: new File(["x"], "page.txt") }).success).toBe(false);
     expect(questionCreateSchema.safeParse({ ...validInput, questionText: new File(["x"], "question.txt") }).success).toBe(false);
     expect(questionCreateSchema.safeParse({ ...validInput, questionNumber: new File(["x"], "number.txt") }).success).toBe(false);
     expect(questionCreateSchema.safeParse({ ...validInput, board: new File(["x"], "board.txt") }).success).toBe(false);
