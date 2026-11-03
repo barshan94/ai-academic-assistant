@@ -41,4 +41,17 @@ describe("non-production Supabase migration reconciliation script", () => {
     expect(script).not.toContain("supabase projects create");
     expect(script).not.toContain('SUPABASE_PROJECT_ID:-');
   });
+  it("keeps the hosted migration runner manual, branch-restricted and pinned", () => {
+    expect(workflow).toContain("workflow_dispatch:");
+    expect(workflow).not.toContain("\\n  push:");
+    expect(workflow).not.toContain("\\n  pull_request:");
+    expect(workflow).toContain("refs/heads/feature/m3-ai-solver");
+    expect(workflow).toContain("version: 2.122.0");
+    expect(workflow).toContain("supabase/setup-cli@a9de0f0e1ffcf6ec895b135e292ddc76592d3c83");
+    expect(workflow).toContain("default: reconcile-and-dry-run");
+    expect(workflow).toContain("APPLY uqpyzicftxxegajaocxi");
+    expect(workflow).toContain("${{ secrets.SUPABASE_ACCESS_TOKEN }}");
+    expect(workflow).toContain("${{ secrets.SUPABASE_DB_PASSWORD }}");
+  });
+
 });
