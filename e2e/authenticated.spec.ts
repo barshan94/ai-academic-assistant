@@ -189,8 +189,26 @@ test("two-account teacher invitation, review, and revocation lifecycle", async (
     await owner.goto(questionUrl);
     await expect(owner.getByRole("heading", { name: "Question workspace." })).toBeVisible();
     await owner.getByLabel("Teacher account email").fill(config.teacherEmail);
+    const inviteActionResponses: { status: number; url: string; location: string | null }[] = [];
+    const invitePageErrors: string[] = [];
+    owner.on("pageerror", (error) => invitePageErrors.push(error.message));
+    owner.on("response", async (response) => {
+      if (response.request().method() === "POST") {
+        const headers = await response.allHeaders();
+        inviteActionResponses.push({
+          status: response.status(),
+          url: response.url(),
+          location: headers.location ?? null,
+        });
+      }
+    });
     await owner.getByRole("button", { name: /create teacher invitation/i }).click();
-    await expect(owner).toHaveURL(/invite=created/);
+    await expect(owner, "Invitation action diagnostics: " + JSON.stringify({
+      responses: inviteActionResponses,
+      pageErrors: invitePageErrors,
+      visibleAlerts: await owner.getByRole("alert").allTextContents(),
+      currentUrl: owner.url(),
+    })).toHaveURL(/invite=created/);
 
     // Teacher explicitly accepts the invitation using the matching account.
     await teacher.goto("/dashboard/teacher-invites");
