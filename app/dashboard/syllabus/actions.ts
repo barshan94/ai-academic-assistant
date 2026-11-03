@@ -63,7 +63,7 @@ async function requireOwner() {
 }
 
 export async function importSyllabusCatalog(formData: FormData) {
-  const parsed = parseSyllabusImportText(String(formData.get("payload") ?? ""));
+  const parsed = parseSyllabusImportText(formData.get("payload") ?? "");
   if (!parsed.success) redirect("/dashboard/syllabus?import=import_invalid");
 
   const { supabase } = await requireOwner();
@@ -82,14 +82,14 @@ export async function importSyllabusCatalog(formData: FormData) {
 
 export async function createSyllabusCatalog(formData: FormData) {
   const parsed = catalogSchema.safeParse({
-    board: String(formData.get("board") ?? ""),
-    qualification: String(formData.get("qualification") ?? ""),
-    subject: String(formData.get("subject") ?? ""),
-    version: String(formData.get("version") ?? ""),
-    effectiveFrom: String(formData.get("effectiveFrom") ?? ""),
-    effectiveTo: String(formData.get("effectiveTo") ?? ""),
-    sourceUrl: String(formData.get("sourceUrl") ?? ""),
-    sourceTitle: String(formData.get("sourceTitle") ?? ""),
+    board: formData.get("board") ?? "",
+    qualification: formData.get("qualification") ?? "",
+    subject: formData.get("subject") ?? "",
+    version: formData.get("version") ?? "",
+    effectiveFrom: formData.get("effectiveFrom") ?? "",
+    effectiveTo: formData.get("effectiveTo") ?? "",
+    sourceUrl: formData.get("sourceUrl") ?? "",
+    sourceTitle: formData.get("sourceTitle") ?? "",
   });
   if (!parsed.success) redirect("/dashboard/syllabus?catalog=invalid");
 
@@ -114,10 +114,10 @@ export async function createSyllabusCatalog(formData: FormData) {
 
 export async function createSyllabusChapter(formData: FormData) {
   const parsed = chapterSchema.safeParse({
-    catalogId: String(formData.get("catalogId") ?? ""),
-    title: String(formData.get("title") ?? ""),
-    code: String(formData.get("code") ?? ""),
-    sortOrder: String(formData.get("sortOrder") ?? "0"),
+    catalogId: formData.get("catalogId") ?? "",
+    title: formData.get("title") ?? "",
+    code: formData.get("code") ?? "",
+    sortOrder: formData.get("sortOrder") ?? "0",
   });
   if (!parsed.success) redirect("/dashboard/syllabus?chapter=invalid");
 
@@ -142,10 +142,10 @@ export async function createSyllabusChapter(formData: FormData) {
 
 export async function createSyllabusTopic(formData: FormData) {
   const parsed = topicSchema.safeParse({
-    chapterId: String(formData.get("chapterId") ?? ""),
-    title: String(formData.get("title") ?? ""),
-    code: String(formData.get("code") ?? ""),
-    sortOrder: String(formData.get("sortOrder") ?? "0"),
+    chapterId: formData.get("chapterId") ?? "",
+    title: formData.get("title") ?? "",
+    code: formData.get("code") ?? "",
+    sortOrder: formData.get("sortOrder") ?? "0",
   });
   if (!parsed.success) redirect("/dashboard/syllabus?topic=invalid");
 
@@ -172,7 +172,7 @@ export async function createSyllabusTopic(formData: FormData) {
 }
 
 export async function verifySyllabusCatalog(formData: FormData) {
-  const catalogId = z.string().uuid().safeParse(String(formData.get("catalogId") ?? ""));
+  const catalogId = z.string().uuid().safeParse(formData.get("catalogId") ?? "");
   if (!catalogId.success) redirect("/dashboard/syllabus?catalog=invalid");
   const { supabase, user } = await requireOwner();
   const { data: catalog, error: catalogError } = await supabase.from("syllabus_catalogs")
@@ -201,7 +201,7 @@ export async function verifySyllabusCatalog(formData: FormData) {
 }
 
 export async function retireSyllabusCatalog(formData: FormData) {
-  const catalogId = z.string().uuid().safeParse(String(formData.get("catalogId") ?? ""));
+  const catalogId = z.string().uuid().safeParse(formData.get("catalogId") ?? "");
   if (!catalogId.success) redirect("/dashboard/syllabus?catalog=invalid");
   const { supabase, user } = await requireOwner();
   const { data, error } = await supabase.from("syllabus_catalogs").update({
@@ -216,13 +216,13 @@ export async function retireSyllabusCatalog(formData: FormData) {
 
 export async function addSyllabusReferenceEvidence(formData: FormData) {
   const parsed = parseSyllabusEvidenceInput({
-    catalogId: String(formData.get("catalogId") ?? ""),
-    chapterId: String(formData.get("chapterId") ?? ""),
-    topicId: String(formData.get("topicId") ?? ""),
-    sourceUrl: String(formData.get("sourceUrl") ?? ""),
-    sourceTitle: String(formData.get("sourceTitle") ?? ""),
-    sourceLocator: String(formData.get("sourceLocator") ?? ""),
-    evidenceExcerpt: String(formData.get("evidenceExcerpt") ?? ""),
+    catalogId: formData.get("catalogId") ?? "",
+    chapterId: formData.get("chapterId") ?? "",
+    topicId: formData.get("topicId") ?? "",
+    sourceUrl: formData.get("sourceUrl") ?? "",
+    sourceTitle: formData.get("sourceTitle") ?? "",
+    sourceLocator: formData.get("sourceLocator") ?? "",
+    evidenceExcerpt: formData.get("evidenceExcerpt") ?? "",
   });
   if (!parsed.success) redirect("/dashboard/syllabus?evidence=invalid");
 
