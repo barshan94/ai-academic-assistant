@@ -17,11 +17,11 @@ const createSchema = z.object({
 
 export async function createPracticeSet(formData: FormData) {
   const parsed = createSchema.safeParse({
-    title: String(formData.get("title") ?? ""),
-    subject: String(formData.get("subject") ?? ""),
-    chapter: String(formData.get("chapter") ?? ""),
-    topic: String(formData.get("topic") ?? ""),
-    count: String(formData.get("count") ?? "10"),
+    title: formData.get("title") ?? "",
+    subject: formData.get("subject") ?? "",
+    chapter: formData.get("chapter") ?? "",
+    topic: formData.get("topic") ?? "",
+    count: formData.get("count") ?? "10",
   });
   if (!parsed.success) redirect("/dashboard/practice?create=invalid");
 
@@ -62,10 +62,10 @@ const answerSchema = z.object({
 
 export async function recordPracticeAnswer(formData: FormData) {
   const parsed = answerSchema.safeParse({
-    itemId: String(formData.get("itemId") ?? ""),
-    outcome: String(formData.get("outcome") ?? ""),
-    notes: String(formData.get("notes") ?? ""),
-    setId: String(formData.get("setId") ?? ""),
+    itemId: formData.get("itemId") ?? "",
+    outcome: formData.get("outcome") ?? "",
+    notes: formData.get("notes") ?? "",
+    setId: formData.get("setId") ?? "",
   });
   if (!parsed.success) redirect("/dashboard/practice?answer=invalid");
 
@@ -103,9 +103,9 @@ const practiceRevisionSchema = z.object({
 
 export async function schedulePracticeQuestionRevision(formData: FormData) {
   const parsed = practiceRevisionSchema.safeParse({
-    itemId: String(formData.get("itemId") ?? ""),
-    setId: String(formData.get("setId") ?? ""),
-    confidence: String(formData.get("confidence") ?? ""),
+    itemId: formData.get("itemId") ?? "",
+    setId: formData.get("setId") ?? "",
+    confidence: formData.get("confidence") ?? "",
   });
   if (!parsed.success) redirect("/dashboard/practice?revision=invalid");
 
