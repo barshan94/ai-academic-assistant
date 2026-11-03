@@ -274,19 +274,19 @@ export async function verifyReferenceCatalog(formData: FormData) {
   if (!sourceIsValid) redirect("/dashboard/syllabus/references/manage?result=source_required");
 
   const { data, error } = await supabase.from("reference_syllabus_catalogs")
-    .update({ status: "verified" }).eq("id", catalogId).eq("status", "draft").select("id").maybeSingle();
+    .update({ status: "verified" }).eq("id", catalogId.data).eq("status", "draft").select("id").maybeSingle();
   if (error || !data) redirect("/dashboard/syllabus/references/manage?result=verify_failed");
   refreshReferencePages(catalogId.data);
   redirect("/dashboard/syllabus/references/manage?result=verified");
 }
 
 export async function retireReferenceCatalog(formData: FormData) {
-  const catalogId = formData.get("catalogId") ?? "";
-  if (!z.string().uuid().safeParse(catalogId).success) redirect("/dashboard/syllabus/references/manage?result=invalid");
+  const catalogId = z.string().uuid().safeParse(formData.get("catalogId") ?? "");
+  if (!catalogId.success) redirect("/dashboard/syllabus/references/manage?result=invalid");
   const supabase = await requirePlatformAdmin();
   const { data, error } = await supabase.from("reference_syllabus_catalogs")
-    .update({ status: "retired" }).eq("id", catalogId).eq("status", "verified").select("id").maybeSingle();
+    .update({ status: "retired" }).eq("id", catalogId.data).eq("status", "verified").select("id").maybeSingle();
   if (error || !data) redirect("/dashboard/syllabus/references/manage?result=retire_failed");
-  refreshReferencePages(catalogId);
+  refreshReferencePages(catalogId.data);
   redirect("/dashboard/syllabus/references/manage?result=retired");
 }
