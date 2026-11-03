@@ -36,7 +36,7 @@ jobs:
         run: |
           response_file="$(mktemp)"
           status="$(curl --silent --show-error --output "$response_file" --write-out "%{http_code}" \
-            --request GET \
+            --request POST \
             --header "Authorization: Bearer $CRON_SECRET" \
             --max-time 65 \
             --retry 1 --retry-delay 5 --retry-all-errors \
