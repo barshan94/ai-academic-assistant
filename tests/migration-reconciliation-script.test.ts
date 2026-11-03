@@ -5,6 +5,8 @@ import { describe, expect, it } from "vitest";
 
 const scriptPath = fileURLToPath(new URL("../scripts/reconcile-nonprod-supabase-migrations.sh", import.meta.url));
 const script = readFileSync(scriptPath, "utf8");
+const workflowPath = fileURLToPath(new URL("../.github/workflows/reconcile-nonprod-migrations.yml", import.meta.url));
+const workflow = readFileSync(workflowPath, "utf8");
 
 describe("non-production Supabase migration reconciliation script", () => {
   it("has valid Bash syntax on Unix-like runners", () => {
