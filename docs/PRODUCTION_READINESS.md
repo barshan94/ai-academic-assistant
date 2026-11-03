@@ -191,3 +191,17 @@ Do not check any runtime or external-review item above until the evidence is att
 - [x] Fresh isolated CI run on `ffd3302775911969c8e54ec282fd9250dcff4122` replayed the complete repository migration chain and passed 236 pgTAP assertions across 11 files.
 - [ ] Execute the pinned Supabase CLI reconciliation script against the already-approved non-production project, beginning with the two version-aware ledger repairs and the full `--include-all --dry-run`; stop on any unexpected migration ordering or schema error.
 - [ ] After the dry-run is reviewed, apply the 44 pending migrations, then verify the 97 expected ledger versions, schema, seed counts, RLS/ACLs, advisors and authenticated two-account workflows.
+
+
+## Latest verification snapshot — 2026-11-03
+
+Feature-branch commit `bfb4cd96361d16aca395983416de2952e18b978f` completed the following GitHub Actions workflows successfully:
+
+- Foundation checks: lint, production-dependency audit, environment-contract preflight, application and Playwright type-checks, unit tests, production build, and Chromium browser smoke tests all passed (run `41587973785`).
+- Database authorization workflow: fresh isolated local Supabase migration replay and pgTAP suite passed (run `41587978505`).
+- Secret scanning passed (run `41587978500`).
+- Authenticated two-account acceptance was **skipped** (run `41587978576`) because non-production test credentials are not configured. This is not a pass.
+
+A fresh read-only inspection of the existing non-production Supabase project on 2026-11-03 found 53 hosted migration-ledger entries against 97 repository migrations, 21/21 public tables with RLS enabled, zero security-advisor findings, and 60 informational unused-index notices. The migration ledger remains unreconciled; see `docs/MIGRATION_RECONCILIATION.md`. No hosted migration, ledger repair, schema mutation, production deployment or merge was performed.
+
+These results validate the feature-branch CI snapshot only. They do not establish hosted migration parity, live Google Drive/OAuth, live AI provider behavior, authenticated two-account authorization, restore readiness, accessibility acceptance or production approval. The release decision remains **NOT APPROVED FOR PRODUCTION**.
