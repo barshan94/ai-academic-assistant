@@ -34,6 +34,7 @@ This is a code-level fix, not a deployed fix. The new migration must be applied 
 
 - `lib/supabase/env.ts`, `lib/supabase/server.ts`
 - `lib/drive/crypto.ts`, `lib/drive/google.ts`
+- `tests/drive-oauth-connect.test.ts`, `tests/drive-oauth-callback.test.ts`
 - `lib/documents/upload-limits.ts`, `lib/documents/resumable-upload.ts`
 - `lib/security/ai-generation-quota.ts`
 - SQL migrations defining application RPCs, trigger functions, RLS policies, grants, owner relationships, upload/AI/web-research quotas, practice/study features, teacher sharing/review, chapter notes, and syllabus catalogues.
@@ -60,7 +61,7 @@ This is a code-level fix, not a deployed fix. The new migration must be applied 
 - User-facing document processing routes resolve the user with `auth.getUser()`, scope document/job/page reads by owner, and use owner-checked atomic RPCs for claim, completion, failure, correction and approval transitions.
 - The scheduled worker uses a timing-safe `CRON_SECRET` comparison, a server-only service-role client, bounded provider responses/timeouts, owner-scoped record selection, and atomic job-claim RPCs.
 - Resumable upload sessions are AES-256-GCM encrypted, short-lived, owner-bound, and restricted to Google API upload-session URLs; chunk bodies and offsets are bounded/validated.
-- Google Drive refresh tokens are encrypted at rest. The callback checks OAuth state against a short-lived HTTP-only cookie and the currently authenticated owner; the requested/accepted scope is limited to `drive.file`.
+- Google Drive refresh tokens are encrypted at rest. The callback checks OAuth state against a short-lived HTTP-only cookie and the currently authenticated owner; the requested/accepted scope is limited to `drive.file`. New route-level regression tests cover unauthenticated OAuth initiation, high-entropy account-bound state-cookie attributes, least-privilege scope, missing/mismatched state, account mismatch, rejected provider scopes, encrypted-token persistence, and generic handling of token-exchange failures.
 - Readiness and liveness endpoints return generic status only; readiness is bearer-protected and uses bounded server-side dependency checks.
 - The reviewed `SECURITY DEFINER` functions use an empty `search_path`, explicitly check `auth.uid()` for user-scoped operations, and have execution grants narrowed from `PUBLIC`/ `anon` where appropriate. The private teacher-review writer is separated from its public invoker wrapper.
 - Owner-private tables reviewed use RLS and owner predicates; cross-owner document/page/question relationships use composite foreign keys. Teacher sharing is limited to the accepted invitation and question relationship.
@@ -73,7 +74,7 @@ This is a code-level fix, not a deployed fix. The new migration must be applied 
 2. **No live role/ACL audit was performed.** The source migration chain is the evidence here; deployed grants, RLS enablement and Supabase advisors must be checked later.
 3. **No live two-account teacher-sharing acceptance was performed.** Verify invitation acceptance, revocation races, teacher review, and cross-account invisibility using separate real test principals.
 4. **No live Google OAuth/Drive acceptance was performed.** Verify state mismatch, reconnect without a new refresh token, session replay, chunk interruption, Drive 404/410 and cleanup.
-5. **No CSRF, IDOR, quota-concurrency, replay, or direct-RPC penetration tests were run.** These belong in the separate testing phase.
+5. **Only targeted request-boundary regressions have been automated so far.** Chromium smoke tests reject cross-site resumable-upload requests, and the new OAuth route tests cover state mismatch and account mismatch. Comprehensive CSRF/IDOR, quota-concurrency, OAuth replay, and direct-RPC penetration testing has not been run; those remain separate testing-phase gates.
 6. **The readiness probe verifies configuration and Supabase Data API reachability, not Google Drive or AI provider reachability.** Do not treat a ready response as proof of those integrations.
 7. **Service-role use remains a critical trust boundary.** Keep `lib/supabase/service-role.ts` server-only and never import it into client components, browser bundles, middleware, or user-controlled code paths.
 
