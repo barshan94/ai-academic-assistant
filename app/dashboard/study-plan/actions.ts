@@ -20,12 +20,12 @@ const createSchema = z.object({
 
 export async function createStudySession(formData: FormData) {
   const parsed = createSchema.safeParse({
-    sessionDate: String(formData.get("sessionDate") ?? ""),
-    title: String(formData.get("title") ?? ""),
-    plannedMinutes: String(formData.get("plannedMinutes") ?? ""),
-    notes: String(formData.get("notes") ?? ""),
-    weekOffset: String(formData.get("weekOffset") ?? "0"),
-    sessionPage: String(formData.get("sessionPage") ?? "1"),
+    sessionDate: formData.get("sessionDate") ?? "",
+    title: formData.get("title") ?? "",
+    plannedMinutes: formData.get("plannedMinutes") ?? "",
+    notes: formData.get("notes") ?? "",
+    weekOffset: formData.get("weekOffset") ?? "0",
+    sessionPage: formData.get("sessionPage") ?? "1",
   });
   if (!parsed.success) redirect("/dashboard/study-plan?calendar=invalid");
   const weekQuery = (parsed.data.weekOffset ? "&week=" + parsed.data.weekOffset : "") + (parsed.data.sessionPage > 1 ? "&sessionPage=" + parsed.data.sessionPage : "");
@@ -58,13 +58,13 @@ const updateSchema = createSchema.extend({ sessionId: z.string().uuid() });
 
 export async function updatePlannedStudySession(formData: FormData) {
   const parsed = updateSchema.safeParse({
-    sessionId: String(formData.get("sessionId") ?? ""),
-    sessionDate: String(formData.get("sessionDate") ?? ""),
-    title: String(formData.get("title") ?? ""),
-    plannedMinutes: String(formData.get("plannedMinutes") ?? ""),
-    notes: String(formData.get("notes") ?? ""),
-    weekOffset: String(formData.get("weekOffset") ?? "0"),
-    sessionPage: String(formData.get("sessionPage") ?? "1"),
+    sessionId: formData.get("sessionId") ?? "",
+    sessionDate: formData.get("sessionDate") ?? "",
+    title: formData.get("title") ?? "",
+    plannedMinutes: formData.get("plannedMinutes") ?? "",
+    notes: formData.get("notes") ?? "",
+    weekOffset: formData.get("weekOffset") ?? "0",
+    sessionPage: formData.get("sessionPage") ?? "1",
   });
   if (!parsed.success) redirect("/dashboard/study-plan?calendar=invalid");
   const weekQuery = (parsed.data.weekOffset ? "&week=" + parsed.data.weekOffset : "") + (parsed.data.sessionPage > 1 ? "&sessionPage=" + parsed.data.sessionPage : "");
@@ -98,9 +98,9 @@ const deleteSchema = z.object({ sessionId: z.string().uuid(), weekOffset: z.coer
 
 export async function deletePlannedStudySession(formData: FormData) {
   const parsed = deleteSchema.safeParse({
-    sessionId: String(formData.get("sessionId") ?? ""),
-    weekOffset: String(formData.get("weekOffset") ?? "0"),
-    sessionPage: String(formData.get("sessionPage") ?? "1"),
+    sessionId: formData.get("sessionId") ?? "",
+    weekOffset: formData.get("weekOffset") ?? "0",
+    sessionPage: formData.get("sessionPage") ?? "1",
   });
   if (!parsed.success) redirect("/dashboard/study-plan?calendar=invalid");
   const weekQuery = (parsed.data.weekOffset ? "&week=" + parsed.data.weekOffset : "") + (parsed.data.sessionPage > 1 ? "&sessionPage=" + parsed.data.sessionPage : "");
@@ -120,7 +120,7 @@ export async function deletePlannedStudySession(formData: FormData) {
 const completeSchema = z.object({ sessionId: z.string().uuid(), weekOffset: z.coerce.number().int().min(-52).max(52).default(0), sessionPage: z.coerce.number().int().min(1).max(10000).default(1) });
 
 export async function completeStudySession(formData: FormData) {
-  const parsed = completeSchema.safeParse({ sessionId: String(formData.get("sessionId") ?? ""), weekOffset: String(formData.get("weekOffset") ?? "0"), sessionPage: String(formData.get("sessionPage") ?? "1") });
+  const parsed = completeSchema.safeParse({ sessionId: formData.get("sessionId") ?? "", weekOffset: formData.get("weekOffset") ?? "0", sessionPage: formData.get("sessionPage") ?? "1" });
   if (!parsed.success) redirect("/dashboard/study-plan?calendar=invalid");
   const weekQuery = (parsed.data.weekOffset ? "&week=" + parsed.data.weekOffset : "") + (parsed.data.sessionPage > 1 ? "&sessionPage=" + parsed.data.sessionPage : "");
 
