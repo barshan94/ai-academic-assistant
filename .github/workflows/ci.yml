@@ -54,14 +54,16 @@ jobs:
           AI_API_BASE_URL: https://api.openai.com/v1
 
       - name: Audit production dependencies
-        # This intentionally audits runtime dependencies only. It does NOT close
-        # ERR-124: the current tracked advisory is
-        # GHSA-g3hv-75wg-m249 (CVE-2026-118764). Its broad affected-version range
-        # conflicts with the advisory's implementation-specific technical details;
-        # applicability to the installed minimatch@3.1.5 remains under investigation.
-        # Full-tree audit remains a release gate
-        # until the ESLint/Next.js dependency graph is migrated safely.
+        # Runtime dependency vulnerabilities are a blocking CI gate.
+        # The full development-tree audit below remains a tracked release gate.
         run: npm audit --omit=dev
+
+      - name: Report full dependency audit (tracked release gate)
+        # Keep development-toolchain advisories visible without treating them as
+        # production runtime exposure. ERR-124 remains open until the lint
+        # toolchain can be upgraded without breaking the Next.js ESLint setup.
+        continue-on-error: true
+        run: npm audit
 
       - name: Install temporary Playwright types for validation
         run: npm install --no-save --package-lock=false @playwright/test@1.56.1
@@ -98,7 +100,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 22
+          persist-credentials: false
 
       - name: Set up pinned npm CLI
         run: npm install --global npm@11.21.1
