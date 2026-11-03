@@ -16,7 +16,7 @@ The following are absent: `SUPABASE_SERVICE_ROLE_KEY`, `CRON_SECRET`, Google OAu
 
 ### Latest implementation-branch verification — 2026-11-03
 
-Latest verified branch commit: `086c19c21b20187758330dbbd5053b05cf1535eb`.
+Latest verified implementation-code commit: `086c19c21b20187758330dbbd5053b05cf1535eb` (subsequent commits only refreshed documentation).
 
 - Foundation workflow `41595253539`: ESLint, application and Playwright type-checks, production environment contract check, production-dependency audit, production build, and **207 unit tests across 40 files** passed.
 - Chromium browser smoke in the same run: **10 passed**; the authenticated two-account test was skipped because dedicated non-production credentials are not configured.

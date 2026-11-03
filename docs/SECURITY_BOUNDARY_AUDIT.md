@@ -2,7 +2,7 @@
 
 - Review date: 2026-11-03
 - Branch: `feature/m3-ai-solver`
-- Current reviewed branch revision: `086c19c21b20187758330dbbd5053b05cf1535eb`.
+- Current reviewed application-code revision: `086c19c21b20187758330dbbd5053b05cf1535eb` (subsequent commits only refreshed documentation).
 - Review type: static source and migration review, supplemented by fresh isolated GitHub CI. No connected/hosted database was mutated.
 - Foundation run `41595253539`: lint, application/Playwright type-checks, production environment contract check, production-dependency audit, production build and 207 unit tests across 40 files passed; Chromium smoke passed 10 tests with the authenticated test skipped.
 - Database run `41595253518`: fresh isolated local migration chain and 236 pgTAP assertions across 11 files passed.
