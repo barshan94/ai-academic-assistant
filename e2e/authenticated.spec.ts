@@ -222,7 +222,7 @@ test("two-account teacher invitation, review, and revocation lifecycle", async (
     await teacher.locator("#review-decision").selectOption("approved");
     await teacher.getByRole("button", { name: /save review record/i }).click();
     await expect(teacher).toHaveURL(/review=approved/);
-    await expect(teacher.getByText("teacher verified", { exact: true })).toBeVisible();
+    await expect(teacher.locator("span.document-status", { hasText: "teacher verified" })).toBeVisible();
 
     // A later correction review is append-only and removes the verification label.
     await teacher.locator("#review-decision").selectOption("needs_correction");
