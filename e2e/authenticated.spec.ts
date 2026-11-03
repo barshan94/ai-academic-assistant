@@ -188,18 +188,9 @@ test("two-account teacher invitation, review, and revocation lifecycle", async (
     await signIn(owner, config.ownerEmail, config.ownerPassword);
     await owner.goto(questionUrl);
     await expect(owner.getByRole("heading", { name: "Question workspace." })).toBeVisible();
-    owner.on("console", (message) => console.log("[owner browser console]", message.type(), message.text()));
-    owner.on("pageerror", (error) => console.log("[owner page error]", error.message));
-    owner.on("requestfailed", (request) => console.log("[owner request failed]", request.method(), request.url(), request.failure()?.errorText));
-    owner.on("response", (response) => {
-      if (response.url().includes("_next") || response.url().includes("server-action")) {
-        console.log("[owner Next response]", response.status(), response.request().method(), response.url());
-      }
-    });
     await owner.getByLabel("Teacher account email").fill(config.teacherEmail);
-    console.log("[owner invitation form action]", await owner.locator('form').filter({ has: owner.getByLabel("Teacher account email") }).getAttribute("action"));
     await owner.getByRole("button", { name: /create teacher invitation/i }).click();
-    await expect(owner).toHaveURL(/invite=(created|exists|not_authorized|save_failed|self)/, { timeout: 15000 });
+    await expect(owner).toHaveURL(/invite=created/);
 
     // Teacher explicitly accepts the invitation using the matching account.
     await teacher.goto("/dashboard/teacher-invites");
@@ -207,7 +198,7 @@ test("two-account teacher invitation, review, and revocation lifecycle", async (
     await teacher.getByRole("button", { name: /accept invitation/i }).click();
     await expect(teacher).toHaveURL(new RegExp(`/dashboard/questions/${fixture.questionId}\\?invite=accepted`));
     await teacher.goto(`${questionUrl}?solution=${fixture.solutionId}`);
-    await expect(teacher.getByRole("heading", { name: "Answer draft" })).toBeVisible();
+    await expect(teacher.getByRole("heading", { name: "Answer draft", exact: true })).toBeVisible();
 
     // Invitation grants question/answer access only, not the original source document/page.
     const [sharedQuestion, sharedSolution, privateDocumentAfterInvite, privatePageAfterInvite] =
