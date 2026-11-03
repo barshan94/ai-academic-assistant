@@ -24,6 +24,8 @@ describe("non-production Supabase migration reconciliation script", () => {
     expect(script).toContain('supabase link --project-ref "$EXPECTED_PROJECT_REF"');
     expect(script).not.toContain('--password "$SUPABASE_DB_PASSWORD"');
     expect(script).toContain("set +x");
+    expect(script.match(/^set \+x$/gm)).toHaveLength(1);
+    expect(script.match(/^export SUPABASE_ACCESS_TOKEN SUPABASE_DB_PASSWORD$/gm)).toHaveLength(1);
   });
 
   it("requires a dry run and explicit APPLY confirmation before applying pending DDL", () => {
