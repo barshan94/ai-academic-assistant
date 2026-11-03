@@ -155,13 +155,13 @@ export async function generateQuestionSolution(formData: FormData) {
 
 export async function saveQuestionSolutionMarkScheme(formData: FormData) {
   const solutionId = z.string().uuid().safeParse(formData.get("solutionId") ?? "");
-  const pointsJson = formData.get("points") ?? "";
-  if (pointsJson.length > 262144) {
+  const rawPointsJson = formData.get("points");
+  if (typeof rawPointsJson !== "string" || rawPointsJson.length > 262144) {
     redirect("/dashboard/questions?mark_scheme=too_large");
   }
   let rawPoints: unknown;
   try {
-    rawPoints = JSON.parse(pointsJson);
+    rawPoints = JSON.parse(rawPointsJson);
   } catch {
     redirect("/dashboard/questions?mark_scheme=invalid_json");
   }
@@ -170,10 +170,10 @@ export async function saveQuestionSolutionMarkScheme(formData: FormData) {
     awardingBody: formData.get("awardingBody") ?? "",
     qualification: formData.get("qualification") ?? "",
     subject: formData.get("subject") ?? "",
-    paperReference: formData.get("paperReference") ?? "" || undefined,
+    paperReference: (formData.get("paperReference") ?? "") || undefined,
     sourceUrl: formData.get("sourceUrl") ?? "",
     sourceLocator: formData.get("sourceLocator") ?? "",
-    sourceDocumentVersion: formData.get("sourceDocumentVersion") ?? "" || undefined,
+    sourceDocumentVersion: (formData.get("sourceDocumentVersion") ?? "") || undefined,
     points: rawPoints,
   });
   if (!solutionId.success || !parsedScheme.success) {
