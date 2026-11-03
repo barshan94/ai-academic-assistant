@@ -47,7 +47,7 @@ jobs:
           GOOGLE_DRIVE_REDIRECT_URI: https://fixture.example.com/api/drive/callback
           GOOGLE_CLIENT_ID: fixture-client-id
           GOOGLE_CLIENT_SECRET: fixture-client-secret
-          CRON_SECRET: fixture-cron-secret-with-at-least-32-characters
+          CRON_SECRET: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
           DRIVE_TOKEN_ENCRYPTION_KEY: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
           AI_API_KEY: fixture-ai-key
           AI_MODEL: fixture-model
@@ -56,8 +56,10 @@ jobs:
       - name: Audit production dependencies
         # This intentionally audits runtime dependencies only. It does NOT close
         # ERR-124: the current tracked advisory is
-        # GHSA-g3hv-75wg-m249 (CVE-2026-118764), which affects minimatch <11.0.1
-        # in the development toolchain. Full-tree audit remains a release gate
+        # GHSA-g3hv-75wg-m249 (CVE-2026-118764). Its broad affected-version range
+        # conflicts with the advisory's implementation-specific technical details;
+        # applicability to the installed minimatch@3.1.5 remains under investigation.
+        # Full-tree audit remains a release gate
         # until the ESLint/Next.js dependency graph is migrated safely.
         run: npm audit --omit=dev
 
