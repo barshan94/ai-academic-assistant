@@ -189,9 +189,30 @@ test("two-account teacher invitation, review, and revocation lifecycle", async (
     await owner.goto(questionUrl);
     await expect(owner.getByRole("heading", { name: "Question workspace." })).toBeVisible();
     await owner.getByLabel("Teacher account email").fill(config.teacherEmail);
+    const inviteActionRequests: { method: string; url: string; nextAction: string | null }[] = [];
     const inviteActionResponses: { status: number; url: string; location: string | null }[] = [];
+    const inviteRequestFailures: string[] = [];
     const invitePageErrors: string[] = [];
+    const inviteConsoleErrors: string[] = [];
     owner.on("pageerror", (error) => invitePageErrors.push(error.message));
+    owner.on("console", (message) => {
+      if (message.type() === "error") inviteConsoleErrors.push(message.text());
+    });
+    owner.on("request", async (request) => {
+      if (request.method() === "POST") {
+        const headers = await request.allHeaders();
+        inviteActionRequests.push({
+          method: request.method(),
+          url: request.url(),
+          nextAction: headers["next-action"] ?? null,
+        });
+      }
+    });
+    owner.on("requestfailed", (request) => {
+      if (request.method() === "POST") inviteRequestFailures.push(
+        request.url() + ": " + (request.failure()?.errorText ?? "unknown request failure")
+      );
+    });
     owner.on("response", async (response) => {
       if (response.request().method() === "POST") {
         const headers = await response.allHeaders();
@@ -202,13 +223,31 @@ test("two-account teacher invitation, review, and revocation lifecycle", async (
         });
       }
     });
+    const inviteForm = owner.locator("form").filter({ has: owner.locator("#teacher-email") });
+    const formState = await inviteForm.evaluate((form) => {
+      const input = form.querySelector<HTMLInputElement>("#teacher-email");
+      const button = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+      return {
+        action: form.getAttribute("action"),
+        method: form.getAttribute("method") ?? "get",
+        emailValue: input?.value ?? null,
+        emailValid: input?.validity.valid ?? false,
+        buttonDisabled: button?.disabled ?? true,
+      };
+    });
     await owner.getByRole("button", { name: /create teacher invitation/i }).click();
-    await expect(owner, "Invitation action diagnostics: " + JSON.stringify({
-      responses: inviteActionResponses,
-      pageErrors: invitePageErrors,
-      visibleAlerts: await owner.getByRole("alert").allTextContents(),
-      currentUrl: owner.url(),
-    })).toHaveURL(/invite=created/);
+    await owner.waitForURL(/invite=created/, { timeout: 15_000 }).catch(async () => {
+      throw new Error("Invitation action diagnostics: " + JSON.stringify({
+        formState,
+        requests: inviteActionRequests,
+        responses: inviteActionResponses,
+        requestFailures: inviteRequestFailures,
+        pageErrors: invitePageErrors,
+        consoleErrors: inviteConsoleErrors,
+        visibleAlerts: await owner.getByRole("alert").allTextContents(),
+        currentUrl: owner.url(),
+      }));
+    });
 
     // Teacher explicitly accepts the invitation using the matching account.
     await teacher.goto("/dashboard/teacher-invites");
