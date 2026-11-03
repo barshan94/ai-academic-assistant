@@ -47,7 +47,7 @@ async function refreshDriveAccessToken(encryptedToken: string) {
   return payload.access_token;
 }
 
-export async function GET(request: Request) {
+export async function POST(request: Request) {
   if (!authorized(request)) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
