@@ -59,3 +59,11 @@ The owner reported entering these six secrets; their values cannot be read back 
 - Do not touch `durga-map`.
 - Do not merge the application feature branch or deploy production without separate explicit approval.
 - A passing build, a complete migration ledger, or a READY preview deployment does not equal production acceptance.
+
+
+## Authenticated acceptance trigger correction — 2026-11-03
+
+- The authenticated workflow is present on `feature/m3-ai-solver` and is gated to run on this application PR or on manual dispatch. The repository variable and six E2E secrets passed the workflow's non-empty/distinct-account validation step.
+- A run triggered from the operations-only workflow PR checked out that PR's branch, which does not contain `playwright.auth.config.ts` or `e2e/authenticated.spec.ts`; its build succeeded but the Playwright step failed because the config file was absent. This is not an application-branch test result.
+- The operations-only workflow PR is #3 and remains unmerged. A docs-only commit on this application branch is being used to trigger the authenticated job against the correct feature branch. The job must complete successfully before this item is closed.
+- The separate Foundation workflow on the operations PR failed at its legacy full-tree `npm audit` gate: 14 moderate minimatch advisories in the development dependency tree. This is a known dependency/toolchain issue, not a test failure in the application code. Do not run `npm audit fix --force`; it proposes a breaking ESLint downgrade. ERR-124 remains open.
