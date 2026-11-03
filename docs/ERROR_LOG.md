@@ -1817,3 +1817,12 @@ ERR-073 closure reconciliation (2026-11-01): the earlier note that page and pare
 - Fix: Discard response bodies at the scheduler boundary and retain only the HTTP status code for success/failure handling.
 - Verification: Branch commit `086c19c21b20187758330dbbd5053b05cf1535eb` passed foundation run `41595253539` (lint, application/Playwright type-checks, environment contract, production dependency audit, build and 207 unit tests across 40 files); Chromium smoke passed 10 tests with the authenticated two-account test skipped. Isolated local migration/pgTAP run `41595253518` passed 236 assertions across 11 files; secret scan `41595253441` passed. Authenticated two-account run `41595259318` was skipped because dedicated non-production credentials are absent.
 - Status: Source and CI checks verified except the still-running Chromium job; live worker invocation remains blocked on deployment secrets and hosted migration-history reconciliation.
+
+## ERR-167 — Migration reconciliation script exposed the database password in CLI arguments
+- Date: 2026-11-03
+- Area: Non-production database operations / credential handling
+- Symptom: The approved migration reconciliation helper passed `SUPABASE_DB_PASSWORD` to `supabase link --password`, making the secret part of the process argument list.
+- Root cause: The script used the CLI flag even though the pinned CLI supports `SUPABASE_DB_PASSWORD` as an environment variable.
+- Fix: Export `SUPABASE_ACCESS_TOKEN` and `SUPABASE_DB_PASSWORD` in the script process, disable shell xtrace, and call `supabase link` without a password argument. Added regression tests for shell syntax, fixed target/version, environment-only credential use, and the dry-run/explicit-confirmation gate.
+- Verification: Pending current-head GitHub Actions after commit.
+- Status: Source fix committed; no hosted migration was run. The script still requires the owner to execute it in a trusted CLI environment.

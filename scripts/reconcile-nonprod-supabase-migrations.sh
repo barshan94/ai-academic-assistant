@@ -1,11 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
+set +x
 
 readonly EXPECTED_PROJECT_REF="uqpyzicftxxegajaocxi"
 readonly EXPECTED_CLI_VERSION="2.122.0"
 
 : "${SUPABASE_ACCESS_TOKEN:?Set SUPABASE_ACCESS_TOKEN in your shell; do not commit it}"
 : "${SUPABASE_DB_PASSWORD:?Set SUPABASE_DB_PASSWORD in your shell; do not commit it}"
+
+# Keep credentials in the process environment, never in the CLI argument list.
+export SUPABASE_ACCESS_TOKEN SUPABASE_DB_PASSWORD
 
 if ! command -v supabase >/dev/null 2>&1; then
   echo "Supabase CLI is required. Install version ${EXPECTED_CLI_VERSION}." >&2
@@ -19,7 +23,7 @@ if [[ "$actual_version" != "$EXPECTED_CLI_VERSION" ]]; then
 fi
 
 echo "Target is fixed to the approved non-production project: ${EXPECTED_PROJECT_REF}"
-supabase link --project-ref "$EXPECTED_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
+supabase link --project-ref "$EXPECTED_PROJECT_REF"
 
 echo "Current remote migration ledger:"
 supabase migration list --linked

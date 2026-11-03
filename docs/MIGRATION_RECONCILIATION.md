@@ -18,10 +18,10 @@ This is a migration-history comparison, not proof that the hosted schema matches
 
 | Remote ledger entry | Repository migration file | Required treatment |
 |---|---|---|
-| `20261031031132_shared_reference_syllabus_catalogue` | `20261031031012_shared_reference_syllabus_catalogue.sql` | Inspect the actual schema and migration contents before deciding whether these represent the same applied change |
-| `20261031031233_index_shared_reference_syllabus_foreign_keys` | `20261031031212_index_shared_reference_syllabus_foreign_keys.sql` | Inspect the actual schema and migration contents before deciding whether these represent the same applied change |
+| `20261031031132_shared_reference_syllabus_catalogue` | `20261031031012_shared_reference_syllabus_catalogue.sql` | Exact stored-SQL comparison passed; mark old version reverted and repository version applied without rerunning DDL |
+| `20261031031233_index_shared_reference_syllabus_foreign_keys` | `20261031031212_index_shared_reference_syllabus_foreign_keys.sql` | Exact stored-SQL comparison passed; mark old version reverted and repository version applied without rerunning DDL |
 
-Do not mark either pair as reconciled merely because the descriptive names match. The timestamp is part of the migration version identity.
+Both pairs were verified on 2026-11-01 by comparing the stored SQL statement arrays in the hosted ledger with the exact UTF-8 repository migration files; PostgreSQL MD5 digests matched for both. The version identifiers still differ, so use the pinned CLI's version-aware repair procedure to preserve the exact repository versions. Do not rerun either migration's DDL.
 
 ## Repository versions absent from the remote ledger snapshot
 
@@ -73,7 +73,7 @@ The following repository migrations did not have exact version entries in the co
 20261101150000_list_claimable_document_jobs
 ```
 
-These are not automatically safe to apply. Some may already be represented in the remote schema under a different version, some may be genuinely pending, and some may depend on prior schema state. The actual schema must be inspected before a migration plan is approved.
+These 44 migrations are the pending repository chain after the two exact-SQL version repairs. They must be applied in repository order with the pinned CLI and reviewed dry-run. The current project schema is not yet at the feature-branch state; do not selectively apply the newest migrations or bypass the dry-run.
 
 
 ## Fresh connected-schema spot-check — 2026-11-01
