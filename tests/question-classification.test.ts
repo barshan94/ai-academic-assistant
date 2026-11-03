@@ -81,6 +81,12 @@ describe("question syllabus classification", () => {
     }).success).toBe(false);
   });
 
+  it("rejects File values instead of coercing them into classification fields", () => {
+    expect(questionClassificationSchema.safeParse({ ...base, questionId: new File(["x"], "id.txt") }).success).toBe(false);
+    expect(questionClassificationSchema.safeParse({ ...base, board: new File(["x"], "board.txt") }).success).toBe(false);
+    expect(questionClassificationSchema.safeParse({ ...base, classificationStatus: new File(["confirmed"], "status.txt") }).success).toBe(false);
+  });
+
   it("rejects malformed question IDs and unsupported review states", () => {
     expect(questionClassificationSchema.safeParse({
       ...base,
