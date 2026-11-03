@@ -1,17 +1,22 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { questionCreateSchema } from "@/lib/questions/validation";
+import { parsePageCorrectionInput } from "@/lib/documents/page-correction-input";
 
 export async function savePageCorrection(formData: FormData) {
-  const pageId = String(formData.get("pageId") ?? "");
-  const documentId = String(formData.get("documentId") ?? "");
-  const extractedText = String(formData.get("extractedText") ?? "").trim();
-  if (!z.string().uuid().safeParse(pageId).success || !z.string().uuid().safeParse(documentId).success || !extractedText || extractedText.length > 50000) {
+  const rawDocumentId = formData.get("documentId");
+  const documentId = typeof rawDocumentId === "string" ? rawDocumentId : "";
+  const parsed = parsePageCorrectionInput({
+    pageId: formData.get("pageId"),
+    documentId: rawDocumentId,
+    extractedText: formData.get("extractedText"),
+  });
+  if (!parsed.success) {
     redirect("/dashboard/documents/" + encodeURIComponent(documentId) + "?review=invalid");
   }
+  const { pageId, extractedText } = parsed.data;
 
   const supabase = await createSupabaseServerClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
