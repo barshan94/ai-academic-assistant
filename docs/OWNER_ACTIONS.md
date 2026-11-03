@@ -16,23 +16,20 @@ The following are absent: `SUPABASE_SERVICE_ROLE_KEY`, `CRON_SECRET`, Google OAu
 
 ### Latest implementation-branch verification — 2026-11-03
 
-Latest verified application-code commit: `086c19c21b20187758330dbbd5053b05cf1535eb`. Current branch head is `cd25c72efde45f00984bb5e7d23ae59b8ca30086`; subsequent commits are documentation-only.
+Current feature branch head: `06789234cde6e5093532a797192f8d4d216815da`. The latest application-code baseline remains `086c19c21b20187758330dbbd5053b05cf1535eb`; recent commits are migration-runner hardening, regression tests and operational documentation.
 
-Current-head CI is green where runnable:
-- Foundation workflow `41597601824`: lint, application/Playwright type-checks, production environment contract validation, production dependency audit, production build and **207 unit tests across 40 files** passed.
-- Chromium browser smoke in the same run: **10 passed, 1 skipped**. The skipped test is the authenticated two-account lifecycle.
-- Database authorization workflow `41597602010`: fresh isolated local Supabase migration replay and **236 pgTAP assertions across 11 files** passed.
-- Secret scanning workflow `41597602016`: passed.
-- Authenticated browser workflow `41597601831`: skipped because dedicated non-production credentials and enablement are not configured. This is not a pass.
-- The full dev-inclusive npm audit still reports **13 moderate findings**; the production-only audit reports zero. ERR-124 remains open and is not suppressed.
+- Earlier code/tooling checkpoint `134faae82e4bbf945e8e19535f39d39eb9106253`: Foundation, Chromium smoke, isolated database authorization and secret scanning all passed. Foundation included lint, application/Playwright type-checks, production environment contract validation, production dependency audit, production build and 207 unit tests across 40 files. Chromium smoke passed 10 tests with 1 skipped; database CI passed 236 pgTAP assertions across 11 SQL files.
+- The latest migration-helper code change on `b234a8e9fc855c12a5870b366e894ddad9f65cb8` removes duplicate credential-hardening lines and adds regression assertions. Its foundation/database runs are still in progress; do not treat pending runs as passing.
+- Secret scanning passed on current head `0678923`. Current-head foundation and database authorization runs are still in progress. Authenticated two-account acceptance is skipped because dedicated test credentials are absent.
+- Full dev-inclusive npm audit still reports 13 moderate findings (ERR-124); production-only audit reports zero. ERR-124 remains open and is not suppressed.
 
 Fresh read-only hosted Supabase inspection on 2026-11-03:
-- Existing `academic-assistant` project remains `ACTIVE_HEALTHY`, PostgreSQL 17.11, Free plan, region `ap-south-1`.
-- Hosted migration ledger remains **53 entries**; the same two version/name mismatches remain, with **44 genuinely pending migrations** after version-aware reconciliation.
-- The hosted `public.documents.page_count` constraint still allows any non-negative value or NULL; it does not match the branch's intended 1–50 non-null contract.
+- Existing `academic-assistant` project remains ACTIVE_HEALTHY, PostgreSQL 17.11, Free plan, region `ap-south-1`.
+- Hosted migration ledger remains 53 entries; two version/name mismatches remain, with 44 genuinely pending migrations after version-aware reconciliation.
+- Hosted `public.documents.page_count` constraint still does not match the branch's intended 1–50 non-null contract.
 - Security advisor returned zero findings. Performance advisor returned 60 informational unused-index notices; the project tables are empty, so no indexes were dropped.
 
-No hosted migration or data was changed. The hosted schema remains behind the branch and must not receive this application until the approved version-aware reconciliation is executed and verified. The CI results above prove local isolated migration replay, not hosted schema parity or live integrations. PR #1 remains open and draft; no merge or production deployment occurred.
+Operations-only PR #2 was merged to `main` as `fbca5d21cc6325b43a47ecbd7a5d5f487b7579c4`, exposing the guarded manual migration workflow. It has not been dispatched because `SUPABASE_ACCESS_TOKEN` and `SUPABASE_DB_PASSWORD` repository secrets are not configured. No hosted migration, ledger repair or data mutation has occurred. PR #1 remains draft and unmerged; no application merge or production deployment occurred.
 
 - [ ] Confirm the non-production Vercel deployment target and deploy only after the implementation branch is ready for the testing phase.
 - [x] Inventory the existing Supabase organization and projects. Reuse the existing Free-plan `academic-assistant` project as the non-production candidate; do not create another account or project by default.
