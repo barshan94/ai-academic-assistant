@@ -96,10 +96,12 @@ function parseSide(side: string): Record<string, number> {
 
   for (const rawTerm of terms) {
     const term = rawTerm.replace(/\((?:s|l|g|aq)\)$/i, "").trim();
-    const match = term.match(/^(\d{1,4})?\s*([A-Z].*)$/);
+    const match = term.match(/^(\d{1,5})?\s*([A-Z].*)$/);
     if (!match) throw new FormulaParseError("Could not read a reaction term or its coefficient.");
     const coefficient = match[1] ? Number(match[1]) : 1;
-    if (coefficient < 1 || coefficient > 10000) throw new FormulaParseError("Reaction coefficient is outside the supported range.");
+    if (!Number.isSafeInteger(coefficient) || coefficient < 1 || coefficient > 10000) {
+      throw new FormulaParseError("Reaction coefficient is outside the supported range.");
+    }
     const atoms = parseFormula(match[2]);
     for (const [element, count] of Object.entries(atoms)) {
       totals[element] = (totals[element] ?? 0) + count * coefficient;
