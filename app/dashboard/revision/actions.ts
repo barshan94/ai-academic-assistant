@@ -14,8 +14,8 @@ const revisionSchema = z.object({
 
 export async function recordRevision(formData: FormData) {
   const parsed = revisionSchema.safeParse({
-    questionId: String(formData.get("questionId") ?? ""),
-    confidence: String(formData.get("confidence") ?? ""),
+    questionId: formData.get("questionId") ?? "",
+    confidence: formData.get("confidence") ?? "",
   });
   if (!parsed.success) redirect("/dashboard/revision?save=invalid");
 
