@@ -63,7 +63,9 @@ async function requireOwner() {
 }
 
 export async function importSyllabusCatalog(formData: FormData) {
-  const parsed = parseSyllabusImportText(formData.get("payload") ?? "");
+  const payload = formData.get("payload");
+  if (typeof payload !== "string") redirect("/dashboard/syllabus?import=import_invalid");
+  const parsed = parseSyllabusImportText(payload);
   if (!parsed.success) redirect("/dashboard/syllabus?import=import_invalid");
 
   const { supabase } = await requireOwner();
