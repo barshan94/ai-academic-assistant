@@ -25,8 +25,6 @@ jobs:
       E2E_OWNER_PASSWORD: ${{ secrets.E2E_OWNER_PASSWORD }}
       E2E_TEACHER_EMAIL: ${{ secrets.E2E_TEACHER_EMAIL }}
       E2E_TEACHER_PASSWORD: ${{ secrets.E2E_TEACHER_PASSWORD }}
-      E2E_QUESTION_ID: ${{ secrets.E2E_QUESTION_ID }}
-      E2E_SOLUTION_ID: ${{ secrets.E2E_SOLUTION_ID }}
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -37,7 +35,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for name in NEXT_PUBLIC_SUPABASE_URL NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY E2E_OWNER_EMAIL E2E_OWNER_PASSWORD E2E_TEACHER_EMAIL E2E_TEACHER_PASSWORD E2E_QUESTION_ID E2E_SOLUTION_ID; do
+          for name in NEXT_PUBLIC_SUPABASE_URL NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY E2E_OWNER_EMAIL E2E_OWNER_PASSWORD E2E_TEACHER_EMAIL E2E_TEACHER_PASSWORD; do
             if [ -z "${!name}" ]; then
               echo "::error::Missing required repository secret: $name"
               exit 1
