@@ -215,3 +215,20 @@ The connected project's live state was rechecked after the latest feature-branch
 - Latest feature-branch CI on `a28ad9f43443db8e535c2cb2a67fbefec77f072e` passed lint, application and Playwright type-checks, **179 unit tests across 34 files**, production build, production dependency audit, Chromium smoke (**10 passed, 1 skipped**), full isolated migration replay and **236 pgTAP assertions across 11 files**; secret scanning passed. The skipped test is the authenticated two-account flow, not a passing authorization test.
 
 **Decision unchanged:** the connected hosted project has not been reconciled or migrated. Do not point the current application at it for acceptance until the version-aware repair and ordered 44-migration execution are completed through the pinned Supabase CLI procedure described above. Hosted RLS/IDOR, Google Drive, AI-provider, backup/restore and real-browser acceptance remain open.
+
+
+## Refreshed read-only verification — 2026-11-03
+
+The connected `academic-assistant` project was rechecked after the feature-branch CI run on `bfb4cd96361d16aca395983416de2952e18b978f`. This was metadata/catalog inspection only; no migration, ledger repair, schema mutation or deployment was performed.
+
+- Repository migration files: **97**.
+- Hosted migration-ledger entries: **53**.
+- The hosted ledger still ends at `20261101073144_retain_revoked_invitation_history_for_invitee`; the later repository migrations remain absent from the ledger.
+- The two known timestamp/name mismatches remain `20261031031132` versus repository version `20261031031012`, and `20261031031233` versus repository version `20261031031212`.
+- After the approved version-aware repair procedure, **44** migrations remain pending. The pinned Supabase CLI 2.122.0 reconciliation procedure remains the required path; do not substitute direct SQL or `apply_migration` calls.
+- Catalog query: **21 public base tables, all 21 with RLS enabled, zero without RLS**. This is not an RLS-policy or two-account IDOR acceptance test.
+- Security advisor: **zero findings**.
+- Performance advisor: **60 unused-index informational notices**. Do not remove indexes while application tables are empty without workload evidence.
+- Project status remains `ACTIVE_HEALTHY`, Free plan, PostgreSQL 17.11, `ap-south-1`.
+
+**Decision unchanged:** migration reconciliation remains an open release blocker. The connected project was not modified.
