@@ -11,6 +11,10 @@ describe("assess OCR text quality", () => {
     expect(assessOcrTextQuality("Question 1 a b c d e f g h i j k l m n o p q r s t u v w x y z")).toBe("needs_correction");
   });
 
+  it("flags unexpected mixed-script noise in otherwise Latin OCR", () => {
+    expect(assessOcrTextQuality("Questio\u043b 1: Explain how the surface area of a cylinder is calculated.")).toBe("needs_correction");
+  });
+
   it("accepts ordinary English and Bengali text as likely readable", () => {
     expect(assessOcrTextQuality("Question 1: Explain how the surface area of a cylinder is calculated.")).toBe("likely_readable");
     expect(assessOcrTextQuality("প্রশ্ন ১: একটি সিলিন্ডারের বক্রতলের ক্ষেত্রফল কীভাবে নির্ণয় করবে?")).toBe("likely_readable");
