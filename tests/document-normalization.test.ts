@@ -81,6 +81,27 @@ describe("document normalization", () => {
     expect(pdf.getPageCount()).toBe(2);
   });
 
+  it("converts a JPEG into a PDF", async () => {
+    const file = new File([onePixelJpeg], "phone-photo.jpg", { type: "image/jpeg" });
+    const result = await normalizeToPdf(file);
+    expect(result.converted).toBe(true);
+    expect(result.fileName).toBe("phone-photo.pdf");
+    expect((await PDFDocument.load(result.bytes)).getPageCount()).toBe(1);
+  });
+
+  it("rejects oversized JPEG dimensions before decoding the bitmap", async () => {
+    const oversizedJpeg = Uint8Array.from([
+      0xff, 0xd8, 0xff, 0xc0, 0x00, 0x11, 0x08,
+      0x13, 0x88, 0x17, 0x70, 0x03, 0x01, 0x11, 0x00,
+      0x02, 0x11, 0x00, 0x03, 0x11, 0x00,
+    ]);
+    const decode = vi.fn(async () => ({ width: 6000, height: 5000, close: vi.fn() }));
+    vi.stubGlobal("createImageBitmap", decode);
+    const file = new File([oversizedJpeg], "oversized.jpg", { type: "image/jpeg" });
+    await expect(normalizeToPdf(file)).rejects.toThrow("dimensions exceed the safe conversion limit");
+    expect(decode).not.toHaveBeenCalled();
+  });
+
   it("rejects unsupported file signatures", async () => {
     const file = new File(["not a PDF"], "paper.pdf", { type: "application/pdf" });
     await expect(normalizeToPdf(file)).rejects.toThrow("valid PDF signature");
