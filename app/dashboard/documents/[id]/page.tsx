@@ -26,6 +26,7 @@ const notices: Record<string, string> = {
   approved: "You marked this document as reviewed. This is a teacher review status, not an automated accuracy guarantee.",
   approve_failed: "The review status could not be updated completely. Refresh and inspect the document.",
   empty: "There are no extracted pages to approve.",
+  confirm_required: "Confirm that you compared every extracted page with the original PDF before marking it reviewed.",
   created: "Question saved to your question library.",
   invalid_question: "Check the question text and metadata, then try again.",
   source_invalid: "The selected page does not belong to this document or account.",
@@ -111,7 +112,11 @@ export default async function DocumentReviewPage({ params, searchParams }: PageP
           {document.status !== "ready" ? (
             <form action={approveDocument} className="approve-panel">
               <input type="hidden" name="documentId" value={document.id} />
-              <div><h3>Finished checking every page?</h3><p>Approving marks the extracted pages as teacher-reviewed. It does not mean the AI has solved or independently verified the questions.</p></div>
+              <div>
+                <h3>Finished checking every page?</h3>
+                <p>Compare each page with the original PDF in Google Drive. OCR quality indicators are only heuristics; they cannot verify mathematical notation, diagrams, missing lines or factual accuracy.</p>
+                <label className="review-confirmation"><input type="checkbox" name="confirmReviewed" value="yes" required /> I compared every extracted page with the original and corrected any mistakes.</label>
+              </div>
               <button className="primary-action" type="submit">Mark reviewed <span aria-hidden="true">✓</span></button>
             </form>
           ) : <p className="notice notice-success">Teacher review completed.</p>}
