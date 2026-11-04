@@ -276,9 +276,44 @@ test("two-account teacher invitation, review, and revocation lifecycle", async (
 
     // An accepted teacher can approve a draft through the independent
     // verification RPC; the saved answer must show teacher_verified.
+    const reviewActionRequests: { method: string; url: string; nextAction: string | null }[] = [];
+    const reviewActionResponses: { status: number; url: string; location: string | null }[] = [];
+    const reviewRequestFailures: string[] = [];
+    const reviewPageErrors: string[] = [];
+    const reviewConsoleErrors: string[] = [];
+    teacher.on("pageerror", (error) => reviewPageErrors.push(error.message));
+    teacher.on("console", (message) => {
+      if (message.type() === "error") reviewConsoleErrors.push(message.text());
+    });
+    teacher.on("request", async (request) => {
+      if (request.method() === "POST") {
+        const headers = await request.allHeaders();
+        reviewActionRequests.push({ method: request.method(), url: request.url(), nextAction: headers["next-action"] ?? null });
+      }
+    });
+    teacher.on("requestfailed", (request) => {
+      if (request.method() === "POST") reviewRequestFailures.push(request.url() + ": " + (request.failure()?.errorText ?? "unknown request failure"));
+    });
+    teacher.on("response", async (response) => {
+      if (response.request().method() === "POST") {
+        const headers = await response.allHeaders();
+        reviewActionResponses.push({ status: response.status(), url: response.url(), location: headers.location ?? null });
+      }
+    });
     await teacher.locator("#review-decision").selectOption("approved");
     await teacher.getByRole("button", { name: /save review record/i }).click();
-    await expect(teacher).toHaveURL(/review=approved/);
+    await teacher.waitForURL(/review=approved/, { timeout: 15_000 }).catch(async () => {
+      throw new Error("Teacher review action diagnostics: " + JSON.stringify({
+        requests: reviewActionRequests,
+        responses: reviewActionResponses,
+        requestFailures: reviewRequestFailures,
+        pageErrors: reviewPageErrors,
+        consoleErrors: reviewConsoleErrors,
+        visibleAlerts: await teacher.getByRole("alert").allTextContents(),
+        visibleStatuses: await teacher.getByRole("status").allTextContents(),
+        currentUrl: teacher.url(),
+      }));
+    });
     await expect(teacher.locator("span.document-status", { hasText: "teacher verified" })).toBeVisible();
 
     // A later correction review is append-only and removes the verification label.
