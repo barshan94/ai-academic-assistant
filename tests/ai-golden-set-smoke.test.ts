@@ -12,10 +12,10 @@ import { checkPhysicsUnits } from "@/lib/ai/physics-unit-check";
 describe("cross-subject golden-set deterministic anchors", () => {
   it("G-001: checks the arithmetic result for a linear-equation answer", () => {
     const [result] = checkCalculations([
-      { expression: "2 * 6", claimedResult: 12, unit: "" },
+      { expression: "2 * 6 + 5", claimedResult: 17, unit: "" },
     ]);
     expect(result.status).toBe("passed");
-    expect(result.calculatedResult).toBe(12);
+    expect(result.calculatedResult).toBe(17);
   });
 
   it("G-002: checks Newton's second-law arithmetic and dimensional unit", () => {
