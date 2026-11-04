@@ -83,6 +83,10 @@ All cases are original evaluation prompts. The expected points are grading ancho
   - Label the result as an increase.
 - Critical errors: 13.04% (using 92 as denominator), or reporting 12% without calculation.
 
+## Deterministic regression coverage
+
+The machine-checkable portions of G-001, G-002, G-003 and G-005 have regression anchors in `tests/ai-golden-set-smoke.test.ts`. They exercise only arithmetic, unit-dimension and atom-count checkers. G-004 remains a conceptual ICT explanation and is deliberately left to human grading. These tests do not invoke an AI provider and do not establish answer quality.
+
 ## Run record template
 
 For every model/prompt run, copy this block into the evaluation record:
