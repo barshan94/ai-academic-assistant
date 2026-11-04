@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { AIProviderError, type AIProviderConfig } from "@/lib/ai/provider";
-import { generateChapterNote } from "@/lib/ai/chapter-notes";
+import { generateChapterNote, generateChapterNoteWithRouting } from "@/lib/ai/chapter-notes";
 import { checkFormulaSyntax } from "@/lib/ai/formula-checks";
 
 const config: AIProviderConfig = {
@@ -195,6 +195,46 @@ describe("AI chapter note generation", () => {
       chapter: "Forces",
       sources,
     }, config, fetcher)).rejects.toMatchObject({ message: "AI_PROVIDER_INVALID_CHAPTER_NOTE" });
+  });
+});
+
+describe("chapter-note provider fallback policy", () => {
+  const env = {
+    AI_ALLOW_PROVIDER_FALLBACKS: "true",
+    AI_PROVIDER_POOL: JSON.stringify([
+      { name: "primary", baseUrl: "https://primary.example/v1", apiKey: "primary-key", model: "primary-model", tasks: ["chapter-note"], priority: 1 },
+      { name: "secondary", baseUrl: "https://secondary.example/v1", apiKey: "secondary-key", model: "secondary-model", tasks: ["chapter-note"], priority: 2 },
+    ]),
+  };
+  const validNote = {
+    title: "Newton's first law",
+    summary: "An object maintains its state of motion unless acted on by a resultant force [S1].",
+    concepts: ["Inertia [S1]"],
+    formulas: [],
+    workedExamples: ["Identify the resultant force before describing a change in motion [S1]."],
+    revisionPrompts: ["State Newton's first law."],
+  };
+  const input = { board: "Cambridge", qualification: "O Level", subject: "Physics", chapter: "Forces", sources };
+
+  it("falls back after a transient network failure", async () => {
+    const fetcher = vi.fn<typeof fetch>()
+      .mockRejectedValueOnce(new Error("private socket details"))
+      .mockResolvedValueOnce(responseWith(JSON.stringify(validNote)));
+
+    const result = await generateChapterNoteWithRouting(input, fetcher, env);
+    expect(result.note).toEqual(validNote);
+    expect(result.config.provider).toBe("secondary");
+    expect(fetcher).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not retry permanent authentication failures", async () => {
+    const fetcher = vi.fn<typeof fetch>()
+      .mockResolvedValueOnce(new Response("private provider body", { status: 401 }))
+      .mockResolvedValueOnce(responseWith(JSON.stringify(validNote)));
+
+    await expect(generateChapterNoteWithRouting(input, fetcher, env))
+      .rejects.toMatchObject({ message: "AI_PROVIDER_HTTP_401" });
+    expect(fetcher).toHaveBeenCalledOnce();
   });
 });
 
