@@ -42,7 +42,7 @@ export default async function DocumentReviewPage({ params, searchParams }: PageP
   if (authError || !user) redirect("/login");
 
   const [{ data: document, error: documentError }, { data: pages, error: pagesError }] = await Promise.all([
-    supabase.from("documents").select("id,file_name,status,page_count,drive_web_view_link,created_at").eq("id", id).eq("owner_id", user.id).maybeSingle(),
+    supabase.from("documents").select("id,file_name,status,page_count,drive_file_id,drive_web_view_link,created_at").eq("id", id).eq("owner_id", user.id).maybeSingle(),
     supabase.from("document_pages").select("id,page_number,extracted_text,extraction_method,status").eq("document_id", id).eq("owner_id", user.id).order("page_number"),
   ]);
 
@@ -65,7 +65,8 @@ export default async function DocumentReviewPage({ params, searchParams }: PageP
         <p className="eyebrow">DOCUMENT REVIEW · {document.status.toUpperCase().replace("_", " ")}</p>
         <h1>{document.file_name}</h1>
         <p className="hero-copy">Check the extracted text against the source document. Correct mistakes before marking this document reviewed.</p>
-        {document.drive_web_view_link ? <a className="document-open" href={document.drive_web_view_link} target="_blank" rel="noreferrer">Open original in Google Drive ↗</a> : null}
+        {document.drive_file_id ? <a className="document-open" href={"/api/documents/" + encodeURIComponent(document.id) + "/original"} target="_blank" rel="noreferrer">View verified original PDF ↗</a> : null}
+        {document.drive_web_view_link ? <a className="document-open" href={document.drive_web_view_link} target="_blank" rel="noreferrer">Open in Google Drive ↗</a> : null}
       </section>
 
       {notice ? <p className="notice notice-info" role="status">{notice}</p> : null}
