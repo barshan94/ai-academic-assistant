@@ -86,6 +86,71 @@ jobs:
       - name: Build application
         run: npm run build
 
+
+  authenticated:
+    name: Authenticated document and teacher acceptance
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    needs: verify
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+
+      - name: Set up pinned npm CLI
+        run: npm install --global npm@11.21.1
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Detect owner acceptance credentials without exposing values
+        id: credentials
+        shell: bash
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+          E2E_OWNER_EMAIL: ${{ secrets.E2E_OWNER_EMAIL }}
+          E2E_OWNER_PASSWORD: ${{ secrets.E2E_OWNER_PASSWORD }}
+        run: |
+          if [[ -n "$NEXT_PUBLIC_SUPABASE_URL" && -n "$NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY" && -n "$E2E_OWNER_EMAIL" && -n "$E2E_OWNER_PASSWORD" ]]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+            echo "Owner acceptance credentials are configured."
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "Authenticated acceptance skipped: owner credentials are not fully configured."
+          fi
+
+      - name: Install Playwright runner and Chromium
+        if: steps.credentials.outputs.available == 'true'
+        run: |
+          npm install --no-save --package-lock=false @playwright/test@1.56.1
+          npx playwright install --with-deps chromium
+
+      - name: Build application for authenticated acceptance
+        if: steps.credentials.outputs.available == 'true'
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+
+      - name: Run authenticated acceptance against isolated E2E accounts
+        if: steps.credentials.outputs.available == 'true'
+        run: npx playwright test --config=playwright.auth.config.ts
+        env:
+          CI: "true"
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+          E2E_OWNER_EMAIL: ${{ secrets.E2E_OWNER_EMAIL }}
+          E2E_OWNER_PASSWORD: ${{ secrets.E2E_OWNER_PASSWORD }}
+          E2E_TEACHER_EMAIL: ${{ secrets.E2E_TEACHER_EMAIL }}
+          E2E_TEACHER_PASSWORD: ${{ secrets.E2E_TEACHER_PASSWORD }}
+
   browser:
     name: Browser smoke tests (Chromium)
     runs-on: ubuntu-24.04
