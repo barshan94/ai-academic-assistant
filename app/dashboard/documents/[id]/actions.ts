@@ -81,6 +81,20 @@ export async function createQuestionFromPage(formData: FormData) {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) redirect("/login");
 
+  const { data: sourceDocument, error: documentError } = await supabase
+    .from("documents")
+    .select("id,status")
+    .eq("id", parsed.data.documentId)
+    .eq("owner_id", user.id)
+    .maybeSingle();
+
+  if (documentError || !sourceDocument) {
+    redirect("/dashboard/documents/" + encodeURIComponent(documentId) + "?question=source_invalid");
+  }
+  if (sourceDocument.status !== "ready") {
+    redirect("/dashboard/documents/" + encodeURIComponent(documentId) + "?question=document_not_reviewed");
+  }
+
   const { data: page, error: pageError } = await supabase
     .from("document_pages")
     .select("id,document_id")
