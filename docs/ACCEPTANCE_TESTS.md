@@ -26,7 +26,10 @@
 - [x] Store document metadata, page text, processing jobs and Drive connection state in owner-scoped Supabase tables.
 - [x] Use AES-256-GCM encryption for stored Drive refresh tokens; unit tests cover round-trip and tamper rejection.
 - [x] Provide editable page-level extracted text and explicit review.
-- [ ] Live Google OAuth, PDF upload, image upload, Drive OCR and review workflow tested with the owner's Google account.
+- [ ] Live Google OAuth, PDF upload, image upload, Drive OCR and review workflow tested end-to-end with the owner's Google account.
+- [x] Live owner Google OAuth connection and one 439,083-byte PDF archive upload verified on 2026-11-04: Google Drive returned file ID `1vWyGqroqjDb4pj40Jchoh_7eRX4sDnbj`; Supabase document `ec9634d4-d05b-4efc-b790-3e66220fd150` and processing job `1bfe8fcd-596d-4047-99e4-a66bdcd5ef9c` were created for the same owner.
+- [ ] Live OCR/extraction and page persistence for that uploaded PDF; at last inspection the document and job remained `queued`, stage `validate`, attempt count 0/3. This is not a successful processing result.
+- [ ] Activate the worker in a non-production environment: the five-minute workflow currently exists on `feature/m3-ai-solver` only; GitHub scheduled workflows require the default branch. Configure repository Actions secrets `APP_BASE_URL` and `CRON_SECRET`, configure the matching deployed Preview `CRON_SECRET`, then manually dispatch and verify a real job. Do not merge the draft PR or enable Production as part of this acceptance step.
 - [x] Manually capture an individual question from a reviewed source page with board/qualification/subject/chapter metadata.
 - [x] Search the source-linked question library and approve/reject captured questions.
 - [x] Implement resumable 1 MB chunks for PDFs up to 50 MB with AES-256-GCM encrypted session tokens, owner-bound sessions and Google-confirmed resume offsets.
