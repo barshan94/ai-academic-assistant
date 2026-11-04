@@ -1,5 +1,18 @@
 # Owner actions required before production
 
+## Verified live Vercel configuration — 2026-11-04
+
+Read-only Vercel inspection after the latest documentation commit confirmed:
+- The linked project `ai-academic-assistant` has a **READY preview deployment** for feature commit `a57337c5c0cf1df951f4c012b061b01fd00323be`: [open preview deployment](https://ai-academic-assistant-k4s2v4d7e-barshan-s-team.vercel.app).
+- The project currently has only three configured environment variables: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, and `DRIVE_TOKEN_ENCRYPTION_KEY`.
+- The Supabase URL points to the approved existing project `uqpyzicftxxegajaocxi`; the publishable key is configured.
+- `DRIVE_TOKEN_ENCRYPTION_KEY` exists as a sensitive variable but its value is empty. No Google OAuth credentials, `SUPABASE_SERVICE_ROLE_KEY`, `CRON_SECRET`, or AI provider/model variables are configured in this Vercel project.
+- No secret values were retrieved or changed. A READY preview means the code built and deployed; it does not prove app-level Supabase access or provider integration.
+
+**Owner action — do not paste secrets here:** in Vercel → Project → Settings → Environment Variables, set the stable 32-byte base64 `DRIVE_TOKEN_ENCRYPTION_KEY` and add `SUPABASE_SERVICE_ROLE_KEY` for server-only use. Add `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and the exact preview callback `GOOGLE_DRIVE_REDIRECT_URI=https://ai-academic-assistant-k4s2v4d7e-barshan-s-team.vercel.app/api/drive/callback` only after creating the dedicated Google Cloud OAuth web client and enabling Drive API. Add `CRON_SECRET` only when configuring the worker. AI provider variables remain deliberately unset until provider/privacy/budget approval.
+
+The Vercel preview URL may change with subsequent deployments; when it does, update the Google OAuth authorized redirect URI and `GOOGLE_DRIVE_REDIRECT_URI` to the same exact HTTPS callback before testing OAuth.
+
 This document separates repository implementation from actions that require the project owner's provider accounts, credentials, policy decisions or operational responsibility. Do not paste secrets into ChatGPT, GitHub issues, source files or this document.
 
 ## 1. Environment and provider setup
@@ -49,11 +62,11 @@ Operations-only PR #2 was merged to `main` as `fbca5d21cc6325b43a47ecbd7a5d5f487
 
 Configure repository Actions secrets from the deployment dashboard; never commit their values.
 
-- [ ] APP_BASE_URL: isolated deployment HTTPS origin.
-- [ ] CRON_SECRET: same strong random secret used by the deployment's worker and readiness endpoints.
-- [ ] E2E_SUPABASE_URL and E2E_SUPABASE_PUBLISHABLE_KEY: dedicated test project only.
-- [ ] E2E_OWNER_EMAIL, E2E_OWNER_PASSWORD, E2E_TEACHER_EMAIL, E2E_TEACHER_PASSWORD: two disposable, confirmed test identities.
-- [ ] E2E_QUESTION_ID and E2E_SOLUTION_ID: disposable fixture IDs created by the documented seed procedure.
+- [ ] APP_BASE_URL: current isolated Vercel preview HTTPS origin (currently `https://ai-academic-assistant-k4s2v4d7e-barshan-s-team.vercel.app`; refresh after a new preview deployment).
+- [ ] CRON_SECRET: same strong random secret used by the deployment's worker and readiness endpoints; add it to Vercel and GitHub Actions only when enabling the worker.
+- [ ] E2E_SUPABASE_URL and E2E_SUPABASE_PUBLISHABLE_KEY: existing approved non-production project only (`uqpyzicftxxegajaocxi`).
+- [ ] E2E_OWNER_EMAIL, E2E_OWNER_PASSWORD, E2E_TEACHER_EMAIL, E2E_TEACHER_PASSWORD: two different disposable, confirmed test identities. The workflow is locked to the approved project and creates/uses no additional Supabase project.
+- [x] E2E question/solution IDs are not manually configured repository secrets; the current authenticated acceptance workflow derives its own test flow from the two disposable owner/teacher accounts.
 - [ ] ALERT_WEBHOOK_URL: optional HTTPS webhook, only if approved.
 - [ ] Enable authenticated E2E only after the isolated project, migrations and fixtures are ready.
 - [x] Merge the operations-only migration runner workflow to the default branch as PR #2; application PR #1 remains draft and unmerged. Other scheduled workflows still require explicit approval and default-branch activation.
