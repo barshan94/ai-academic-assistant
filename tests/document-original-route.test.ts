@@ -97,7 +97,7 @@ describe("owner-authorized original PDF route", () => {
       accessToken: "fresh-access-token",
       driveFileId: "drive-file-id",
       expectedSizeBytes: pdf.byteLength,
-      sha256: "a".repeat(64),
+      expectedSha256: "a".repeat(64),
     });
   });
 
