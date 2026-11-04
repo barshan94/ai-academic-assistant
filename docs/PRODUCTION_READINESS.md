@@ -8,6 +8,21 @@ The application has substantial feature and security implementation, but product
 
 The owner selected infrastructure constraint remains Supabase Free only. No paid upgrade, production migration, merge to `main`, or hosted deployment is authorized by this document. Actions requiring provider credentials, legal decisions, account provisioning or an assigned human operator are listed in [OWNER_ACTIONS.md](./OWNER_ACTIONS.md).
 
+## Latest live checkpoint — 2026-11-04
+
+This section supersedes the older live-environment counts below; earlier snapshots are retained as history.
+
+- Feature branch head: `4e7208902b30dd422e9fcc07a7808958e0613ce1`. The latest Preview deployment is READY. Production remains on the older `main` commit `cd3620fad75d343c3d7160257ab044222ce82c7a`.
+- Foundation workflow `41873195219` passed lint, type checks, unit tests, build, Chromium smoke and authenticated document/teacher acceptance. Database authorization workflow `41873195229` and secret scan `41873195288` passed.
+- Vercel Preview environment entries exist for Supabase server access, Google OAuth/Drive encryption and cron. Secret values were not decrypted or validated. No AI provider/model or Brave Search credential entry was found. Production-target server credentials were not present in the inspected environment inventory.
+- The connected non-production Supabase project is ACTIVE_HEALTHY (Free, PostgreSQL 17.11, `ap-south-1`). Repository and hosted migration inventories each contain 101 entries: 98 exact version/name matches and three SQL-equivalent timestamp/name mismatches. The guarded history-repair/dry-run workflow has not been run; no hosted schema or ledger mutation was made in this inspection.
+- Current security advisor findings: 14 authenticated-callable SECURITY DEFINER RPCs and one non-callable trigger function. Inspected functions use an empty search path, reference `auth.uid()`, and deny anon EXECUTE. These require continued owner-authorization review and documented justification, not a blanket conversion to invoker. Four quota tables have RLS enabled with no client policies or client grants, as intended.
+- Supabase Auth leaked-password protection is disabled. Performance advisor reports five unindexed foreign keys and 47 unused-index notices. The five FK indexes require review; unused-index notices are informational and are not grounds for automatic deletion.
+- ERR-124 remains open: 13 moderate development-toolchain audit findings; production-only dependency audit is clean.
+- Production approval remains **withheld**. The live AI provider and optional web research are not configured; Google Drive round-trip acceptance, worker operation, migration-history reconciliation evidence, full isolated backup/restore drill, privacy/accessibility/academic review, and production environment validation remain open.
+
+The feature branch CI passing does not override these release blockers. Do not merge or deploy the feature to Production until each required gate has evidence and the owner explicitly approves the release.
+
 ## Release principles
 
 - Testing is now authorized on `feature/m3-ai-solver`; record failures and fixes separately, and do not treat a green isolated CI run as production release approval.
