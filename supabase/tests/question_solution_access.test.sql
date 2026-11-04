@@ -78,7 +78,7 @@ select throws_ok(
 
 select throws_ok(
   $$delete from public.question_solution_mark_schemes
-    where id = '50000000-0000-4000-8000-000000000001'$,
+    where id = '50000000-0000-4000-8000-000000000001'$$,
   '42501',
   null,
   'owner cannot delete an append-only saved mark scheme'
@@ -87,7 +87,7 @@ select throws_ok(
 select throws_ok(
   $$update public.question_solutions
     set owner_id = '10000000-0000-4000-8000-000000000002'
-    where id = '40000000-0000-4000-8000-000000000001'$,
+    where id = '40000000-0000-4000-8000-000000000001'$$,
   '42501',
   null,
   'owner cannot transfer an immutable saved solution to another account'
@@ -97,7 +97,7 @@ select throws_ok(
   $$update public.question_solution_reviews
     set owner_id = '10000000-0000-4000-8000-000000000002',
         reviewer_id = '10000000-0000-4000-8000-000000000002'
-    where solution_id = '40000000-0000-4000-8000-000000000001'$,
+    where solution_id = '40000000-0000-4000-8000-000000000001'$$,
   '42501',
   null,
   'owner cannot rewrite the ownership or reviewer identity of an audit record'
@@ -106,7 +106,7 @@ select throws_ok(
 select throws_ok(
   $$update public.question_solution_mark_schemes
     set owner_id = '10000000-0000-4000-8000-000000000002'
-    where id = '50000000-0000-4000-8000-000000000001'$,
+    where id = '50000000-0000-4000-8000-000000000001'$$,
   '42501',
   null,
   'owner cannot transfer an append-only mark scheme to another account'
