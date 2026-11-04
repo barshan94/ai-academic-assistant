@@ -4,8 +4,8 @@
 
 ### GitHub and Vercel
 
-- Feature branch: `feature/m3-ai-solver`, head `4e7208902b30dd422e9fcc07a7808958e0613ce1`.
-- Latest feature Preview: **READY**, [open current preview](https://ai-academic-assistant-6rr20j9vg-barshan-s-team.vercel.app). This is not Production.
+- Feature branch: `feature/m3-ai-solver`, current head `b135a769bb9ee3402b518ec669a556e8728665fb`. This includes a merge of the latest `main` commit into the feature branch; the document-worker workflow was deliberately kept manual-only until production acceptance.
+- Latest fully verified feature-code Preview: **READY**, [open preview](https://ai-academic-assistant-6rr20j9vg-barshan-s-team.vercel.app) for commit `4e7208902b30dd422e9fcc07a7808958e0613ce1`. A Preview for the newer merge commit has not yet been confirmed. This is not Production.
 - Latest Production deployment: **READY**, from `main` commit `cd3620fad75d343c3d7160257ab044222ce82c7a`. It does not contain the feature-branch implementation.
 - Vercel environment inventory: Supabase URL and publishable key exist across environments. Preview-target entries exist for `CRON_SECRET`, `SUPABASE_SERVICE_ROLE_KEY`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_DRIVE_REDIRECT_URI`, and `DRIVE_TOKEN_ENCRYPTION_KEY`.
 - The environment-variable inventory was read without decrypting secrets. Entry existence does **not** prove that a secret value is non-empty, valid, or working. No secret values were retrieved or changed.
@@ -17,7 +17,7 @@
 - Foundation run [41873195219](https://github.com/barshan94/ai-academic-assistant/actions/runs/41873195219): passed lint, type checks, unit tests, build, Chromium smoke and authenticated document/teacher acceptance.
 - Database authorization run [41873195229](https://github.com/barshan94/ai-academic-assistant/actions/runs/41873195229): passed.
 - Secret scanning run [41873195288](https://github.com/barshan94/ai-academic-assistant/actions/runs/41873195288): passed.
-- The full development dependency audit still reports 13 moderate minimatch/legacy ESLint-chain findings (ERR-124); the production-only audit is clean. ERR-124 remains open.
+- The full development dependency audit still reports 13 moderate minimatch/legacy ESLint-chain findings (ERR-124); the production-only audit is clean. ERR-124 remains open.\n- Manual document-worker run [41799486679](https://github.com/barshan94/ai-academic-assistant/actions/runs/41799486679) on `main` succeeded and the endpoint returned 2xx. This confirms the configured GitHub secrets and route responded; it does not prove a queued document completed end-to-end. The worker workflow is manual-only for now; do not enable its five-minute schedule until production acceptance.
 
 ### Latest live non-production Supabase inspection
 
@@ -38,7 +38,7 @@
 5. Complete encrypted backup plus isolated full restore rehearsal, accessibility/device review, privacy/legal review and official syllabus/answer grading.
 6. Only after the release gate is signed off, configure and validate Production-only secrets, create a reviewed release commit, merge the application PR, and deploy that immutable commit.
 
-No secret values were retrieved, copied, rotated, or changed during this inspection.
+PR #1 remains draft. Its merge conflict with the one new `main` worker-workflow commit has been resolved on the feature branch; GitHub now reports it mergeable, but required checks are queued. The application PR has not been merged to `main`.\n\nNo secret values were retrieved, copied, rotated, or changed during this inspection.
 
 ## 1. Environment and provider setup
 
