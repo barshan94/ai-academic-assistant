@@ -28,19 +28,23 @@ supabase link --project-ref "$EXPECTED_PROJECT_REF"
 echo "Current remote migration ledger:"
 supabase migration list --linked
 
-echo "Repairing only the two byte-identical renamed migration entries..."
-supabase migration repair --linked --status reverted 20261031031132 20261031031233
-supabase migration repair --linked --status applied 20261031031012 20261031031212
+# These three pairs were verified read-only on 2026-11-04. Each remote
+# statements[] array is SQL-equivalent to its repository file after removing
+# SQL comments and normalizing whitespace. Repair history only; do not rerun DDL.
+echo "Repairing only the three verified timestamp/name mismatches..."
+supabase migration repair --linked --status reverted 20261103162903 20261104124726 20261104125214
+supabase migration repair --linked --status applied 20261103163000 20261104100000 20261104110000
 
-echo "Dry-running the full pending chain, including out-of-order migrations..."
+echo "Dry-running the full repository migration chain..."
 supabase db push --linked --include-all --dry-run
 
 echo
-echo "The dry-run completed. This will apply the repository migrations to the"
-echo "approved non-production project only. No reset or production deployment."
+echo "The dry-run completed. This will apply repository migrations to the"
+echo "approved non-production project only, if any are still pending."
+echo "No reset or production deployment."
 read -r -p "Type APPLY to continue: " confirmation
 if [[ "$confirmation" != "APPLY" ]]; then
-  echo "Stopped after dry-run. The two migration-history pairs have been reconciled; no pending DDL was applied."
+  echo "Stopped after dry-run. Migration history is reconciled; no pending DDL was applied."
   exit 0
 fi
 
