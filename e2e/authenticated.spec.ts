@@ -234,7 +234,7 @@ test("owner reviews extracted pages before creating a source-linked question", a
       "Why must a teacher compare extracted text with the original source before creating an academic question?"
     );
     await page.getByRole("button", { name: /Add to question library/i }).click();
-    await expect(page).toHaveURL(/\\/dashboard\\/questions\\?created=1/);
+    await expect(page).toHaveURL(/\/dashboard\/questions\?created=1/);
 
     const { data: savedQuestions, error: questionError } = await fixture.supabase
       .from("questions")
