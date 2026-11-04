@@ -39,6 +39,9 @@ export async function approveDocument(formData: FormData) {
   if (!documentId.success) {
     redirect("/dashboard/documents?review=invalid");
   }
+  if (formData.get("confirmReviewed") !== "yes") {
+    redirect("/dashboard/documents/" + encodeURIComponent(documentId.data) + "?review=confirm_required");
+  }
 
   const supabase = await createSupabaseServerClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
