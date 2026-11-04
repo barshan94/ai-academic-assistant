@@ -371,7 +371,9 @@ async function signIn(page: Page, email: string, password: string) {
     await page.getByRole("button", { name: /Mark reviewed/i }).click();
     await expect(page).toHaveURL(new RegExp(`/dashboard/documents/${fixture.documentId}\\?review=approved`));
     await expect(page.getByText("Teacher review completed.")).toBeVisible();
-    await expect(page.getByText(/Save a question from this page/)).toBeVisible();
+    const questionDetails = page.locator("details.question-create");
+    await expect(questionDetails).toBeVisible();
+    await questionDetails.locator("summary").click();
 
     await page.getByLabel("Question text").fill(
       "Why must a teacher compare extracted text with the original source before creating an academic question?"
