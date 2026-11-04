@@ -1,0 +1,43 @@
+name: Document processing worker
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: document-processing-worker
+  cancel-in-progress: false
+
+jobs:
+  process-one-document:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Validate worker configuration
+        env:
+          APP_BASE_URL: ${{ secrets.APP_BASE_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          test -n "$APP_BASE_URL" || { echo "::error::APP_BASE_URL secret is missing"; exit 1; }
+          test -n "$CRON_SECRET" || { echo "::error::CRON_SECRET secret is missing"; exit 1; }
+          case "$APP_BASE_URL" in
+            https://*) ;;
+            *) echo "::error::APP_BASE_URL must use HTTPS"; exit 1 ;;
+          esac
+
+      - name: Process one queued document
+        env:
+          APP_BASE_URL: ${{ secrets.APP_BASE_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          status="$(curl --silent --show-error --output /dev/null --write-out "%{http_code}" \
+            --request POST \
+            --header "Authorization: Bearer $CRON_SECRET" \
+            --max-time 65 \
+            "${APP_BASE_URL%/}/api/cron/process-documents")"
+          case "$status" in
+            2*) ;;
+            *) echo "::error::Document worker returned HTTP $status"; exit 1 ;;
+          esac
