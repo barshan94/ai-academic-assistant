@@ -53,7 +53,9 @@ async function prepareImageForPdf(file: File, bytes: Uint8Array, targetBytes: nu
   }
 
   // from-image applies EXIF orientation before dimensions and pixels are used.
-  const blobBytes = new Uint8Array(bytes.byteLength);\n  blobBytes.set(bytes);\n  const bitmap = await createImageBitmap(new Blob([blobBytes.buffer]), { imageOrientation: "from-image" });
+  const blobBytes = new Uint8Array(bytes.byteLength);
+  blobBytes.set(bytes);
+  const bitmap = await createImageBitmap(new Blob([blobBytes.buffer]), { imageOrientation: "from-image" });
   try {
     if (!bitmap.width || !bitmap.height || bitmap.width > 10000 || bitmap.height > 10000 ||
         bitmap.width * bitmap.height > MAX_IMAGE_PIXELS) {
