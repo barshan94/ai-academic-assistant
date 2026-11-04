@@ -1826,3 +1826,8 @@ ERR-073 closure reconciliation (2026-11-01): the earlier note that page and pare
 - Fix: Export `SUPABASE_ACCESS_TOKEN` and `SUPABASE_DB_PASSWORD` in the script process, disable shell xtrace, and call `supabase link` without a password argument. Added regression tests for shell syntax, fixed target/version, environment-only credential use, and the dry-run/explicit-confirmation gate.
 - Verification: Pending current-head GitHub Actions after commit.
 - Status: Source fix committed; no hosted migration was run. The script still requires the owner to execute it in a trusted CLI environment.
+
+
+### ERR-007 update — 2026-11-04 current ledger comparison
+
+A fresh read-only comparison against the feature-branch tree and hosted ledger found 101 repository migration files and 101 hosted ledger entries: 98 exact version/name matches and three timestamp/name mismatches. The hosted SQL statement arrays for all three mismatched entries were compared with their repository files; normalized SQL was identical in each pair. The two earlier shared-reference mismatches are now exact matches, and the historical 44-pending-migration list is superseded. No pending migration DDL was identified by the ledger inventory. Updated docs/MIGRATION_RECONCILIATION.md and the pinned non-production reconciliation script to repair only the three current verified history pairs, then run a dry-run. No hosted ledger repair or DDL was performed during this inspection. Status remains open until the manual pinned-CLI workflow verifies the dry-run and final ledger.
