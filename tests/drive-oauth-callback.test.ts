@@ -35,11 +35,17 @@ function request(options: { query?: string; cookie?: string } = {}) {
   });
 }
 
-function configureAuthenticatedUser(id = userId) {
+function configureAuthenticatedUser(id = userId, existingEncryptedToken: string | null = null) {
   const upsert = vi.fn().mockResolvedValue({ error: null });
+  const maybeSingle = vi.fn().mockResolvedValue({
+    data: existingEncryptedToken ? { encrypted_refresh_token: existingEncryptedToken } : null,
+    error: null,
+  });
+  const eq = vi.fn(() => ({ maybeSingle }));
+  const select = vi.fn(() => ({ eq }));
   createSupabaseServerClientMock.mockResolvedValue({
     auth: { getUser: vi.fn().mockResolvedValue({ data: { user: { id } }, error: null }) },
-    from: vi.fn(() => ({ upsert })),
+    from: vi.fn(() => ({ upsert, select })),
   });
   return upsert;
 }
@@ -130,6 +136,38 @@ describe("Google Drive OAuth callback security", () => {
       granted_scope: "https://www.googleapis.com/auth/drive.file",
     }));
     expect(response.cookies.get("drive_oauth_state")?.maxAge).toBe(0);
+  });
+
+  it("preserves the existing encrypted refresh token when Google omits a new one", async () => {
+    const upsert = configureAuthenticatedUser(userId, "existing-encrypted-refresh-token");
+    configureOAuthEnvironment();
+    vi.stubGlobal("fetch", vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({
+      scope: "https://www.googleapis.com/auth/drive.file",
+    }), { status: 200, headers: { "content-type": "application/json" } })));
+
+    const response = await GET(request());
+
+    expect(response.headers.get("location")).toContain("drive=connected");
+    expect(encryptRefreshTokenMock).not.toHaveBeenCalled();
+    expect(upsert).toHaveBeenCalledWith(expect.objectContaining({
+      owner_id: userId,
+      encrypted_refresh_token: "existing-encrypted-refresh-token",
+      granted_scope: "https://www.googleapis.com/auth/drive.file",
+    }));
+  });
+
+  it("does not create a connection when Google omits a refresh token and no prior token exists", async () => {
+    const upsert = configureAuthenticatedUser();
+    configureOAuthEnvironment();
+    vi.stubGlobal("fetch", vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({
+      scope: "https://www.googleapis.com/auth/drive.file",
+    }), { status: 200, headers: { "content-type": "application/json" } })));
+
+    const response = await GET(request());
+
+    expect(response.headers.get("location")).toContain("drive=missing_refresh_token");
+    expect(upsert).not.toHaveBeenCalled();
+    expect(encryptRefreshTokenMock).not.toHaveBeenCalled();
   });
 
   it("does not expose OAuth provider response details when token exchange fails", async () => {
