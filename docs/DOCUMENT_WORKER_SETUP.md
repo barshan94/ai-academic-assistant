@@ -61,8 +61,8 @@ Configure these GitHub Actions repository secrets:
 
 | Secret | Purpose |
 | --- | --- |
-| `NEXT_PUBLIC_SUPABASE_URL` | URL of the designated non-production Supabase project |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Publishable key for that same project |
+| `E2E_SUPABASE_URL` | URL of the designated non-production Supabase project |
+| `E2E_SUPABASE_PUBLISHABLE_KEY` | Publishable key for that same project |
 | `E2E_OWNER_EMAIL` | Dedicated test-owner account email |
 | `E2E_OWNER_PASSWORD` | Dedicated test-owner account password |
 | `E2E_TEACHER_EMAIL` | Optional second test account for invitation and sharing tests |
@@ -72,4 +72,4 @@ Create and confirm the test accounts in the designated non-production Supabase A
 
 The owner-only document review test requires the first four secrets. The two-account teacher invitation/review/revocation test additionally requires both teacher secrets. If owner credentials are missing or incomplete, CI reports the authenticated acceptance job as skipped; a skipped job is not a passing end-to-end test.
 
-On 2026-11-04, the first authenticated job correctly skipped because the owner test credentials were not fully configured. The non-authenticated foundation checks and database tests remain separate and do not depend on these credentials.
+The CI workflow maps `E2E_SUPABASE_URL` and `E2E_SUPABASE_PUBLISHABLE_KEY` into the app's `NEXT_PUBLIC_*` runtime variables. Keep the E2E-prefixed GitHub secret names; do not create duplicate `NEXT_PUBLIC_*` secrets. The non-authenticated foundation checks and database tests remain separate and do not depend on these credentials.
