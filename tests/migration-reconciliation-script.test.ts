@@ -38,6 +38,13 @@ describe("non-production Supabase migration reconciliation script", () => {
     expect(script).toContain('if [[ "$confirmation" != "APPLY" ]]');
   });
 
+  it("repairs only the three currently verified SQL-equivalent history pairs", () => {
+    expect(script).toContain("20261103162903 20261104124726 20261104125214");
+    expect(script).toContain("20261103163000 20261104100000 20261104110000");
+    expect(script).not.toContain("20261031031132");
+    expect(script).not.toContain("20261031031233");
+  });
+
   it("does not reset the database or accept an arbitrary project reference", () => {
     expect(script).not.toContain("supabase db reset");
     expect(script).not.toContain("supabase projects create");
