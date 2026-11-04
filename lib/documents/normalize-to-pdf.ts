@@ -30,18 +30,21 @@ function createCanvas(width: number, height: number): OffscreenCanvas | HTMLCanv
 }
 
 async function canvasToJpeg(canvas: OffscreenCanvas | HTMLCanvasElement, quality: number) {
-  if ("convertToBlob" in canvas) {
-    return new Uint8Array(await canvas.convertToBlob({ type: "image/jpeg", quality }).then((blob) => blob.arrayBuffer()));
+  let blob: Blob;
+  if (typeof OffscreenCanvas !== "undefined" && canvas instanceof OffscreenCanvas) {
+    blob = await canvas.convertToBlob({ type: "image/jpeg", quality });
+  } else {
+    blob = await new Promise<Blob>((resolve, reject) => {
+      (canvas as HTMLCanvasElement).toBlob((result) => {
+        if (!result) {
+          reject(new Error("The browser could not encode this image."));
+          return;
+        }
+        resolve(result);
+      }, "image/jpeg", quality);
+    });
   }
-  return new Uint8Array(await new Promise<ArrayBuffer>((resolve, reject) => {
-    canvas.toBlob((blob) => {
-      if (!blob) {
-        reject(new Error("The browser could not encode this image."));
-        return;
-      }
-      blob.arrayBuffer().then(resolve, reject);
-    }, "image/jpeg", quality);
-  }));
+  return new Uint8Array(await blob.arrayBuffer());
 }
 
 async function prepareImageForPdf(file: File, bytes: Uint8Array, targetBytes: number) {
@@ -50,7 +53,7 @@ async function prepareImageForPdf(file: File, bytes: Uint8Array, targetBytes: nu
   }
 
   // from-image applies EXIF orientation before dimensions and pixels are used.
-  const bitmap = await createImageBitmap(new Blob([bytes]), { imageOrientation: "from-image" });
+  const blobBytes = new Uint8Array(bytes.byteLength);\n  blobBytes.set(bytes);\n  const bitmap = await createImageBitmap(new Blob([blobBytes.buffer]), { imageOrientation: "from-image" });
   try {
     if (!bitmap.width || !bitmap.height || bitmap.width > 10000 || bitmap.height > 10000 ||
         bitmap.width * bitmap.height > MAX_IMAGE_PIXELS) {
@@ -65,7 +68,7 @@ async function prepareImageForPdf(file: File, bytes: Uint8Array, targetBytes: nu
       const width = Math.max(1, Math.round(bitmap.width * scale));
       const height = Math.max(1, Math.round(bitmap.height * scale));
       const canvas = createCanvas(width, height);
-      const context = canvas.getContext("2d");
+      const context = canvas.getContext("2d") as CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D | null;
       if (!context) throw new Error("The browser could not prepare this image for PDF conversion.");
 
       // A white background keeps transparent PNG diagrams legible in the PDF.
