@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(20);
+select plan(21);
 
 insert into auth.users (
   id, aud, role, email, encrypted_password, email_confirmed_at,
@@ -135,6 +135,12 @@ select throws_ok(
 select lives_ok(
   $test$select public.revoke_question_teacher_invite((select id from public.question_teacher_invites where invited_email = 'invite-teacher@example.test' and accepted_by = '11000000-0000-4000-8000-000000000002' order by created_at desc limit 1))$test$,
   'owner can revoke an accepted invitation once through the atomic RPC'
+);
+select throws_ok(
+  $test$select public.revoke_question_teacher_invite((select id from public.question_teacher_invites where invited_email = 'invite-teacher@example.test' and accepted_by = '11000000-0000-4000-8000-000000000002' order by created_at desc limit 1))$test$,
+  '42501',
+  'Invitation not found, not owned, or already revoked',
+  'a repeated revocation is rejected and cannot rewrite the original audit timestamp'
 );
 
 set local role authenticated;
