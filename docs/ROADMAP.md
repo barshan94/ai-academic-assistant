@@ -510,3 +510,20 @@ These green CI runs prove isolated code/database/browser checks only. They do no
 - [ ] Production release remains blocked; PR #1 remains draft/unmerged and no production deployment is authorized.
 
 This checkpoint supersedes older hosted-migration counts and CI statuses above. Green isolated CI does not prove live external integrations or production readiness.
+
+
+## Current verified checkpoint — 2026-11-04 (commit 908cf5b)
+
+The current feature-branch head is `908cf5bcbc195847c9977467639dbdf1aa79e575`. This checkpoint supersedes older counts and statuses elsewhere in this historical roadmap.
+
+- Foundation workflow `41868235048`: ESLint, application TypeScript, Playwright configuration TypeScript, authenticated-browser TypeScript, production environment contract, production dependency audit, full dependency-audit report, unit tests and production build all passed.
+- Chromium browser smoke job `126709875889`: passed.
+- Authenticated document/teacher acceptance job `126709876652`: passed using the configured isolated E2E accounts.
+- Database authorization workflow `41868235534`: isolated local Supabase migration replay and pgTAP authorization tests passed.
+- Secret scanning workflow `41868235010`: passed.
+- Latest read-only hosted migration inventory: 101 repository migration files and 101 hosted ledger entries; 98 exact version/name matches and three SQL-equivalent timestamp/name pairs documented in `docs/MIGRATION_RECONCILIATION.md`. The pinned repair-and-dry-run workflow has not yet been executed. No hosted migration ledger repair or schema mutation was performed.
+- No merge or production deployment occurred.
+
+Remaining operational/release gates include running the manual non-production migration workflow in its default `reconcile-and-dry-run` mode, live Google Drive round-trip and image-to-PDF/OCR accuracy acceptance, live AI-provider evaluation with explicit cost approval, backup/restore proof, accessibility and release sign-off. Do not choose migration apply mode unless a reviewed dry-run identifies pending DDL and the owner explicitly approves it.
+
+Dependency security: production dependency audit is clean. The full development dependency audit still reports 13 moderate findings associated with the legacy ESLint minimatch dependency graph; see ERR-124. Do not use a broad major-version override or `npm audit fix --force`.

@@ -1831,3 +1831,20 @@ ERR-073 closure reconciliation (2026-11-01): the earlier note that page and pare
 ### ERR-007 update — 2026-11-04 current ledger comparison
 
 A fresh read-only comparison against the feature-branch tree and hosted ledger found 101 repository migration files and 101 hosted ledger entries: 98 exact version/name matches and three timestamp/name mismatches. The hosted SQL statement arrays for all three mismatched entries were compared with their repository files; normalized SQL was identical in each pair. The two earlier shared-reference mismatches are now exact matches, and the historical 44-pending-migration list is superseded. No pending migration DDL was identified by the ledger inventory. Updated docs/MIGRATION_RECONCILIATION.md and the pinned non-production reconciliation script to repair only the three current verified history pairs, then run a dry-run. No hosted ledger repair or DDL was performed during this inspection. Status remains open until the manual pinned-CLI workflow verifies the dry-run and final ledger.
+
+
+### ERR-007 current-state addendum — 2026-11-04
+
+A fresh read-only comparison supersedes the older 53-entry/44-pending inventory above. The current branch contains 101 migration files and the hosted ledger contains 101 entries: 98 exact version/name matches and three mismatched identifiers whose normalized SQL statement arrays were independently compared and found equivalent:
+
+- Hosted `20261103162903_restore_invoker_teacher_rpc_wrappers` ↔ repository `20261103163000_restore_invoker_teacher_rpc_wrappers.sql`
+- Hosted `20261104124726_create_question_from_reviewed_page` ↔ repository `20261104100000_create_questions_only_from_reviewed_pages.sql`
+- Hosted `20261104125214_require_reviewed_source_for_question_insert` ↔ repository `20261104110000_require_reviewed_source_for_question_insert.sql`
+
+The reconciliation script now pins Supabase CLI 2.122.0, repairs only those three verified history pairs, and runs `db push --include-all --dry-run` before any possible apply. CI for commit `908cf5b` passed the script regression tests and isolated database suite. The manual workflow remains unexecuted; no hosted ledger repair or DDL has been performed. Use only the default dry-run operation first.
+
+### ERR-124 current dependency-tree addendum — 2026-11-04
+
+The current lockfile has seven direct dependency parents declaring legacy `minimatch@3` ranges: `@eslint/config-array`, `@eslint/eslintrc`, `eslint`, `eslint-plugin-import`, `eslint-plugin-jsx-a11y`, and `eslint-plugin-react` (six parents; the separate modern parent is listed below). They resolve to the shared `node_modules/minimatch@3.1.5`. `@typescript-eslint/typescript-estree@8.72.1` declares `minimatch ^10.2.2` and resolves to nested `minimatch@11.0.3` through the already-scoped root override in `package.json`. Thus the current lockfile does not contain the vulnerable 10.2.6 release; the remaining audit findings are attached to the legacy 3.1.5 copy because GitHub's database range currently says all versions below 11.0.1.
+
+The upstream maintainer advisory describes the specific implementation defect in 10.2.6 and marks only 10.2.6 affected, fixed in 11.0.1. GitHub's reviewed database still lists <11.0.1. Clarification issue #10811 remains open as of this review. This is an unresolved advisory-range discrepancy, not proof that all minimatch 3.x code is safe and not grounds to suppress the alert. A broad override to v11 would violate multiple declared `^3.1.x` contracts. Keep ERR-124 open until the advisory range is clarified or a compatible, tested lint-toolchain migration removes the legacy copies. Latest Foundation CI confirms the production audit passes and reports the full development audit, but does not make the 13 moderate findings disappear.
