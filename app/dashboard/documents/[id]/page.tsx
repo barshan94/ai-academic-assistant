@@ -31,6 +31,7 @@ const notices: Record<string, string> = {
   invalid_question: "Check the question text and metadata, then try again.",
   source_invalid: "The selected page does not belong to this document or account.",
   save_failed_question: "The question could not be saved.",
+  document_not_reviewed: "Review and approve this document before adding questions to your library.",
 };
 
 export default async function DocumentReviewPage({ params, searchParams }: PageProps) {
@@ -87,25 +88,29 @@ export default async function DocumentReviewPage({ params, searchParams }: PageP
                   <textarea id={"page-text-" + page.id} name="extractedText" defaultValue={page.extracted_text ?? ""} rows={10} maxLength={50000} required />
                   <button className="document-action" type="submit">Save correction</button>
                 </form>
+{document.status === "ready" ? (
                 <details className="question-create">
                   <summary>Save a question from this page</summary>
-                  <p>Copy one individual question into the field below. This creates a source-linked question record; it does not generate an answer.</p>
-                  <form action={createQuestionFromPage} className="question-create-form">
-                    <input type="hidden" name="documentId" value={document.id} />
-                    <input type="hidden" name="documentPageId" value={page.id} />
-                    <label htmlFor={"question-text-" + page.id}>Question text</label>
-                    <textarea id={"question-text-" + page.id} name="questionText" defaultValue={page.extracted_text ?? ""} rows={5} maxLength={20000} required />
-                    <div className="question-fields">
-                      <label>Question number<input name="questionNumber" placeholder="e.g. 3(b)" maxLength={40} /></label>
-                      <label>Board<input name="board" placeholder="e.g. Cambridge" maxLength={120} /></label>
-                      <label>Qualification<input name="qualification" placeholder="e.g. O Level" maxLength={120} /></label>
-                      <label>Subject<input name="subject" placeholder="e.g. Physics" maxLength={120} /></label>
-                      <label>Chapter<input name="chapter" placeholder="Chapter name" maxLength={120} /></label>
-                      <label>Topic<input name="topic" placeholder="Topic name" maxLength={120} /></label>
-                    </div>
-                    <button className="document-action" type="submit">Add to question library</button>
-                  </form>
+                                    <p>Copy one individual question into the field below. This creates a source-linked question record; it does not generate an answer.</p>
+                                    <form action={createQuestionFromPage} className="question-create-form">
+                                      <input type="hidden" name="documentId" value={document.id} />
+                                      <input type="hidden" name="documentPageId" value={page.id} />
+                                      <label htmlFor={"question-text-" + page.id}>Question text</label>
+                                      <textarea id={"question-text-" + page.id} name="questionText" defaultValue={page.extracted_text ?? ""} rows={5} maxLength={20000} required />
+                                      <div className="question-fields">
+                                        <label>Question number<input name="questionNumber" placeholder="e.g. 3(b)" maxLength={40} /></label>
+                                        <label>Board<input name="board" placeholder="e.g. Cambridge" maxLength={120} /></label>
+                                        <label>Qualification<input name="qualification" placeholder="e.g. O Level" maxLength={120} /></label>
+                                        <label>Subject<input name="subject" placeholder="e.g. Physics" maxLength={120} /></label>
+                                        <label>Chapter<input name="chapter" placeholder="Chapter name" maxLength={120} /></label>
+                                        <label>Topic<input name="topic" placeholder="Topic name" maxLength={120} /></label>
+                                      </div>
+                                      <button className="document-action" type="submit">Add to question library</button>
+                                    </form>
                 </details>
+              ) : (
+                <p className="notice notice-info">Approve this document after checking every page before adding questions to your library.</p>
+              )}
               </article>
             ))}
           </div>
