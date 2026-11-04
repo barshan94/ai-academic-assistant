@@ -143,6 +143,256 @@ async function signIn(page: Page, email: string, password: string) {
   await expect(page).toHaveURL(/\/dashboard(?:$|\?)/);
 }
 
+
+const ownerConfigured = [
+  config.supabaseUrl,
+  config.publishableKey,
+  config.ownerEmail,
+  config.ownerPassword,
+].every(Boolean);
+
+async function createReviewFixture() {
+  const supabase = createClient(config.supabaseUrl, config.publishableKey, {
+    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+  });
+  const { data: auth, error: authError } = await supabase.auth.signInWithPassword({
+    email: config.ownerEmail,
+    password: config.ownerPassword,
+  });
+  if (authError || !auth.user) {
+    throw new Error("Could not authenticate the E2E owner to create the document-review fixture.");
+  }
+
+  let documentId: string | undefined;
+  try {
+    const marker = randomUUID();
+    const { data: document, error: documentError } = await supabase
+      .from("documents")
+      .insert({
+        owner_id: auth.user.id,
+        file_name: "E2E review fixture " + marker + ".pdf",
+        mime_type: "application/pdf",
+        file_size_bytes: 1,
+        status: "review_required",
+        page_count: 1,
+      })
+      .select("id")
+      .single();
+    if (documentError || !document) throw new Error("Could not create the isolated E2E document-review fixture.");
+    documentId = document.id;
+
+    const { error: pageError } = await supabase.from("document_pages").insert({
+      owner_id: auth.user.id,
+      document_id: document.id,
+      page_number: 1,
+      extracted_text: "E2E source: Explain why a source document must be reviewed before questions are created.",
+      extraction_method: "ocr",
+      status: "review_required",
+    });
+    if (pageError) throw new Error("Could not create the isolated E2E extracted-page fixture.");
+    return { supabase, documentId };
+  } catch (error) {
+    if (documentId) await supabase.from("documents").delete().eq("id", documentId);
+    await supabase.auth.signOut();
+    throw error;
+  }
+}
+
+test("owner reviews extracted pages before creating a source-linked question", async ({ page }) => {
+  test.skip(!ownerConfigured, "Requires Supabase URL/key and E2E owner credentials.");
+  if (!ownerConfigured) return;
+
+  const fixture = await createReviewFixture();
+  try {
+    await signIn(page, config.ownerEmail, config.ownerPassword);
+    await page.goto(`/dashboard/documents/${fixture.documentId}`);
+
+    await expect(page.getByRole("heading", { name: /E2E review fixture/ })).toBeVisible();
+    await expect(page.getByText("Human review required")).toBeVisible();
+    await expect(page.getByText(/Save a question from this page/)).toHaveCount(0);
+
+    const confirmation = page.getByRole("checkbox", {
+      name: /I compared every extracted page with the original/i,
+    });
+    await expect(confirmation).toBeVisible();
+    await expect(confirmation).not.toBeChecked();
+
+    // A required checkbox must block an accidental approval.
+    await page.getByRole("button", { name: /Mark reviewed/i }).click();
+    await expect(page).toHaveURL(new RegExp(`/dashboard/documents/${fixture.documentId}import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { randomUUID } from "node:crypto";
+import { expect, test, type Page } from "@playwright/test";
+
+const config = {
+  supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
+  publishableKey: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? "",
+  ownerEmail: process.env.E2E_OWNER_EMAIL ?? "",
+  ownerPassword: process.env.E2E_OWNER_PASSWORD ?? "",
+  teacherEmail: process.env.E2E_TEACHER_EMAIL ?? "",
+  teacherPassword: process.env.E2E_TEACHER_PASSWORD ?? "",
+};
+
+const configured = Object.values(config).every(Boolean);
+
+type TestFixture = {
+  supabase: SupabaseClient;
+  ownerId: string;
+  documentId: string;
+  pageId: string;
+  questionId: string;
+  solutionId: string;
+};
+
+const answerFixture = {
+  examAnswer: "A test answer created only for the authenticated browser acceptance.",
+  workingSteps: [{ step: "Test step", explanation: "A deterministic fixture step." }],
+  calculationChecks: [],
+  chemistryChecks: [],
+  physicsChecks: [],
+  bengaliExplanation: "এটি কেবল স্বয়ংক্রিয় পরীক্ষার জন্য তৈরি একটি নমুনা উত্তর।",
+  englishExplanation: "This is a deterministic answer fixture for the automated test.",
+  keyConcepts: ["E2E fixture"],
+  assumptions: [],
+  limitations: ["Not an academic answer; test data only."],
+};
+
+async function createTestFixture(): Promise<TestFixture> {
+  const supabase = createClient(config.supabaseUrl, config.publishableKey, {
+    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+  });
+  const { data: auth, error: authError } = await supabase.auth.signInWithPassword({
+    email: config.ownerEmail,
+    password: config.ownerPassword,
+  });
+  if (authError || !auth.user) {
+    throw new Error("Could not authenticate the E2E owner to create isolated test records.");
+  }
+
+  let documentId: string | undefined;
+  let pageId: string | undefined;
+  let questionId: string | undefined;
+  try {
+    const marker = randomUUID();
+    const { data: document, error: documentError } = await supabase
+      .from("documents")
+      .insert({
+        owner_id: auth.user.id,
+        file_name: "E2E fixture " + marker + ".pdf",
+        mime_type: "application/pdf",
+        file_size_bytes: 1,
+        status: "ready",
+        page_count: 1,
+      })
+      .select("id")
+      .single();
+    if (documentError || !document) throw new Error("Could not create the isolated E2E document fixture.");
+    documentId = document.id;
+
+    const { data: page, error: pageError } = await supabase
+      .from("document_pages")
+      .insert({
+        owner_id: auth.user.id,
+        document_id: documentId,
+        page_number: 1,
+        extracted_text: "E2E fixture source page. No real student or customer content.",
+        extraction_method: "manual",
+        status: "complete",
+      })
+      .select("id")
+      .single();
+    if (pageError || !page) throw new Error("Could not create the isolated E2E page fixture.");
+    pageId = page.id;
+
+    const { data: question, error: questionError } = await supabase
+      .from("questions")
+      .insert({
+        owner_id: auth.user.id,
+        document_id: documentId,
+        document_page_id: page.id,
+        question_number: "E2E",
+        question_text: "E2E fixture: explain why automated acceptance tests use isolated records.",
+        board: "Test Board",
+        qualification: "Test",
+        subject: "Computer Science",
+        chapter: "Automated testing",
+        topic: "Isolated fixtures",
+        review_status: "approved",
+      })
+      .select("id")
+      .single();
+    if (questionError || !question) throw new Error("Could not create the isolated E2E question fixture.");
+    questionId = question.id;
+
+    const { data: solution, error: solutionError } = await supabase
+      .from("question_solutions")
+      .insert({
+        owner_id: auth.user.id,
+        question_id: questionId,
+        provider: "e2e-fixture",
+        model: "deterministic-test",
+        prompt_version: "authenticated-e2e-fixture-v1",
+        answer_json: answerFixture,
+        // verification_status is intentionally omitted: the database default
+        // creates a generated draft, and authenticated clients cannot set it.
+      })
+      .select("id")
+      .single();
+    if (solutionError || !solution) throw new Error("Could not create the isolated E2E answer fixture.");
+
+    return { supabase, ownerId: auth.user.id, documentId, pageId, questionId, solutionId: solution.id };
+  } catch (error) {
+    if (questionId) await supabase.from("questions").delete().eq("id", questionId);
+    if (documentId) await supabase.from("documents").delete().eq("id", documentId);
+    await supabase.auth.signOut();
+    throw error;
+  }
+}
+
+async function cleanupTestFixture(fixture: TestFixture) {
+  // Delete only the unique question/document created by this test. Cascades
+  // remove its solution and invitation/review children; unrelated records stay.
+  await fixture.supabase.from("questions").delete().eq("id", fixture.questionId);
+  await fixture.supabase.from("documents").delete().eq("id", fixture.documentId);
+  await fixture.supabase.auth.signOut();
+}
+
+async function signIn(page: Page, email: string, password: string) {
+  await page.goto("/login");
+  await page.getByLabel("Email address").fill(email);
+  await page.getByLabel("Password").fill(password);
+  await page.getByRole("button", { name: /sign in/i }).click();
+  await expect(page).toHaveURL(/\/dashboard(?:$|\?)/);
+}
+
+));
+    await expect(confirmation).not.toBeChecked();
+
+    await confirmation.check();
+    await page.getByRole("button", { name: /Mark reviewed/i }).click();
+    await expect(page).toHaveURL(new RegExp(`/dashboard/documents/${fixture.documentId}\\?review=approved`));
+    await expect(page.getByText("Teacher review completed.")).toBeVisible();
+    await expect(page.getByText(/Save a question from this page/)).toBeVisible();
+
+    await page.getByLabel("Question text").fill(
+      "Why must a teacher compare extracted text with the original source before creating an academic question?"
+    );
+    await page.getByRole("button", { name: /Add to question library/i }).click();
+    await expect(page).toHaveURL(/\/dashboard\/questions\?created=1/);
+
+    const { data: savedQuestions, error: questionError } = await fixture.supabase
+      .from("questions")
+      .select("id,review_status,document_page_id")
+      .eq("document_id", fixture.documentId);
+    expect(questionError).toBeNull();
+    expect(savedQuestions).toHaveLength(1);
+    expect(savedQuestions?.[0]).toMatchObject({ review_status: "needs_review" });
+    expect(savedQuestions?.[0].document_page_id).toBeTruthy();
+  } finally {
+    await fixture.supabase.from("documents").delete().eq("id", fixture.documentId);
+    await fixture.supabase.auth.signOut();
+  }
+});
+
 test("two-account teacher invitation, review, and revocation lifecycle", async ({ browser }) => {
   test.skip(!configured, "Requires the six Supabase URL/key and owner/teacher credential secrets.");
   if (!configured) return;
