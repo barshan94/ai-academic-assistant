@@ -249,3 +249,15 @@ Before dispatch, add repository Actions secrets `SUPABASE_ACCESS_TOKEN` and `SUP
 The operations-only pull request #2 was merged to the default branch as `fbca5d21cc6325b43a47ecbd7a5d5f487b7579c4`. This exposes the manual `Non-production Supabase migration reconciliation` workflow in GitHub Actions without merging or deploying application PR #1. The workflow is restricted to the exact `feature/m3-ai-solver` ref, checks out that branch, pins Supabase CLI 2.122.0, and defaults to ledger reconciliation plus a dry-run. Applying pending DDL requires a separate `reconcile-and-apply` dispatch and the exact confirmation phrase shown in the workflow.
 
 The workflow has **not** been dispatched: repository Actions secrets `SUPABASE_ACCESS_TOKEN` and `SUPABASE_DB_PASSWORD` still need to be configured by the owner in GitHub Settings → Secrets and variables → Actions. Do not paste either value into chat or commit them. The helper now passes the database password through its environment rather than its process arguments and disables shell xtrace. The hosted ledger remains at 53 entries; no hosted ledger repair or DDL has been executed.
+
+
+## Connected-project recheck — 2026-11-04
+
+A fresh read-only SQL check against the connected non-production project `uqpyzicftxxegajaocxi` supersedes the older 53-entry ledger snapshots above for the current ledger count:
+
+- Hosted `supabase_migrations.schema_migrations` contains **99 entries**; the latest recorded version is `20261103162903`.
+- All six expected worker/upload RPC names were found in the `public` or `private` routine catalog: `list_claimable_document_jobs`, `claim_document_processing_job`, `complete_document_processing`, `fail_document_processing`, `terminalize_exhausted_stale_document_job` and `register_uploaded_document`.
+- The live Drive PDF `PXL_20261103_115517489~2.pdf` remains registered with document status `queued`; its single processing job remains `queued` at stage `validate`, attempt count `0/3`, with no persisted page rows for that document.
+- This confirms the relevant RPC names and schema objects exist, but does not prove that every migration's effects match the repository, that function bodies/ACLs are correct, or that the worker endpoint has been invoked successfully. No SQL mutations or migration repairs were performed in this recheck.
+
+The 99-entry count is a hosted-ledger observation, **not** a claim that the feature branch's complete migration chain is reconciled. Recompute a version/name/content comparison against the current repository migration directory before closing this blocker.
