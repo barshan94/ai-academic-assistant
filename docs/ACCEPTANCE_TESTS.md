@@ -36,7 +36,7 @@
 - [ ] Live Google Drive acceptance for uploads above 4 MB, network interruption/recovery, expired sessions, duplicate handling and final document/job persistence.
 - [x] Implement scheduled server-side document worker with conditional atomic claims, stale-running recovery, per-job retry limits, and one-job-per-invocation processing.
 - [x] Commit a GitHub Actions five-minute scheduled/manual worker invocation with HTTPS validation, bearer-secret header, serialized workflow concurrency and bounded request retries.
-- [ ] Merge the workflow to the default branch before expecting scheduled runs; GitHub does not execute scheduled workflows from feature branches.
+- [ ] Activate the document worker on the default branch. Verified 2026-11-04: `main` does not contain `app/api/cron/process-documents/route.ts`, the worker workflow, or the worker implementation migrations. Copying only the workflow to `main` would create a broken scheduler. The worker endpoint depends on the feature branch's application code and migrations; integrate/review that application change first, then expose the scheduler on `main`. Do not merge draft PR #1 or deploy Production without explicit approval.
 - [ ] Configure `APP_BASE_URL` and `CRON_SECRET` GitHub Actions secrets plus deployed Supabase/Google environment variables; manually invoke against a non-production deployment.
 - [ ] Verify wrong-secret rejection, single-job processing, concurrent claim safety, retry exhaustion and stale recovery against a live non-production database.
 - [ ] Inject a non-production OCR/provider failure; verify the job failure is persisted, the worker returns HTTP 500 so GitHub Actions reports a failed invocation, and a later invocation retries only within the configured attempt budget (ERR-155).
