@@ -209,7 +209,7 @@ export async function downloadOriginalPdfFromDrive(input: {
     metadata.id !== input.driveFileId ||
     metadata.mimeType !== "application/pdf" ||
     metadata.trashed === true ||
-    !/^\\d+$/.test(metadata.size ?? "") ||
+    !/^\d+$/.test(metadata.size ?? "") ||
     Number(metadata.size) !== input.expectedSizeBytes
   ) {
     throw new Error("The archived PDF is unavailable or its metadata does not match.");
