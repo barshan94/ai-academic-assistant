@@ -17,16 +17,19 @@ Percentages are cumulative scope estimates, not proof of release readiness.
 
 ## Latest automated testing checkpoint — 2026-11-04
 
-Current branch head: `c2224e4085cc8dcd47456111c877dd9f205cf03c`.
+Current branch head: `67a1f421de8c58c2d1eceeb4355b4cf20d651167` (documentation-only commits after implementation/tested code commit `908cf5bcbc195847c9977467639dbdf1aa79e575`).
 
-- Foundation workflow `41847370046`: ESLint, application TypeScript, unit tests (**229 passed across 43 files**), and production build passed.
-- Chromium browser smoke workflow: **10 passed**.
-- Authenticated owner/teacher workflow: **2 passed**, including source-page review before question creation and the two-account invitation, teacher review, correction feedback and revocation lifecycle.
-- Database authorization workflow `41847369850`: local migration replay and pgTAP job passed.
-- Secret-scanning workflow `41847369908`: passed.
-- The new owner-authorized original-PDF route and its size, SHA-256, PDF-signature and access-control tests are included in this checkpoint.
-- Vercel has a READY deployment for earlier commit `453256abacb500d5ae56b6c48abdf42231dafbd7`, but not for this tested head. A Preview deployment request for the tested commit was blocked by Vercel's daily deployment API quota; do not treat the older READY deployment as containing these changes.
-- The feature-branch Preview environment currently has the Drive/worker configuration entries, but no `AI_API_KEY`, `AI_MODEL`, or `AI_PROVIDER_POOL` entry was present in the environment-variable name listing. Live AI generation and golden-set grading therefore remain blocked until an owner-approved provider/model is configured. No paid provider call was made.
+- Foundation workflow `41870289327`: ESLint, application TypeScript, Playwright configuration TypeScript, authenticated-browser TypeScript, production environment contract, production dependency audit, full dependency-audit report, unit tests and production build all passed.
+- Chromium browser smoke job in the Foundation workflow passed.
+- Authenticated document/teacher acceptance job passed using the configured isolated E2E accounts.
+- Database authorization workflow `41870289338`: isolated local Supabase migration replay and pgTAP tests passed.
+- Secret-scanning workflow `41870289412`: passed.
+- Migration-reconciliation script regression tests are included in the tested commit. The hosted migration ledger still needs the manual non-production history-repair/dry-run workflow; no hosted ledger repair or DDL was performed.
+- The production dependency audit passed. The full development dependency audit still reports 13 moderate findings associated with the legacy ESLint/minimatch dependency graph; ERR-124 remains open pending authoritative advisory clarification or a compatible lint-toolchain migration. No broad major-version override or suppression was applied.
+- Vercel Preview deployment for the latest tested head remains blocked by the previously encountered daily deployment API quota. An older READY deployment does not contain these latest branch changes; do not treat it as current.
+- Live AI-provider generation and golden-set grading remain blocked until an owner-approved provider/model and cost budget are configured. No paid provider call was made.
+- Google Drive upload/OCR processing and original-PDF retrieval code are implemented and unit-tested, but live round-trip retrieval, image-to-PDF visual quality and human OCR accuracy acceptance remain outstanding.
+- No merge or production deployment occurred.
 
 ## Latest automated testing checkpoint — 2026-11-03
 
