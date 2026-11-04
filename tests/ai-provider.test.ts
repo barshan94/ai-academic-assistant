@@ -5,6 +5,7 @@ import {
   generateStructuredAnswer,
   generateStructuredAnswerWithRouting,
   getAIProviderConfig,
+  getAIProviderConfigs,
 } from "@/lib/ai/provider";
 import { parseExamAnswer } from "@/lib/ai/answer-schema";
 
@@ -39,6 +40,45 @@ describe("AI provider configuration", () => {
       AI_MODEL: "model",
       AI_API_BASE_URL: "http://example.com/v1",
     })).toThrow(AIConfigurationError);
+  });
+});
+
+describe("task-aware provider selection", () => {
+  it("filters by task, excludes disabled providers and orders by explicit priority", () => {
+    const providers = getAIProviderConfigs("answer", {
+      AI_PROVIDER_POOL: JSON.stringify([
+        { name: "notes-only", baseUrl: "https://notes.example/v1", apiKey: "notes-key", model: "notes-model", tasks: ["chapter-note"], priority: 0 },
+        { name: "later", baseUrl: "https://later.example/v1", apiKey: "later-key", model: "later-model", tasks: ["answer"], priority: 20 },
+        { name: "disabled", baseUrl: "https://disabled.example/v1", apiKey: "disabled-key", model: "disabled-model", tasks: ["answer"], priority: 1, enabled: false },
+        { name: "first", baseUrl: "https://first.example/v1", apiKey: "first-key", model: "first-model", tasks: ["answer", "chapter-note"], priority: 5 },
+      ]),
+    });
+
+    expect(providers.map((provider) => provider.provider)).toEqual(["first", "later"]);
+  });
+
+  it("fails closed for malformed pools and insecure provider endpoints", () => {
+    expect(() => getAIProviderConfigs("answer", { AI_PROVIDER_POOL: "{broken" }))
+      .toThrow(AIConfigurationError);
+    expect(() => getAIProviderConfigs("answer", {
+      AI_PROVIDER_POOL: JSON.stringify([
+        { name: "insecure", baseUrl: "http://provider.example/v1", apiKey: "key", model: "model", tasks: ["answer"] },
+      ]),
+    })).toThrow(AIConfigurationError);
+  });
+
+  it("keeps the legacy single-provider configuration compatible", () => {
+    const [provider] = getAIProviderConfigs("answer", {
+      AI_API_KEY: "legacy-key",
+      AI_MODEL: "legacy-model",
+      AI_API_BASE_URL: "https://legacy.example/v1",
+    });
+    expect(provider).toMatchObject({
+      provider: "openai-compatible",
+      baseUrl: "https://legacy.example/v1",
+      apiKey: "legacy-key",
+      model: "legacy-model",
+    });
   });
 });
 
