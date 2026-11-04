@@ -52,3 +52,24 @@ The document detail action is owner-authenticated. For a fresh running lease it 
 If the stale job has exhausted its retry budget, the manual action uses `recover_stale_document_processing_job` to mark both the job and document failed in one transaction. No further attempt is started.
 
 Manual OCR corrections use `save_document_page_correction`, which locks the job, document and page in a consistent order and saves the corrected page plus the document's `review_required` state atomically. Corrections are refused while a worker is actively processing the document.
+
+## Authenticated browser acceptance setup
+
+The Authenticated document and teacher acceptance job runs only when the dedicated owner test credentials are present. It runs against the connected non-production Supabase project from a local Preview-equivalent build; it does not use production data or Google Drive.
+
+Configure these GitHub Actions repository secrets:
+
+| Secret | Purpose |
+| --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | URL of the designated non-production Supabase project |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Publishable key for that same project |
+| `E2E_OWNER_EMAIL` | Dedicated test-owner account email |
+| `E2E_OWNER_PASSWORD` | Dedicated test-owner account password |
+| `E2E_TEACHER_EMAIL` | Optional second test account for invitation and sharing tests |
+| `E2E_TEACHER_PASSWORD` | Password for the dedicated test-teacher account |
+
+Create and confirm the test accounts in the designated non-production Supabase Auth project before configuring the credentials. Do not use a personal account, a real student's account, or production credentials. The test creates uniquely named E2E document/page/question fixtures and deletes its own fixtures after the run.
+
+The owner-only document review test requires the first four secrets. The two-account teacher invitation/review/revocation test additionally requires both teacher secrets. If owner credentials are missing or incomplete, CI reports the authenticated acceptance job as skipped; a skipped job is not a passing end-to-end test.
+
+On 2026-11-04, the first authenticated job correctly skipped because the owner test credentials were not fully configured. The non-authenticated foundation checks and database tests remain separate and do not depend on these credentials.
