@@ -1,4 +1,5 @@
 import "server-only";
+import { createHash } from "node:crypto";
 import { decryptRefreshToken } from "./crypto";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -171,6 +172,77 @@ export async function deleteDriveFile(accessToken: string, fileId: string) {
   await response.body?.cancel().catch(() => {});
 }
 
+
+export async function downloadOriginalPdfFromDrive(input: {
+  accessToken: string;
+  driveFileId: string;
+  expectedSizeBytes: number;
+  expectedSha256: string;
+}) {
+  if (
+    typeof input.driveFileId !== "string" || !input.driveFileId ||
+    input.driveFileId.length > 256 ||
+    !Number.isSafeInteger(input.expectedSizeBytes) ||
+    input.expectedSizeBytes < 1 || input.expectedSizeBytes > MAX_DRIVE_PDF_BYTES ||
+    !/^[a-f0-9]{64}$/.test(input.expectedSha256)
+  ) {
+    throw new Error("Original PDF integrity metadata is invalid.");
+  }
+
+  const metadataResponse = await fetch(
+    "https://www.googleapis.com/drive/v3/files/" + encodeURIComponent(input.driveFileId) + "?fields=id,mimeType,size,trashed",
+    {
+      headers: { Authorization: "Bearer " + input.accessToken },
+      cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
+      redirect: "error",
+    },
+  );
+  const metadata = await readGoogleJsonResponseBounded<{
+    id?: string;
+    mimeType?: string;
+    size?: string;
+    trashed?: boolean;
+  }>(metadataResponse, MAX_GOOGLE_METADATA_BYTES, "Google Drive file metadata");
+  if (
+    !metadataResponse.ok ||
+    metadata.id !== input.driveFileId ||
+    metadata.mimeType !== "application/pdf" ||
+    metadata.trashed === true ||
+    !/^\\d+$/.test(metadata.size ?? "") ||
+    Number(metadata.size) !== input.expectedSizeBytes
+  ) {
+    throw new Error("The archived PDF is unavailable or its metadata does not match.");
+  }
+
+  const fileResponse = await fetch(
+    "https://www.googleapis.com/drive/v3/files/" + encodeURIComponent(input.driveFileId) + "?alt=media",
+    {
+      headers: { Authorization: "Bearer " + input.accessToken },
+      cache: "no-store",
+      signal: AbortSignal.timeout(30_000),
+      redirect: "error",
+    },
+  );
+  if (!fileResponse.ok) {
+    await fileResponse.body?.cancel().catch(() => {});
+    throw new Error("Google Drive could not retrieve the archived PDF.");
+  }
+
+  const bytes = await readResponseBytesBounded(fileResponse, MAX_DRIVE_PDF_BYTES, "Archived PDF");
+  if (
+    bytes.byteLength !== input.expectedSizeBytes ||
+    bytes.byteLength < 5 ||
+    bytes.subarray(0, 5).toString("ascii") !== "%PDF-"
+  ) {
+    throw new Error("The archived PDF failed its integrity checks.");
+  }
+  const digest = createHash("sha256").update(bytes).digest("hex");
+  if (digest !== input.expectedSha256) {
+    throw new Error("The archived PDF checksum does not match the saved document.");
+  }
+  return bytes;
+}
 
 export async function extractTextFromDrivePdf(input: {
   accessToken: string;
