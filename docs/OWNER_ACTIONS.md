@@ -3,13 +3,13 @@
 ## Verified live Vercel configuration — 2026-11-04
 
 Read-only Vercel inspection after the latest documentation commit confirmed:
-- The linked project `ai-academic-assistant` has a **READY preview deployment** for feature commit `a57337c5c0cf1df951f4c012b061b01fd00323be`: [open preview deployment](https://ai-academic-assistant-k4s2v4d7e-barshan-s-team.vercel.app).
-- The project currently has only three configured environment variables: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, and `DRIVE_TOKEN_ENCRYPTION_KEY`.
+- The linked project `ai-academic-assistant` has a **READY preview deployment** for current feature commit `27fac2970126ba028abf818b2e3a5e9ec8f2c73d`: [open preview deployment](https://ai-academic-assistant-a6sd0wdjq-barshan-s-team.vercel.app).
+- The project has `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, an empty `DRIVE_TOKEN_ENCRYPTION_KEY`, and the newly configured preview-only `GOOGLE_DRIVE_REDIRECT_URI`.
 - The Supabase URL points to the approved existing project `uqpyzicftxxegajaocxi`; the publishable key is configured.
-- `DRIVE_TOKEN_ENCRYPTION_KEY` exists as a sensitive variable but its value is empty. No Google OAuth credentials, `SUPABASE_SERVICE_ROLE_KEY`, `CRON_SECRET`, or AI provider/model variables are configured in this Vercel project.
+- `DRIVE_TOKEN_ENCRYPTION_KEY` exists as a sensitive variable but its value is empty. `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `SUPABASE_SERVICE_ROLE_KEY` are not configured. `CRON_SECRET` and AI provider/model variables remain intentionally unset.
 - No secret values were retrieved or changed. A READY preview means the code built and deployed; it does not prove app-level Supabase access or provider integration.
 
-**Owner action — do not paste secrets here:** in Vercel → Project → Settings → Environment Variables, set the stable 32-byte base64 `DRIVE_TOKEN_ENCRYPTION_KEY` and add `SUPABASE_SERVICE_ROLE_KEY` for server-only use. Add `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and the exact preview callback `GOOGLE_DRIVE_REDIRECT_URI=https://ai-academic-assistant-k4s2v4d7e-barshan-s-team.vercel.app/api/drive/callback` only after creating the dedicated Google Cloud OAuth web client and enabling Drive API. Add `CRON_SECRET` only when configuring the worker. AI provider variables remain deliberately unset until provider/privacy/budget approval.
+**Owner action — do not paste secrets here:** the existing Google Cloud project `AI Academic Assistant`, Drive API, OAuth consent configuration, and OAuth Web client `AI Academic Assistant Web` were already created. Add the current callback `https://ai-academic-assistant-a6sd0wdjq-barshan-s-team.vercel.app/api/drive/callback` to that existing OAuth client's Authorized redirect URIs (keep the localhost URI). The matching `GOOGLE_DRIVE_REDIRECT_URI` is already configured for this preview branch. Then add `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, a stable 32-byte base64 `DRIVE_TOKEN_ENCRYPTION_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` (server-only) in Vercel → Project → Settings → Environment Variables. Do not create another Google Cloud project or OAuth client. Add `CRON_SECRET` only when configuring the worker. AI provider variables remain deliberately unset until provider/privacy/budget approval.
 
 The Vercel preview URL may change with subsequent deployments; when it does, update the Google OAuth authorized redirect URI and `GOOGLE_DRIVE_REDIRECT_URI` to the same exact HTTPS callback before testing OAuth.
 
@@ -52,8 +52,8 @@ Operations-only PR #2 was merged to `main` as `fbca5d21cc6325b43a47ecbd7a5d5f487
   - **Available now:** the operations-only [PR #2](https://github.com/barshan94/ai-academic-assistant/pull/2) was merged to the default branch as `fbca5d21cc6325b43a47ecbd7a5d5f487b7579c4`. The manual GitHub Actions workflow `.github/workflows/reconcile-nonprod-migrations.yml` is now dispatchable. First add repository Actions secrets `SUPABASE_ACCESS_TOKEN` (scoped to this project) and `SUPABASE_DB_PASSWORD`; never send them in chat. Open Actions → Non-production Supabase migration reconciliation → Run workflow on `feature/m3-ai-solver`. Start with `reconcile-and-dry-run`; this repairs only the two previously SQL-verified migration version entries, then prints the pending migration dry-run without applying the 44 pending DDL migrations. Review the output. Only after deciding to apply, run again with `reconcile-and-apply` and type the exact confirmation phrase requested by the workflow. This is a non-production-only operation; it does not deploy the app. The workflow has not yet been dispatched because the two repository secrets are not configured.
 - [ ] After the migrations are reconciled, create two disposable confirmed Auth users and configure the documented authenticated E2E secrets/variable; do not use personal or production accounts.
 - [ ] Configure the server-side Supabase URL, publishable key and service-role key in the hosting provider. The service-role key must remain server-only.
-- [ ] Create a dedicated Google Cloud project and OAuth web client for non-production. Enable Drive API, allow only the intended test user, and register the exact HTTPS callback URL.
-- [ ] Confirm Google consent-screen publishing mode and refresh-token lifetime. Store the client secret and a stable 32-byte Drive token-encryption key in the hosting provider's secret store.
+- [x] Existing Google Cloud project `AI Academic Assistant`, Drive API, OAuth consent configuration, and OAuth Web client `AI Academic Assistant Web` were created. Keep the existing localhost callback and add the current preview callback to Authorized redirect URIs whenever the preview host changes.
+- [ ] Confirm Google consent-screen publishing mode and refresh-token lifetime. Store the existing OAuth client ID/secret and a stable 32-byte Drive token-encryption key in the hosting provider's secret store.
 - [ ] Select an AI provider/model only after reviewing its data-processing terms, retention, geographic processing, fallback behavior and price. Set an explicit spend limit. Configure both answer and chapter-note tasks only if approved.
 - [ ] Keep web search disabled unless its provider, query disclosure and cost are explicitly approved.
 - [ ] Run the production-environment preflight only against the isolated deployment after all required variables have been configured. It checks presence/format, not connectivity.
@@ -66,7 +66,7 @@ The authenticated two-account GitHub Actions workflow passed on commit `a57337c`
 
 Configure repository Actions secrets from the deployment dashboard; never commit their values.
 
-- [ ] APP_BASE_URL: current isolated Vercel preview HTTPS origin (currently `https://ai-academic-assistant-k4s2v4d7e-barshan-s-team.vercel.app`; refresh after a new preview deployment).
+- [ ] APP_BASE_URL: current isolated Vercel preview HTTPS origin `https://ai-academic-assistant-a6sd0wdjq-barshan-s-team.vercel.app`; refresh after a new preview deployment.
 - [ ] CRON_SECRET: same strong random secret used by the deployment's worker and readiness endpoints; add it to Vercel and GitHub Actions only when enabling the worker.
 - [x] E2E_SUPABASE_URL and E2E_SUPABASE_PUBLISHABLE_KEY: configured for the existing approved non-production project (`uqpyzicftxxegajaocxi`); latest authenticated workflow passed.
 - [x] E2E_OWNER_EMAIL, E2E_OWNER_PASSWORD, E2E_TEACHER_EMAIL, E2E_TEACHER_PASSWORD: two different disposable, confirmed test identities are configured; latest two-account acceptance passed.
