@@ -17,7 +17,8 @@
 - Foundation run [41873195219](https://github.com/barshan94/ai-academic-assistant/actions/runs/41873195219): passed lint, type checks, unit tests, build, Chromium smoke and authenticated document/teacher acceptance.
 - Database authorization run [41873195229](https://github.com/barshan94/ai-academic-assistant/actions/runs/41873195229): passed.
 - Secret scanning run [41873195288](https://github.com/barshan94/ai-academic-assistant/actions/runs/41873195288): passed.
-- The full development dependency audit still reports 13 moderate minimatch/legacy ESLint-chain findings (ERR-124); the production-only audit is clean. ERR-124 remains open.\n- Manual document-worker run [41799486679](https://github.com/barshan94/ai-academic-assistant/actions/runs/41799486679) on `main` succeeded and the endpoint returned 2xx. This confirms the configured GitHub secrets and route responded; it does not prove a queued document completed end-to-end. The worker workflow is manual-only for now; do not enable its five-minute schedule until production acceptance.
+- The full development dependency audit still reports 13 moderate minimatch/legacy ESLint-chain findings (ERR-124); the production-only audit is clean. ERR-124 remains open.
+- Manual document-worker run [41799486679](https://github.com/barshan94/ai-academic-assistant/actions/runs/41799486679) on `main` succeeded and the endpoint returned 2xx. This confirms the configured GitHub secrets and route responded; it does not prove a queued document completed end-to-end. The worker workflow is manual-only for now; do not enable its five-minute schedule until production acceptance.
 
 ### Latest live non-production Supabase inspection
 
