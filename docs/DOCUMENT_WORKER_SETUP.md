@@ -33,7 +33,16 @@ Do not put these values in source files, workflow YAML, issue comments, or logs.
 - The worker retries eligible failed/stale jobs up to each job's configured maximum attempts.
 - A failed workflow run means the endpoint was unavailable, rejected the invocation, or persisted a document-processing failure. The worker returns HTTP 500 after successfully recording a failed job so the scheduler visibly reports the failure; the durable job remains eligible for a later retry within its configured attempt budget. Inspect the Actions job without exposing secrets.
 - Use `workflow_dispatch` to trigger a controlled manual run after verifying the target environment and queue.
-- Live processing acceptance still requires a non-production Google Drive connection and Supabase test project. This workflow file alone does not prove that the secrets are configured or that OCR succeeds.
+- Live processing acceptance requires a non-production Google Drive connection and an isolated non-production Supabase project. The existing connected project `uqpyzicftxxegajaocxi` is the project's designated non-production database for this workflow; do not create a second Supabase project just for this test. Keep test records clearly identified and do not use real student data. This workflow file alone does not prove that the secrets are configured or that OCR succeeds.
+
+### Current connected Preview setup (2026-11-04)
+
+- The feature branch Preview deployment is available at `https://ai-academic-assistant-git-feature-m3-ai-solver-barshan-s-team.vercel.app`.
+- The worker endpoint is deployed on that Preview: a GET request reaches the route and returns `405 Method Not Allowed`, as expected because only POST is supported. This is a route/method smoke check, not proof of authenticated worker execution.
+- The branch-scoped Vercel Preview environment currently has no `CRON_SECRET`. The GitHub Actions repository secrets `APP_BASE_URL` and `CRON_SECRET` are also not configured/verified.
+- Use one newly generated high-entropy secret for both `CRON_SECRET` entries. Add it to the Vercel Preview environment for branch `feature/m3-ai-solver`, then add the exact same value as the GitHub repository Actions secret. Do not use a Production-scoped value for this test. Do not paste the secret into chat, commit it, or expose it in workflow logs.
+- Set GitHub `APP_BASE_URL` to the stable feature-branch Preview URL above, with no trailing slash. Then use Actions → Document processing worker → Run workflow on branch `feature/m3-ai-solver` for a controlled manual run. Check the run's HTTP outcome and then verify the matching job and `document_pages` rows in Supabase.
+- Do not enable the five-minute schedule on `main` until the endpoint, supporting application code, and database migrations have been reviewed and integrated together. A workflow-only merge would call a route that `main` does not currently contain.
 
 
 ## Manual recovery and state transitions
