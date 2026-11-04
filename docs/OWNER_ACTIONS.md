@@ -1,19 +1,44 @@
 # Owner actions required before production
 
-## Verified live Vercel configuration — 2026-11-04
+## Verified live status — 2026-11-04 (read-only)
 
-Read-only Vercel inspection after the latest documentation commit confirmed:
-- The linked project `ai-academic-assistant` has a **READY preview deployment** for current feature commit `27fac2970126ba028abf818b2e3a5e9ec8f2c73d`: [open preview deployment](https://ai-academic-assistant-a6sd0wdjq-barshan-s-team.vercel.app).
-- The project has `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, an empty `DRIVE_TOKEN_ENCRYPTION_KEY`, and the newly configured preview-only `GOOGLE_DRIVE_REDIRECT_URI`.
-- The Supabase URL points to the approved existing project `uqpyzicftxxegajaocxi`; the publishable key is configured.
-- `DRIVE_TOKEN_ENCRYPTION_KEY` exists as a sensitive variable but its value is empty. `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `SUPABASE_SERVICE_ROLE_KEY` are not configured. `CRON_SECRET` and AI provider/model variables remain intentionally unset.
-- No secret values were retrieved or changed. A READY preview means the code built and deployed; it does not prove app-level Supabase access or provider integration.
+### GitHub and Vercel
 
-**Owner action — do not paste secrets here:** the existing Google Cloud project `AI Academic Assistant`, Drive API, OAuth consent configuration, and OAuth Web client `AI Academic Assistant Web` were already created. Add the current callback `https://ai-academic-assistant-a6sd0wdjq-barshan-s-team.vercel.app/api/drive/callback` to that existing OAuth client's Authorized redirect URIs (keep the localhost URI). The matching `GOOGLE_DRIVE_REDIRECT_URI` is already configured for this preview branch. Then add `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, a stable 32-byte base64 `DRIVE_TOKEN_ENCRYPTION_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` (server-only) in Vercel → Project → Settings → Environment Variables. Do not create another Google Cloud project or OAuth client. Add `CRON_SECRET` only when configuring the worker. AI provider variables remain deliberately unset until provider/privacy/budget approval.
+- Feature branch: `feature/m3-ai-solver`, head `4e7208902b30dd422e9fcc07a7808958e0613ce1`.
+- Latest feature Preview: **READY**, [open current preview](https://ai-academic-assistant-6rr20j9vg-barshan-s-team.vercel.app). This is not Production.
+- Latest Production deployment: **READY**, from `main` commit `cd3620fad75d343c3d7160257ab044222ce82c7a`. It does not contain the feature-branch implementation.
+- Vercel environment inventory: Supabase URL and publishable key exist across environments. Preview-target entries exist for `CRON_SECRET`, `SUPABASE_SERVICE_ROLE_KEY`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_DRIVE_REDIRECT_URI`, and `DRIVE_TOKEN_ENCRYPTION_KEY`.
+- The environment-variable inventory was read without decrypting secrets. Entry existence does **not** prove that a secret value is non-empty, valid, or working. No secret values were retrieved or changed.
+- No `AI_API_KEY`, `AI_MODEL`, `AI_PROVIDER_POOL`, or `BRAVE_SEARCH_API_KEY` entry was found. AI generation and web research therefore remain unconfigured.
+- No production-target server credentials were present in the returned project environment inventory. Production must not receive traffic for the feature until its environment is deliberately configured and validated.
 
-The Vercel preview URL may change with subsequent deployments; when it does, update the Google OAuth authorized redirect URI and `GOOGLE_DRIVE_REDIRECT_URI` to the same exact HTTPS callback before testing OAuth.
+### Latest GitHub Actions evidence
 
-This document separates repository implementation from actions that require the project owner's provider accounts, credentials, policy decisions or operational responsibility. Do not paste secrets into ChatGPT, GitHub issues, source files or this document.
+- Foundation run [41873195219](https://github.com/barshan94/ai-academic-assistant/actions/runs/41873195219): passed lint, type checks, unit tests, build, Chromium smoke and authenticated document/teacher acceptance.
+- Database authorization run [41873195229](https://github.com/barshan94/ai-academic-assistant/actions/runs/41873195229): passed.
+- Secret scanning run [41873195288](https://github.com/barshan94/ai-academic-assistant/actions/runs/41873195288): passed.
+- The full development dependency audit still reports 13 moderate minimatch/legacy ESLint-chain findings (ERR-124); the production-only audit is clean. ERR-124 remains open.
+
+### Latest live non-production Supabase inspection
+
+- Existing project `academic-assistant` (`uqpyzicftxxegajaocxi`) is ACTIVE_HEALTHY, Free plan, PostgreSQL 17.11, region `ap-south-1`.
+- Repository and hosted migration inventories each contain 101 entries: 98 exact version/name matches and three timestamp/name mismatches whose hosted SQL was verified equivalent to the repository SQL. No pending schema DDL was identified after those exact history pairs are reconciled. The history-only repair and dry-run workflow has **not** been dispatched in this session; no hosted migration ledger or schema was changed.
+- The guarded workflow `.github/workflows/reconcile-nonprod-migrations.yml` is available on the feature branch. Its default `reconcile-and-dry-run` path repairs only the three documented equivalent history pairs and performs a full dry-run; it does not apply pending DDL unless the separate exact APPLY confirmation is supplied.
+- Security advisor currently reports 14 authenticated-callable SECURITY DEFINER functions and one non-callable trigger function. The inspected functions use an empty search path and reference `auth.uid()`; anon EXECUTE is false for all. The 14 authenticated RPCs still require continued owner-authorization review; do not blindly convert them to SECURITY INVOKER because several deliberately encapsulate writes to private tables.
+- Four quota tables have RLS enabled, no client policies, and no anon/authenticated table grants. This is the intended private-table boundary for quota counters.
+- Supabase Auth leaked-password protection is disabled and must be enabled before production.
+- Performance advisor reports five unindexed foreign keys and 47 unused-index notices. Review the five FK indexes; do not drop the unused indexes based only on low-volume development telemetry.
+
+### Remaining owner-controlled release actions
+
+1. Run the existing non-production migration workflow with its default `reconcile-and-dry-run` operation, inspect the output, and retain the artifact/log as release evidence. Do not select apply unless a reviewed dry-run unexpectedly identifies required DDL and the exact non-production target is reconfirmed.
+2. Enable Supabase Auth leaked-password protection.
+3. Approve an AI provider/model, data-processing terms and a strict usage budget before adding AI credentials. The application supports OpenAI-compatible providers; automatic price/quality optimization is not implemented.
+4. Complete live Google Drive OAuth/upload/OCR round-trip and worker acceptance on the isolated preview.
+5. Complete encrypted backup plus isolated full restore rehearsal, accessibility/device review, privacy/legal review and official syllabus/answer grading.
+6. Only after the release gate is signed off, configure and validate Production-only secrets, create a reviewed release commit, merge the application PR, and deploy that immutable commit.
+
+No secret values were retrieved, copied, rotated, or changed during this inspection.
 
 ## 1. Environment and provider setup
 
