@@ -477,3 +477,23 @@ The earlier database workflow failure on `aee8269` was caused by four malformed 
 Dependency audit distinction: `npm audit --omit=dev` reports **zero production vulnerabilities**. The full development dependency audit still reports 13 moderate instances of the same transitive minimatch advisory through the legacy ESLint toolchain. The root `minimatch@3.1.5` is not the publisher-identified affected implementation described in the advisory, while the modern nested copy is `11.0.3`; forcing a major override breaks declared legacy API compatibility. ERR-124 remains open pending authoritative advisory clarification or a compatibility-proven toolchain migration. Do not use `npm audit fix --force`.
 
 These green CI runs prove isolated code/database/browser checks only. They do not prove live Google OAuth/Drive operation, live paid AI-provider quality, hosted migration reconciliation, backup restoration, accessibility or production readiness. PR #1 remains draft and unmerged; no production deployment is authorized.
+
+
+## Verification and hosted security review — 2026-11-04 (commit 080df959)
+
+- [x] Foundation workflow `41801351685`: lint, application and Playwright TypeScript checks, authenticated-E2E type-check, production environment contract, production dependency audit, tracked full dependency audit, unit tests, and production build passed.
+- [x] Chromium browser smoke job in the same foundation workflow passed.
+- [x] Database authorization workflow `41801351687`: isolated local Supabase startup, full ordered migration replay and pgTAP authorization tests passed.
+- [x] Secret scanning workflow `41801351654` passed.
+- [x] Added an OCR-quality regression case ensuring ordinary variable-heavy mathematics is not classified as extraction noise.
+- [x] Read-only hosted inventory confirms the existing `academic-assistant` project is ACTIVE_HEALTHY on PostgreSQL 17 and has the current 97-migration repository chain recorded in its migration ledger. No hosted migration or data mutation was performed during this review.
+- [x] Rechecked the current hosted security advisor findings. Four quota tables have RLS enabled and no anon/authenticated SELECT grant; the missing direct policies are intentional because quota access is mediated by narrowly scoped server functions.
+- [x] Inspected the 14 authenticated-callable SECURITY DEFINER functions flagged by the advisor: they use an empty search_path, reject missing auth identity, and scope user data/actions to `auth.uid()`; anon EXECUTE is false. Keep this as an explicit reviewed exception, not as a zero-warning claim.
+- [ ] Enable Supabase Auth leaked-password protection. The hosted security advisor currently reports it disabled; this is an Auth configuration action, not a repository migration.
+- [ ] Finish live Google OAuth/Drive acceptance and interruption/resume tests.
+- [ ] Run the approved AI-provider golden set with explicit provider/data-processing/cost approval.
+- [ ] Complete isolated encrypted backup **and actual restore** drill, accessibility acceptance, and academic/privacy/operations sign-off.
+- [ ] Resolve or formally close ERR-124 after obtaining the detailed full development dependency audit records and authoritative advisory clarification. Do not force a major minimatch override.
+- [ ] Production release remains blocked; PR #1 remains draft/unmerged and no production deployment is authorized.
+
+This checkpoint supersedes older hosted-migration counts and CI statuses above. Green isolated CI does not prove live external integrations or production readiness.
