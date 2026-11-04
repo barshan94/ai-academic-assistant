@@ -241,3 +241,16 @@ The guarded workflow completed successfully on feature-branch head `950e67404a99
 Latest CI on the same feature head: Foundation `41624009496`, Database authorization `41624009512`, and Secret scanning `41624009500` passed. Authenticated browser acceptance `41624009442` was skipped because dedicated test credentials are not configured. PR #1 remains open, draft and unmerged.
 
 The successful dry-run is a meaningful migration-readiness milestone, not production approval. External Google Drive/OAuth and AI-provider acceptance, two-account authorization, backup/restore rehearsal, accessibility, academic/privacy review, and ERR-124 development dependency remediation remain open.
+
+## Superseding automated checkpoint — 2026-11-04
+
+The previous dated snapshots below are historical. On feature head `ebf318d96a20de2bfeddf6f4fe0ae9fba6813a7a`, fresh workflows all completed successfully:
+
+- Foundation `41759875205`: lint, application and Playwright type-checks, synthetic production-environment preflight, production-only audit, build and **213 unit tests across 41 files** passed; Chromium smoke tests passed.
+- Database authorization `41759875197`: isolated Supabase initialization, full migration replay and pgTAP authorization suite passed.
+- Authenticated two-account acceptance `41759875203`: passed.
+- Full-history secret scan `41759875260`: passed.
+
+The prior database failure on `aee8269` was fixed by closing four malformed pgTAP SQL dollar-quote delimiters in commit `ebf318d`; the new isolated database workflow passes.
+
+The full development dependency audit still reports 13 moderate transitive minimatch advisory instances in the legacy ESLint dependency graph. Production-only audit is clean. ERR-124 remains open; no incompatible override or force-upgrade was applied. All external/runtime release gates below remain open unless separately supported by evidence. A successful isolated CI run is not production approval.
