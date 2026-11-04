@@ -48,9 +48,4 @@ describe("cross-subject golden-set deterministic anchors", () => {
     expect(result.calculatedResult).toBe(15);
   });
 
-  it("does not pretend G-004's conceptual ICT response has a deterministic checker", () => {
-    // This case must remain a human-graded explanation, not a fabricated
-    // numeric/formula check. The golden-set rubric carries its expected points.
-    expect(true).toBe(true);
-  });
 });
