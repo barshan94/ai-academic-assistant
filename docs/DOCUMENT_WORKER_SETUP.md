@@ -45,6 +45,14 @@ Do not put these values in source files, workflow YAML, issue comments, or logs.
 - The two completed jobs show that a worker invocation has successfully reached the Preview endpoint. Do not infer that the GitHub five-minute schedule is active: scheduled workflows run only from the repository default branch, while this workflow is on the feature branch.
 - Do not enable the five-minute schedule on `main` until the endpoint, supporting application code, and database migrations have been reviewed and integrated together. A workflow-only merge could call a route that `main` does not contain.
 
+## Owner-authorized original PDF retrieval
+
+The document review page provides a server-mediated **View verified original PDF** link for Drive-backed uploads. The route at `GET /api/documents/[id]/original` requires an authenticated owner session and queries the document using both its ID and `auth.uid()`-backed owner ID. It returns 404 for missing or non-owned records and does not reveal another account's document existence.
+
+Before returning bytes, the server refreshes the owner's Google Drive access token, checks Drive metadata (file ID, PDF MIME type, non-trashed state and stored size), downloads at most 50 MB, verifies the PDF signature, and compares the exact byte length and SHA-256 digest with the values recorded at upload. Responses are private and `no-store`; Google credentials and Drive file IDs are never sent to browser code. A missing checksum is treated as an integrity failure rather than silently returning an unverified file.
+
+This implementation and its automated tests do not, by themselves, prove a live Google Drive round trip. Complete that acceptance check on the non-production Preview using an owner account and a test PDF: open the document review page, use **View verified original PDF**, and confirm that the PDF opens and is byte-for-byte the uploaded source. Also verify that a different signed-in test account receives 404 for the same document URL. Do not use real student files for this test.
+
 ## Manual recovery and state transitions
 
 The document detail action is owner-authenticated. For a fresh running lease it refuses to start a second processor. For a stale running job with retry budget remaining, it calls the same atomic claim RPC as the scheduled worker: the database rechecks the exact observed status, attempt count and `started_at`, enforces the 15-minute threshold, increments the attempt, and moves the parent document to processing in one transaction. It does not first mark the job failed and then issue a second claim.
