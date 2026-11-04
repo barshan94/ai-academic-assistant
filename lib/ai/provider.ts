@@ -141,7 +141,7 @@ export function getAIProviderConfig(env: Record<string, string | undefined> = pr
   return getAIProviderConfigs("answer", env)[0];
 }
 
-function canFallbackAfterProviderError(error: unknown): error is AIProviderError {
+export function canFallbackAfterProviderError(error: unknown): error is AIProviderError {
   if (!(error instanceof AIProviderError)) return false;
   if ([
     "AI_PROVIDER_UNAVAILABLE",
