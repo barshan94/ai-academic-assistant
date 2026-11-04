@@ -987,6 +987,21 @@ export type Database = {
           p_extracted_text: string;
         };
         Returns: boolean;
+      },
+      create_question_from_reviewed_page: {
+        Args: {
+          p_document_id: string;
+          p_document_page_id: string;
+          p_owner_id: string;
+          p_question_text: string;
+          p_question_number?: string | null;
+          p_board?: string | null;
+          p_qualification?: string | null;
+          p_subject?: string | null;
+          p_chapter?: string | null;
+          p_topic?: string | null;
+        };
+        Returns: string;
       }
       register_uploaded_document: {
         Args: {
