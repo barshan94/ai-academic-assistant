@@ -111,3 +111,11 @@ The following procedures are committed, but their human/external acceptance step
 - [Academic, privacy and operations acceptance](docs/ACADEMIC_PRIVACY_OPERATIONS_ACCEPTANCE.md): official syllabus validation, independent human grading, qualified privacy/legal review and named primary/backup operators remain required.
 
 A procedure or checklist is not evidence of a successful drill, review or approval. Keep each gate open until its evidence is recorded against the tested commit.
+
+## Superseding verification snapshot — 4 November 2026
+
+The earlier dated status notes in this README are historical. The latest feature head `ebf318d96a20de2bfeddf6f4fe0ae9fba6813a7a` has fresh passing GitHub Actions for foundation checks, isolated database migration/authorization tests, authenticated two-account browser acceptance and full-history secret scanning. Foundation validation passed **213 unit tests across 41 files**, Chromium smoke tests, lint, TypeScript checks, production environment preflight, production-only dependency audit and production build.
+
+The previous pgTAP syntax failure was fixed in `ebf318d`; all latest workflow checks now pass. The full development dependency audit still reports 13 moderate transitive minimatch advisory instances in the legacy ESLint graph; production dependencies have zero audit findings. ERR-124 remains open pending compatibility-safe resolution.
+
+Live Google OAuth/Drive acceptance, live AI-provider evaluation with approved credentials/budget, hosted migration reconciliation, full isolated backup/restore proof, accessibility and academic/privacy review remain external release gates. PR #1 remains draft and unmerged. No production deployment is authorized.
