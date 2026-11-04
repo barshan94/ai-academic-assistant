@@ -60,12 +60,16 @@ Operations-only PR #2 was merged to `main` as `fbca5d21cc6325b43a47ecbd7a5d5f487
 
 ## 2. GitHub Actions and operations
 
+## Latest authenticated acceptance — 2026-11-04
+
+The authenticated two-account GitHub Actions workflow passed on commit `a57337c` (run `41760662311`) and again on the current documentation commit `fe3591f` (run `41761945931`). This confirms the repository Actions variable and the six E2E secrets are configured and that the approved existing non-production Supabase project accepted the owner/teacher browser lifecycle. The current workflow does not require manually supplied `E2E_QUESTION_ID` or `E2E_SOLUTION_ID`; those are not configuration blockers.
+
 Configure repository Actions secrets from the deployment dashboard; never commit their values.
 
 - [ ] APP_BASE_URL: current isolated Vercel preview HTTPS origin (currently `https://ai-academic-assistant-k4s2v4d7e-barshan-s-team.vercel.app`; refresh after a new preview deployment).
 - [ ] CRON_SECRET: same strong random secret used by the deployment's worker and readiness endpoints; add it to Vercel and GitHub Actions only when enabling the worker.
-- [ ] E2E_SUPABASE_URL and E2E_SUPABASE_PUBLISHABLE_KEY: existing approved non-production project only (`uqpyzicftxxegajaocxi`).
-- [ ] E2E_OWNER_EMAIL, E2E_OWNER_PASSWORD, E2E_TEACHER_EMAIL, E2E_TEACHER_PASSWORD: two different disposable, confirmed test identities. The workflow is locked to the approved project and creates/uses no additional Supabase project.
+- [x] E2E_SUPABASE_URL and E2E_SUPABASE_PUBLISHABLE_KEY: configured for the existing approved non-production project (`uqpyzicftxxegajaocxi`); latest authenticated workflow passed.
+- [x] E2E_OWNER_EMAIL, E2E_OWNER_PASSWORD, E2E_TEACHER_EMAIL, E2E_TEACHER_PASSWORD: two different disposable, confirmed test identities are configured; latest two-account acceptance passed.
 - [x] E2E question/solution IDs are not manually configured repository secrets; the current authenticated acceptance workflow derives its own test flow from the two disposable owner/teacher accounts.
 - [ ] ALERT_WEBHOOK_URL: optional HTTPS webhook, only if approved.
 - [ ] Enable authenticated E2E only after the isolated project, migrations and fixtures are ready.
