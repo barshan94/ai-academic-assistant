@@ -461,3 +461,19 @@ Latest fully verified feature-branch commit: `ca078d446af7f1f4a085ead1ed1e22f5d3
 - [ ] Google Drive OAuth/worker, approved AI-provider golden set, encrypted backup/restore, full dependency advisory, accessibility and operational acceptance.
 
 This checkpoint supersedes the earlier 2026-11-01 CI counts and the older 96/43 migration inventory above. It does not establish production readiness.
+
+## Latest automated verification — 2026-11-04
+
+Current feature-branch head: `ebf318d96a20de2bfeddf6f4fe0ae9fba6813a7a`.
+
+Fresh GitHub Actions for this head completed successfully:
+- Foundation workflow `41759875205`: ESLint, application TypeScript, Playwright configuration and authenticated-E2E TypeScript checks, production environment contract, production dependency audit, build and **213 unit tests across 41 files** passed. Chromium smoke job also passed.
+- Database authorization workflow `41759875197`: isolated local Supabase startup, full ordered migration replay and database authorization tests passed.
+- Authenticated browser acceptance `41759875203`: two-account Supabase acceptance passed.
+- Secret scanning `41759875260`: full-history and working-tree scan passed.
+
+The earlier database workflow failure on `aee8269` was caused by four malformed pgTAP dollar-quote closers in `supabase/tests/question_solution_access.test.sql`. Commit `ebf318d` corrected all four; the latest database workflow now passes.
+
+Dependency audit distinction: `npm audit --omit=dev` reports **zero production vulnerabilities**. The full development dependency audit still reports 13 moderate instances of the same transitive minimatch advisory through the legacy ESLint toolchain. The root `minimatch@3.1.5` is not the publisher-identified affected implementation described in the advisory, while the modern nested copy is `11.0.3`; forcing a major override breaks declared legacy API compatibility. ERR-124 remains open pending authoritative advisory clarification or a compatibility-proven toolchain migration. Do not use `npm audit fix --force`.
+
+These green CI runs prove isolated code/database/browser checks only. They do not prove live Google OAuth/Drive operation, live paid AI-provider quality, hosted migration reconciliation, backup restoration, accessibility or production readiness. PR #1 remains draft and unmerged; no production deployment is authorized.
