@@ -77,7 +77,7 @@ select throws_ok(
 );
 
 select throws_ok(
-  $delete from public.question_solution_mark_schemes
+  $$delete from public.question_solution_mark_schemes
     where id = '50000000-0000-4000-8000-000000000001'$,
   '42501',
   null,
@@ -85,7 +85,7 @@ select throws_ok(
 );
 
 select throws_ok(
-  $update public.question_solutions
+  $$update public.question_solutions
     set owner_id = '10000000-0000-4000-8000-000000000002'
     where id = '40000000-0000-4000-8000-000000000001'$,
   '42501',
@@ -94,7 +94,7 @@ select throws_ok(
 );
 
 select throws_ok(
-  $update public.question_solution_reviews
+  $$update public.question_solution_reviews
     set owner_id = '10000000-0000-4000-8000-000000000002',
         reviewer_id = '10000000-0000-4000-8000-000000000002'
     where solution_id = '40000000-0000-4000-8000-000000000001'$,
@@ -104,7 +104,7 @@ select throws_ok(
 );
 
 select throws_ok(
-  $update public.question_solution_mark_schemes
+  $$update public.question_solution_mark_schemes
     set owner_id = '10000000-0000-4000-8000-000000000002'
     where id = '50000000-0000-4000-8000-000000000001'$,
   '42501',
