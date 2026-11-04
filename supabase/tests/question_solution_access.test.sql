@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(36);
+select plan(39);
 
 -- Isolated identities and records. This test runs inside a transaction and rolls back.
 insert into auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
@@ -77,11 +77,39 @@ select throws_ok(
 );
 
 select throws_ok(
-  $$delete from public.question_solution_mark_schemes
-    where id = '50000000-0000-4000-8000-000000000001'$$,
+  $delete from public.question_solution_mark_schemes
+    where id = '50000000-0000-4000-8000-000000000001'$,
   '42501',
   null,
   'owner cannot delete an append-only saved mark scheme'
+);
+
+select throws_ok(
+  $update public.question_solutions
+    set owner_id = '10000000-0000-4000-8000-000000000002'
+    where id = '40000000-0000-4000-8000-000000000001'$,
+  '42501',
+  null,
+  'owner cannot transfer an immutable saved solution to another account'
+);
+
+select throws_ok(
+  $update public.question_solution_reviews
+    set owner_id = '10000000-0000-4000-8000-000000000002',
+        reviewer_id = '10000000-0000-4000-8000-000000000002'
+    where solution_id = '40000000-0000-4000-8000-000000000001'$,
+  '42501',
+  null,
+  'owner cannot rewrite the ownership or reviewer identity of an audit record'
+);
+
+select throws_ok(
+  $update public.question_solution_mark_schemes
+    set owner_id = '10000000-0000-4000-8000-000000000002'
+    where id = '50000000-0000-4000-8000-000000000001'$,
+  '42501',
+  null,
+  'owner cannot transfer an append-only mark scheme to another account'
 );
 
 -- An unrelated authenticated account cannot read owner records or accept another user's invite.
