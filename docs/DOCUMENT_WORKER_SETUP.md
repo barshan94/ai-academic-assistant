@@ -37,13 +37,13 @@ Do not put these values in source files, workflow YAML, issue comments, or logs.
 
 ### Current connected Preview setup (2026-11-04)
 
-- The feature branch Preview deployment is available at `https://ai-academic-assistant-git-feature-m3-ai-solver-barshan-s-team.vercel.app`.
-- The worker endpoint is deployed on that Preview: a GET request reaches the route and returns `405 Method Not Allowed`, as expected because only POST is supported. This is a route/method smoke check, not proof of authenticated worker execution.
-- The branch-scoped Vercel Preview environment currently has no `CRON_SECRET`. The GitHub Actions repository secrets `APP_BASE_URL` and `CRON_SECRET` are also not configured/verified.
-- Use one newly generated high-entropy secret for both `CRON_SECRET` entries. Add it to the Vercel Preview environment for branch `feature/m3-ai-solver`, then add the exact same value as the GitHub repository Actions secret. Do not use a Production-scoped value for this test. Do not paste the secret into chat, commit it, or expose it in workflow logs.
-- Set GitHub `APP_BASE_URL` to the stable feature-branch Preview URL above, with no trailing slash. Then use Actions → Document processing worker → Run workflow on branch `feature/m3-ai-solver` for a controlled manual run. Check the run's HTTP outcome and then verify the matching job and `document_pages` rows in Supabase.
-- Do not enable the five-minute schedule on `main` until the endpoint, supporting application code, and database migrations have been reviewed and integrated together. A workflow-only merge would call a route that `main` does not currently contain.
-
+- The feature-branch Preview deployment is available at `https://ai-academic-assistant-git-feature-m3-ai-solver-barshan-s-team.vercel.app`.
+- The worker endpoint is deployed on that Preview. A GET request returns `405 Method Not Allowed`, as expected for this POST-only route; this is only a route/method smoke check.
+- The branch-scoped Vercel Preview environment contains a `CRON_SECRET` entry for `feature/m3-ai-solver`. Its value is encrypted and cannot be verified through environment metadata alone. Do not replace it blindly.
+- The connected Supabase database contains the required `processing_jobs` and `document_pages` records. On 2026-11-04, two existing Drive-backed PDFs completed their OCR worker jobs (100% progress, one attempt each, no persisted job error). Their pages contain extracted text (1,298 and 573 characters respectively), but both remain `review_required`. This confirms a successful worker-to-Drive extraction path for those two files; it does not establish OCR accuracy or human approval.
+- The GitHub Actions secret values are not readable through the connected GitHub integration. Confirm that repository secrets `APP_BASE_URL` and `CRON_SECRET` are configured without displaying their values. `APP_BASE_URL` must point to the stable feature Preview URL above, without a trailing slash. The GitHub secret `CRON_SECRET` must match the branch-scoped Preview value.
+- The two completed jobs show that a worker invocation has successfully reached the Preview endpoint. Do not infer that the GitHub five-minute schedule is active: scheduled workflows run only from the repository default branch, while this workflow is on the feature branch.
+- Do not enable the five-minute schedule on `main` until the endpoint, supporting application code, and database migrations have been reviewed and integrated together. A workflow-only merge could call a route that `main` does not contain.
 
 ## Manual recovery and state transitions
 
