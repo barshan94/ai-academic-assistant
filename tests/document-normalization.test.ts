@@ -107,6 +107,6 @@ describe("document normalization", () => {
   });
 
   it("sanitizes path separators and control characters from filenames", () => {
-    expect(safeFileName("../folder\\\\paper\\n.pdf")).toBe(".._folder_paper_.pdf");
+    expect(safeFileName("../folder\\paper\n.pdf")).toBe(".._folder_paper_.pdf");
   });
 });
