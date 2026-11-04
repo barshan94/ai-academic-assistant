@@ -116,6 +116,34 @@ describe("AI provider fallback policy", () => {
     expect(fetcher).toHaveBeenCalledTimes(2);
   });
 
+  it("tries the next provider after a network failure without exposing the transport error", async () => {
+    const fetcher = vi.fn<typeof fetch>()
+      .mockRejectedValueOnce(new Error("private socket details"))
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        choices: [{ message: { content: JSON.stringify(validAnswer) } }],
+      }), { status: 200 }));
+
+    const result = await generateStructuredAnswerWithRouting("Question", fetcher, {}, env);
+    expect(result.answer).toEqual(validAnswer);
+    expect(result.config.provider).toBe("secondary");
+    expect(fetcher).toHaveBeenCalledTimes(2);
+  });
+
+  it("tries the next provider after malformed structured output", async () => {
+    const fetcher = vi.fn<typeof fetch>()
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        choices: [{ message: { content: "{malformed private output" } }],
+      }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        choices: [{ message: { content: JSON.stringify(validAnswer) } }],
+      }), { status: 200 }));
+
+    const result = await generateStructuredAnswerWithRouting("Question", fetcher, {}, env);
+    expect(result.answer).toEqual(validAnswer);
+    expect(result.config.provider).toBe("secondary");
+    expect(fetcher).toHaveBeenCalledTimes(2);
+  });
+
   it("bounds sequential fallback attempts to the total routing budget", async () => {
     const manyProviders = JSON.stringify(Array.from({ length: 8 }, (_, index) => ({
       name: "provider-" + index,
