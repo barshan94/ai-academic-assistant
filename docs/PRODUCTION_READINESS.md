@@ -8,6 +8,14 @@ The application has substantial feature and security implementation, but product
 
 The owner selected infrastructure constraint remains Supabase Free only. No paid upgrade, production migration, merge to `main`, or hosted deployment is authorized by this document. Actions requiring provider credentials, legal decisions, account provisioning or an assigned human operator are listed in [OWNER_ACTIONS.md](./OWNER_ACTIONS.md).
 
+## Latest CI regression — 2026-11-04
+
+- The feature head's foundation checks passed lint, application and Playwright type-checks, unit tests, production build and Chromium smoke. The authenticated document/teacher acceptance job failed in the teacher review lifecycle.
+- The dedicated two-account workflow failed in the same lifecycle but at a different assertion. GitHub run records show overlapping foundation and dedicated authenticated runs started together. The foundation workflow had duplicate authenticated acceptance on both push and pull-request events, while a separate authenticated workflow also ran on pull requests.
+- Mitigation committed: the foundation workflow no longer runs authenticated account tests; the dedicated authenticated workflow is the only path and now serializes by PR head branch. The exact session invalidation mechanism is still an inference until a serialized rerun passes.
+- The current GitHub Actions integration did not expose workflow dispatch, and no new run for the mitigation commit was available in the Actions API at this checkpoint. **The teacher-review lifecycle remains unverified and is a release blocker.**
+- Do not weaken or skip the teacher-review assertions to make CI green.
+
 ## Latest live checkpoint — 2026-11-04
 
 This section supersedes the older live-environment counts below; earlier snapshots are retained as history.
