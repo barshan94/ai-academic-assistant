@@ -69,7 +69,7 @@ describe("verified Google Drive original PDF retrieval", () => {
   });
 
   it("rejects content whose size or SHA-256 differs from the registered upload", async () => {
-    const changed = new TextEncoder().encode("%PDF-1.7\nchanged source\n%%EOF");
+    const changed = new TextEncoder().encode("%PDF-1.7\nmodified academic source\n%%EOF");
     const fetchMock = mockDriveResponses({
       id: input.driveFileId,
       mimeType: "application/pdf",
