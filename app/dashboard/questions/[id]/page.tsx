@@ -347,6 +347,7 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
       {answer ? (
         <section className="section">
           <div className="section-heading"><div><p className="eyebrow">SELECTED SAVED RESPONSE</p><h2>Answer draft</h2></div><span className="document-status">{selectedSolution?.verification_status.replace("_", " ")}</span></div>
+          <p className="notice notice-info">Verification limitation: these automated checks cover only the expressions, equations and units the AI chose to submit. The AI may omit a check; an absent check means “not provided”, not “passed”. Even a passing check does not establish that the method, formula choice, assumptions, diagrams or final answer are correct. Have a qualified person review the full solution before relying on it.</p>
           <article className="solution-panel">
             <p className="eyebrow">EXAM-READY ANSWER</p>
             <div className="solution-prose">{answer.examAnswer}</div>
