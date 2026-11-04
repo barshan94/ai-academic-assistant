@@ -177,7 +177,8 @@ export async function normalizeFilesToPdf(files: File[]) {
       throw new Error("Only valid PDF, JPEG and PNG files are supported.");
     }
 
-    if (isPng) validatePngDimensions(bytes);\n    if (isJpeg) validateJpegDimensions(bytes);
+    if (isPng) validatePngDimensions(bytes);
+    if (isJpeg) validateJpegDimensions(bytes);
     const prepared = await prepareImageForPdf(file, bytes, perImageTarget);
     const image = await pdf.embedJpg(prepared.bytes);
     const page = pdf.addPage([prepared.width, prepared.height]);
