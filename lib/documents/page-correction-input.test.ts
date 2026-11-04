@@ -24,6 +24,7 @@ describe("parsePageCorrectionInput", () => {
       extractedText: "Corrected text",
     }).success).toBe(false);
     expect(parsePageCorrectionInput({
+      pageId: undefined,
       documentId: validIds.documentId,
       extractedText: "Corrected text",
     }).success).toBe(false);
