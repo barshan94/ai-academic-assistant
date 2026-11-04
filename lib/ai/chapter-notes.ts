@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { AIProviderError, getAIProviderConfigs, type AIProviderConfig } from "./provider";
+import { AIProviderError, canFallbackAfterProviderError, getAIProviderConfigs, type AIProviderConfig } from "./provider";
 import { readLimitedResponseText } from "@/lib/http/read-limited-response";
 
 const chapterNoteSchema = z.object({
@@ -30,7 +30,7 @@ export async function generateChapterNote(input: {
   subject: string;
   chapter: string;
   sources: ChapterNoteSource[];
-}, config: AIProviderConfig = getAIProviderConfigs("chapter-note")[0], fetcher: typeof fetch = fetch): Promise<GeneratedChapterNote> {
+}, config: AIProviderConfig = getAIProviderConfigs("chapter-note")[0], fetcher: typeof fetch = fetch, timeoutMs = 45_000): Promise<GeneratedChapterNote> {
   if (!input.sources.length || input.sources.length > 12) {
     throw new AIProviderError("CHAPTER_NOTE_SOURCES_INVALID");
   }
@@ -94,7 +94,7 @@ export async function generateChapterNote(input: {
           },
         ],
       }),
-      signal: AbortSignal.timeout(45000),
+      signal: AbortSignal.timeout(Math.max(1, Math.min(45_000, timeoutMs))),
     });
   } catch {
     throw new AIProviderError("AI_PROVIDER_UNAVAILABLE");
@@ -166,19 +166,17 @@ export async function generateChapterNoteWithRouting(
   const providers = getAIProviderConfigs("chapter-note", env);
   const candidates = env.AI_ALLOW_PROVIDER_FALLBACKS === "true" ? providers : providers.slice(0, 1);
   let lastError: unknown;
+  const routingDeadline = Date.now() + 60_000;
 
   for (const config of candidates) {
+    const remainingMs = routingDeadline - Date.now();
+    if (remainingMs <= 0) break;
     try {
-      const note = await generateChapterNote(input, config, fetcher);
+      const note = await generateChapterNote(input, config, fetcher, Math.min(20_000, remainingMs));
       return { note, config };
     } catch (error) {
       lastError = error;
-      if (
-        !(error instanceof AIProviderError) ||
-        error.message === "CHAPTER_NOTE_SOURCES_INVALID" ||
-        error.message === "CHAPTER_NOTE_SOURCE_INVALID" ||
-        env.AI_ALLOW_PROVIDER_FALLBACKS !== "true"
-      ) throw error;
+      if (env.AI_ALLOW_PROVIDER_FALLBACKS !== "true" || !canFallbackAfterProviderError(error)) throw error;
     }
   }
 
