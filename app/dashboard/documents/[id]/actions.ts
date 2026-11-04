@@ -81,44 +81,17 @@ export async function createQuestionFromPage(formData: FormData) {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) redirect("/login");
 
-  const { data: sourceDocument, error: documentError } = await supabase
-    .from("documents")
-    .select("id,status")
-    .eq("id", parsed.data.documentId)
-    .eq("owner_id", user.id)
-    .maybeSingle();
-
-  if (documentError || !sourceDocument) {
-    redirect("/dashboard/documents/" + encodeURIComponent(documentId) + "?question=source_invalid");
-  }
-  if (sourceDocument.status !== "ready") {
-    redirect("/dashboard/documents/" + encodeURIComponent(documentId) + "?question=document_not_reviewed");
-  }
-
-  const { data: page, error: pageError } = await supabase
-    .from("document_pages")
-    .select("id,document_id")
-    .eq("id", parsed.data.documentPageId)
-    .eq("document_id", parsed.data.documentId)
-    .eq("owner_id", user.id)
-    .maybeSingle();
-
-  if (pageError || !page) {
-    redirect("/dashboard/documents/" + encodeURIComponent(documentId) + "?question=source_invalid");
-  }
-
-  const { error } = await supabase.from("questions").insert({
-    owner_id: user.id,
-    document_id: page.document_id,
-    document_page_id: page.id,
-    question_number: parsed.data.questionNumber,
-    question_text: parsed.data.questionText,
-    board: parsed.data.board,
-    qualification: parsed.data.qualification,
-    subject: parsed.data.subject,
-    chapter: parsed.data.chapter,
-    topic: parsed.data.topic,
-    review_status: "needs_review",
+  const { error } = await supabase.rpc("create_question_from_reviewed_page", {
+    p_document_id: parsed.data.documentId,
+    p_document_page_id: parsed.data.documentPageId,
+    p_owner_id: user.id,
+    p_question_text: parsed.data.questionText,
+    p_question_number: parsed.data.questionNumber,
+    p_board: parsed.data.board,
+    p_qualification: parsed.data.qualification,
+    p_subject: parsed.data.subject,
+    p_chapter: parsed.data.chapter,
+    p_topic: parsed.data.topic,
   });
 
   redirect(error
