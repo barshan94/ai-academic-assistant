@@ -15,6 +15,19 @@ Percentages are cumulative scope estimates, not proof of release readiness.
 
 
 
+## Latest automated testing checkpoint — 2026-11-04
+
+Current branch head: `c2224e4085cc8dcd47456111c877dd9f205cf03c`.
+
+- Foundation workflow `41847370046`: ESLint, application TypeScript, unit tests (**229 passed across 43 files**), and production build passed.
+- Chromium browser smoke workflow: **10 passed**.
+- Authenticated owner/teacher workflow: **2 passed**, including source-page review before question creation and the two-account invitation, teacher review, correction feedback and revocation lifecycle.
+- Database authorization workflow `41847369850`: local migration replay and pgTAP job passed.
+- Secret-scanning workflow `41847369908`: passed.
+- The new owner-authorized original-PDF route and its size, SHA-256, PDF-signature and access-control tests are included in this checkpoint.
+- Vercel has a READY deployment for earlier commit `453256abacb500d5ae56b6c48abdf42231dafbd7`, but not for this tested head. A Preview deployment request for the tested commit was blocked by Vercel's daily deployment API quota; do not treat the older READY deployment as containing these changes.
+- The feature-branch Preview environment currently has the Drive/worker configuration entries, but no `AI_API_KEY`, `AI_MODEL`, or `AI_PROVIDER_POOL` entry was present in the environment-variable name listing. Live AI generation and golden-set grading therefore remain blocked until an owner-approved provider/model is configured. No paid provider call was made.
+
 ## Latest automated testing checkpoint — 2026-11-03
 
 Current branch head: `cd25c72efde45f00984bb5e7d23ae59b8ca30086` (documentation-only changes after application-code commit `086c19c21b20187758330dbbd5053b05cf1535eb`).
@@ -73,11 +86,11 @@ Implemented on `feature/m3-ai-solver` and applied to the Supabase project:
 - Teacher-account deletion cascades its review events for account-data cleanup; a database trigger recalculates the verification label from surviving teacher reviews so a deleted reviewer cannot leave a stale `teacher_verified` state. Added `supabase/tests/teacher_review_reviewer_deletion.test.sql`. Review-event timestamps are stamped with the database wall clock at insert time so concurrent lock waits cannot reorder the audit history by transaction-start timestamp.
 - Supabase security advisor currently reports no security lint findings. The teacher-invite foreign-key index warning was fixed. Remaining performance findings are unused indexes on mostly empty tables and require workload evidence before removal.
 
-M4 acceptance still outstanding:
-- Run the pgTAP database suite against the project and resolve any failures.
-- Complete two-real-account browser acceptance for invitation creation, confirmed-email acceptance, expiry, re-issue, review, concurrent/repeated revocation and post-revocation access denial.
-- Confirm the owner's manual invitation-sharing process is usable; automatic invitation email delivery is intentionally not implemented.
-- Independently assess teacher review UI, history visibility and verification-state transitions. A teacher review is human feedback, not official exam-board certification.
+M4 acceptance status — partially accepted on 2026-11-04:
+- The latest feature-head CI database authorization job passed its isolated migration replay and pgTAP suite.
+- The latest authenticated two-account browser workflow passed invitation creation, matching-account acceptance, question/answer-only access, teacher review, correction feedback, owner revocation and post-revocation denial of both page and Data API access.
+- Still outstanding: explicit browser/database acceptance for invitation expiry and re-issue, concurrent/repeated revocation, and an independent usability assessment of invitation sharing, teacher-review history and verification-state transitions. Automatic invitation email delivery remains intentionally out of scope.
+- A teacher review is human feedback, not official exam-board certification.
 
 ## M5 status — in progress
 Implemented on feature/m3-ai-solver:
