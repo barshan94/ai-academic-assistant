@@ -39,30 +39,30 @@ select is((select count(*)::integer from public.questions), 1, 'document owner c
 -- An owner may update their own rows, but cannot transfer ownership by
 -- changing owner_id. These checks exercise the RLS WITH CHECK boundary.
 select throws_ok(
-  $update public.documents
+  $sql$update public.documents
     set owner_id = '11000000-0000-4000-8000-000000000002'
-    where id = '21000000-0000-4000-8000-000000000001'$,
+    where id = '21000000-0000-4000-8000-000000000001'$sql$,
   '42501', null,
   'document owner cannot reassign a document to another account'
 );
 select throws_ok(
-  $update public.document_pages
+  $sql$update public.document_pages
     set owner_id = '11000000-0000-4000-8000-000000000002'
-    where id = '22000000-0000-4000-8000-000000000001'$,
+    where id = '22000000-0000-4000-8000-000000000001'$sql$,
   '42501', null,
   'document owner cannot reassign an extracted page to another account'
 );
 select throws_ok(
-  $update public.processing_jobs
+  $sql$update public.processing_jobs
     set owner_id = '11000000-0000-4000-8000-000000000002'
-    where id = '23000000-0000-4000-8000-000000000001'$,
+    where id = '23000000-0000-4000-8000-000000000001'$sql$,
   '42501', null,
   'document owner cannot reassign a processing job to another account'
 );
 select throws_ok(
-  $update public.questions
+  $sql$update public.questions
     set owner_id = '11000000-0000-4000-8000-000000000002'
-    where id = '24000000-0000-4000-8000-000000000001'$,
+    where id = '24000000-0000-4000-8000-000000000001'$sql$,
   '42501', null,
   'document owner cannot reassign a saved question to another account'
 );
