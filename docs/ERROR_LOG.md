@@ -1849,7 +1849,7 @@ The current lockfile has six legacy dependency parents declaring `minimatch@3` r
 
 The upstream maintainer advisory describes the specific implementation defect in 10.2.6 and marks only 10.2.6 affected, fixed in 11.0.1. GitHub's reviewed database still lists <11.0.1. Clarification issue #10811 remains open as of this review. This is an unresolved advisory-range discrepancy, not proof that all minimatch 3.x code is safe and not grounds to suppress the alert. A broad override to v11 would violate multiple declared `^3.1.x` contracts. Keep ERR-124 open until the advisory range is clarified or a compatible, tested lint-toolchain migration removes the legacy copies. Latest Foundation CI confirms the production audit passes and reports the full development audit, but does not make the 13 moderate findings disappear.
 
-## ERR-125 — Authenticated two-account acceptance ran concurrently against shared test accounts
+## ERR-168 — Authenticated two-account acceptance ran concurrently against shared test accounts
 
 - Date: 2026-11-04
 - Area: CI orchestration / Supabase Auth / teacher review lifecycle
