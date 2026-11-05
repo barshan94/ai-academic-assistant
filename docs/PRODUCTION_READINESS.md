@@ -648,3 +648,60 @@ Tested feature head: `813589dd4ece3e03aa0a0414d70d3a84ae06da88`.
 - [x] PR #1 remains open, draft and unmerged. No Production deployment, Production environment change, production database change or paid provider activation was performed.
 
 This is a green feature-branch verification checkpoint, not production approval. Remaining release blockers include live Drive upload interruption/resume and worker failure/recovery acceptance; the worker has no recurring scheduler; AI provider/model, data-processing terms and spend limit remain unapproved; manual screen-reader/contrast/zoom/real-device accessibility checks remain unrun; official syllabus verification and independent subject grading remain incomplete; privacy/legal review, responsible contact channel and named primary/backup operators remain outstanding; and the production environment lacks required server-side configuration. Supabase Free leaked-password protection is unavailable at the current plan and remains a documented limitation. Do not merge or deploy Production until the owner-controlled gates are resolved and explicitly approved.
+
+
+## Exact-head verification and hosted inventory — 2026-11-06 01:45 Asia/Dhaka
+
+Current feature branch head: `bfd34e3ad5c2df6fc371595114ada601abb9d4b0`.
+
+### Exact-head CI evidence
+
+All four GitHub Actions workflows passed on this exact SHA:
+
+- Foundation checks [run 42087457213](https://github.com/barshan94/ai-academic-assistant/actions/runs/42087457213): dependency installation, production environment contract fixtures, production dependency audit, full dependency audit reporting, ESLint, application/Playwright type-checks, unit tests, Next.js production build, and Chromium browser smoke tests.
+- Authenticated two-account acceptance [run 42087457132](https://github.com/barshan94/ai-academic-assistant/actions/runs/42087457132): non-production test configuration, build, and the authenticated invitation/review/revocation acceptance flow passed.
+- Database authorization [run 42087456875](https://github.com/barshan94/ai-academic-assistant/actions/runs/42087456875): isolated local Supabase startup, complete migration replay, and pgTAP authorization tests passed.
+- Full-history secret scanning [run 42087456888](https://github.com/barshan94/ai-academic-assistant/actions/runs/42087456888): passed.
+
+The preceding CI failure was a Bengali Unicode filename sanitizer regression: the sanitizer preserved Unicode letters and numbers but removed combining marks. Commit `bfd34e3` now preserves Unicode combining marks; the regression test and the full exact-head CI suite pass.
+
+### Read-only hosted non-production inventory
+
+The existing Supabase Free project `academic-assistant` (`uqpyzicftxxegajaocxi`, `ap-south-1`) reports `ACTIVE_HEALTHY`. A read-only SQL inventory on 2026-11-06 returned:
+
+- 102 migration-ledger entries.
+- 31 public base tables; all 31 have RLS enabled; zero public base tables without RLS.
+- Zero direct `anon` SELECT/INSERT/UPDATE/DELETE table grants.
+- Zero `anon`-executable SECURITY DEFINER functions; 14 SECURITY DEFINER functions remain executable by `authenticated`. These are the previously reviewed owner-scoped application RPCs, not a blanket authorization approval; their individual privilege and ownership checks remain covered by the database test suite.
+- Two Auth users and zero Supabase Storage buckets. Document files use the configured Google Drive workflow, not Supabase Storage.
+- Supabase health advisor: zero findings. Security advisor: four informational notices for private quota tables with RLS enabled and intentionally no client policies, 14 warnings for the reviewed authenticated-callable SECURITY DEFINER RPCs, and the leaked-password-protection warning. Performance advisor: 48 informational unused-index notices; no indexes were dropped.
+
+Supabase Auth leaked-password protection remains disabled on the current Free plan. This is a documented security limitation, not a setting that can be fixed through application code. Do not claim this security gate is closed.
+
+### Preview deployment validation in progress
+
+A Preview deployment was explicitly created for this exact branch head (not Production):
+
+- Deployment ID: `dpl_BUL2b9AgFrbjjnajkc1VNPP3qJde`
+- Commit: `bfd34e3ad5c2df6fc371595114ada601abb9d4b0`
+- URL: https://ai-academic-assistant-l3hz0bq8w-barshan-s-team.vercel.app
+- Initial state at checkpoint: `INITIALIZING`; inspect the final build state and logs before treating the Preview as verified.
+
+The preceding latest automatic Vercel build inspected was for older commit `7411989fb5e9812e75abdd0958a2fc2e522fda11` and failed because of an unescaped apostrophe in the practice-session JSX. That failure is not the exact-head GitHub CI result. The new exact-head Preview is the required deployment-side recheck.
+
+### Release decision and remaining owner/runtime gates
+
+**NOT APPROVED FOR PRODUCTION.** Exact-head CI and the hosted read-only inventory do not prove all production gates. Remaining blockers:
+
+- Verify the exact-head Vercel Preview completes successfully and run authenticated/non-authenticated smoke checks against it.
+- Reconcile the three SQL-equivalent migration version/name mismatches; do not alter migration history except through the guarded reconciliation procedure. The current 102-entry ledger count alone does not prove exact repository parity.
+- Prove Google OAuth and Drive resumable-upload interruption/resume, worker lease expiry/retry/dead-letter behavior, original-PDF retrieval, and operational recovery. The worker still has no recurring scheduler.
+- Complete manual keyboard, screen-reader, contrast, zoom/reflow, Android/mobile and touch-target accessibility acceptance.
+- Complete official Edexcel/Cambridge syllabus provenance review and independent teacher grading of representative Physics, Mathematics and Computer Science answers. OCR pages remain review-required until checked against originals.
+- Complete privacy/legal review, publish a responsible contact channel, and name primary and backup operators.
+- Production Vercel environment still requires owner-managed server-side configuration for Supabase service access, cron authentication, Google OAuth client/redirect and Drive token encryption. Keep `AI_ENABLED=false`, no AI provider credentials, no paid search provider and no paid fallback in strict zero-cost mode.
+- Verify production Supabase Auth, domain/redirect settings, quota behavior and the documented Free-plan leaked-password-protection limitation before any release decision.
+
+The separate-database backup/restore drill remains skipped by owner instruction; no second database is to be created. This does not prove disaster recovery. A protected backup is still required immediately before any separately approved production migration.
+
+PR #1 remains open, draft and unmerged. No Production environment, Production deployment, production database schema, paid service, or merge was changed during this checkpoint.
