@@ -272,3 +272,18 @@
 - [x] Add worker route coverage for the secondary failure path where persisting the failed job also errors; the response remains generic and does not expose database/provider details (`tests/document-worker-route.test.ts`).
 - [ ] Run Foundation CI on the exact latest commit and confirm these new tests, lint, TypeScript checks, build and browser smoke tests pass. No CI result is available for these latest commits yet.
 - [ ] Inspect emitted non-production log records and verify the deployed log sink retains no sensitive metadata beyond the documented allow-list.
+
+
+## Superseding CI checkpoint — 2026-11-05 (commit `cc1a101b5f32316b913dcf0047458526fcc3b1e3`)
+
+- [x] Foundation checks passed on the exact current feature-branch head: lint, TypeScript checks, unit tests, production build and Chromium browser acceptance (GitHub Actions run `41969614769`, #2953).
+- [x] Database authorization tests passed on the exact head (run `41969614711`, #1916).
+- [x] Authenticated browser acceptance passed on the exact head (run `41969614767`, #1709).
+- [x] Secret scanning passed on the exact head (run `41969614751`, #1312).
+- [x] Added regression coverage for allow-listed operational logging, malformed/sensitive log metadata, OCR/provider exception redaction, and the secondary failure path where persisting a failed worker job also errors. Tests are in `tests/safe-log.test.ts` and `tests/document-worker-route.test.ts`.
+- [ ] Inspect non-production emitted log records and deployed log-sink retention; unit tests do not prove runtime sink behavior.
+- [ ] Capture a manually authenticated worker POST response and exercise live concurrency, stale recovery, retry exhaustion and injected provider/OCR failure against the non-production deployment.
+- [ ] Complete remaining Drive resumable-upload interruption/recovery and original-PDF integrity acceptance.
+- [ ] Complete backup/restore, accessibility, academic-quality and privacy/legal acceptance.
+
+Vercel's status check is blocked by the account's build-rate limit (`upgradeToPro=build-rate-limit`). Deployment is intentionally deferred until the other release gates are complete and the limit resets. PR #1 remains draft/open and unmerged. Production has not been changed. CI success does not approve production.
