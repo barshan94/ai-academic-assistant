@@ -4,15 +4,15 @@ on:
   workflow_dispatch:
     inputs:
       operation:
-        description: "IMPORTANT: Safe ledger-repair/dry-run is the default. Select apply only after reviewing the exact non-production target and migration plan."
+        description: "This operation WRITES migration-history repairs for three previously verified SQL-equivalent pairs, then runs a schema dry-run. It does not apply pending DDL."
         required: true
         type: choice
         options:
-          - reconcile-and-dry-run
-          - reconcile-and-apply
+          - repair-history-and-dry-run
+          - repair-history-and-apply
         default: reconcile-and-dry-run
       confirmation:
-        description: "For apply only, type exactly: APPLY uqpyzicftxxegajaocxi"
+        description: "For pending DDL apply only, type exactly: APPLY uqpyzicftxxegajaocxi. History repairs happen in either operation."
         required: false
         type: string
 
@@ -56,13 +56,13 @@ jobs:
               exit 1
             fi
           done
-          if [ "$OPERATION" = "reconcile-and-apply" ]; then
+          if [ "$OPERATION" = "repair-history-and-apply" ]; then
             if [ "$CONFIRMATION" != "APPLY uqpyzicftxxegajaocxi" ]; then
               echo "::error::Apply requires the exact target confirmation phrase."
               exit 1
             fi
             echo "APPLY_PENDING_MIGRATIONS=true" >> "$GITHUB_ENV"
-          elif [ "$OPERATION" = "reconcile-and-dry-run" ]; then
+          elif [ "$OPERATION" = "repair-history-and-dry-run" ]; then
             echo "APPLY_PENDING_MIGRATIONS=false" >> "$GITHUB_ENV"
           else
             echo "::error::Unsupported operation."
