@@ -1,6 +1,6 @@
 # Isolated backup and restore drill
 
-Status: **BLOCKED / NOT RUN — no separate isolated Free-plan target is currently available.**
+Status: **SKIPPED BY OWNER — isolated backup/restore drill is outside the requested project scope.**
 
 ## Latest Free-plan inventory — 2026-11-05 (read-only)
 
@@ -106,3 +106,8 @@ Record elapsed recovery time and data-loss window. If any check fails, record th
 | Recovery time and data-loss window recorded | NOT RUN | |
 
 A written procedure, successful database import, or successful login with a newly created password is not a substitute for this complete drill.
+
+
+## Scope decision — 2026-11-05
+
+The project owner explicitly declined the separate-database backup/restore rehearsal and asked that this step be skipped. No additional Supabase project or database is to be created for this drill. This is a scope exclusion, **not a passed restore test** and not evidence of disaster-recovery capability. Keep the procedure as an optional future reference only; do not treat it as a current release blocker or attempt the drill unless the owner later asks to resume it.
