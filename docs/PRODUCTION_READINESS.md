@@ -1,3 +1,22 @@
+## Superseding exact-head release checkpoint — 2026-11-05 (commit `36436b4094f8b7fb97078769151f5760dfc4ae00`)
+
+All six GitHub checks for this exact feature-branch head completed successfully:
+
+- [x] Foundation: lint, application/Playwright type checks, unit tests, production dependency audit and production build (run [41997382423](https://github.com/barshan94/ai-academic-assistant/actions/runs/41997382423)).
+- [x] Chromium browser smoke tests (Foundation run [41997382423](https://github.com/barshan94/ai-academic-assistant/actions/runs/41997382423)).
+- [x] Local Supabase migrations and pgTAP/database authorization (run [41997382424](https://github.com/barshan94/ai-academic-assistant/actions/runs/41997382424)).
+- [x] Authenticated two-account Supabase browser acceptance (run [41997382318](https://github.com/barshan94/ai-academic-assistant/actions/runs/41997382318)); the authenticated acceptance step actually executed and passed.
+- [x] Repository-history secret scan (run [41997382315](https://github.com/barshan94/ai-academic-assistant/actions/runs/41997382315)).
+- [x] Vercel Preview integration reports no unresolved feedback.
+
+The matching Vercel Preview deployment is READY for this exact commit: [open Preview](https://ai-academic-assistant-1jz1mhcwg-barshan-s-team.vercel.app). This is a Preview only, not Production.
+
+PR #1 remains open, draft and unmerged. No Production deployment, production database change, paid upgrade or merge was performed.
+
+**Release decision: NOT APPROVED FOR PRODUCTION.** Live Google Drive interruption/resume and original-PDF integrity, worker POST/fault-injection and recovery, isolated backup restoration, manual accessibility/device acceptance, independent academic grading, privacy/legal approval, the Supabase Free leaked-password-protection limitation, migration-history review and named operational ownership remain open. Green CI does not close these live and human acceptance gates.
+
+---
+
 ## Superseding exact-head CI checkpoint — 2026-11-05 (commit `1b6125ad82b681e504468e85469190d1da808988`)
 
 This checkpoint supersedes earlier exact-head CI references in this document.
