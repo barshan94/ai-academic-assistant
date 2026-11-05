@@ -11,7 +11,7 @@ This note supersedes older counts and status statements later in this file.
 - The latest migration inventory is 102 repository files and 102 hosted ledger entries. The three documented SQL-equivalent version/name mismatches remain; the guarded reconciliation workflow has not been dispatched.
 - No production deployment, production migration, PR merge, secret decryption or credential change was performed.
 
-**Next safe work:** finish the live Google Drive original-PDF and interrupted-upload acceptance, then the remaining Auth, AI, backup/restore, accessibility, academic and privacy gates. Do not call the application production-ready until those are evidenced.
+**Next safe work:** finish live Google Drive original-PDF and interrupted-upload acceptance, then the remaining Auth, AI, backup/restore, accessibility, academic and privacy gates. The checked-in worker workflow is manual-dispatch only, not a recurring scheduler. Do not call the application production-ready until these gates are evidenced.
 
 
 ## Superseding owner checkpoint — 2026-11-05
@@ -218,3 +218,13 @@ Configure repository Actions secrets from the deployment dashboard; never commit
 - Enabling paid Supabase/Vercel/provider plans or incurring AI/search charges.
 - Creating real student accounts/data or using personal credentials for E2E.
 - Publishing seeded syllabus drafts without qualified human review.
+
+
+## Worker and upload implementation audit — 2026-11-05
+
+- Reviewed the feature-branch worker route, original-PDF route, resumable upload start/chunk routes, Drive helper, recovery tests and deployment runbook.
+- Upload session tokens are encrypted, owner-bound and restricted to validated Google Drive resumable-session URLs. Chunk bodies are capped at 1 MiB, ranges are validated, and Drive's confirmed offset is returned to the client. Completed uploads are registered through a server-only RPC; uncertain registration outcomes do not delete a possibly committed Drive object.
+- Original-PDF retrieval is owner-scoped and verifies Drive metadata, PDF signature, exact byte count and SHA-256 before returning private no-store bytes. Automated tests cover byte equality, mismatch rejection, owner denial and generic upstream failure handling.
+- Worker code uses an atomic database claim, bounded processing, retry policy and atomic completion/failure RPCs. Existing completed jobs demonstrate prior execution, but not an independently exercised fresh interruption/resume flow.
+- **Scheduler status:** `.github/workflows/document-worker.yml` contains `workflow_dispatch` only. It does not contain a recurring schedule. The worker therefore requires a manual Actions dispatch until a scheduler is intentionally added and safely integrated on the default branch.
+- Current non-production database snapshot: 1 Drive connection, 3 documents (1 ready, 2 review_required), 2 completed jobs, 3 pages, 0 queued/running/failed jobs. Two documents contain Drive ID, SHA-256 and positive file-size metadata.
