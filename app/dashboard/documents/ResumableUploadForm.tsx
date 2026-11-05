@@ -210,7 +210,7 @@ export function ResumableUploadForm({ disabled }: { disabled: boolean }) {
       <button className="primary-action" type="button" onClick={upload} disabled={disabled || busy}>
         {busy ? "Uploading…" : "Archive and queue for processing"} <span aria-hidden="true">→</span>
       </button>
-      {busy ? <div className="upload-progress" role="status" aria-live="polite"><div className="upload-progress-track"><span style={{ width: progress + "%" }} /></div><p>{message}</p></div> : null}
+      {busy ? <div className="upload-progress" role="status" aria-live="polite"><div className="upload-progress-track" role="progressbar" aria-label="Document upload progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress} aria-valuetext={`${progress}% uploaded`}><span style={{ width: progress + "%" }} /></div><p>{message}</p></div> : null}
       {error ? <p className="notice notice-error" role="alert">{error}</p> : null}
       {!busy && message ? <p className="notice notice-info" role="status">{message}</p> : null}
     </div>
