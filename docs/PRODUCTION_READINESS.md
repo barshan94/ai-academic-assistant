@@ -25,8 +25,8 @@ This checkpoint supersedes all earlier status summaries below. The application-c
 - The checked-in `.github/workflows/document-worker.yml` currently exposes `workflow_dispatch` only. It does not define a recurring schedule; manual dispatch is required until a scheduler is deliberately integrated and verified.
 
 ### Remaining mandatory release gates
-1. Run the guarded non-production migration history reconciliation/dry-run for the three verified SQL-equivalent pairs and retain the workflow evidence.
-2. Enable Supabase Auth leaked-password protection and verify the setting.
+1. Run the guarded non-production migration-history repair for the three previously verified SQL-equivalent pairs, then inspect the schema dry-run and retain the workflow evidence. **This is not read-only:** the workflow repairs the hosted migration ledger before running the dry-run. Apply pending DDL only after separately reviewing the exact output and explicitly approving it.
+2. Resolve the leaked-password risk within the Supabase Free constraint. Supabase documents this built-in control as Pro-and-above; it cannot be enabled on the current Free project. Do not claim this gate is complete unless an equivalent independently reviewed application-level mitigation is implemented and accepted. (A paid upgrade is not assumed or authorized.)
 3. Complete Google Drive OAuth, resumable upload interruption/resume, original-PDF integrity retrieval, OCR and worker acceptance using a dedicated test file/account.
 4. Select/approve the AI provider, model, data-processing terms and spend limit; configure credentials; run the golden set and obtain independent human grading.
 5. Complete an encrypted backup and isolated restore drill, including original-password sign-in and Drive-token decryption.
