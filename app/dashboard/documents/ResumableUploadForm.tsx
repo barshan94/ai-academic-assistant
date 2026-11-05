@@ -82,6 +82,7 @@ export function ResumableUploadForm({ disabled }: { disabled: boolean }) {
       const storageKey = STORAGE_PREFIX + sha256;
       activeStorageKey.current = storageKey;
       let stored = readStoredSession(storageKey, normalized.fileName, normalized.bytes.byteLength);
+      const isResumingStoredSession = Boolean(stored);
 
       if (!stored) {
         setMessage("Starting secure Google Drive upload…");
@@ -108,6 +109,27 @@ export function ResumableUploadForm({ disabled }: { disabled: boolean }) {
       let offset = 0;
       let complete = false;
       let retries = 0;
+
+      // A saved session may already have accepted bytes before the browser lost
+      // its response. Ask Drive for its authoritative offset before resending.
+      if (isResumingStoredSession) {
+        setMessage("Checking the last confirmed upload position…");
+        const statusResponse = await fetch("/api/documents/upload/resumable/chunk", {
+          method: "POST",
+          headers: {
+            "X-Upload-Session": stored.sessionToken,
+            "Content-Range": `bytes */${normalized.bytes.byteLength}`,
+          },
+        });
+        const status = await readJson(statusResponse);
+        complete = status.complete === true;
+        offset = typeof status.nextOffset === "number" ? status.nextOffset : 0;
+        if (!Number.isSafeInteger(offset) || offset < 0 || offset > normalized.bytes.byteLength) {
+          throw new Error("Google Drive returned an invalid resume position. The upload was stopped safely.");
+        }
+        setProgress(Math.min(100, Math.floor((offset / normalized.bytes.byteLength) * 100)));
+      }
+
       while (!complete && offset < normalized.bytes.byteLength) {
         const end = Math.min(offset + DRIVE_UPLOAD_CHUNK_BYTES, normalized.bytes.byteLength);
         const chunk = normalized.bytes.slice(offset, end);
