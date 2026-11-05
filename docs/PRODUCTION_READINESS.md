@@ -6,18 +6,36 @@
 
 ## Superseding verification checkpoint — 2026-11-05
 
-This checkpoint supersedes the 2026-11-04 regression note below. Current feature head: `34974141075e1c52df8ba22e29cba8dd230bc6f6`.
+This checkpoint supersedes all earlier status summaries below. Current feature branch head at this update: `fc8a88730afccbae944df45c23ed2f6f4940ae54`; PR #1 remains draft/open and unmerged.
 
-- Foundation `41882329396`: passed lint, application/Playwright type-checks, production environment preflight, production-only audit, build and **241 unit tests across 44 files**.
-- Chromium smoke: **10 passed / 2 skipped**.
-- Database authorization `41882329455`: fresh local Supabase migration replay and pgTAP authorization suite passed.
-- Authenticated two-account acceptance `41882329427`: **2 passed**. The earlier shared-account concurrency regression is no longer failing in this serialized workflow.
-- Full-history secret scan `41882329409`: passed.
-- Production-only dependency audit: zero findings. Full development dependency audit: 13 moderate minimatch findings remain (ERR-124); do not use the breaking `npm audit fix --force` downgrade.
-- Connected non-production Supabase migration inventory (latest read-only snapshot, 2026-11-04): 101 repository files and 101 hosted ledger entries; 98 exact matches and three SQL-equivalent timestamp/name mismatches. No pending schema DDL was identified after reconciling those exact pairs. The history-only repair/dry-run workflow has not yet been run; no hosted schema or ledger mutation is claimed.
-- Vercel's latest READY Preview is application commit `9d8303d30b506c3833c46d1f9ec9c2527b2e9583`. Comparing that commit with the current head shows only workflow/documentation changes, so application source is unchanged. The current SHA has no Vercel deployment; its Vercel status reports a build-rate-limit failure. Production remains on the older `main` commit.
+### Verified CI and dependency state
+- On commit `189c76f38f3942d4499afd41a592b72a0af7dce8`, Foundation, Database authorization, Secret scanning and authenticated two-account browser acceptance all passed. Foundation included lint, application/Playwright type checks, production environment preflight, production build, unit tests and Chromium smoke.
+- Full `npm audit` including development dependencies: **0 vulnerabilities**. `npm audit --omit=dev`: **0 vulnerabilities**. ERR-124 is closed for the current lockfile; the older 13-moderate finding is no longer reproduced.
+- A subsequent commit `fc8a887` includes a new database migration and documentation updates. Its Foundation, Database authorization and Authenticated E2E runs are still in progress; secret scanning passed. Do not reuse the prior SHA's green checks as proof for this newer SHA.
+- GitHub's Vercel status check on `fc8a887` reports success. The exact deployment artifact, runtime environment and feature URL still need provider-side verification.
 
-**Release decision remains NOT APPROVED FOR PRODUCTION.** Live Google Drive/OAuth upload-resume-OCR-worker acceptance, live AI provider and human golden-set grading, hosted migration-history repair, full isolated backup/restore, ERR-124, Supabase leaked-password protection, accessibility/device acceptance, official syllabus and independent answer review, qualified privacy/legal review, named operators, production environment validation and explicit owner approval remain open. CI success does not close these gates.
+### Live non-production Supabase inspection
+- Project `academic-assistant` (`uqpyzicftxxegajaocxi`) remains ACTIVE_HEALTHY, PostgreSQL 17.11, Free plan, region `ap-south-1`.
+- All 31 public base tables have RLS enabled. No anon table SELECT/INSERT grants were found. Four quota tables intentionally have no client grants or policies.
+- Fourteen authenticated-callable SECURITY DEFINER RPCs were inspected: each uses an empty search_path, denies anon EXECUTE, requires `auth.uid()`, and scopes operations to the caller's owner ID. They remain authenticated-callable by design; do not mechanically convert them to SECURITY INVOKER.
+- Supabase security advisor still reports the 14 authenticated-callable SECURITY DEFINER warnings and one actual Auth warning: leaked-password protection is disabled. Four RLS-enabled/no-policy quota-table notices correspond to private counters with no client grants.
+- Five missing child-side FK indexes were added in hosted migration `20261105020059_index_remaining_foreign_key_columns`, mirrored in the repository, and verified. A catalog query now reports **zero unindexed public foreign keys**; the performance advisor no longer reports that category. No unused indexes were dropped.
+- The hosted migration ledger has 102 entries and the repository has 102 migration files. Three older SQL-equivalent timestamp/name history mismatches remain. The guarded history-only reconciliation/dry-run workflow has not been dispatched in this session; no repair of those three entries is claimed.
+- Live aggregate data: one Drive connection; two completed worker jobs; four document pages; four documents (two ready, two review_required). This proves a prior OCR worker path, not full resumable-upload recovery, original-PDF round-trip acceptance or OCR accuracy.
+
+### Remaining mandatory release gates
+1. Run the guarded non-production migration history reconciliation/dry-run for the three verified SQL-equivalent pairs and retain the workflow evidence.
+2. Enable Supabase Auth leaked-password protection and verify the setting.
+3. Complete Google Drive OAuth, resumable upload interruption/resume, original-PDF integrity retrieval, OCR and worker acceptance using a dedicated test file/account.
+4. Select/approve the AI provider, model, data-processing terms and spend limit; configure credentials; run the golden set and obtain independent human grading.
+5. Complete an encrypted backup and isolated restore drill, including original-password sign-in and Drive-token decryption.
+6. Complete manual keyboard/screen-reader/contrast/reflow and real Android device accessibility acceptance.
+7. Obtain official syllabus provenance and independent answer/mark-scheme review for each supported board/qualification/subject.
+8. Obtain qualified privacy/legal review, confirm data-flow/retention/vendor terms and assign named primary/backup operators with an incident exercise.
+9. Verify production-only environment values and deployment configuration using authorized Vercel access.
+10. Obtain explicit release sign-off, merge the reviewed PR, and deploy the immutable release commit only after all preceding gates pass.
+
+**Decision: NOT APPROVED FOR PRODUCTION.** CI success and the completed index remediation do not satisfy the remaining integration, recovery, human-review, Auth-setting or release-approval gates. Production remains on the older `main` deployment; no production migration or deployment was performed in this session.
 
 
 The application has substantial feature and security implementation, but production readiness is not established. This document is the single release gate checklist. A checkbox is complete only when the named evidence exists; source code or documentation alone does not satisfy a runtime acceptance item.
