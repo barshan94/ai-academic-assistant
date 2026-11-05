@@ -35,16 +35,25 @@ function restoreEnv(name: string, value: string | undefined) {
   else process.env[name] = value;
 }
 
-function query(result: { data: unknown; error: null }) {
+type QueryResult = { data: unknown; error: null };
+type QueryBuilder = {
+  select: () => QueryBuilder;
+  eq: () => QueryBuilder;
+  in: () => QueryBuilder;
+  limit: () => QueryBuilder;
+  maybeSingle: () => Promise<QueryResult>;
+} & PromiseLike<QueryResult>;
+
+function query(result: QueryResult): QueryBuilder {
+  const promise = Promise.resolve(result);
   const builder = {
     select: () => builder,
     eq: () => builder,
     in: () => builder,
     limit: () => builder,
     maybeSingle: async () => result,
-    then: (resolve: (value: typeof result) => unknown, reject?: (reason: unknown) => unknown) =>
-      Promise.resolve(result).then(resolve, reject),
-  };
+    then: promise.then.bind(promise),
+  } as QueryBuilder;
   return builder;
 }
 
