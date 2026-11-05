@@ -260,4 +260,6 @@
 - [x] Validate authenticated two-account Supabase browser acceptance (run `41967385162`); passed.
 - [x] Validate repository history and working-tree secret scanning (run `41967385184`); passed.
 - [x] Vercel Preview status for this exact commit reported success.
-- [ ] Live non-production worker acceptance remains open: invoke the authenticated POST worker, verify a queued job completes and persists pages, and exercise concurrent claims, stale recovery, retry exhaustion and injected provider/OCR failures. CI mocks and local database tests do not prove the deployed worker is operating.
+- [x] Live non-production processing evidence: two previously queued Drive-backed jobs now show `completed`, 100% progress and one attempt each; each has one persisted OCR page (1,298 and 573 extracted characters respectively). This confirms the worker pipeline has processed real archived PDFs and persisted page rows.
+- [ ] Explicitly invoke the authenticated worker POST and capture its HTTP response/job ID; the database state proves successful processing but does not by itself establish which trigger invoked the route.
+- [ ] Exercise concurrent claims, stale recovery, retry exhaustion and injected provider/OCR failures against the deployed non-production worker. Both observed pages are `review_required` with null OCR confidence, so human review is still required and this is not evidence of academic-content accuracy.
