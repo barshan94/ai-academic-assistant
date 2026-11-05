@@ -1,3 +1,23 @@
+# Superseding exact-head release checkpoint — 2026-11-05 (commit `978eae3d7126feb69b660a9fb78ee1e9fcd2a07c`)
+
+This checkpoint supersedes earlier status snapshots below. The exact feature-branch head above has now completed all six GitHub checks successfully:
+
+- [x] Foundation lint, type-check, unit tests and production build — [run 42004390956](https://github.com/barshan94/ai-academic-assistant/actions/runs/42004390956).
+- [x] Chromium browser smoke tests — same Foundation run.
+- [x] Local Supabase migrations and pgTAP/database authorization — [run 42004390450](https://github.com/barshan94/ai-academic-assistant/actions/runs/42004390450).
+- [x] Authenticated two-account Supabase acceptance — [run 42004390527](https://github.com/barshan94/ai-academic-assistant/actions/runs/42004390527).
+- [x] Repository-history secret scan — [run 42004390247](https://github.com/barshan94/ai-academic-assistant/actions/runs/42004390247).
+- [x] Vercel Preview feedback check completed successfully.
+- [x] Vercel Preview deployment is READY for this exact commit: https://ai-academic-assistant-2i1rl0olr-barshan-s-team.vercel.app (Preview only; deployment target is null).
+
+The latest code changes include regression tests rejecting a non-PDF first upload chunk before Drive access and an invalid SHA-256 checksum before quota consumption or Drive session creation.
+
+**Release decision: NOT APPROVED FOR PRODUCTION.** PR #1 remains open, draft and unmerged. The Preview is not Production. Live Drive upload interruption/resume and integrity, worker authenticated POST and fault recovery, isolated encrypted backup/restore, manual accessibility and Android-device acceptance, independent teacher grading, AI provider/model/terms/spend approval, privacy/legal review, operational ownership, Supabase Free leaked-password protection mitigation, and hosted migration-history/schema parity remain release gates.
+
+AI generation remains intentionally disabled until provider and budget approval. No production deployment, production database change, merge, paid upgrade, reset, or overwrite of existing projects was performed. Do not promote this commit to Production until each mandatory gate has documented evidence and the release owner explicitly approves the immutable commit.
+
+---
+
 # Current release checkpoint — 2026-11-05 (exact feature head 64faccf356a9cccbce32e4434007f21aa2b06728)
 
 This section supersedes older status snapshots in this document when describing the current feature-branch verification. Historical entries below remain historical evidence and must not be treated as the current state.
