@@ -1,3 +1,20 @@
+## Superseding exact-head CI checkpoint — 2026-11-05 (commit `1b6125ad82b681e504468e85469190d1da808988`)
+
+This checkpoint supersedes earlier exact-head CI references in this document.
+
+- [x] Foundation: lint, TypeScript checks, unit tests, production build and Chromium browser smoke passed (run [41996672898](https://github.com/barshan94/ai-academic-assistant/actions/runs/41996672898)).
+- [x] Local Supabase migrations and pgTAP authorization passed (run [41996673036](https://github.com/barshan94/ai-academic-assistant/actions/runs/41996673036)).
+- [x] Authenticated two-account browser acceptance passed (run [41996672870](https://github.com/barshan94/ai-academic-assistant/actions/runs/41996672870)).
+- [x] Repository-history secret scanning passed (run [41996673033](https://github.com/barshan94/ai-academic-assistant/actions/runs/41996673033)).
+- [x] Vercel Preview feedback check reports no unresolved feedback. This is not evidence of a successful Preview deployment or Production deployment.
+- [x] The worker workflow-method regression test now matches the privacy-safe workflow implementation: POST, bearer authorization, one attempt, response captured to a temporary file and validated with `jq`; it does not expect the response to be discarded to `/dev/null`.
+
+All required GitHub application/database/security checks above are green on the same exact head. The branch has not been merged or deployed. Live worker fault-injection, interrupted Drive upload/recovery, isolated backup restore, manual accessibility, independent academic grading, privacy/legal review, the Supabase Free leaked-password limitation and named operational ownership remain release blockers.
+
+**Decision: NOT APPROVED FOR PRODUCTION.** No production database change, merge, paid upgrade or Production deployment was performed.
+
+---
+
 ## Exact-head CI milestone — 2026-11-05 (commit `4148fa2036f99d2ab8c77c7a3d3db82ac16d1a8f`)
 
 All six reported checks for this exact feature-branch commit have now completed successfully:
