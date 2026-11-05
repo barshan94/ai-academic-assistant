@@ -57,7 +57,10 @@ describe("non-production Supabase migration reconciliation script", () => {
     expect(workflow).toContain("refs/heads/feature/m3-ai-solver");
     expect(workflow).toContain("version: 2.122.0");
     expect(workflow).toContain("supabase/setup-cli@a9de0f0e1ffcf6ec895b135e292ddc76592d3c83");
-    expect(workflow).toContain("default: reconcile-and-dry-run");
+    expect(workflow).toContain("default: repair-history-and-dry-run");
+    expect(workflow).toContain("repair-history-and-apply");
+    expect(workflow).toContain("History repairs happen in either operation.");
+    expect(workflow).not.toContain("  schedule:");
     expect(workflow).toContain("APPLY uqpyzicftxxegajaocxi");
     expect(workflow).toContain("${{ secrets.SUPABASE_ACCESS_TOKEN }}");
     expect(workflow).toContain("${{ secrets.SUPABASE_DB_PASSWORD }}");
