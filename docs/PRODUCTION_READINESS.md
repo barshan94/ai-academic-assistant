@@ -1,3 +1,17 @@
+## Superseding verification checkpoint — 2026-11-05, commit `cc1a101b5f32316b913dcf0047458526fcc3b1e3`
+
+- Exact-head Foundation checks passed: lint, TypeScript checks, unit tests, production build and Chromium browser acceptance (run `41969614769`, #2953).
+- Exact-head database authorization tests passed (run `41969614711`, #1916).
+- Exact-head authenticated browser acceptance passed (run `41969614767`, #1709).
+- Exact-head secret scanning passed (run `41969614751`, #1312).
+- New tests cover safe operational log metadata, quota-warning severity, OCR/provider exception redaction and failure-state persistence outages. Runtime log-sink inspection remains outstanding.
+- Vercel reports a build-rate-limit failure. No repeated deployment attempts or paid upgrade are being made; deployment remains the final step after the limit resets and other gates are satisfied.
+- PR #1 remains draft/open and unmerged. No Production deployment or production database change was made.
+
+**Decision remains NOT APPROVED FOR PRODUCTION.** The green CI result validates the exact feature-branch commit, not live Drive/OCR recovery, worker concurrency/retry behavior, backup restoration, AI quality, accessibility, privacy/legal review, Auth leaked-password protection, migration-history reconciliation, or release sign-off.
+
+---
+
 # Production readiness and release gate
 
 ## Current decision
