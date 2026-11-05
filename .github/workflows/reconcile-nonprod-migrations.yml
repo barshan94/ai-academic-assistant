@@ -10,7 +10,7 @@ on:
         options:
           - repair-history-and-dry-run
           - repair-history-and-apply
-        default: reconcile-and-dry-run
+        default: repair-history-and-dry-run
       confirmation:
         description: "For pending DDL apply only, type exactly: APPLY uqpyzicftxxegajaocxi. History repairs happen in either operation."
         required: false
