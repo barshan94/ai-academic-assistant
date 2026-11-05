@@ -156,4 +156,64 @@ describe("document worker route access and queue preflight", () => {
     expect(body).toEqual({ error: "Could not read the processing queue." });
     expect(JSON.stringify(body)).not.toContain("private database connection details");
   });
+
+  it("does not process a candidate when the atomic claim RPC returns an error", async () => {
+    rpcMock
+      .mockResolvedValueOnce({
+        data: [{
+          id: "job-claim-error",
+          document_id: "document-claim-error",
+          owner_id: "owner-claim-error",
+          status: "queued",
+          started_at: null,
+          attempt_count: 0,
+          max_attempts: 3,
+        }],
+        error: null,
+      })
+      .mockResolvedValueOnce({
+        data: null,
+        error: { message: "private claim transaction details" },
+      });
+
+    const response = await POST(request("Bearer test-cron-secret-with-sufficient-entropy"));
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ processed: false, reason: "no_claimable_job" });
+    expect(rpcMock).toHaveBeenCalledTimes(2);
+    expect(rpcMock).toHaveBeenNthCalledWith(2, "claim_document_processing_job", {
+      p_document_id: "document-claim-error",
+      p_owner_id: "owner-claim-error",
+      p_job_id: "job-claim-error",
+      p_expected_status: "queued",
+      p_expected_attempt_count: 0,
+      p_expected_started_at: null,
+    });
+  });
+
+  it("does not expose a failed claim's database error in its response", async () => {
+    rpcMock
+      .mockResolvedValueOnce({
+        data: [{
+          id: "job-claim-error",
+          document_id: "document-claim-error",
+          owner_id: "owner-claim-error",
+          status: "queued",
+          started_at: null,
+          attempt_count: 0,
+          max_attempts: 3,
+        }],
+        error: null,
+      })
+      .mockResolvedValueOnce({
+        data: null,
+        error: { message: "private claim transaction details" },
+      });
+
+    const response = await POST(request("Bearer test-cron-secret-with-sufficient-entropy"));
+    const body = await response.json();
+
+    expect(JSON.stringify(body)).not.toContain("private claim transaction details");
+  });
+
 });
