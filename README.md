@@ -36,13 +36,18 @@ A personal academic workspace for Edexcel O/A Level, SSC and HSC tutoring. It ac
 - Task-aware OpenAI-compatible provider routing with owner-defined priority, opt-in fallback and server-only credentials. Configuration and cost controls are documented in `docs/AI_PROVIDER_SETUP.md`.
 - Optional knowledge-first retrieval from up to three approved notes in the question's exact confirmed syllabus chapter, with immutable source-version provenance.
 - Optional owner-initiated Brave web research that sends only a manually entered query, stores owner-private HTTPS source leads and never labels search results as verified curriculum evidence. Setup, privacy and cost controls are documented in `docs/WEB_RESEARCH_SETUP.md`.
-- AI chapter-note drafting from up to 12 owner-approved, chapter-classified questions and linked extracted source pages; generated notes retain source-reference metadata, validate citation labels, and remain unverified drafts requiring owner review.
+- Free offline chapter-note drafts from up to 12 owner-approved, chapter-classified questions and linked extracted source pages; candidate expressions and question topics retain source references and remain unverified until owner review.
+- Browser-only active-recall practice sessions for approved chapter questions, with source-order/shuffled queues and temporary attempted progress; no AI provider or network call is used.
 - Deterministic arithmetic, supported neutral chemistry equation atom-count, and SI dimensional-consistency checks. These are narrow checks, not proof of a fully correct answer.
 - Saved answer versions and safe schema validation before rendering.
 - Append-only owner and teacher review/correction records.
 - Question-scoped teacher invitations, email matching, explicit acceptance, restricted read/review access and owner-controlled revocation.
 - Supabase RLS policies and least-privilege grants for question sharing and reviews.
 - ESLint, TypeScript, Vitest, production build and Chromium smoke tests in GitHub Actions.
+
+## Zero-cost mode
+
+A strict no-AI-provider operating mode is supported: keep `AI_ENABLED=false`, leave AI provider credentials and pools empty, and leave `WEB_SEARCH_PROVIDER`/search credentials unset. Free offline chapter drafts and browser-only practice remain available. See [docs/ZERO_COST_MODE.md](docs/ZERO_COST_MODE.md) for capabilities, limitations and cost controls. Hosting, database and Google Drive usage remain subject to their respective free-tier quotas.
 
 ## Teacher review limits
 - The invited teacher must already have an account using the exact invited email address.
@@ -85,7 +90,7 @@ M1–M8 application features are substantially implemented on `feature/m3-ai-sol
 The existing non-production Supabase project `academic-assistant` has now been reconciled and updated with the repository migration chain: 44 pending migrations were applied successfully and the hosted ledger contains 97 entries. The public schema has 31 tables with RLS enabled on all 31, 50 policies across 27 tables, and the expected syllabus seed catalogue (4 catalogues, 30 chapters and 170 topics). No database reset was performed. The 4 internal quota tables intentionally have no direct client policies. Static review of 15 SECURITY DEFINER functions found none executable by anon; 14 remain executable by authenticated and were reviewed for fixed search paths and owner/auth checks. This is not a substitute for full adversarial IDOR testing.
 
 - **M2:** resumable uploads up to 50 MB, upload quotas and a bounded document worker are implemented. Live Google OAuth/Drive, interruption recovery, worker scheduling and external deployment configuration still need acceptance.
-- **M3–M4:** structured AI answer generation, saved versions, owner/teacher review history and question-scoped invitations are implemented. Live provider generation with explicit cost approval, a manually graded golden question set and real two-account browser acceptance remain release gates. AI stays disabled until the owner configures provider credentials.
+- **M3–M4:** structured AI answer generation, saved versions, owner/teacher review history and question-scoped invitations are implemented. Live provider generation with explicit cost approval, a manually graded golden question set and real two-account browser acceptance remain release gates. AI provider calls require explicit `AI_ENABLED=true` and credentials; strict zero-cost mode keeps `AI_ENABLED=false` and uses offline/manual workflows.
 - **M5:** four Cambridge/Pearson Edexcel science draft catalogues are seeded for curator review (30 chapters, 170 numbered topic headings). They are not verified or published for ordinary users until a real curator checks them.
 - **M6:** chapter-note drafting and versioned review are implemented; live AI evaluation and browser acceptance of downloads/print layout remain.
 - **M7:** revision, practice, analytics and study planning are implemented in code; hosted acceptance remains.
