@@ -82,10 +82,12 @@ export default async function ChapterWorkspacePage({ searchParams }: PageProps) 
     : params.create === "source_required" ? "Select at least one question or source page."
     : params.create === "invalid" ? "Some fields were invalid or exceeded their limits."
     : params.create === "save_failed" ? "The draft could not be saved. Check that the chapter and every selected source belong to your account."
+    : params.ai === "offline_generated" ? "Free offline source-based draft created. It only extracts your approved questions and candidate expressions; add explanations and verify every item before approval."
+    : params.ai === "invalid_sources" ? "The selected source records failed validation; no note was saved."
     : params.ai === "generated" ? "AI draft generated and saved. Review every claim and source citation before approval."
     : params.ai === "rate_limited" ? "You have reached the chapter-note AI generation limit. Wait 15 minutes before trying again."
     : params.ai === "rate_limit_unavailable" ? "AI generation is temporarily blocked because the account quota service is unavailable. No provider request was sent."
-    : params.ai === "not_configured" ? "AI generation is unavailable: configure AI_API_KEY and AI_MODEL in the server environment."
+    : params.ai === "not_configured" ? "Paid/provider AI is not configured. Use the free offline source-based draft option instead."
     : params.ai === "no_sources" ? "No approved questions are available for this chapter. Approve and classify source questions first."
     : params.ai === "source_error" ? "The approved source pages could not be loaded."
     : params.ai === "save_failed" ? "The generated note could not be saved. No draft was created."
@@ -111,7 +113,7 @@ export default async function ChapterWorkspacePage({ searchParams }: PageProps) 
       <section className="hero documents-hero">
         <p className="eyebrow">CHAPTER INTELLIGENCE · M6</p>
         <h1>Chapter <span>workspace.</span></h1>
-        <p className="hero-copy">Create structured chapter notes from your own question bank and source pages. Each draft keeps immutable source links and a version history. Approval is an owner review step, not an official exam-board certification.</p>
+        <p className="hero-copy">Build chapter revision drafts at zero API cost from your own approved questions and extracted source pages. Offline drafts preserve evidence and never invent worked solutions. Add teacher-written explanations and review every item before approval.</p>
         <div className="hero-actions">
           <Link className="sign-in-link" href="/dashboard/syllabus">Manage syllabus chapters</Link>
           <Link className="sign-in-link" href="/dashboard/questions">Open question bank</Link>
@@ -147,14 +149,14 @@ export default async function ChapterWorkspacePage({ searchParams }: PageProps) 
                   <form action={generateChapterNoteDraft} className="chapter-ai-generate-form">
                     <input type="hidden" name="catalogId" value={chapter.catalog_id} />
                     <input type="hidden" name="chapterId" value={chapter.id} />
-                    <label>AI draft version
+                    <label>Offline draft version
                       <select name="supersedesId" defaultValue="">
                         <option value="">Start a new note series</option>
                         {chapterNotes.map((note) => <option key={note.id} value={note.id}>Revise v{note.version_number} · {note.title}</option>)}
                       </select>
                     </label>
-                    <button className="document-action" type="submit">Generate AI chapter-note draft from approved questions</button>
-                    <p className="question-card-meta">Uses up to 12 of your approved, chapter-linked questions and their source pages. Choose an existing version to create a linked revision instead of a separate series. Provider usage may incur costs. The result is an unverified draft and requires your review.</p>
+                    <button className="document-action" type="submit">Create free offline revision draft</button>
+                    <p className="question-card-meta">Uses up to 12 approved questions and available extracted page text. No AI provider, API key, internet call or paid quota is used. It extracts source-linked question topics and candidate expressions only; it does not solve questions or write explanations. Choose an existing version to create a linked revision. Review against the original documents before approval.</p>
                   </form>
 
                   <details className="chapter-note-author">
@@ -207,7 +209,7 @@ export default async function ChapterWorkspacePage({ searchParams }: PageProps) 
                       const noteSources = (sources ?? []).filter((source) => source.note_version_id === note.id);
                       return <article className="chapter-note-version" data-note-id={note.id} key={note.id}>
                         <div className="question-card-heading"><strong>v{note.version_number} · {note.title}</strong><span className="document-status">{note.status}</span></div><div className="hero-actions"><PrintNotesButton noteId={note.id} /><DownloadChapterNoteButton title={note.title} content={content} /></div>
-                        {content.generatedBy === "ai" ? <p className="question-card-meta">AI-generated draft · not independently verified · owner review required</p> : null}
+                        {content.generatedBy === "ai" ? <p className="question-card-meta">AI-generated draft · not independently verified · owner review required</p> : content.generatedBy === "offline-extractive" ? <p className="question-card-meta">Free offline source extraction · no API call or provider charge · not a solved or independently verified note · owner review required</p> : null}
                         {content.summary ? <p className="chapter-note-summary">{content.summary}</p> : null}
                         <ContentList title="Key concepts" items={content.concepts} />
                         <FormulaList items={content.formulas} />
