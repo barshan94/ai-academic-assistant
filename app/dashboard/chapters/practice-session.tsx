@@ -1,9 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { getPracticeProgress, shufflePracticeQuestions, type PracticeQuestion } from "@/lib/chapters/practice-session";
+import { buildPracticeAnswerSheet, getPracticeProgress, shufflePracticeQuestions, type PracticeQuestion } from "@/lib/chapters/practice-session";
 
-export default function PracticeSession({ questions }: { questions: PracticeQuestion[] }) {
+export default function PracticeSession({ questions, chapterTitle }: { questions: PracticeQuestion[]; chapterTitle: string }) {
   const [queue, setQueue] = useState<PracticeQuestion[]>([]);
   const [index, setIndex] = useState(0);
   const [attempted, setAttempted] = useState<Set<string>>(() => new Set());
@@ -22,6 +22,20 @@ export default function PracticeSession({ questions }: { questions: PracticeQues
     setConfident(new Set());
     setWorking({});
     setStarted(true);
+  }
+
+  function exportAnswerSheet() {
+    const content = buildPracticeAnswerSheet(chapterTitle, queue, working, attempted, confident);
+    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    const safeName = chapterTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 48) || "chapter";
+    anchor.href = url;
+    anchor.download = `${safeName}-practice-answers.txt`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
   }
 
   function toggleAttempted() {
@@ -69,7 +83,7 @@ export default function PracticeSession({ questions }: { questions: PracticeQues
             <span style={{ width: progress.percent + "%" }} />
           </div>
           <p className="chapter-practice-question">{current.questionNumber ? current.questionNumber + ". " : ""}{current.questionText}</p>
-          <label className="practice-working-label">Your working / answer (kept only in this browser session)
+          <label className="practice-working-label">Your working / answer (kept only in this browser session; export before ending)
             <textarea rows={5} value={working[current.id] ?? ""} onChange={(event) => setWorking((previous) => ({ ...previous, [current.id]: event.target.value }))} placeholder="Write your method, calculations and final answer here. Nothing is uploaded or saved." />
           </label>
           <p className="question-card-meta">No AI solution is generated. Compare your working with your original source or teacher&apos;s mark scheme.</p>
@@ -90,6 +104,7 @@ export default function PracticeSession({ questions }: { questions: PracticeQues
             <button className="primary-action" type="button" disabled={index >= queue.length - 1} onClick={() => setIndex((value) => Math.min(queue.length - 1, value + 1))}>Next question →</button>
           </div>
           {progress.remaining === 0 ? <p className="notice notice-info" role="status">Every question has been marked attempted. Your self-assessment shows {progress.confident} confident and {progress.needsReview} needing more practice. Review your working against the original source material.</p> : null}
+          <div className="hero-actions"><button className="document-action" type="button" onClick={exportAnswerSheet}>Export my working (.txt)</button></div>
           <button className="sign-in-link" type="button" onClick={() => { setStarted(false); setQueue([]); setAttempted(new Set()); setConfident(new Set()); setWorking({}); setIndex(0); }}>End session</button>
         </div>
       ) : null}
