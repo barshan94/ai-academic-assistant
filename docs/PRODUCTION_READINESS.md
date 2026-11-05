@@ -705,3 +705,16 @@ The preceding latest automatic Vercel build inspected was for older commit `7411
 The separate-database backup/restore drill remains skipped by owner instruction; no second database is to be created. This does not prove disaster recovery. A protected backup is still required immediately before any separately approved production migration.
 
 PR #1 remains open, draft and unmerged. No Production environment, Production deployment, production database schema, paid service, or merge was changed during this checkpoint.
+
+
+## Exact-head Preview result — 2026-11-06
+
+The Preview deployment for application-code commit `bfd34e3ad5c2df6fc371595114ada601abb9d4b0` completed successfully:
+
+- Deployment `dpl_BUL2b9AgFrbjjnajkc1VNPP3qJde` is `READY`.
+- Preview URL: https://ai-academic-assistant-l3hz0bq8w-barshan-s-team.vercel.app
+- Vercel ran the Next.js production build, including compilation, lint/type validation and page-data collection; deployment reached READY.
+- The external page fetch did not provide an HTTP/browser acceptance result, so do not mark authenticated route smoke testing as complete based on READY alone.
+
+Read-only Vercel environment inventory (values were not decrypted or displayed): Production currently contains only `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. The branch-scoped Preview environment contains the server-side `CRON_SECRET`, `SUPABASE_SERVICE_ROLE_KEY`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_DRIVE_REDIRECT_URI`, and `DRIVE_TOKEN_ENCRYPTION_KEY`. This is the intended non-production separation; it does not satisfy Production configuration. No AI provider key or search-provider key was added.
+
