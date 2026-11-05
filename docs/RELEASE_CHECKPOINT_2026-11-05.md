@@ -1,3 +1,43 @@
+# Superseding exact-head release checkpoint — 2026-11-05 (commit `648e8d3cae0ec360846294cebad555cf62652072`)
+
+This section is the current release checkpoint and supersedes all historical head references below.
+
+## Exact-head automated verification — PASS
+
+All six checks completed successfully on the exact feature-branch head `648e8d3`:
+
+- [x] Foundation lint, TypeScript checks, production dependency audits, unit tests, production build and Chromium browser smoke — [run 42053412812](https://github.com/barshan94/ai-academic-assistant/actions/runs/42053412812).
+- [x] Local Supabase migrations and pgTAP/database authorization — [run 42053413126](https://github.com/barshan94/ai-academic-assistant/actions/runs/42053413126).
+- [x] Authenticated two-account Supabase acceptance — [run 42053413041](https://github.com/barshan94/ai-academic-assistant/actions/runs/42053413041).
+- [x] Full repository-history secret scan — [run 42053412933](https://github.com/barshan94/ai-academic-assistant/actions/runs/42053412933).
+- [x] Vercel Preview feedback check — no unresolved feedback.
+- [x] Vercel Preview deployment — [READY](https://ai-academic-assistant-8a42nabac-barshan-s-team.vercel.app), built from this exact commit. This is a Preview deployment, not Production.
+
+The latest upload tests verify Drive-confirmed MIME type and byte-size checks before registration, cleanup after a confirmed size mismatch, preservation of a Drive object when database registration has an uncertain outcome, and cleanup of a newly uploaded duplicate while preserving the original.
+
+## Current release decision
+
+**NOT APPROVED FOR PRODUCTION.** Green CI and a READY Preview establish a strong automated code checkpoint; they do not close the remaining live integration and human acceptance gates.
+
+PR #1 remains open, draft and unmerged. No Production deployment, Production environment change, production database change, merge, paid upgrade, reset, migration-ledger repair or data overwrite was performed.
+
+## Remaining gates — not waived
+
+1. **Live Drive upload recovery:** real non-production multi-chunk interruption/resume, lost final-response recovery, expired-session restart, duplicate/idempotency behavior, cross-account denial and final source-vs-Drive byte-count/SHA-256 equality.
+2. **Live worker acceptance:** capture an authenticated worker POST response; exercise wrong-secret rejection, concurrent claims, stale-lease recovery, retry exhaustion and injected OCR/provider failures against the deployed non-production worker. Two completed OCR jobs are evidence of extraction and persistence only; both pages remain `review_required` with null OCR confidence.
+3. **Production configuration:** Vercel Production currently has only the public Supabase URL and publishable key among the required environment entries. Required server-side credentials are not configured for Production. Do not copy Preview secrets blindly: the Drive token-encryption key must remain compatible with already encrypted refresh tokens, and OAuth/AI credentials require owner-controlled setup.
+4. **AI approval and academic quality:** no AI provider/model, data-processing terms or spend limit has been approved. AI generation remains disabled. After explicit approval, independently grade a Cambridge/Edexcel O/A Level golden set in Bengali and English; phrase matching is not proof of correctness.
+5. **Privacy, legal and accessibility:** complete qualified privacy/legal review, publish a responsible contact, assign primary/backup operators, and perform manual keyboard, screen-reader, contrast, zoom/reflow, reduced-motion and Android-device acceptance.
+6. **Supabase Free limitation:** leaked-password protection remains disabled on the current plan. Document and accept a mitigation or make an explicit plan decision; do not claim it is enabled.
+7. **Hosted migration parity:** review migration-history/schema parity before planning any Production migration. Do not rewrite the hosted migration ledger as part of this checkpoint.
+8. **Backup/restore:** the separate-database restore rehearsal is explicitly excluded by the owner's instruction. Do not create another database for this purpose and do not overwrite either existing project. A checksum is not a restore test; the limitation remains documented.
+
+## Safe next actions
+
+Continue branch-only code, test and documentation improvements. Use synthetic data for live acceptance. Keep Production untouched, keep PR #1 draft/unmerged, and do not enable paid AI or a recurring worker schedule without explicit approval and a safe integrated release.
+
+---
+
 ## Superseding exact-head release checkpoint — 2026-11-05 (commit `36436b4094f8b7fb97078769151f5760dfc4ae00`)
 
 All six GitHub checks for this exact feature-branch head completed successfully:
