@@ -12,6 +12,7 @@ vi.mock("@/lib/ai/provider", () => ({
 
 import { GET } from "@/app/api/health/ready/route";
 import { REQUIRED_READINESS_TABLES } from "@/lib/health/required-readiness-tables";
+import { runBoundedChecks } from "@/lib/health/run-bounded-checks";
 
 const requiredEnvironment: Record<string, string> = {
   CRON_SECRET: "a".repeat(64),
@@ -114,6 +115,7 @@ describe("GET /api/health/ready", () => {
     expect(await response.json()).toEqual({ status: "not_ready" });
     expect(probeCount).toBe(5);
   });
+
   it("fails closed when a database readiness probe throws unexpectedly", async () => {
     createClientMock.mockReturnValue({
       from: vi.fn(() => ({
@@ -128,5 +130,65 @@ describe("GET /api/health/ready", () => {
     expect(response.status).toBe(503);
     expect(await response.json()).toEqual({ status: "not_ready" });
   });
+});
 
+describe("runBoundedChecks", () => {
+  it("never runs more checks concurrently than the configured batch size", async () => {
+    let active = 0;
+    let maximumActive = 0;
+
+    const result = await runBoundedChecks([1, 2, 3, 4, 5, 6, 7], 3, async () => {
+      active += 1;
+      maximumActive = Math.max(maximumActive, active);
+      await Promise.resolve();
+      active -= 1;
+      return true;
+    });
+
+    expect(result).toBe(true);
+    expect(maximumActive).toBe(3);
+    expect(active).toBe(0);
+  });
+
+  it("stops before starting later batches when any check fails", async () => {
+    const checked: number[] = [];
+
+    const result = await runBoundedChecks([1, 2, 3, 4, 5], 2, async (value) => {
+      checked.push(value);
+      return value !== 2;
+    });
+
+    expect(result).toBe(false);
+    expect(checked).toEqual([1, 2]);
+  });
+
+  it("returns true for an empty list without invoking the checker", async () => {
+    let calls = 0;
+
+    const result = await runBoundedChecks([], 2, async () => {
+      calls += 1;
+      return true;
+    });
+
+    expect(result).toBe(true);
+    expect(calls).toBe(0);
+  });
+
+  it.each([0, -1, 1.5, Number.NaN, Number.POSITIVE_INFINITY])(
+    "rejects invalid batch size %s",
+    async (batchSize) => {
+      await expect(
+        runBoundedChecks([1], batchSize, async () => true),
+      ).rejects.toThrow("batchSize must be a positive integer");
+    },
+  );
+
+  it("propagates checker exceptions so the caller can fail closed", async () => {
+    await expect(
+      runBoundedChecks([1, 2], 2, async (value) => {
+        if (value === 1) throw new Error("probe failed");
+        return true;
+      }),
+    ).rejects.toThrow("probe failed");
+  });
 });
