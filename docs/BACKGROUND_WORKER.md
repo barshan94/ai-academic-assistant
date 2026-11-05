@@ -13,14 +13,14 @@ Configure these values in the dedicated non-production Vercel project:
 - `GOOGLE_CLIENT_ID`
 - `GOOGLE_CLIENT_SECRET`
 
-The scheduler is GitHub Actions, defined in `.github/workflows/document-worker.yml`, and requests one job every five minutes. Configure these repository Actions secrets:
+The scheduler is GitHub Actions, defined in `.github/workflows/document-worker.yml`, and currently supports manual dispatch only. Configure these repository Actions secrets:
 
 - `APP_BASE_URL` — the HTTPS base URL of the deployed application, for example `https://your-app.example.com` (no path suffix).
 - `CRON_SECRET` — the same random secret configured in the Vercel environment.
 
-GitHub scheduled workflows run only from the repository's default branch. This feature-branch workflow will not run on a schedule until it is merged to the default branch; do not merge it or deploy it without authorization. Once available on the default branch, GitHub Actions can also be manually dispatched. GitHub may delay scheduled runs during periods of high load.
+The checked-in workflow currently declares only `workflow_dispatch`; it does **not** contain a schedule trigger. Therefore it will not process jobs automatically. A future scheduled trigger must be explicitly added and reviewed, and scheduled workflows run only from the repository's default branch. Do not claim scheduler readiness or merge/deploy this feature branch without authorization. The workflow can be manually dispatched once it is available on the default branch. GitHub may delay scheduled runs during periods of high load.
 
-This uses GitHub Actions rather than a five-minute Vercel Cron expression because Vercel Hobby allows only once-daily cron execution; more frequent schedules require Pro or Enterprise. Do not configure both schedulers at once. See the [Vercel cron plan limits](https://vercel.com/docs/cron-jobs/usage-and-pricing).
+The current workflow is an operator-triggered worker invocation, not a scheduler. Select and configure an approved scheduler only after the non-production worker has passed live concurrency and recovery tests. Do not configure two schedulers at once.
 
 ## Operational behavior
 
