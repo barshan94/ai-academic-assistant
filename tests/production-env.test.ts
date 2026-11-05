@@ -67,11 +67,29 @@ describe("production environment preflight", () => {
     ["short cron secret", { CRON_SECRET: "too-short" }],
     ["non-canonical encryption key", { DRIVE_TOKEN_ENCRYPTION_KEY: "not-base64" }],
     ["wrong encryption key length", { DRIVE_TOKEN_ENCRYPTION_KEY: Buffer.alloc(16).toString("base64") }],
-    ["missing AI key", { AI_API_KEY: undefined }],
-    ["missing AI model", { AI_MODEL: undefined }],
     ["insecure AI endpoint", { AI_API_BASE_URL: "http://provider.example/v1" }],
     ["invalid fallback flag", { AI_ALLOW_PROVIDER_FALLBACKS: "yes" }],
   ])("rejects invalid %s", (_label, overrides) => {
+    const result = run(overrides);
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("preflight failed");
+  });
+
+  it("accepts a zero-cost deployment with no AI provider configured", () => {
+    const result = run({
+      AI_API_KEY: undefined,
+      AI_MODEL: undefined,
+      AI_PROVIDER_POOL: undefined,
+    });
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain("preflight passed");
+    expect(result.stderr).toContain("AI generation remains disabled");
+  });
+
+  it.each([
+    ["key without model", { AI_API_KEY: "fixture-ai-key", AI_MODEL: undefined }],
+    ["model without key", { AI_API_KEY: undefined, AI_MODEL: "fixture-model" }],
+  ])("rejects a partial optional AI configuration: %s", (_label, overrides) => {
     const result = run(overrides);
     expect(result.status).toBe(1);
     expect(result.stderr).toContain("preflight failed");
