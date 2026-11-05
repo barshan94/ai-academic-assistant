@@ -46,6 +46,40 @@ describe("resumable upload status query", () => {
       .rejects.toThrow("invalid resume position");
   });
 
+  it("rejects a successful but incomplete status response with no confirmed offset", async () => {
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValueOnce(
+      new Response(JSON.stringify({ complete: false }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+
+    await expect(queryResumableUploadStatus("opaque-session-token", 1234, fetchMock))
+      .rejects.toThrow("invalid resume position");
+  });
+
+  it("rejects a completed response unless the entire source length is confirmed", async () => {
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValueOnce(
+      new Response(JSON.stringify({ complete: true, nextOffset: 1233 }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+
+    await expect(queryResumableUploadStatus("opaque-session-token", 1234, fetchMock))
+      .rejects.toThrow("invalid resume position");
+  });
+
+  it("rejects invalid file sizes and empty session tokens before making a request", async () => {
+    const fetchMock = vi.fn<typeof fetch>();
+
+    await expect(queryResumableUploadStatus("", 1234, fetchMock))
+      .rejects.toThrow("session or source file size is invalid");
+    await expect(queryResumableUploadStatus("opaque-session-token", 0, fetchMock))
+      .rejects.toThrow("session or source file size is invalid");
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it("surfaces safe server errors for expired or invalid sessions", async () => {
     const fetchMock = vi.fn<typeof fetch>().mockResolvedValueOnce(
       new Response(JSON.stringify({ error: "Google Drive upload session expired. Start again." }), {
