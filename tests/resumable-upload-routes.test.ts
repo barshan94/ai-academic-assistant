@@ -206,4 +206,65 @@ describe("resumable upload route security boundaries", () => {
     expect(getDriveAccessTokenMock).not.toHaveBeenCalled();
     expect(sendResumablePdfChunkMock).not.toHaveBeenCalled();
   });
+
+  it("rejects a decrypted session URI outside the exact Google Drive upload endpoint", async () => {
+    decryptDriveUploadSessionMock.mockReturnValueOnce(JSON.stringify({
+      ...validSession,
+      sessionUri: "https://attacker.example/upload/drive/v3/files?upload_id=opaque",
+    }));
+
+    const response = await uploadChunk(makeRequest(
+      "/api/documents/upload/resumable/chunk",
+      { headers: { "x-upload-session": "opaque-encrypted-session", "content-range": "bytes */1234" } },
+    ));
+
+    expect(response.status).toBe(400);
+    expect(getDriveAccessTokenMock).not.toHaveBeenCalled();
+    expect(sendResumablePdfChunkMock).not.toHaveBeenCalled();
+    expect(createSupabaseServiceRoleClientMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects an expired decrypted session before contacting Google Drive", async () => {
+    decryptDriveUploadSessionMock.mockReturnValueOnce(JSON.stringify({
+      ...validSession,
+      expiresAt: Date.now() - 1,
+    }));
+
+    const response = await uploadChunk(makeRequest(
+      "/api/documents/upload/resumable/chunk",
+      { headers: { "x-upload-session": "opaque-encrypted-session", "content-range": "bytes */1234" } },
+    ));
+
+    expect(response.status).toBe(400);
+    expect(getDriveAccessTokenMock).not.toHaveBeenCalled();
+    expect(sendResumablePdfChunkMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects an invalid encrypted session before any Drive or service-role operation", async () => {
+    decryptDriveUploadSessionMock.mockImplementationOnce(() => {
+      throw new Error("ciphertext authentication failed");
+    });
+
+    const response = await uploadChunk(makeRequest(
+      "/api/documents/upload/resumable/chunk",
+      { headers: { "x-upload-session": "tampered-session", "content-range": "bytes */1234" } },
+    ));
+
+    expect(response.status).toBe(400);
+    expect(getDriveAccessTokenMock).not.toHaveBeenCalled();
+    expect(sendResumablePdfChunkMock).not.toHaveBeenCalled();
+    expect(createSupabaseServiceRoleClientMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects a missing upload-session token before decrypting or contacting Drive", async () => {
+    const response = await uploadChunk(makeRequest(
+      "/api/documents/upload/resumable/chunk",
+      { headers: { "content-range": "bytes */1234" } },
+    ));
+
+    expect(response.status).toBe(400);
+    expect(decryptDriveUploadSessionMock).not.toHaveBeenCalled();
+    expect(getDriveAccessTokenMock).not.toHaveBeenCalled();
+  });
+
 });
