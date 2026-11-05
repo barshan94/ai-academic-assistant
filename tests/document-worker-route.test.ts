@@ -91,7 +91,8 @@ describe("document worker route access and queue preflight", () => {
     const response = await POST(request("Bearer test-cron-secret-with-sufficient-entropy"));
 
     expect(response.status).toBe(500);
-    expect(await response.json()).toEqual({ error: "Could not read the processing queue." });
-    expect(await response.text()).not.toContain("private database connection details");
+    const body = await response.json();
+    expect(body).toEqual({ error: "Could not read the processing queue." });
+    expect(JSON.stringify(body)).not.toContain("private database connection details");
   });
 });
