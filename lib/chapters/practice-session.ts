@@ -17,14 +17,18 @@ export function shufflePracticeQuestions<T>(items: readonly T[], random: () => n
   return result;
 }
 
-export function getPracticeProgress(total: number, attempted: ReadonlySet<string>, queue: readonly PracticeQuestion[]) {
+export function getPracticeProgress(total: number, attempted: ReadonlySet<string>, queue: readonly PracticeQuestion[], confident: ReadonlySet<string> = new Set()) {
   const validIds = new Set(queue.map((question) => question.id));
   let attemptedCount = 0;
   for (const id of attempted) if (validIds.has(id)) attemptedCount += 1;
+  let confidentCount = 0;
+  for (const id of confident) if (validIds.has(id) && attempted.has(id)) confidentCount += 1;
   return {
     total,
     attempted: attemptedCount,
     remaining: Math.max(0, total - attemptedCount),
+    confident: confidentCount,
+    needsReview: Math.max(0, attemptedCount - confidentCount),
     percent: total > 0 ? Math.round((attemptedCount / total) * 100) : 0,
   };
 }
