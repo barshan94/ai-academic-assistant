@@ -4,6 +4,22 @@
 
 > **Status: NOT APPROVED FOR PRODUCTION**
 
+## Superseding verification checkpoint — 2026-11-05
+
+This checkpoint supersedes the 2026-11-04 regression note below. Current feature head: `34974141075e1c52df8ba22e29cba8dd230bc6f6`.
+
+- Foundation `41882329396`: passed lint, application/Playwright type-checks, production environment preflight, production-only audit, build and **241 unit tests across 44 files**.
+- Chromium smoke: **10 passed / 2 skipped**.
+- Database authorization `41882329455`: fresh local Supabase migration replay and pgTAP authorization suite passed.
+- Authenticated two-account acceptance `41882329427`: **2 passed**. The earlier shared-account concurrency regression is no longer failing in this serialized workflow.
+- Full-history secret scan `41882329409`: passed.
+- Production-only dependency audit: zero findings. Full development dependency audit: 13 moderate minimatch findings remain (ERR-124); do not use the breaking `npm audit fix --force` downgrade.
+- Connected non-production Supabase migration inventory (latest read-only snapshot, 2026-11-04): 101 repository files and 101 hosted ledger entries; 98 exact matches and three SQL-equivalent timestamp/name mismatches. No pending schema DDL was identified after reconciling those exact pairs. The history-only repair/dry-run workflow has not yet been run; no hosted schema or ledger mutation is claimed.
+- Vercel's latest READY Preview is application commit `9d8303d30b506c3833c46d1f9ec9c2527b2e9583`. Comparing that commit with the current head shows only workflow/documentation changes, so application source is unchanged. The current SHA has no Vercel deployment; its Vercel status reports a build-rate-limit failure. Production remains on the older `main` commit.
+
+**Release decision remains NOT APPROVED FOR PRODUCTION.** Live Google Drive/OAuth upload-resume-OCR-worker acceptance, live AI provider and human golden-set grading, hosted migration-history repair, full isolated backup/restore, ERR-124, Supabase leaked-password protection, accessibility/device acceptance, official syllabus and independent answer review, qualified privacy/legal review, named operators, production environment validation and explicit owner approval remain open. CI success does not close these gates.
+
+
 The application has substantial feature and security implementation, but production readiness is not established. This document is the single release gate checklist. A checkbox is complete only when the named evidence exists; source code or documentation alone does not satisfy a runtime acceptance item.
 
 The owner selected infrastructure constraint remains Supabase Free only. No paid upgrade, production migration, merge to `main`, or hosted deployment is authorized by this document. Actions requiring provider credentials, legal decisions, account provisioning or an assigned human operator are listed in [OWNER_ACTIONS.md](./OWNER_ACTIONS.md).
