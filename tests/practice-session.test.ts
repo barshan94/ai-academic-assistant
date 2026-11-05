@@ -28,33 +28,20 @@ describe("free local practice session helpers", () => {
 
   it("counts only attempted questions that belong to the active queue", () => {
     expect(getPracticeProgress(3, new Set(["q1", "q3", "deleted-question"]), questions)).toEqual({
-      total: 3,
-      attempted: 2,
-      remaining: 1,
-      confident: 0,
-      needsReview: 2,
-      percent: 67,
+      total: 3, attempted: 2, remaining: 1, confident: 0, needsReview: 2, percent: 67,
     });
   });
 
   it("counts confidence only for attempted questions in the active queue", () => {
     expect(getPracticeProgress(3, new Set(["q1", "q2"]), questions, new Set(["q1", "deleted"]))).toEqual({
-      total: 3,
-      attempted: 2,
-      remaining: 1,
-      confident: 1,
-      needsReview: 1,
-      percent: 67,
+      total: 3, attempted: 2, remaining: 1, confident: 1, needsReview: 1, percent: 67,
     });
   });
 
   it("exports each question, working and honest self-assessment without grading claims", () => {
     const output = buildPracticeAnswerSheet(
-      "Forces and motion",
-      questions,
-      { q1: "F = ma\\n2 × 3 = 6 N", q3: "Need to review this" },
-      new Set(["q1", "q3"]),
-      new Set(["q1"]),
+      "Forces and motion", questions, { q1: "F = ma\\n2 × 3 = 6 N", q3: "Need to review this" },
+      new Set(["q1", "q3"]), new Set(["q1"]),
     );
     expect(output).toContain("Forces and motion");
     expect(output).toContain("Personal practice answer sheet");
@@ -68,19 +55,14 @@ describe("free local practice session helpers", () => {
 
   it("exports a safe default title and empty-work placeholders", () => {
     const output = buildPracticeAnswerSheet(" ", [questions[0]], {}, new Set(), new Set());
-    expect(output.startsWith("Chapter practice\\n")).toBe(true);
+    expect(output.startsWith("Chapter practice\n")).toBe(true);
     expect(output).toContain("(No working entered)");
     expect(output).toContain("Not marked attempted");
   });
 
   it("handles empty progress without dividing by zero", () => {
     expect(getPracticeProgress(0, new Set(), [])).toEqual({
-      total: 0,
-      attempted: 0,
-      remaining: 0,
-      confident: 0,
-      needsReview: 0,
-      percent: 0,
+      total: 0, attempted: 0, remaining: 0, confident: 0, needsReview: 0, percent: 0,
     });
   });
 });
