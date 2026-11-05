@@ -33,6 +33,7 @@ describe("free offline chapter-note builder", () => {
       pageNumber: 4,
       extractionMethod: "pdf_text",
     }]);
+    expect(note.summary).toContain("Cambridge · A Level · Physics — Forces");
     expect(note.summary).toContain("does not generate explanations");
     expect(note.summary).toContain("does not");
   });
@@ -53,6 +54,21 @@ describe("free offline chapter-note builder", () => {
       board: "x", qualification: "x", subject: "x", chapter: "x",
       sources: Array.from({ length: 13 }, (_, index) => ({ ...sources[0], ref: "S" + (index + 1), questionId: "q" + index })),
     })).toThrow("OFFLINE_NOTE_SOURCES_INVALID");
+  });
+
+  it("rejects empty chapter metadata and malformed source provenance", () => {
+    expect(() => buildOfflineChapterNote({
+      board: "Cambridge", qualification: "A Level", subject: "Physics", chapter: " ",
+      sources,
+    })).toThrow("OFFLINE_NOTE_SOURCES_INVALID");
+    expect(() => buildOfflineChapterNote({
+      board: "Cambridge", qualification: "A Level", subject: "Physics", chapter: "Forces",
+      sources: [{ ...sources[0], pageNumber: 0 }],
+    })).toThrow("OFFLINE_NOTE_SOURCE_INVALID");
+    expect(() => buildOfflineChapterNote({
+      board: "Cambridge", qualification: "A Level", subject: "Physics", chapter: "Forces",
+      sources: [{ ...sources[0], extractionMethod: "unknown" }],
+    })).toThrow("OFFLINE_NOTE_SOURCE_INVALID");
   });
 
   it("rejects malformed or duplicate source references", () => {
