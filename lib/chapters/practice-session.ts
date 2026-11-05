@@ -32,3 +32,35 @@ export function getPracticeProgress(total: number, attempted: ReadonlySet<string
     percent: total > 0 ? Math.round((attemptedCount / total) * 100) : 0,
   };
 }
+
+export function buildPracticeAnswerSheet(
+  chapterTitle: string,
+  queue: readonly PracticeQuestion[],
+  working: Readonly<Record<string, string>>,
+  attempted: ReadonlySet<string>,
+  confident: ReadonlySet<string>,
+): string {
+  const title = chapterTitle.trim().slice(0, 160) || "Chapter practice";
+  const lines = [
+    title,
+    "Personal practice answer sheet",
+    "Self-assessment only; answers have not been graded or verified.",
+    "",
+  ];
+  for (const [index, question] of queue.entries()) {
+    const status = confident.has(question.id) && attempted.has(question.id)
+      ? "Confident"
+      : attempted.has(question.id) ? "Needs more practice" : "Not marked attempted";
+    lines.push(
+      `Question ${index + 1}${question.questionNumber ? ` (${question.questionNumber})` : ""}`,
+      question.questionText,
+      `Self-assessment: ${status}`,
+      "Your working:",
+      working[question.id]?.trim() || "(No working entered)",
+      "",
+      "----------------------------------------",
+      "",
+    );
+  }
+  return lines.join("\n");
+}
