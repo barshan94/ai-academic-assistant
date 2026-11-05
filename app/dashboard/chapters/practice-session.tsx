@@ -7,9 +7,11 @@ export default function PracticeSession({ questions }: { questions: PracticeQues
   const [queue, setQueue] = useState<PracticeQuestion[]>([]);
   const [index, setIndex] = useState(0);
   const [attempted, setAttempted] = useState<Set<string>>(() => new Set());
+  const [confident, setConfident] = useState<Set<string>>(() => new Set());
+  const [working, setWorking] = useState<Record<string, string>>({});
   const [started, setStarted] = useState(false);
 
-  const progress = useMemo(() => getPracticeProgress(queue.length, attempted, queue), [queue, attempted]);
+  const progress = useMemo(() => getPracticeProgress(queue.length, attempted, queue, confident), [queue, attempted]);
   const current = queue[index];
 
   function start(shuffle: boolean) {
@@ -17,6 +19,8 @@ export default function PracticeSession({ questions }: { questions: PracticeQues
     setQueue(next);
     setIndex(0);
     setAttempted(new Set());
+    setConfident(new Set());
+    setWorking({});
     setStarted(true);
   }
 
@@ -57,16 +61,28 @@ export default function PracticeSession({ questions }: { questions: PracticeQues
             <span style={{ width: progress.percent + "%" }} />
           </div>
           <p className="chapter-practice-question">{current.questionNumber ? current.questionNumber + ". " : ""}{current.questionText}</p>
-          <p className="question-card-meta">Try it on paper first. This practice mode does not reveal or invent a solution.</p>
+          <label className="practice-working-label">Your working / answer (kept only in this browser session)
+            <textarea rows={5} value={working[current.id] ?? ""} onChange={(event) => setWorking((previous) => ({ ...previous, [current.id]: event.target.value }))} placeholder="Write your method, calculations and final answer here. Nothing is uploaded or saved." />
+          </label>
+          <p className="question-card-meta">No AI solution is generated. Compare your working with your original source or teacher's mark scheme.</p>
+          <p className="question-card-meta">{progress.confident} confident · {progress.needsReview} marked for more practice</p>
           <div className="hero-actions">
+            <button className="document-action" type="button" onClick={() => {
+              setAttempted((previous) => new Set(previous).add(current.id));
+              setConfident((previous) => { const next = new Set(previous); next.delete(current.id); return next; });
+            }}>Need more practice</button>
+            <button className="document-action" type="button" onClick={() => {
+              setAttempted((previous) => new Set(previous).add(current.id));
+              setConfident((previous) => new Set(previous).add(current.id));
+            }}>I can solve this</button>
             <button className="document-action" type="button" onClick={toggleAttempted} aria-pressed={attempted.has(current.id)}>
               {attempted.has(current.id) ? "Unmark attempted" : "Mark attempted"}
             </button>
             <button className="document-action" type="button" disabled={index === 0} onClick={() => setIndex((value) => Math.max(0, value - 1))}>Previous</button>
             <button className="primary-action" type="button" disabled={index >= queue.length - 1} onClick={() => setIndex((value) => Math.min(queue.length - 1, value + 1))}>Next question →</button>
           </div>
-          {progress.remaining === 0 ? <p className="notice notice-info" role="status">Every question has been marked attempted. Review your working against the original source material.</p> : null}
-          <button className="sign-in-link" type="button" onClick={() => { setStarted(false); setQueue([]); setAttempted(new Set()); setIndex(0); }}>End session</button>
+          {progress.remaining === 0 ? <p className="notice notice-info" role="status">Every question has been marked attempted. Your self-assessment shows {progress.confident} confident and {progress.needsReview} needing more practice. Review your working against the original source material.</p> : null}
+          <button className="sign-in-link" type="button" onClick={() => { setStarted(false); setQueue([]); setAttempted(new Set()); setConfident(new Set()); setWorking({}); setIndex(0); }}>End session</button>
         </div>
       ) : null}
     </section>
