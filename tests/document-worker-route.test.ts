@@ -1,12 +1,22 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const { createSupabaseServiceRoleClientMock, rpcMock } = vi.hoisted(() => ({
+const { createSupabaseServiceRoleClientMock, rpcMock, extractTextFromDrivePdfMock } = vi.hoisted(() => ({
   createSupabaseServiceRoleClientMock: vi.fn(),
   rpcMock: vi.fn(),
+  extractTextFromDrivePdfMock: vi.fn(),
 }));
 
 vi.mock("@/lib/supabase/service-role", () => ({
   createSupabaseServiceRoleClient: createSupabaseServiceRoleClientMock,
+}));
+
+vi.mock("@/lib/drive/crypto", () => ({
+  decryptRefreshToken: vi.fn(() => "decrypted-test-refresh-token"),
+}));
+
+vi.mock("@/lib/drive/google", () => ({
+  extractTextFromDrivePdf: extractTextFromDrivePdfMock,
+  readGoogleJsonResponseBounded: vi.fn(async (response: Response) => response.json()),
 }));
 
 import { POST } from "@/app/api/cron/process-documents/route";
@@ -15,6 +25,8 @@ const originalEnv = {
   cronSecret: process.env.CRON_SECRET,
   supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
   serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
+  googleClientId: process.env.GOOGLE_CLIENT_ID,
+  googleClientSecret: process.env.GOOGLE_CLIENT_SECRET,
 };
 
 function restoreEnv(name: string, value: string | undefined) {
@@ -42,6 +54,9 @@ afterEach(() => {
   restoreEnv("CRON_SECRET", originalEnv.cronSecret);
   restoreEnv("NEXT_PUBLIC_SUPABASE_URL", originalEnv.supabaseUrl);
   restoreEnv("SUPABASE_SERVICE_ROLE_KEY", originalEnv.serviceRoleKey);
+  restoreEnv("GOOGLE_CLIENT_ID", originalEnv.googleClientId);
+  restoreEnv("GOOGLE_CLIENT_SECRET", originalEnv.googleClientSecret);
+  vi.unstubAllGlobals();
   vi.restoreAllMocks();
 });
 
@@ -258,4 +273,77 @@ describe("document worker route access and queue preflight", () => {
     expect(JSON.stringify(body)).not.toContain("private claim transaction details");
   });
 
+});
+
+
+describe("document worker failure redaction", () => {
+  it("persists a generic failure and never returns upstream OCR exception details", async () => {
+    process.env.GOOGLE_CLIENT_ID = "test-google-client";
+    process.env.GOOGLE_CLIENT_SECRET = "test-google-secret";
+
+    const queryFor = (result: { data: unknown; error: null }) => {
+      const query: any = {
+        select: vi.fn(() => query),
+        eq: vi.fn(() => query),
+        maybeSingle: vi.fn(async () => result),
+        then: (resolve: (value: unknown) => unknown, reject: (reason: unknown) => unknown) =>
+          Promise.resolve(result).then(resolve, reject),
+      };
+      return query;
+    };
+
+    const fromMock = vi.fn((table: string) => {
+      if (table === "documents") {
+        return queryFor({ data: { id: "document-1", drive_file_id: "drive-file-1", status: "processing" }, error: null });
+      }
+      if (table === "drive_connections") {
+        return queryFor({ data: { encrypted_refresh_token: "encrypted-test-token" }, error: null });
+      }
+      if (table === "document_pages") return queryFor({ data: [], error: null });
+      throw new Error(`Unexpected table access: ${table}`);
+    });
+
+    createSupabaseServiceRoleClientMock.mockReturnValue({ rpc: rpcMock, from: fromMock });
+    rpcMock
+      .mockResolvedValueOnce({
+        data: [{
+          id: "job-1",
+          document_id: "document-1",
+          owner_id: "owner-1",
+          status: "queued",
+          started_at: null,
+          attempt_count: 0,
+          max_attempts: 3,
+        }],
+        error: null,
+      })
+      .mockResolvedValueOnce({ data: true, error: null })
+      .mockResolvedValueOnce({ data: true, error: null });
+    extractTextFromDrivePdfMock.mockRejectedValueOnce(
+      new Error("UPSTREAM_SECRET_DO_NOT_RETURN: private OCR response and credential"),
+    );
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(
+      JSON.stringify({ access_token: "test-access-token" }),
+      { status: 200, headers: { "Content-Type": "application/json" } },
+    )));
+
+    const response = await POST(request("Bearer test-cron-secret-with-sufficient-entropy"));
+    const body = await response.json();
+
+    expect(response.status).toBe(500);
+    expect(body).toEqual({
+      processed: false,
+      job_id: "job-1",
+      failed: true,
+      error: "Document processing failed. Reconnect Google Drive if the problem persists.",
+    });
+    expect(JSON.stringify(body)).not.toContain("UPSTREAM_SECRET_DO_NOT_RETURN");
+    expect(rpcMock).toHaveBeenNthCalledWith(3, "fail_document_processing", {
+      p_document_id: "document-1",
+      p_owner_id: "owner-1",
+      p_job_id: "job-1",
+      p_error_code: "BACKGROUND_PROCESSING_FAILED",
+    });
+    expect(extractTextFromDrivePdfMock).toHaveBeenCalledOnce();
+  });
 });
