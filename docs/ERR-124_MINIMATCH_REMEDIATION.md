@@ -1,5 +1,16 @@
 # ERR-124 — minimatch advisory scope reconciliation
 
+## Superseding verification — 2026-11-05
+
+**Status: CLOSED for the current committed dependency graph.**
+
+The latest Foundation workflow for commit `189c76f38f3942d4499afd41a592b72a0af7dce8` completed these steps successfully:
+- `npm audit --omit=dev`: `found 0 vulnerabilities`
+- `npm audit` (full dependency tree, including development dependencies): `found 0 vulnerabilities`
+
+The earlier aggregate 13-moderate result is no longer reproducible against the current lockfile and current npm advisory data. No forced override or breaking ESLint downgrade was needed. This closes the current ERR-124 gate; re-run both audits on future dependency/lockfile changes. This is a point-in-time audit, not a guarantee against future advisories.
+
+
 Status: **no compatible dependency migration is justified for this CVE on the current lockfile; scanner discrepancy remains open pending GitHub Advisory Database clarification**. Do not force a major-version override into legacy ESLint consumers.
 
 ## Authoritative advisory evidence
