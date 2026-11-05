@@ -1,3 +1,41 @@
+# Superseding current release status — 2026-11-05 (feature head `648e8d3cae0ec360846294cebad555cf62652072`)
+
+This section supersedes every older exact-head status below.
+
+## Automated verification
+
+All six checks passed on exact head `648e8d3`:
+
+- [x] Foundation: lint, TypeScript checks, dependency audits, unit tests, production build and Chromium smoke — [run 42053412812](https://github.com/barshan94/ai-academic-assistant/actions/runs/42053412812).
+- [x] Local Supabase migrations and pgTAP/database authorization — [run 42053413126](https://github.com/barshan94/ai-academic-assistant/actions/runs/42053413126).
+- [x] Authenticated two-account Supabase acceptance — [run 42053413041](https://github.com/barshan94/ai-academic-assistant/actions/runs/42053413041).
+- [x] Full repository-history secret scan — [run 42053412933](https://github.com/barshan94/ai-academic-assistant/actions/runs/42053412933).
+- [x] Vercel Preview feedback check — no unresolved feedback.
+- [x] Vercel Preview deployment — [READY](https://ai-academic-assistant-8a42nabac-barshan-s-team.vercel.app), built from exact head `648e8d3`. Preview only; not Production.
+
+Latest tests cover Drive-confirmed MIME/size validation, cleanup after a confirmed size mismatch, preserving Drive data after an uncertain database registration outcome, and duplicate cleanup without deleting the original.
+
+## Production decision
+
+**NOT APPROVED FOR PRODUCTION.** The green checks and READY Preview do not prove live integration recovery, academic accuracy, accessibility or privacy/legal acceptance.
+
+PR #1 remains open, draft and unmerged. No Production deployment, Production environment change, production database change, merge, paid upgrade, data reset, migration-ledger repair or overwrite was performed.
+
+## Open release gates
+
+- [ ] Live Google Drive interruption/resume, lost final-response recovery, expiry, duplicate/idempotency, cross-account denial and final source-vs-Drive byte-count/SHA-256 equality using synthetic files.
+- [ ] Capture an authenticated worker POST response; test wrong-secret, concurrent claims, stale recovery, retry exhaustion and injected OCR/provider failures against the deployed non-production worker. Two prior OCR jobs completed extraction and persistence, but both pages remain `review_required` with null confidence.
+- [ ] Configure Production server-side environment safely. Production currently has only the public Supabase URL and publishable key among required entries. Do not blindly copy Preview secrets; the Drive token-encryption key must remain compatible with encrypted refresh tokens, and OAuth credentials require owner-controlled setup.
+- [ ] Approve an AI provider/model, data-processing terms and explicit spend limit before configuring AI. AI generation remains disabled. Independently grade a Cambridge/Edexcel O/A Level golden set in Bengali and English.
+- [ ] Complete privacy/legal review, publish a responsible contact, name primary/backup operators, and complete manual keyboard, screen-reader, contrast, zoom/reflow, reduced-motion and Android-device acceptance.
+- [ ] Record an accepted mitigation or explicit plan decision for Supabase Free leaked-password protection, which remains disabled.
+- [ ] Review hosted migration-history/schema parity before any Production migration. Do not rewrite migration history.
+- [x] Separate-database backup/restore rehearsal excluded by owner instruction. Do not create another database or overwrite existing projects; the restore limitation remains documented.
+
+## Current working head after this checkpoint
+
+A documentation-only commit was added after the verified application head to update the release records. Its CI was queued at the time of this update; do not transfer the `648e8d3` green status to that newer commit until its own checks finish.
+
 # Superseding exact-head release checkpoint — 2026-11-05 (feature commit `84f7275b7b78dc5b4a9674972a5bc2c1502ef7e6`)
 
 This is the latest verified feature-branch checkpoint and supersedes older head references below.
