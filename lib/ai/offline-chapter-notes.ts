@@ -37,7 +37,11 @@ export function buildOfflineChapterNote(input: {
   chapter: string;
   sources: OfflineNoteSource[];
 }): OfflineChapterNote {
-  if (!input.sources.length || input.sources.length > 12) {
+  const metadata = [input.board, input.qualification, input.subject, input.chapter].map((value) => value.trim());
+  if (
+    !input.sources.length || input.sources.length > 12 ||
+    metadata.some((value) => !value || value.length > 160)
+  ) {
     throw new Error("OFFLINE_NOTE_SOURCES_INVALID");
   }
 
@@ -46,9 +50,12 @@ export function buildOfflineChapterNote(input: {
     if (
       !/^S(?:[1-9]|1[0-2])$/.test(source.ref) ||
       seenRefs.has(source.ref) ||
-      !source.questionId.trim() ||
+      !source.questionId.trim() || source.questionId.length > 128 ||
       !source.questionText.trim() ||
       source.questionText.length > 20_000 ||
+      (source.questionNumber !== null && (typeof source.questionNumber !== "string" || source.questionNumber.length > 80)) ||
+      (source.pageId !== null && (typeof source.pageId !== "string" || source.pageId.length > 128)) ||
+      (source.pageText !== null && typeof source.pageText !== "string") ||
       (source.pageNumber !== null && (!Number.isInteger(source.pageNumber) || source.pageNumber < 1)) ||
       (source.pageText !== null && source.pageText.length > 100_000) ||
       (source.extractionMethod !== null && !["pdf_text", "ocr", "manual"].includes(source.extractionMethod))
@@ -90,14 +97,15 @@ export function buildOfflineChapterNote(input: {
 
   const sourcePageCount = input.sources.filter((source) => Boolean(source.pageText?.trim())).length;
   const summary = [
-    "Free offline draft assembled from " + input.sources.length + " owner-approved question(s)" +
+    "Free offline draft for " + metadata[0] + " · " + metadata[1] + " · " + metadata[2] + " — " + metadata[3] + ".",
+    "Assembled from " + input.sources.length + " owner-approved question(s)" +
       (sourcePageCount ? " and " + sourcePageCount + " extracted source page(s)." : "."),
     "It preserves source question wording and candidate expressions; it does not generate explanations, solve problems, verify formulas, or establish complete syllabus coverage.",
     "Check OCR/PDF extraction against the original documents and add teacher-written explanations before approving this note.",
   ].join(" ");
 
   return {
-    title: input.chapter.trim().slice(0, 160) + " — source-based revision draft",
+    title: metadata[3].slice(0, 160) + " — source-based revision draft",
     summary,
     concepts,
     formulas: unique(formulaCandidates, 20),
