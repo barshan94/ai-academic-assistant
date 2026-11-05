@@ -8,6 +8,7 @@ const {
   initiateResumablePdfUploadMock,
   sendResumablePdfChunkMock,
   decryptDriveUploadSessionMock,
+  deleteDriveFileMock,
 } = vi.hoisted(() => ({
   createSupabaseServerClientMock: vi.fn(),
   createSupabaseServiceRoleClientMock: vi.fn(),
@@ -15,6 +16,7 @@ const {
   initiateResumablePdfUploadMock: vi.fn(),
   sendResumablePdfChunkMock: vi.fn(),
   decryptDriveUploadSessionMock: vi.fn(),
+  deleteDriveFileMock: vi.fn(),
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
@@ -31,7 +33,7 @@ vi.mock("@/lib/drive/google", () => ({
   getDriveAccessToken: getDriveAccessTokenMock,
   initiateResumablePdfUpload: initiateResumablePdfUploadMock,
   sendResumablePdfChunk: sendResumablePdfChunkMock,
-  deleteDriveFile: vi.fn(),
+  deleteDriveFile: deleteDriveFileMock,
   isGoogleDriveUploadSessionUri: (value: string) => {
     try {
       const url = new URL(value);
@@ -81,6 +83,7 @@ beforeEach(() => {
   initiateResumablePdfUploadMock.mockReset();
   sendResumablePdfChunkMock.mockReset();
   decryptDriveUploadSessionMock.mockReset();
+  deleteDriveFileMock.mockReset();
   createSupabaseServerClientMock.mockResolvedValue({
     auth: {
       getUser: vi.fn().mockResolvedValue({
@@ -308,6 +311,90 @@ describe("resumable upload route security boundaries", () => {
     expect(getDriveAccessTokenMock).not.toHaveBeenCalled();
     expect(initiateResumablePdfUploadMock).not.toHaveBeenCalled();
     expect(createSupabaseServiceRoleClientMock).not.toHaveBeenCalled();
+  });
+
+
+  it("registers a completed Drive PDF only after Drive confirms its exact type and byte size", async () => {
+    getDriveAccessTokenMock.mockResolvedValue("drive-access-token");
+    sendResumablePdfChunkMock.mockResolvedValue({
+      status: 201,
+      range: null,
+      file: {
+        id: "drive-file-123",
+        webViewLink: "https://drive.google.com/file/d/drive-file-123/view",
+        mimeType: "application/pdf",
+        size: "1234",
+      },
+    });
+    const registerRpcMock = vi.fn().mockResolvedValue({
+      data: [{
+        document_id: "document-123",
+        duplicate: false,
+        stored_drive_file_id: "drive-file-123",
+      }],
+      error: null,
+    });
+    createSupabaseServiceRoleClientMock.mockReturnValue({ rpc: registerRpcMock });
+
+    const response = await uploadChunk(makeRequest(
+      "/api/documents/upload/resumable/chunk",
+      {
+        headers: {
+          "x-upload-session": "opaque-encrypted-session",
+          "content-range": "bytes 0-1233/1234",
+        },
+        body: "%PDF-" + "x".repeat(1229),
+      },
+    ));
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      nextOffset: 1234,
+      complete: true,
+      documentId: "document-123",
+      duplicate: false,
+    });
+    expect(registerRpcMock).toHaveBeenCalledWith("register_uploaded_document", {
+      p_owner_id: "owner-A",
+      p_file_name: "Physics.pdf",
+      p_file_size_bytes: 1234,
+      p_sha256: "a".repeat(64),
+      p_drive_file_id: "drive-file-123",
+      p_drive_web_view_link: "https://drive.google.com/file/d/drive-file-123/view",
+      p_page_count: null,
+    });
+    expect(deleteDriveFileMock).not.toHaveBeenCalled();
+  });
+
+  it("does not register a completed Drive object whose returned byte size differs from the signed upload session", async () => {
+    getDriveAccessTokenMock.mockResolvedValue("drive-access-token");
+    sendResumablePdfChunkMock.mockResolvedValue({
+      status: 200,
+      range: null,
+      file: {
+        id: "drive-file-wrong-size",
+        mimeType: "application/pdf",
+        size: "1233",
+      },
+    });
+
+    const response = await uploadChunk(makeRequest(
+      "/api/documents/upload/resumable/chunk",
+      {
+        headers: {
+          "x-upload-session": "opaque-encrypted-session",
+          "content-range": "bytes 0-1233/1234",
+        },
+        body: "%PDF-" + "x".repeat(1229),
+      },
+    ));
+
+    expect(response.status).toBe(502);
+    expect(await response.json()).toEqual({
+      error: "The upload could not be completed. Resume the same file to check the last confirmed byte.",
+    });
+    expect(createSupabaseServiceRoleClientMock).not.toHaveBeenCalled();
+    expect(deleteDriveFileMock).toHaveBeenCalledWith("drive-access-token", "drive-file-wrong-size");
   });
 
 });
