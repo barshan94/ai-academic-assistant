@@ -240,3 +240,13 @@
 - [ ] Auth recovery: verify unsupported phone-based, MFA, SSO, anonymous and external-identity accounts are rejected before any account is created; verify logs never contain email addresses, password hashes or service-role credentials.
 - [x] ERR-129: unit tests verify inherited property names such as `constructor` and `toString` are rejected as unknown physics units (Foundation CI `41309812309`, commit `1436fad6e78bd2026883c09fab75262bd4f36cfc`).
 - [ ] Auth recovery: verify the importer refuses a target password-hashing algorithm that does not match the source and refuses mixed bcrypt/Argon2 backups before creating any account.
+
+## Resumable upload recovery hardening — 2026-11-05
+
+- [x] Fix browser resume behavior so a previously saved upload session first asks Google Drive for its authoritative accepted-byte offset before sending any further chunk. This prevents the browser from blindly restarting at byte zero after a lost response or page reload. The client rejects an invalid/out-of-bounds resume offset rather than sending data from an unsafe position (commit `b32692158b94fd1c3a423b7a23322174116b8454`).
+- [x] Add route regression coverage proving the status query sends no chunk body, uses the encrypted owner-bound session, and returns Drive's confirmed next offset (commit `78a63530c82efd542cf18dda91f8888c4999dcff`).
+- [x] Add route security regression coverage for cross-origin requests, unauthenticated starts, cross-account session use and malformed byte ranges (commit `d9d413826bf66681cbd220f40aab7ccee2b14222`).
+- [ ] Confirm the new tests and client change pass Foundation CI on the exact latest commit; earlier commits' green checks do not count.
+- [ ] Perform a real non-production interruption test: upload a multi-chunk synthetic PDF, interrupt after Drive has accepted at least one chunk, reload/reselect the same file, verify the initial status query returns the confirmed offset, and confirm the final Drive object byte count and SHA-256 match the source.
+- [ ] Repeat with a lost final-chunk response and verify the completed Drive object is registered exactly once without leaving duplicate/orphan documents.
+- [ ] Verify expired-session restart and cross-account rejection in a dedicated test account. Do not use real student documents.
