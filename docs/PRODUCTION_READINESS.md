@@ -1,3 +1,40 @@
+# Superseding exact-head release checkpoint — 2026-11-05 (feature commit `84f7275b7b78dc5b4a9674972a5bc2c1502ef7e6`)
+
+This is the latest verified feature-branch checkpoint and supersedes older head references below.
+
+## Automated verification — PASS on this exact commit
+
+- [x] Foundation: lint, TypeScript checks, unit tests, production build and Chromium smoke — [run 42010794387](https://github.com/barshan94/ai-academic-assistant/actions/runs/42010794387).
+- [x] Local Supabase migrations and pgTAP/database authorization — [run 42010794175](https://github.com/barshan94/ai-academic-assistant/actions/runs/42010794175).
+- [x] Authenticated two-account Supabase acceptance — [run 42010794129](https://github.com/barshan94/ai-academic-assistant/actions/runs/42010794129).
+- [x] Repository-history secret scan — [run 42010794262](https://github.com/barshan94/ai-academic-assistant/actions/runs/42010794262).
+
+## Preview status
+
+The newest READY Vercel Preview currently available is https://ai-academic-assistant-7chzjy3zn-barshan-s-team.vercel.app, built from commit `4681a255182151d2016d4196ca08062fed2b4359`. Comparing that deployment commit with this feature head shows only a worker documentation wording change and removal of an obsolete worker request test; application runtime files are unchanged. This is therefore runtime-code-equivalent Preview evidence, **not** a deployment of the exact current commit. It is Preview only, not Production.
+
+## Live release gates — still OPEN
+
+- [ ] Real Google Drive upload interruption/resume, expiry, duplicate/lost-response handling, cross-account denial, and final byte-count/SHA-256 verification.
+- [ ] Authenticated worker POST evidence plus live non-production concurrent claim, wrong-secret, retry exhaustion, stale-lease recovery and injected OCR/provider failure tests. The workflow is manual-dispatch only; no automatic scheduler is active.
+- [ ] Manual keyboard, screen-reader, contrast, zoom/reflow and Android-device acceptance.
+- [ ] Independent qualified teacher review of official syllabus mappings and English/Bengali answer quality.
+- [ ] AI provider/model, data-processing terms and spend limit approval. AI generation remains intentionally disabled; no provider spend is authorized.
+- [ ] Qualified privacy/legal review, published responsible contact, and named primary/backup operators.
+- [ ] Supabase Free leaked-password-protection limitation: accept a documented mitigation or approve a plan decision. The setting remains disabled.
+- [ ] Hosted migration-history/schema parity review before any production migration.
+- [ ] Isolated restore rehearsal is blocked by the owner's Free-plan/no-second-database constraint; no existing project may be overwritten. This is not waived by checksum verification.
+
+## Current Supabase read-only health snapshot
+
+The project reports `ACTIVE_HEALTHY`; the health advisor returned no findings. Security advisor currently reports four informational RLS/no-policy notices for private quota tables, fourteen authenticated-callable SECURITY DEFINER RPC warnings (previously reviewed as intentional owner-scoped operations with restricted grants and auth checks), and one warning that leaked-password protection is disabled. No database schema or data was changed during this inspection.
+
+## Release decision and safety boundary
+
+**NOT APPROVED FOR PRODUCTION.** PR #1 remains open, draft and unmerged. No Production deployment, production database change, merge, paid upgrade, migration-ledger repair, data reset or overwrite was performed. Do not promote until mandatory live/human gates are evidenced and the owner explicitly approves the immutable release commit.
+
+---
+
 # Superseding exact-head release checkpoint — 2026-11-05 (commit `978eae3d7126feb69b660a9fb78ee1e9fcd2a07c`)
 
 This checkpoint supersedes earlier status snapshots below. The exact feature-branch head above has now completed all six GitHub checks successfully:
