@@ -1,3 +1,5 @@
+import { MAX_UPLOAD_BYTES } from "@/lib/documents/upload-limits";
+
 export type ResumableUploadStatus = {
   complete: boolean;
   nextOffset: number;
@@ -12,6 +14,17 @@ export async function queryResumableUploadStatus(
   totalBytes: number,
   fetcher: typeof fetch = fetch,
 ): Promise<ResumableUploadStatus> {
+  if (
+    typeof sessionToken !== "string" ||
+    sessionToken.length === 0 ||
+    sessionToken.length > 8192 ||
+    !Number.isSafeInteger(totalBytes) ||
+    totalBytes < 1 ||
+    totalBytes > MAX_UPLOAD_BYTES
+  ) {
+    throw new Error("The saved upload session or source file size is invalid.");
+  }
+
   const response = await fetcher("/api/documents/upload/resumable/chunk", {
     method: "POST",
     headers: {
@@ -29,13 +42,17 @@ export async function queryResumableUploadStatus(
     throw new Error(body.error || "Could not check the upload position.");
   }
 
-  const nextOffset = typeof body.nextOffset === "number" ? body.nextOffset : 0;
-  if (!Number.isSafeInteger(nextOffset) || nextOffset < 0 || nextOffset > totalBytes) {
+  const nextOffset = body.nextOffset;
+  if (
+    typeof body.complete !== "boolean" ||
+    typeof nextOffset !== "number" ||
+    !Number.isSafeInteger(nextOffset) ||
+    nextOffset < 0 ||
+    nextOffset > totalBytes ||
+    (body.complete && nextOffset !== totalBytes)
+  ) {
     throw new Error("Google Drive returned an invalid resume position. The upload was stopped safely.");
   }
 
-  return {
-    complete: body.complete === true,
-    nextOffset,
-  };
+  return { complete: body.complete, nextOffset };
 }
