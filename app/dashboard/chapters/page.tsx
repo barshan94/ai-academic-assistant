@@ -147,7 +147,7 @@ export default async function ChapterWorkspacePage({ searchParams }: PageProps) 
                   <h3>{chapter.chapter_code ? chapter.chapter_code + " · " : ""}{chapter.title}</h3>
                   <p className="question-card-meta">{chapterQuestions.length} linked questions · {chapterNotes.length} note versions</p>
 
-                  <PracticeSession questions={chapterQuestions.map((question) => ({ id: question.id, questionNumber: question.question_number, questionText: question.question_text }))} />
+                  <PracticeSession chapterTitle={chapter.title} questions={chapterQuestions.map((question) => ({ id: question.id, questionNumber: question.question_number, questionText: question.question_text }))} />
 
                   <form action={generateChapterNoteDraft} className="chapter-ai-generate-form">
                     <input type="hidden" name="catalogId" value={chapter.catalog_id} />
