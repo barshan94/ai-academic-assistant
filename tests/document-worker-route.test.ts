@@ -47,6 +47,7 @@ beforeEach(() => {
   process.env.SUPABASE_SERVICE_ROLE_KEY = "test-service-role-key";
   rpcMock.mockReset();
   createSupabaseServiceRoleClientMock.mockReset();
+  extractTextFromDrivePdfMock.mockReset();
   createSupabaseServiceRoleClientMock.mockReturnValue({ rpc: rpcMock });
 });
 
