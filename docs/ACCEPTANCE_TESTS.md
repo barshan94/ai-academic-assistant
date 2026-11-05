@@ -1,3 +1,18 @@
+## Latest exact-head verification — 2026-11-05 (commit `97bd02126b3994442f5533b6a3e6f5bb39519112`)
+
+- [x] Foundation checks passed (GitHub Actions run `41970441472`, #2958).
+- [x] Database authorization tests passed (run `41970441351`, #1922).
+- [x] Authenticated two-account browser acceptance passed (run `41970441357`, #1712).
+- [x] Secret scanning passed (run `41970441412`, #1319).
+- [x] Removed redundant push-triggered runs for feature-branch commits from Foundation, database authorization and secret-scan workflows. Pull-request checks remain enabled; pushes to `main` and manual dispatch remain enabled. This reduces duplicate CI usage without changing application runtime behavior.
+- [ ] Live non-production log-sink inspection, authenticated worker POST evidence, worker concurrency/retry/recovery fault injection, resumable-upload interruption/integrity, isolated restore, accessibility, academic-quality and privacy/legal gates remain open.
+- [ ] Vercel Preview/deployment remains deferred due the account build-rate limit; do not pay to bypass it or repeatedly retry. Deployment remains the final step after all other gates.
+- PR #1 remains draft/open and unmerged. No Production deployment or production database change was made.
+
+**Decision: NOT APPROVED FOR PRODUCTION.** Green CI verifies this feature-branch commit only; it does not close the live integration and operational gates above.
+
+---
+
 # Acceptance Test Plan
 
 ## Foundation (M1)
