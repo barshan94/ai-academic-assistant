@@ -24,6 +24,8 @@ const requiredEnvironment: Record<string, string> = {
   DRIVE_TOKEN_ENCRYPTION_KEY: Buffer.alloc(32, 7).toString("base64"),
 };
 
+let originalEnvironment: Record<string, string | undefined> = {};
+
 function authorizedRequest(secret = requiredEnvironment.CRON_SECRET) {
   return new Request("https://app.example.com/api/health/ready", {
     headers: { authorization: `Bearer ${secret}` },
@@ -32,10 +34,15 @@ function authorizedRequest(secret = requiredEnvironment.CRON_SECRET) {
 
 describe("GET /api/health/ready", () => {
   beforeEach(() => {
+    originalEnvironment = Object.fromEntries(
+      Object.keys(requiredEnvironment).map((key) => [key, process.env[key]]),
+    );
     for (const [key, value] of Object.entries(requiredEnvironment)) {
       process.env[key] = value;
     }
+    getAIProviderConfigsMock.mockReset();
     getAIProviderConfigsMock.mockReturnValue([{ name: "test-provider" }]);
+    createClientMock.mockReset();
     createClientMock.mockReturnValue({
       from: vi.fn(() => ({
         select: vi.fn(() => ({
@@ -46,8 +53,12 @@ describe("GET /api/health/ready", () => {
   });
 
   afterEach(() => {
-    for (const key of Object.keys(requiredEnvironment)) delete process.env[key];
-    vi.clearAllMocks();
+    for (const key of Object.keys(requiredEnvironment)) {
+      const original = originalEnvironment[key];
+      if (original === undefined) delete process.env[key];
+      else process.env[key] = original;
+    }
+    originalEnvironment = {};
   });
 
   it("rejects missing or incorrect bearer credentials without probing services", async () => {
