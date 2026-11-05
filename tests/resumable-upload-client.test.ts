@@ -1,5 +1,43 @@
 import { describe, expect, it, vi } from "vitest";
-import { queryResumableUploadStatus } from "@/lib/documents/resumable-upload-client";
+import { getConfirmedChunkOffset, queryResumableUploadStatus } from "@/lib/documents/resumable-upload-client";
+
+describe("resumable upload chunk acknowledgement", () => {
+  it("advances only to a Drive-confirmed offset within the chunk just sent", () => {
+    expect(getConfirmedChunkOffset({
+      currentOffset: 0,
+      chunkEndExclusive: 1_048_576,
+      totalBytes: 2_097_152,
+      status: { complete: false, nextOffset: 1_048_576 },
+    })).toBe(1_048_576);
+  });
+
+  it("stops when Drive confirms no forward progress", () => {
+    expect(() => getConfirmedChunkOffset({
+      currentOffset: 0,
+      chunkEndExclusive: 1_048_576,
+      totalBytes: 2_097_152,
+      status: { complete: false, nextOffset: 0 },
+    })).toThrow("did not confirm safe forward upload progress");
+  });
+
+  it("stops when Drive reports an offset beyond the chunk that was sent", () => {
+    expect(() => getConfirmedChunkOffset({
+      currentOffset: 0,
+      chunkEndExclusive: 1_048_576,
+      totalBytes: 2_097_152,
+      status: { complete: false, nextOffset: 1_048_577 },
+    })).toThrow("did not confirm safe forward upload progress");
+  });
+
+  it("accepts completion only when the entire source length is confirmed", () => {
+    expect(getConfirmedChunkOffset({
+      currentOffset: 1_048_576,
+      chunkEndExclusive: 2_097_152,
+      totalBytes: 2_097_152,
+      status: { complete: true, nextOffset: 2_097_152 },
+    })).toBe(2_097_152);
+  });
+});
 
 describe("resumable upload status query", () => {
   it("asks the server for Drive's confirmed offset without sending a body", async () => {
