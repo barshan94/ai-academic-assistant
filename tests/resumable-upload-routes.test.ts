@@ -397,4 +397,83 @@ describe("resumable upload route security boundaries", () => {
     expect(deleteDriveFileMock).toHaveBeenCalledWith("drive-access-token", "drive-file-wrong-size");
   });
 
+
+  it("preserves the Drive object when registration outcome is uncertain", async () => {
+    getDriveAccessTokenMock.mockResolvedValue("drive-access-token");
+    sendResumablePdfChunkMock.mockResolvedValue({
+      status: 201,
+      range: null,
+      file: {
+        id: "drive-file-uncertain",
+        mimeType: "application/pdf",
+        size: "1234",
+      },
+    });
+    const registerRpcMock = vi.fn().mockResolvedValue({
+      data: null,
+      error: { message: "connection lost after commit" },
+    });
+    createSupabaseServiceRoleClientMock.mockReturnValue({ rpc: registerRpcMock });
+
+    const response = await uploadChunk(makeRequest(
+      "/api/documents/upload/resumable/chunk",
+      {
+        headers: {
+          "x-upload-session": "opaque-encrypted-session",
+          "content-range": "bytes 0-1233/1234",
+        },
+        body: "%PDF-" + "x".repeat(1229),
+      },
+    ));
+
+    expect(response.status).toBe(502);
+    expect(await response.json()).toEqual({
+      error: "The upload could not be completed. Resume the same file to check the last confirmed byte.",
+    });
+    expect(registerRpcMock).toHaveBeenCalledOnce();
+    expect(deleteDriveFileMock).not.toHaveBeenCalled();
+  });
+
+  it("removes a newly uploaded Drive object when registration identifies an existing duplicate", async () => {
+    getDriveAccessTokenMock.mockResolvedValue("drive-access-token");
+    sendResumablePdfChunkMock.mockResolvedValue({
+      status: 201,
+      range: null,
+      file: {
+        id: "drive-file-duplicate-copy",
+        mimeType: "application/pdf",
+        size: "1234",
+      },
+    });
+    const registerRpcMock = vi.fn().mockResolvedValue({
+      data: [{
+        document_id: "existing-document",
+        duplicate: true,
+        stored_drive_file_id: "drive-file-original",
+      }],
+      error: null,
+    });
+    createSupabaseServiceRoleClientMock.mockReturnValue({ rpc: registerRpcMock });
+
+    const response = await uploadChunk(makeRequest(
+      "/api/documents/upload/resumable/chunk",
+      {
+        headers: {
+          "x-upload-session": "opaque-encrypted-session",
+          "content-range": "bytes 0-1233/1234",
+        },
+        body: "%PDF-" + "x".repeat(1229),
+      },
+    ));
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      nextOffset: 1234,
+      complete: true,
+      documentId: "existing-document",
+      duplicate: true,
+    });
+    expect(deleteDriveFileMock).toHaveBeenCalledWith("drive-access-token", "drive-file-duplicate-copy");
+  });
+
 });
