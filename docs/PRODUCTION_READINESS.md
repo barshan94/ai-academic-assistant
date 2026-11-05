@@ -1,3 +1,16 @@
+# Superseding verification — 2026-11-06 00:39 Asia/Dhaka (feature head `c8122de67c17b5b8e1936df87dd09c72dc675f30`)
+
+The latest Foundation workflow failed because the new answer-sheet export test expected the literal characters `\\n` instead of a real newline. Application lint and all TypeScript checks passed; 332 of 333 unit tests passed. The failure is isolated to the test assertion, not the answer-sheet implementation. The assertion has been corrected to check the actual newline emitted by `lines.join("\\n")`. Re-run the full CI suite on the resulting commit before treating this correction as verified.
+
+- [ ] Foundation checks and Chromium smoke on the corrected exact head.
+- [ ] Local Supabase migrations/pgTAP and authenticated acceptance on the corrected exact head.
+- [ ] Full-history secret scan on the corrected exact head.
+- [ ] Preview feedback and deployment evidence on the corrected exact head.
+
+**Release decision remains NOT APPROVED FOR PRODUCTION.** This test correction does not close the live integration, owner-credential, academic, privacy/legal, accessibility, operations or Free-plan security limitation gates recorded below. PR #1 remains open, draft and unmerged. No Production deployment, Production environment change, merge, paid upgrade, database reset, migration-ledger repair or backup database was created.
+
+---
+
 # Superseding verification — 2026-11-05 21:35 Asia/Dhaka (feature head `a6e043b56c58a338eece9b2b017f14cdafe114e8`)
 
 This dated entry supersedes earlier "current" references in this document.
