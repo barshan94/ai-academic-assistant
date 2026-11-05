@@ -45,6 +45,16 @@ function validProviderUrl(name, raw) {
 }
 
 function validateAIProviders() {
+  const enabled = process.env.AI_ENABLED;
+  if (enabled !== undefined && enabled !== "true" && enabled !== "false") {
+    failures.push("AI_ENABLED must be exactly true or false.");
+    return;
+  }
+  if (enabled !== "true") {
+    warnings.push("AI_ENABLED is not true; all AI provider calls are blocked even if credentials exist. Free offline study features remain available.");
+    return;
+  }
+
   const rawPool = process.env.AI_PROVIDER_POOL?.trim();
   const tasks = new Set();
   if (rawPool) {
@@ -86,28 +96,18 @@ function validateAIProviders() {
       if (provider.enabled !== undefined && typeof provider.enabled !== "boolean") failures.push(prefix + ".enabled must be boolean.");
     });
   } else {
-    const apiKey = process.env.AI_API_KEY?.trim() ?? "";
-    const model = process.env.AI_MODEL?.trim() ?? "";
-    if (!apiKey && !model) {
-      warnings.push("AI_API_KEY and AI_MODEL are absent; paid/provider AI generation remains disabled. Free offline study features remain available.");
-    } else {
-      if (!apiKey) failures.push("AI_API_KEY is required when AI_MODEL is configured.");
-      if (!model) failures.push("AI_MODEL is required when AI_API_KEY is configured.");
-      if (apiKey.length > 1000) failures.push("AI_API_KEY must not exceed 1,000 characters.");
-      if (model.length > 160) failures.push("AI_MODEL must not exceed 160 characters.");
-      const providerName = process.env.AI_PROVIDER_NAME?.trim() || "openai-compatible";
-      if (providerName.length > 60) failures.push("AI_PROVIDER_NAME must not exceed 60 characters.");
-      validProviderUrl("AI_API_BASE_URL", process.env.AI_API_BASE_URL?.trim() || "https://api.openai.com/v1");
-    }
+    const apiKey = required("AI_API_KEY");
+    const model = required("AI_MODEL");
+    if (apiKey.length > 1000) failures.push("AI_API_KEY must not exceed 1,000 characters.");
+    if (model.length > 160) failures.push("AI_MODEL must not exceed 160 characters.");
+    const providerName = process.env.AI_PROVIDER_NAME?.trim() || "openai-compatible";
+    if (providerName.length > 60) failures.push("AI_PROVIDER_NAME must not exceed 60 characters.");
+    validProviderUrl("AI_API_BASE_URL", process.env.AI_API_BASE_URL?.trim() || "https://api.openai.com/v1");
+    tasks.add("answer");
+    tasks.add("chapter-note");
   }
-  if (rawPool) {
-    for (const task of ["answer", "chapter-note"]) {
-      if (!tasks.has(task)) failures.push("At least one enabled AI provider must support " + task + ".");
-    }
-  }
-  const fallbacks = process.env.AI_ALLOW_PROVIDER_FALLBACKS;
-  if (fallbacks !== undefined && fallbacks !== "true" && fallbacks !== "false") {
-    failures.push("AI_ALLOW_PROVIDER_FALLBACKS must be exactly true or false.");
+  for (const task of ["answer", "chapter-note"]) {
+    if (!tasks.has(task)) failures.push("At least one enabled AI provider must support " + task + ".");
   }
 }
 

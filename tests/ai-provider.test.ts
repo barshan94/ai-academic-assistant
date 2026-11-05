@@ -30,12 +30,14 @@ const config = {
 };
 
 describe("AI provider configuration", () => {
-  it("requires an API key and model before making paid requests", () => {
-    expect(() => getAIProviderConfig({})).toThrow(AIConfigurationError);
+  it("keeps provider calls disabled unless AI_ENABLED is explicitly true", () => {
+    expect(() => getAIProviderConfig({ AI_API_KEY: "key", AI_MODEL: "model" })).toThrow(AIConfigurationError);
+    expect(() => getAIProviderConfig({ AI_ENABLED: "false", AI_API_KEY: "key", AI_MODEL: "model" })).toThrow(AIConfigurationError);
   });
 
   it("rejects insecure non-local provider URLs", () => {
     expect(() => getAIProviderConfig({
+      AI_ENABLED: "true",
       AI_API_KEY: "secret",
       AI_MODEL: "model",
       AI_API_BASE_URL: "http://example.com/v1",
@@ -46,6 +48,7 @@ describe("AI provider configuration", () => {
 describe("task-aware provider selection", () => {
   it("filters by task, excludes disabled providers and orders by explicit priority", () => {
     const providers = getAIProviderConfigs("answer", {
+      AI_ENABLED: "true",
       AI_PROVIDER_POOL: JSON.stringify([
         { name: "notes-only", baseUrl: "https://notes.example/v1", apiKey: "notes-key", model: "notes-model", tasks: ["chapter-note"], priority: 0 },
         { name: "later", baseUrl: "https://later.example/v1", apiKey: "later-key", model: "later-model", tasks: ["answer"], priority: 20 },
@@ -58,9 +61,10 @@ describe("task-aware provider selection", () => {
   });
 
   it("fails closed for malformed pools and insecure provider endpoints", () => {
-    expect(() => getAIProviderConfigs("answer", { AI_PROVIDER_POOL: "{broken" }))
+    expect(() => getAIProviderConfigs("answer", { AI_ENABLED: "true", AI_PROVIDER_POOL: "{broken" }))
       .toThrow(AIConfigurationError);
     expect(() => getAIProviderConfigs("answer", {
+      AI_ENABLED: "true",
       AI_PROVIDER_POOL: JSON.stringify([
         { name: "insecure", baseUrl: "http://provider.example/v1", apiKey: "key", model: "model", tasks: ["answer"] },
       ]),
@@ -69,6 +73,7 @@ describe("task-aware provider selection", () => {
 
   it("keeps the legacy single-provider configuration compatible", () => {
     const [provider] = getAIProviderConfigs("answer", {
+      AI_ENABLED: "true",
       AI_API_KEY: "legacy-key",
       AI_MODEL: "legacy-model",
       AI_API_BASE_URL: "https://legacy.example/v1",
@@ -87,7 +92,7 @@ describe("AI provider fallback policy", () => {
     { name: "primary", baseUrl: "https://primary.example/v1", apiKey: "primary-key", model: "primary-model", tasks: ["answer"], priority: 1 },
     { name: "secondary", baseUrl: "https://secondary.example/v1", apiKey: "secondary-key", model: "secondary-model", tasks: ["answer"], priority: 2 },
   ]);
-  const env = { AI_PROVIDER_POOL: pool, AI_ALLOW_PROVIDER_FALLBACKS: "true" };
+  const env = { AI_ENABLED: "true", AI_PROVIDER_POOL: pool, AI_ALLOW_PROVIDER_FALLBACKS: "true" };
 
   it("does not retry permanent authentication or request errors", async () => {
     for (const status of [400, 401, 403, 404, 413, 422]) {
@@ -162,6 +167,7 @@ describe("AI provider fallback policy", () => {
 
     try {
       await expect(generateStructuredAnswerWithRouting("Question", fetcher, {}, {
+        AI_ENABLED: "true",
         AI_PROVIDER_POOL: manyProviders,
         AI_ALLOW_PROVIDER_FALLBACKS: "true",
       })).rejects.toThrow("AI_PROVIDER_HTTP_503");
@@ -179,6 +185,7 @@ describe("AI provider fallback policy", () => {
       }), { status: 200 }));
 
     await expect(generateStructuredAnswerWithRouting("Question", fetcher, {}, {
+      AI_ENABLED: "true",
       AI_PROVIDER_POOL: pool,
     })).rejects.toThrow("AI_PROVIDER_HTTP_503");
     expect(fetcher).toHaveBeenCalledOnce();

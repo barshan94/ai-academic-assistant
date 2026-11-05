@@ -12,6 +12,7 @@ const validEnvironment: Record<string, string> = {
   GOOGLE_CLIENT_SECRET: "fixture-client-secret",
   CRON_SECRET: "x".repeat(48),
   DRIVE_TOKEN_ENCRYPTION_KEY: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+  AI_ENABLED: "true",
   AI_API_KEY: "fixture-ai-key",
   AI_MODEL: "fixture-model",
   AI_API_BASE_URL: "https://api.openai.com/v1",
@@ -69,14 +70,16 @@ describe("production environment preflight", () => {
     ["wrong encryption key length", { DRIVE_TOKEN_ENCRYPTION_KEY: Buffer.alloc(16).toString("base64") }],
     ["insecure AI endpoint", { AI_API_BASE_URL: "http://provider.example/v1" }],
     ["invalid fallback flag", { AI_ALLOW_PROVIDER_FALLBACKS: "yes" }],
+    ["invalid AI enable flag", { AI_ENABLED: "sometimes" }],
   ])("rejects invalid %s", (_label, overrides) => {
     const result = run(overrides);
     expect(result.status).toBe(1);
     expect(result.stderr).toContain("preflight failed");
   });
 
-  it("accepts a zero-cost deployment with no AI provider configured", () => {
+  it("accepts a zero-cost deployment with AI disabled even if provider credentials are absent", () => {
     const result = run({
+      AI_ENABLED: "false",
       AI_API_KEY: undefined,
       AI_MODEL: undefined,
       AI_PROVIDER_POOL: undefined,
@@ -93,6 +96,12 @@ describe("production environment preflight", () => {
     const result = run(overrides);
     expect(result.status).toBe(1);
     expect(result.stderr).toContain("preflight failed");
+  });
+
+  it("rejects AI opt-in when no provider credentials are configured", () => {
+    const result = run({ AI_ENABLED: "true", AI_API_KEY: undefined, AI_MODEL: undefined, AI_PROVIDER_POOL: undefined });
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("AI_API_KEY is required");
   });
 
   it("accepts an explicitly task-complete provider pool", () => {

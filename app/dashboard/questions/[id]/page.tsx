@@ -12,6 +12,7 @@ import { examAnswerSchema } from "@/lib/ai/answer-schema";
 import { compareAnswerToMarkScheme, markSchemeSchema } from "@/lib/ai/mark-scheme";
 import { ClassificationForm } from "./classification-form";
 import { MarkSchemeEditor } from "./mark-scheme-editor";
+import { getAIProviderConfigs } from "@/lib/ai/provider";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -129,6 +130,13 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
         .limit(20)
     : { data: [], error: null };
   const isOwner = question.owner_id === user.id;
+  let aiProviderAvailable = false;
+  try {
+    getAIProviderConfigs("answer");
+    aiProviderAvailable = true;
+  } catch {
+    // Default zero-spend mode: never render an action that could make a provider request.
+  }
   const { data: approvedChapterNotes, error: approvedChapterNotesError } = isOwner &&
     question.syllabus_chapter_id && question.classification_status === "confirmed"
     ? await supabase.from("chapter_note_versions")
@@ -242,7 +250,7 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
           </div>
           <p className="question-card-text">{question.question_number ? question.question_number + ". " : ""}{question.question_text}</p>
           <p className="question-card-meta">{[question.board, question.qualification, question.syllabus_version, question.chapter, question.topic].filter(Boolean).join(" · ") || "Syllabus metadata not set"} · Mapping: {question.classification_status.replace("_", " ")}</p>
-          {isOwner && question.review_status === "approved" ? (
+          {isOwner && question.review_status === "approved" && aiProviderAvailable ? (
             <form action={generateQuestionSolution} className="review-form">
               <input type="hidden" name="questionId" value={question.id} />
               {sourcePage?.extracted_text?.trim() ? <div className="source-context-option">
@@ -258,7 +266,7 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
               <button className="primary-action" type="submit">Generate AI answer <span aria-hidden="true">→</span></button>
               <p className="question-card-meta">This action sends the question to your configured AI provider and may incur provider charges. Original source-page text and approved chapter-note content are sent only when you check their respective boxes above.</p>
             </form>
-           ) : isOwner ? <p className="notice notice-info">This question needs teacher approval before it can be sent to the AI provider.</p> : <p className="notice notice-info">You have review access only. AI generation and question editing remain with the owner.</p>}
+           ) : isOwner && question.review_status === "approved" ? <p className="notice notice-info">AI generation is disabled in this zero-spend setup. Use the offline solution worksheet below; no provider request will be made.</p> : isOwner ? <p className="notice notice-info">This question needs teacher approval before it can be sent to an AI provider.</p> : <p className="notice notice-info">You have review access only. AI generation and question editing remain with the owner.</p>}
         </article>
         {isOwner ? (
           <section className="section web-research-panel">

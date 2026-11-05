@@ -88,6 +88,8 @@ export function getAIProviderConfigs(
   task: AIProviderTask,
   env: Record<string, string | undefined> = process.env,
 ): AIProviderConfig[] {
+  // AI calls are an explicit opt-in. A configured key alone must never trigger provider spend.
+  if (env.AI_ENABLED !== "true") throw new AIConfigurationError();
   const rawPool = env.AI_PROVIDER_POOL?.trim();
   if (rawPool) {
     if (rawPool.length > 20_000) throw new AIConfigurationError();
