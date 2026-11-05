@@ -116,6 +116,48 @@ describe("document worker route access and queue preflight", () => {
     });
   });
 
+  it("skips a fresh running job and continues to the next claimable candidate", async () => {
+    rpcMock
+      .mockResolvedValueOnce({
+        data: [
+          {
+            id: "job-fresh-running",
+            document_id: "document-fresh-running",
+            owner_id: "owner-1",
+            status: "running",
+            started_at: new Date().toISOString(),
+            attempt_count: 1,
+            max_attempts: 3,
+          },
+          {
+            id: "job-next",
+            document_id: "document-next",
+            owner_id: "owner-2",
+            status: "queued",
+            started_at: null,
+            attempt_count: 0,
+            max_attempts: 3,
+          },
+        ],
+        error: null,
+      })
+      .mockResolvedValueOnce({ data: false, error: null });
+
+    const response = await POST(request("Bearer test-cron-secret-with-sufficient-entropy"));
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ processed: false, reason: "no_claimable_job" });
+    expect(rpcMock).toHaveBeenCalledTimes(2);
+    expect(rpcMock).toHaveBeenNthCalledWith(2, "claim_document_processing_job", {
+      p_document_id: "document-next",
+      p_owner_id: "owner-2",
+      p_job_id: "job-next",
+      p_expected_status: "queued",
+      p_expected_attempt_count: 0,
+      p_expected_started_at: null,
+    });
+  });
+
   it("terminalizes an exhausted stale job without attempting another claim", async () => {
     const staleStartedAt = new Date(Date.now() - 30 * 60 * 1000).toISOString();
     rpcMock
