@@ -31,6 +31,19 @@ describe("free local practice session helpers", () => {
       total: 3,
       attempted: 2,
       remaining: 1,
+      confident: 0,
+      needsReview: 2,
+      percent: 67,
+    });
+  });
+
+  it("counts confidence only for attempted questions in the active queue", () => {
+    expect(getPracticeProgress(3, new Set(["q1", "q2"]), questions, new Set(["q1", "deleted"]))).toEqual({
+      total: 3,
+      attempted: 2,
+      remaining: 1,
+      confident: 1,
+      needsReview: 1,
       percent: 67,
     });
   });
@@ -40,6 +53,8 @@ describe("free local practice session helpers", () => {
       total: 0,
       attempted: 0,
       remaining: 0,
+      confident: 0,
+      needsReview: 0,
       percent: 0,
     });
   });
