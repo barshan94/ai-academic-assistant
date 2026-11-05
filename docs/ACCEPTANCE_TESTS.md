@@ -267,7 +267,7 @@
 
 ## Worker operational logging and failure-persistence regressions — 2026-11-05
 
-- [x] Add focused tests proving operational logs emit only allow-listed metadata, reject malformed/sensitive field values, and keep expected quota exhaustion at warning level (`lib/observability/safe-log.test.ts`).
+- [x] Add focused tests proving operational logs emit only allow-listed metadata, reject malformed/sensitive field values, and keep expected quota exhaustion at warning level (`tests/safe-log.test.ts`).
 - [x] Add worker route coverage proving upstream OCR exception details are not returned and only the generic failure code is persisted (`tests/document-worker-route.test.ts`).
 - [x] Add worker route coverage for the secondary failure path where persisting the failed job also errors; the response remains generic and does not expose database/provider details (`tests/document-worker-route.test.ts`).
 - [ ] Run Foundation CI on the exact latest commit and confirm these new tests, lint, TypeScript checks, build and browser smoke tests pass. No CI result is available for these latest commits yet.
