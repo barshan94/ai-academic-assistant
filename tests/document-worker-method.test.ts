@@ -13,12 +13,15 @@ describe("document worker HTTP method", () => {
     expect(route).not.toContain("export async function GET(request: Request)");
   });
 
-  it("invokes the protected worker with POST from the scheduled workflow", () => {
+  it("invokes the protected worker with POST and validates a sanitized response", () => {
     expect(workflow).toContain("--request POST");
     expect(workflow).not.toContain("--request GET");
-    expect(workflow).toContain("--header \"Authorization: Bearer $CRON_SECRET\"");
+    expect(workflow).toContain('--header "Authorization: Bearer $CRON_SECRET"');
     expect(workflow).not.toContain("--retry");
-    expect(workflow).toContain("--output /dev/null");
-    expect(workflow).not.toContain("cat \"$response_file\"");
+    expect(workflow).toContain('response_file="$(mktemp)"');
+    expect(workflow).toContain('--output "$response_file"');
+    expect(workflow).toContain("jq -e");
+    expect(workflow).not.toContain("--output /dev/null");
+    expect(workflow).not.toContain('cat "$response_file"');
   });
 });
