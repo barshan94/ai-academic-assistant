@@ -282,14 +282,18 @@ describe("document worker failure redaction", () => {
     process.env.GOOGLE_CLIENT_ID = "test-google-client";
     process.env.GOOGLE_CLIENT_SECRET = "test-google-secret";
 
-    const queryFor = (result: { data: unknown; error: null }) => {
-      const query: any = {
-        select: vi.fn(() => query),
-        eq: vi.fn(() => query),
-        maybeSingle: vi.fn(async () => result),
-        then: (resolve: (value: unknown) => unknown, reject: (reason: unknown) => unknown) =>
-          Promise.resolve(result).then(resolve, reject),
-      };
+    type QueryResult = { data: unknown; error: null };
+    type QueryBuilder = Promise<QueryResult> & {
+      select: () => QueryBuilder;
+      eq: (column: string, value: string) => QueryBuilder;
+      maybeSingle: () => Promise<QueryResult>;
+    };
+    const queryFor = (result: QueryResult): QueryBuilder => {
+      const query: QueryBuilder = Object.assign(Promise.resolve(result), {
+        select: () => query,
+        eq: (_column: string, _value: string) => query,
+        maybeSingle: async () => result,
+      });
       return query;
     };
 
