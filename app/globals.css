@@ -594,3 +594,46 @@ h2 { font-size: 24px; letter-spacing: -.04em; margin: 0; font-weight: 600; }
     transition-duration: 0.01ms !important;
   }
 }
+
+
+/* Free browser-only chapter practice session. */
+.chapter-practice-session {
+  margin: 16px 0;
+  padding: 16px;
+  border: 1px solid var(--border, #34414d);
+  border-radius: 12px;
+  background: var(--surface, #111c25);
+}
+.chapter-practice-session .section-heading { margin-bottom: 12px; }
+.chapter-practice-session .section-heading h4 { margin: 0; }
+.chapter-practice-session .hero-actions { align-items: center; }
+.chapter-practice-card { display: grid; gap: 12px; }
+.chapter-practice-progress {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 99px;
+  background: #26333e;
+}
+.chapter-practice-progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+  transition: width .18s ease;
+}
+.chapter-practice-question {
+  margin: 8px 0;
+  font-size: 16px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.chapter-practice-session button:disabled { opacity: .5; cursor: not-allowed; }
+@media (max-width: 560px) {
+  .chapter-practice-session { padding: 12px; }
+  .chapter-practice-session .hero-actions button { width: 100%; }
+}
+@media (forced-colors: active) {
+  .chapter-practice-session { border: 1px solid CanvasText; }
+  .chapter-practice-progress span { forced-color-adjust: none; background: Highlight; }
+}
