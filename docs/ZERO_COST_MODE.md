@@ -28,7 +28,7 @@ The server-side Supabase and Google Drive OAuth credentials are still required f
 
 - Owner-authored question bank, syllabus catalogues, classification/review and source-linked chapter notes.
 - Offline chapter-note drafts assembled deterministically from up to 12 approved questions and their extracted source pages. Candidate expressions retain source references and are not claimed to be correct formulas.
-- Browser-only chapter practice sessions with source-order or shuffled questions, attempted tracking and progress. Progress is temporary and is not sent to the server.
+- Browser-only chapter practice sessions with source-order or shuffled questions, a private working/answer area, attempted tracking, self-assessed confidence and progress. All working and progress remain in component memory only; they are not sent to the server or persisted and disappear when the session ends or page reloads.
 - Manual worked examples, summaries, revision prompts and note revisions.
 - Formula syntax warnings, printing and note export already provided by the workspace.
 - Existing document upload/OCR workflow, subject to Google Drive, hosting and Supabase free-tier quotas.
