@@ -1,5 +1,18 @@
 # Supabase migration-history reconciliation
 
+## Superseding snapshot — 2026-11-05
+
+The feature branch now contains **102 migration files** and the connected non-production Supabase ledger contains **102 entries**. The additional migration is `20261105020059_index_remaining_foreign_key_columns`, applied to the existing non-production project and mirrored in the repository.
+
+The three previously documented timestamp/name mismatches remain:
+- `20261103162903` ↔ `20261103163000`
+- `20261104124726` ↔ `20261104100000`
+- `20261104125214` ↔ `20261104110000`
+
+Those three pairs were previously verified SQL-equivalent. The history-only repair and full-chain dry-run workflow has **not** been dispatched in this session. No migration-history repair is claimed. No other pending DDL was identified by the earlier read-only inventory; after the new index migration, the hosted ledger includes the new index migration version.
+
+The five child-side FK indexes were created by the new migration. A post-migration catalog query reports zero unindexed public foreign keys, and the Supabase performance advisor no longer reports `unindexed_foreign_keys`.
+
 ## Current snapshot — 2026-11-04
 
 This snapshot supersedes the historical 2026-11-01 counts and pending-migration list retained later in this document.
