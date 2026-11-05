@@ -1,3 +1,17 @@
+## Exact-head CI verification — 2026-11-05 (commit `4c843e1300c91cb191e97aea00c9adb4a5bf0efb`)
+
+- [x] Foundation checks passed (run `41973428124`): lint, type-check, unit tests, production build and Chromium browser smoke tests.
+- [x] Database authorization tests passed (run `41973428055`): isolated local migrations and pgTAP.
+- [x] Authenticated two-account browser acceptance passed (run `41973428035`).
+- [x] Secret scanning passed (run `41973428034`).
+- [ ] Live worker invocation/recovery, real interrupted-upload integrity, isolated backup restore, accessibility, academic-quality grading, privacy/legal review and operational ownership remain open.
+- [ ] Vercel deployment remains deferred because the account reports a build-rate limit; do not retry repeatedly or upgrade to a paid plan. Deployment is reserved for the final stage.
+- PR #1 remains open, draft and unmerged. No Production deployment or production database change was made.
+
+**Decision: NOT APPROVED FOR PRODUCTION.** These four green checks validate this exact feature-branch commit only; they do not satisfy the outstanding live integration, recovery, human-review or release-approval gates.
+
+---
+
 ## Latest exact-head verification — 2026-11-05 (commit `97cb3d645d572527826ff74b193e13067e675093`)
 
 - [x] Foundation checks passed (run `41971752436`), including lint, TypeScript validation, unit tests, production build and Chromium browser smoke tests.
