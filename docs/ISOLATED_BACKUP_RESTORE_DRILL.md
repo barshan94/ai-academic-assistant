@@ -1,6 +1,17 @@
 # Isolated backup and restore drill
 
-Status: **procedure prepared; execution not yet evidenced**.
+Status: **BLOCKED / NOT RUN — no separate isolated Free-plan target is currently available.**
+
+## Latest Free-plan inventory — 2026-11-05 (read-only)
+
+The connected Supabase organization is on the **Free** plan and currently lists only two projects:
+
+- `academic-assistant` (`uqpyzicftxxegajaocxi`) — active application/non-production project; preserve its data.
+- `durga-map` (`iomikfkjawupfyppzamj`) — separate application; preserve its data.
+
+Neither project is a safe restore target. No third isolated project was present in the organization inventory. Therefore the restore rehearsal is **blocked**, not passed. Do not pause, reset, repurpose, overwrite either project, create a paid resource, or attempt an in-place restore to force this gate closed. Recheck only if a genuinely isolated Free-plan target becomes available without affecting either existing project.
+
+This read-only inventory did not create a project, change billing, modify either database, or access backup credentials.
 
 ## Free-plan safety preflight — mandatory
 
