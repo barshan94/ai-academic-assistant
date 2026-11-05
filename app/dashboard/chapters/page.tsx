@@ -18,9 +18,9 @@ type NoteContent = {
   sourceReferences?: Array<{ ref: string; questionId: string; pageId: string | null; pageNumber: number | null; extractionMethod: string | null }>;
 };
 
-function FormulaList({ items }: { items?: string[] }) {
+function FormulaList({ items, offline = false }: { items?: string[]; offline?: boolean }) {
   if (!items?.length) return null;
-  return <div className="chapter-note-content-block"><h5>Formulas · syntax scan only</h5><ul>{items.map((item, index) => {
+  return <div className="chapter-note-content-block"><h5>{offline ? "Candidate expressions extracted from source pages · syntax scan only" : "Formulas · syntax scan only"}</h5><ul>{items.map((item, index) => {
     const check = checkFormulaSyntax(item);
     return <li key={index}><span>{item}</span>{check.warnings.length ? <ul className="formula-check-warnings">{check.warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul> : <span className="formula-check-ok">No obvious formatting issue detected · mathematical correctness not checked</span>}</li>;
   })}</ul></div>;
@@ -211,8 +211,8 @@ export default async function ChapterWorkspacePage({ searchParams }: PageProps) 
                         <div className="question-card-heading"><strong>v{note.version_number} · {note.title}</strong><span className="document-status">{note.status}</span></div><div className="hero-actions"><PrintNotesButton noteId={note.id} /><DownloadChapterNoteButton title={note.title} content={content} /></div>
                         {content.generatedBy === "ai" ? <p className="question-card-meta">AI-generated draft · not independently verified · owner review required</p> : content.generatedBy === "offline-extractive" ? <p className="question-card-meta">Free offline source extraction · no API call or provider charge · not a solved or independently verified note · owner review required</p> : null}
                         {content.summary ? <p className="chapter-note-summary">{content.summary}</p> : null}
-                        <ContentList title="Key concepts" items={content.concepts} />
-                        <FormulaList items={content.formulas} />
+                        <ContentList title={content.generatedBy === "offline-extractive" ? "Question topics (source wording, not verified concept definitions)" : "Key concepts"} items={content.concepts} />
+                        <FormulaList items={content.formulas} offline={content.generatedBy === "offline-extractive"} />
                         <ContentList title="Worked examples" items={content.workedExamples} />
                         <ContentList title="Revision prompts" items={content.revisionPrompts} />
                         {content.sourceReferences?.length ? <div className="chapter-note-sources"><strong>AI citation key</strong>{content.sourceReferences.map((reference) => { const question = questionMap.get(reference.questionId); const page = reference.pageId ? pageMap.get(reference.pageId) : null; const doc = page ? documentMap.get(page.document_id) : null; return <div className="chapter-note-citation" key={reference.ref}><p><strong>[{reference.ref}]</strong> {question?.question_number ? "Question " + question.question_number : "Approved question"}{doc ? " · " + doc.file_name : ""}{reference.pageNumber ? " · page " + reference.pageNumber : ""}{reference.extractionMethod ? " · " + reference.extractionMethod : ""}</p>{page?.extracted_text ? <><p className="chapter-note-source-preview">{page.extracted_text.slice(0, 360)}{page.extracted_text.length > 360 ? "…" : ""}</p><details className="chapter-note-source-full"><summary>Read full extracted page text</summary><pre>{page.extracted_text}</pre></details></> : <p className="chapter-note-source-preview">No extracted page text was available for this source.</p>}</div>; })}</div> : null}
