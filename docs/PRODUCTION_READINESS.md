@@ -12,7 +12,7 @@ This checkpoint supersedes earlier status snapshots below. The exact feature-bra
 
 The latest code changes include regression tests rejecting a non-PDF first upload chunk before Drive access and an invalid SHA-256 checksum before quota consumption or Drive session creation.
 
-**Release decision: NOT APPROVED FOR PRODUCTION.** PR #1 remains open, draft and unmerged. The Preview is not Production. Live Drive upload interruption/resume and integrity, worker authenticated POST and fault recovery, isolated encrypted backup/restore, manual accessibility and Android-device acceptance, independent teacher grading, AI provider/model/terms/spend approval, privacy/legal review, operational ownership, Supabase Free leaked-password protection mitigation, and hosted migration-history/schema parity remain release gates.
+**Release decision: NOT APPROVED FOR PRODUCTION.** PR #1 remains open, draft and unmerged. The Preview is not Production. Live Drive upload interruption/resume and integrity, worker authenticated POST and fault recovery, manual accessibility and Android-device acceptance, independent teacher grading, AI provider/model/terms/spend approval, privacy/legal review, operational ownership, Supabase Free leaked-password protection mitigation, and hosted migration-history/schema parity remain release gates. The separate-database backup/restore drill is excluded by owner decision.
 
 AI generation remains intentionally disabled until provider and budget approval. No production deployment, production database change, merge, paid upgrade, reset, or overwrite of existing projects was performed. Do not promote this commit to Production until each mandatory gate has documented evidence and the release owner explicitly approves the immutable commit.
 
@@ -45,7 +45,6 @@ PR #1 remains open, draft and unmerged. The deployment above is a Preview (targe
 
 - [ ] Exercise Google Drive upload end-to-end with a real authorized test account: larger PDF, interrupted upload, resume from Drive-confirmed offset, expired session, duplicate handling, original-PDF byte equality/SHA-256, and cross-account denial.
 - [ ] Exercise the authenticated worker route with a controlled non-production job, including concurrent claims, provider/OCR failure, retry exhaustion, stale-lease recovery and failure-persistence failure. The checked-in workflow is manual-dispatch only; do not infer scheduler readiness.
-- [ ] Complete an encrypted backup and full restore rehearsal on a separate isolated Free-plan target. Do not overwrite the existing academic-assistant or durga-map projects.
 - [ ] Complete manual keyboard, screen-reader, contrast, zoom/reflow and real Android-device accessibility acceptance.
 - [ ] Obtain qualified teacher review of current Cambridge/Edexcel syllabus mappings and independently graded English/Bengali answers.
 - [ ] Approve the AI provider, model, data-processing/retention terms and explicit spend limit; configure credentials only after approval. AI generation remains intentionally disabled until this is done.
