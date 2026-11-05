@@ -3,6 +3,17 @@
 ## Superseding owner checkpoint — 2026-11-05
 
 
+
+### Foreign-key performance remediation — 2026-11-05
+
+The five missing child-side foreign-key indexes were added to the connected non-production Supabase project using migration `20261105020059_index_remaining_foreign_key_columns`. The matching migration file is committed at `supabase/migrations/20261105020059_index_remaining_foreign_key_columns.sql`.
+
+Post-change verification:
+- Catalog query reports **0 unindexed foreign keys** across public-schema constraints.
+- Supabase performance advisor no longer reports `unindexed_foreign_keys`.
+- The advisor still reports unused indexes (expected on this low-volume non-production project); no existing indexes were dropped.
+- The new migration appears in the hosted ledger and in the feature-branch migration directory. The three earlier history-only version/name mismatches remain separate and still need the guarded reconciliation workflow.
+
 ### Dependency and acceptance-test closure — 2026-11-05
 
 Foundation workflow `41951678974` on commit `189c76f38f3942d4499afd41a592b72a0af7dce8` completed successfully:
