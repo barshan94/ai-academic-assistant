@@ -45,6 +45,10 @@ function validProviderUrl(name, raw) {
 }
 
 function validateAIProviders() {
+  const fallbacks = process.env.AI_ALLOW_PROVIDER_FALLBACKS;
+  if (fallbacks !== undefined && fallbacks !== "true" && fallbacks !== "false") {
+    failures.push("AI_ALLOW_PROVIDER_FALLBACKS must be exactly true or false.");
+  }
   const enabled = process.env.AI_ENABLED;
   if (enabled !== undefined && enabled !== "true" && enabled !== "false") {
     failures.push("AI_ENABLED must be exactly true or false.");

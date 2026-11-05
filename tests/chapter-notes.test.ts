@@ -200,6 +200,7 @@ describe("AI chapter note generation", () => {
 
 describe("chapter-note provider fallback policy", () => {
   const env = {
+    AI_ENABLED: "true",
     AI_ALLOW_PROVIDER_FALLBACKS: "true",
     AI_PROVIDER_POOL: JSON.stringify([
       { name: "primary", baseUrl: "https://primary.example/v1", apiKey: "primary-key", model: "primary-model", tasks: ["chapter-note"], priority: 1 },

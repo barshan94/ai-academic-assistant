@@ -86,7 +86,7 @@ describe("production environment preflight", () => {
     });
     expect(result.status).toBe(0);
     expect(result.stdout).toContain("preflight passed");
-    expect(result.stderr).toContain("AI generation remains disabled");
+    expect(result.stderr).toContain("AI_ENABLED is not true");
   });
 
   it.each([
