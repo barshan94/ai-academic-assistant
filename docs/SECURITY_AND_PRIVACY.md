@@ -57,12 +57,8 @@ The app publishes crawler rules that disallow `/dashboard/`, `/api/` and `/login
 Anyone can read source code and documentation. Public visibility does not expose secrets that were never committed, but any secret committed historically must be rotated immediately even if later deleted from Git history.
 
 ## Dependency audit
-- CI gates the production dependency tree with `npm audit --omit=dev`; the production dependency audit must pass.
-- The newly disclosed minimatch glob-amplification advisory affects versions before 11.0.1. The `@typescript-eslint/typescript-estree` development dependency is pinned through an npm override to patched minimatch 11.x.
-- ESLint's current legacy development dependency chain still uses minimatch 3.x's default-export API; forcing minimatch 11 globally breaks ESLint at runtime. That dev-only legacy copy remains visible to a full `npm audit` report and is not represented as fixed. Revisit it when the ESLint/Next compatibility chain can move to a patched compatible release.
 
-
-- Private dashboard and API paths receive `Cache-Control: private, no-store` at middleware entry, before authentication branching. This includes dashboard redirects and prevents shared/browser caches from retaining private workspace/API responses; route-level data authorization remains mandatory.
-
-
-Middleware response recreation: when Supabase refreshes auth cookies, the replacement response explicitly inherits the existing `Cache-Control`, `Expires`, `Pragma`, CSP and `X-Robots-Tag` policy headers. This prevents cookie refresh from silently dropping private-response or crawler directives (ERR-121); verify in the browser acceptance phase.
+- The latest verified full `npm audit` (including development dependencies) on 2026-11-05 reports **0 vulnerabilities**.
+- The production-only `npm audit --omit=dev` also reports **0 vulnerabilities**.
+- The previous minimatch/legacy ESLint advisory aggregate is not reproduced by the current lockfile and advisory database. ERR-124 is closed for the current dependency graph; no forced major-version override or breaking ESLint downgrade was used.
+- Re-run both audits whenever dependencies or the lockfile change. A clean point-in-time audit is not a guarantee against future advisories.
