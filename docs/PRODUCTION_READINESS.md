@@ -1,3 +1,20 @@
+## Current exact-head verification — 2026-11-05 (commit `84d77db35652ad7ef0d83e98b0b12f34a87a4a4f`)
+
+This checkpoint supersedes earlier CI-head references in this document.
+
+- [x] Foundation workflow passed on this exact commit: lint, type-check, unit tests, production build and Chromium browser smoke tests (run [41974968118](https://github.com/barshan94/ai-academic-assistant/actions/runs/41974968118)).
+- [x] Isolated database authorization / local migrations and pgTAP passed (run [41974968110](https://github.com/barshan94/ai-academic-assistant/actions/runs/41974968110)).
+- [x] Authenticated two-account acceptance passed (run [41974968139](https://github.com/barshan94/ai-academic-assistant/actions/runs/41974968139)).
+- [x] Repository-history secret scan passed (run [41974968177](https://github.com/barshan94/ai-academic-assistant/actions/runs/41974968177)).
+- [x] The upload progress indicator now exposes progressbar role, accessible name, minimum/maximum/current values and a human-readable percentage. This is a code-level accessibility improvement, not a substitute for the manual accessibility matrix.
+- [ ] Live worker invocation/recovery and fault injection, real interrupted-upload integrity, isolated backup restore, manual accessibility/device acceptance, academic-quality grading, privacy/legal review, Auth leaked-password mitigation, migration-history reconciliation and operational ownership remain open.
+- [ ] Vercel deployment remains deferred until the final stage; do not retry the build-rate-limited deployment or pay to bypass the limit.
+- PR #1 remains open, draft and unmerged. No Production deployment or production database change was made.
+
+**Decision: NOT APPROVED FOR PRODUCTION.** These green checks validate this exact feature-branch commit only. They do not close the outstanding live integration, recovery, human-review, privacy or release-approval gates.
+
+---
+
 ## Exact-head CI verification — 2026-11-05 (commit `4c843e1300c91cb191e97aea00c9adb4a5bf0efb`)
 
 - [x] Foundation checks passed (run `41973428124`): lint, type-check, unit tests, production build and Chromium browser smoke tests.
