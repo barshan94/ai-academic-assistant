@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { normalizeFilesToPdf } from "@/lib/documents/normalize-to-pdf";
 import { MAX_UPLOAD_BYTES, MAX_IMAGE_COUNT, DRIVE_UPLOAD_CHUNK_BYTES } from "@/lib/documents/upload-limits";
-import { queryResumableUploadStatus } from "@/lib/documents/resumable-upload-client";
+import { getConfirmedChunkOffset, queryResumableUploadStatus } from "@/lib/documents/resumable-upload-client";
 
 const STORAGE_PREFIX = "academic-assistant-upload:";
 
@@ -139,12 +139,17 @@ export function ResumableUploadForm({ disabled }: { disabled: boolean }) {
 
         try {
           const result = await readJson(response);
-          if (result.complete) {
-            complete = true;
-            offset = normalized.bytes.byteLength;
-          } else {
-            offset = typeof result.nextOffset === "number" ? result.nextOffset : end;
-          }
+          const confirmedStatus = {
+            complete: result.complete === true,
+            nextOffset: typeof result.nextOffset === "number" ? result.nextOffset : Number.NaN,
+          };
+          offset = getConfirmedChunkOffset({
+            currentOffset: offset,
+            chunkEndExclusive: end,
+            totalBytes: normalized.bytes.byteLength,
+            status: confirmedStatus,
+          });
+          complete = confirmedStatus.complete;
           retries = 0;
         } catch (uploadError) {
           if (retries >= 2) throw uploadError;
