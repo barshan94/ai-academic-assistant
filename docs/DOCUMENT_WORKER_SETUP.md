@@ -2,11 +2,11 @@
 
 The application includes a server-side worker at `POST /api/cron/process-documents`. It claims and processes at most one eligible job per invocation. The worker route accepts POST only and is protected by a bearer secret and uses the Supabase service-role key only on the server.
 
-## GitHub Actions scheduler
+## GitHub Actions invocation
 
-**Important:** GitHub scheduled workflows run from the repository's default branch, not an unmerged feature branch. This workflow is committed on the feature branch but will not run on its five-minute schedule until the change is merged into the default branch. A manual `workflow_dispatch` can be used on the feature branch after configuring secrets, but only against a non-production target until acceptance is complete.
+**Current verified behavior:** `.github/workflows/document-worker.yml` defines `workflow_dispatch` only. It does not contain a `schedule` trigger, so it does not poll the queue automatically. A repository operator must manually dispatch it from the Actions tab. Do not describe this workflow as scheduled until a recurring trigger is committed and verified.
 
-The repository workflow `.github/workflows/document-worker.yml` invokes the worker every five minutes and can also be run manually from the Actions tab. This repository uses GitHub Actions as the scheduler; it does not configure a Vercel Cron Job. Vercel Hobby's daily-only Cron restriction therefore does not govern this workflow. GitHub's schedule is best-effort and will become active only after the workflow reaches the default branch; do not add a Vercel Cron entry unless the hosting plan and schedule support it.
+If a recurring GitHub schedule is added later, GitHub runs it from the repository's default branch, not an unmerged feature branch. Integrate the worker route, application code, database migrations and scheduler together; a workflow-only merge could call a route that `main` does not contain. No Vercel Cron Job is configured. The current deployment uses Vercel Hobby, so do not assume Vercel provides a five-minute scheduler.
 
 Configure these repository Actions secrets before enabling real processing:
 
@@ -27,12 +27,12 @@ Do not put these values in source files, workflow YAML, issue comments, or logs.
 
 ## Operational behavior
 
-- GitHub Actions schedules are best-effort; a scheduled run can be delayed. The queue is durable, so later invocations can continue processing.
+- The current workflow is manual-dispatch only. The queue is durable, but it will not be processed automatically until a recurring scheduler is deliberately enabled.
 - The workflow serializes invocations with a concurrency group and the database worker also uses a conditional claim to prevent duplicate ownership.
 - Each invocation handles at most one job and has a bounded timeout.
 - The worker retries eligible failed/stale jobs up to each job's configured maximum attempts.
 - A failed workflow run means the endpoint was unavailable, rejected the invocation, or persisted a document-processing failure. The worker returns HTTP 500 after successfully recording a failed job so the scheduler visibly reports the failure; the durable job remains eligible for a later retry within its configured attempt budget. Inspect the Actions job without exposing secrets.
-- Use `workflow_dispatch` to trigger a controlled manual run after verifying the target environment and queue.
+- Use `workflow_dispatch` to trigger a controlled manual run after verifying the target environment, queue, Preview secrets and test account.
 - Live processing acceptance requires a non-production Google Drive connection and an isolated non-production Supabase project. The existing connected project `uqpyzicftxxegajaocxi` is the project's designated non-production database for this workflow; do not create a second Supabase project just for this test. Keep test records clearly identified and do not use real student data. This workflow file alone does not prove that the secrets are configured or that OCR succeeds.
 
 ### Current connected Preview setup (2026-11-04)
@@ -42,7 +42,7 @@ Do not put these values in source files, workflow YAML, issue comments, or logs.
 - The branch-scoped Vercel Preview environment contains a `CRON_SECRET` entry for `feature/m3-ai-solver`. Its value is encrypted and cannot be verified through environment metadata alone. Do not replace it blindly.
 - The connected Supabase database contains the required `processing_jobs` and `document_pages` records. On 2026-11-04, two existing Drive-backed PDFs completed their OCR worker jobs (100% progress, one attempt each, no persisted job error). Their pages contain extracted text (1,298 and 573 characters respectively), but both remain `review_required`. This confirms a successful worker-to-Drive extraction path for those two files; it does not establish OCR accuracy or human approval.
 - The GitHub Actions secret values are not readable through the connected GitHub integration. Confirm that repository secrets `APP_BASE_URL` and `CRON_SECRET` are configured without displaying their values. `APP_BASE_URL` must point to the stable feature Preview URL above, without a trailing slash. The GitHub secret `CRON_SECRET` must match the branch-scoped Preview value.
-- The two completed jobs show that a worker invocation has successfully reached the Preview endpoint. Do not infer that the GitHub five-minute schedule is active: scheduled workflows run only from the repository default branch, while this workflow is on the feature branch.
+- The two completed jobs show that worker invocations reached the Preview endpoint at some point. The checked-in workflow is manual-dispatch only; no recurring schedule is defined or active.
 - Do not enable the five-minute schedule on `main` until the endpoint, supporting application code, and database migrations have been reviewed and integrated together. A workflow-only merge could call a route that `main` does not contain.
 
 ## Owner-authorized original PDF retrieval
