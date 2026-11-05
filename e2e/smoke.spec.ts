@@ -163,5 +163,5 @@ test("privacy notice is publicly reachable and states current service limitation
   await expect(page.getByRole("heading", { name: /your academic data deserves/i })).toBeVisible();
   await expect(page.getByText(/does not publish a fixed log-retention period/i)).toBeVisible();
   await expect(page.getByText(/has not been approved for production use/i)).toBeVisible();
-  await expect(page.getByRole("link", { name: /privacy notice/i })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: /back to home/i })).toHaveAttribute("href", "/");
 });
