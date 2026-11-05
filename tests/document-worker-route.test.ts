@@ -351,4 +351,78 @@ describe("document worker failure redaction", () => {
     });
     expect(extractTextFromDrivePdfMock).toHaveBeenCalledOnce();
   });
+
+  it("returns a distinct generic response when failure persistence itself fails", async () => {
+    process.env.GOOGLE_CLIENT_ID = "test-google-client";
+    process.env.GOOGLE_CLIENT_SECRET = "test-google-secret";
+
+    type QueryResult = { data: unknown; error: null };
+    type QueryBuilder = Promise<QueryResult> & {
+      select: () => QueryBuilder;
+      eq: (column: string, value: string) => QueryBuilder;
+      maybeSingle: () => Promise<QueryResult>;
+    };
+    const queryFor = (result: QueryResult): QueryBuilder => {
+      const query = Object.assign(Promise.resolve(result), {
+        select: () => query,
+        eq: (_column: string, _value: string) => query,
+        maybeSingle: async () => result,
+      }) as QueryBuilder;
+      return query;
+    };
+    const fromMock = vi.fn((table: string) => {
+      if (table === "documents") {
+        return queryFor({ data: { id: "document-1", drive_file_id: "drive-file-1", status: "processing" }, error: null });
+      }
+      if (table === "drive_connections") {
+        return queryFor({ data: { encrypted_refresh_token: "encrypted-test-token" }, error: null });
+      }
+      if (table === "document_pages") return queryFor({ data: [], error: null });
+      throw new Error(`Unexpected table access: ${table}`);
+    });
+
+    createSupabaseServiceRoleClientMock.mockReturnValue({ rpc: rpcMock, from: fromMock });
+    rpcMock
+      .mockResolvedValueOnce({
+        data: [{
+          id: "job-1",
+          document_id: "document-1",
+          owner_id: "owner-1",
+          status: "queued",
+          started_at: null,
+          attempt_count: 0,
+          max_attempts: 3,
+        }],
+        error: null,
+      })
+      .mockResolvedValueOnce({ data: true, error: null })
+      .mockResolvedValueOnce({
+        data: null,
+        error: { message: "private database error and connection string" },
+      });
+    extractTextFromDrivePdfMock.mockRejectedValueOnce(new Error("private OCR provider response"));
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(
+      JSON.stringify({ access_token: "test-access-token" }),
+      { status: 200, headers: { "Content-Type": "application/json" } },
+    )));
+
+    const response = await POST(request("Bearer test-cron-secret-with-sufficient-entropy"));
+    const body = await response.json();
+
+    expect(response.status).toBe(500);
+    expect(body).toEqual({
+      processed: false,
+      job_id: "job-1",
+      error: "Processing failed and its failure state could not be persisted.",
+    });
+    expect(JSON.stringify(body)).not.toContain("private");
+    expect(JSON.stringify(body)).not.toContain("connection string");
+    expect(rpcMock).toHaveBeenNthCalledWith(3, "fail_document_processing", {
+      p_document_id: "document-1",
+      p_owner_id: "owner-1",
+      p_job_id: "job-1",
+      p_error_code: "BACKGROUND_PROCESSING_FAILED",
+    });
+  });
+
 });
