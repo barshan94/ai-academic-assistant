@@ -26,18 +26,20 @@ export default function PracticeSession({ questions }: { questions: PracticeQues
 
   function toggleAttempted() {
     if (!current) return;
+    const wasAttempted = attempted.has(current.id);
     setAttempted((previous) => {
       const next = new Set(previous);
-      if (next.has(current.id)) {
-        next.delete(current.id);
-        setConfident((previousConfident) => {
-          const updated = new Set(previousConfident);
-          updated.delete(current.id);
-          return updated;
-        });
-      } else next.add(current.id);
+      if (wasAttempted) next.delete(current.id);
+      else next.add(current.id);
       return next;
     });
+    if (wasAttempted) {
+      setConfident((previous) => {
+        const next = new Set(previous);
+        next.delete(current.id);
+        return next;
+      });
+    }
   }
 
   if (!questions.length) return null;
