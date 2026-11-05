@@ -37,7 +37,7 @@ A personal academic workspace for Edexcel O/A Level, SSC and HSC tutoring. It ac
 - Optional knowledge-first retrieval from up to three approved notes in the question's exact confirmed syllabus chapter, with immutable source-version provenance.
 - Optional owner-initiated Brave web research that sends only a manually entered query, stores owner-private HTTPS source leads and never labels search results as verified curriculum evidence. Setup, privacy and cost controls are documented in `docs/WEB_RESEARCH_SETUP.md`.
 - Free offline chapter-note drafts from up to 12 owner-approved, chapter-classified questions and linked extracted source pages; candidate expressions and question topics retain source references and remain unverified until owner review.
-- Browser-only active-recall practice sessions for approved chapter questions, with source-order/shuffled queues, private temporary working space, self-assessed confidence and progress; no AI provider or network call is used.
+- Browser-only active-recall practice sessions for approved chapter questions, with source-order/shuffled queues, private temporary working space, self-assessed confidence, progress and local plain-text answer-sheet export; no AI provider or network call is used.
 - Deterministic arithmetic, supported neutral chemistry equation atom-count, and SI dimensional-consistency checks. These are narrow checks, not proof of a fully correct answer.
 - Saved answer versions and safe schema validation before rendering.
 - Append-only owner and teacher review/correction records.
