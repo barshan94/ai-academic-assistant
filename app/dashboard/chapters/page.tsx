@@ -158,8 +158,8 @@ export default async function ChapterWorkspacePage({ searchParams }: PageProps) 
                         {chapterNotes.map((note) => <option key={note.id} value={note.id}>Revise v{note.version_number} · {note.title}</option>)}
                       </select>
                     </label>
-                    <button className="document-action" type="submit">Create free offline revision draft</button>
-                    <p className="question-card-meta">Uses up to 12 approved questions and available extracted page text. No AI provider, API key, internet call or paid quota is used. It extracts source-linked question topics and candidate expressions only; it does not solve questions or write explanations. Choose an existing version to create a linked revision. Review against the original documents before approval.</p>
+                    <button className="document-action" type="submit" disabled={!chapterQuestions.length}>Create free offline revision draft</button>
+                    <p className="question-card-meta">{chapterQuestions.length ? "Uses up to 12 approved questions and available extracted page text." : "Approve and classify at least one question for this chapter to enable offline drafting."} No AI provider, API key, internet call or paid quota is used. It extracts source-linked question topics and candidate expressions only; it does not solve questions or write explanations. Choose an existing version to create a linked revision. Review against the original documents before approval.</p>
                   </form>
 
                   <details className="chapter-note-author">
