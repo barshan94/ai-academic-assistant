@@ -119,3 +119,24 @@ The earlier dated status notes in this README are historical. The latest feature
 The previous pgTAP syntax failure was fixed in `ebf318d`; all latest workflow checks now pass. The full development dependency audit still reports 13 moderate transitive minimatch advisory instances in the legacy ESLint graph; production dependencies have zero audit findings. ERR-124 remains open pending compatibility-safe resolution.
 
 Live Google OAuth/Drive acceptance, live AI-provider evaluation with approved credentials/budget, hosted migration reconciliation, full isolated backup/restore proof, accessibility and academic/privacy review remain external release gates. PR #1 remains draft and unmerged. No production deployment is authorized.
+
+
+## Superseding live verification snapshot — 5 November 2026
+
+Current feature branch head: `34974141075e1c52df8ba22e29cba8dd230bc6f6` (PR #1 remains draft/open).
+
+Latest GitHub Actions for this exact commit:
+- Foundation run `41882329396`: lint, application and Playwright type-checks, production environment preflight, production-only dependency audit, build, and **241 unit tests across 44 files** passed.
+- Chromium smoke: **10 passed, 2 skipped**.
+- Database authorization run `41882329455`: clean local Supabase migration replay and pgTAP authorization suite passed.
+- Authenticated two-account acceptance run `41882329427`: **2 passed**, including invitation, teacher review, owner visibility and revocation lifecycle.
+- Full-history secret scan run `41882329409`: passed.
+- Production dependency audit: **0 findings**. Full development dependency audit: **13 moderate minimatch findings** remain (ERR-124); do not force an incompatible ESLint downgrade.
+
+Latest read-only non-production Supabase inventory (4 November): 101 repository migrations and 101 hosted ledger entries; 98 exact version/name matches and 3 timestamp/name mismatches with SQL verified equivalent. No pending schema DDL was identified after those three history pairs are reconciled. The history-only repair/dry-run workflow has not yet been run; no hosted ledger or schema change is claimed. Supabase Auth leaked-password protection was still disabled at the last inspection. Security/performance advisor findings require review; see `docs/OWNER_ACTIONS.md`.
+
+Vercel: the latest available READY Preview is for application commit `9d8303d30b506c3833c46d1f9ec9c2527b2e9583`. A GitHub comparison confirms the four commits from that deployment to the current head change only workflow/documentation files, not application source. The Vercel check for the current documentation commit reports a build-rate-limit failure, and there is no deployment for the exact current SHA. Production remains on the older `main` version; no production release is authorized.
+
+Still-open release gates: full Google Drive/OAuth upload-resume-OCR-worker acceptance; approved live AI provider/model and golden-set grading; three-pair hosted migration-history reconciliation; full isolated backup/restore drill; ERR-124 remediation; Auth leaked-password protection; manual accessibility/device checks; official syllabus and independent answer review; qualified privacy/legal review; named primary/backup operators; production environment validation and explicit release approval.
+
+A passing CI run is not production approval. Do not merge PR #1 or deploy the feature to Production until the mandatory gates are evidenced and the owner explicitly approves the release.
