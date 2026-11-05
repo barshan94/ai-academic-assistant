@@ -80,6 +80,52 @@ describe("owner-authorized original PDF route", () => {
     expect(downloadOriginalPdfFromDriveMock).not.toHaveBeenCalled();
   });
 
+  it("filters the database lookup by both document ID and the authenticated owner", async () => {
+    const { eqId, eqOwner } = configureUser();
+    getDriveAccessTokenMock.mockResolvedValue("fresh-access-token");
+    downloadOriginalPdfFromDriveMock.mockResolvedValue(Buffer.from(pdf));
+
+    const response = await GET(request(), { params: Promise.resolve({ id: documentId }) });
+
+    expect(response.status).toBe(200);
+    expect(eqId).toHaveBeenCalledExactlyOnceWith("id", documentId);
+    expect(eqOwner).toHaveBeenCalledExactlyOnceWith("owner_id", ownerId);
+  });
+
+  it("returns the same not-found response when the owner-scoped database lookup fails", async () => {
+    configureUser({ documentError: { message: "private database detail" } });
+
+    const response = await GET(request(), { params: Promise.resolve({ id: documentId }) });
+
+    expect(response.status).toBe(404);
+    expect(await response.text()).not.toContain("private database detail");
+    expect(getDriveAccessTokenMock).not.toHaveBeenCalled();
+  });
+
+  it("refuses archived records without a Drive file or PDF MIME type", async () => {
+    for (const document of [
+      {
+        drive_file_id: null,
+        file_name: "Physics Notes.pdf",
+        file_size_bytes: pdf.byteLength,
+        mime_type: "application/pdf",
+        sha256: "a".repeat(64),
+      },
+      {
+        drive_file_id: "drive-file-id",
+        file_name: "Physics Notes.pdf",
+        file_size_bytes: pdf.byteLength,
+        mime_type: "image/png",
+        sha256: "a".repeat(64),
+      },
+    ]) {
+      configureUser({ document });
+      const response = await GET(request(), { params: Promise.resolve({ id: documentId }) });
+      expect(response.status).toBe(409);
+      expect(downloadOriginalPdfFromDriveMock).not.toHaveBeenCalled();
+    }
+  });
+
   it("returns a private, no-store PDF only after Drive retrieval and integrity verification", async () => {
     configureUser();
     getDriveAccessTokenMock.mockResolvedValue("fresh-access-token");
