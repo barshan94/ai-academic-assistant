@@ -72,7 +72,7 @@ export default function PracticeSession({ questions }: { questions: PracticeQues
           <label className="practice-working-label">Your working / answer (kept only in this browser session)
             <textarea rows={5} value={working[current.id] ?? ""} onChange={(event) => setWorking((previous) => ({ ...previous, [current.id]: event.target.value }))} placeholder="Write your method, calculations and final answer here. Nothing is uploaded or saved." />
           </label>
-          <p className="question-card-meta">No AI solution is generated. Compare your working with your original source or teacher's mark scheme.</p>
+          <p className="question-card-meta">No AI solution is generated. Compare your working with your original source or teacher&apos;s mark scheme.</p>
           <p className="question-card-meta">{progress.confident} confident · {progress.needsReview} marked for more practice</p>
           <div className="hero-actions">
             <button className="document-action" type="button" onClick={() => {
