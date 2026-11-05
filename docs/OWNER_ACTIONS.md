@@ -2,6 +2,21 @@
 
 ## Superseding owner checkpoint — 2026-11-05
 
+### Live verification addendum — 2026-11-05 (Supabase project read-only)
+
+Project `academic-assistant` (`uqpyzicftxxegajaocxi`) remains ACTIVE_HEALTHY, PostgreSQL 17.11, ap-south-1. No database writes were made in this inspection.
+
+- Hosted migration ledger still lists 101 entries, matching the 101 repository migration files by count. The three previously documented timestamp/name mismatches remain the only known history repair work; this tool session did not execute the pinned GitHub workflow, and did not change schema or migration history.
+- All 31 public base tables returned by the live inventory have RLS enabled. No anon table SELECT/INSERT grants were found. The four rate-limit tables intentionally have no client table grants and no client RLS policies; they are private counters accessed through controlled server/database functions.
+- Fourteen callable public `SECURITY DEFINER` RPCs were inspected from live `pg_proc` definitions. Every one sets an empty search_path, denies anon EXECUTE, checks `auth.uid()`, and scopes its data operations to the caller's owner ID. They remain authenticated-callable by design; do not mechanically convert them to SECURITY INVOKER because they encapsulate operations against tables with deliberately restricted direct grants. Maintain regression coverage for cross-owner denial.
+- One trigger-only SECURITY DEFINER function is not executable by anon or authenticated users.
+- Supabase security advisor: 4 informational RLS-enabled/no-policy findings (the four private quota tables), 14 authenticated-callable SECURITY DEFINER warnings, and 1 warning for disabled leaked-password protection. The first two categories were reviewed against live grants/function bodies; the leaked-password setting remains an actual release blocker.
+- Performance advisor: five unindexed foreign-key findings. A direct catalog query confirmed five missing child-side leading indexes: `practice_set_items(practice_set_id, owner_id)`, `practice_set_items(question_id, owner_id)`, `question_revision_progress(question_id, owner_id)`, `question_solution_mark_schemes(solution_id, owner_id)`, and `question_web_research_sources(question_id, owner_id)`. Existing data volume is currently small, but these should be added in a forward migration and rechecked.
+- No Supabase Edge Functions are currently deployed. The document worker is implemented in the Next.js application and GitHub Actions workflow, not as a Supabase Edge Function.
+- Latest commit `189c76f38f3942d4499afd41a592b72a0af7dce8`: Foundation and database authorization workflows passed; secret scan passed; two-account authenticated browser acceptance was still running at last check. Do not claim it passed until its final conclusion is success.
+
+**Actions not completed by this inspection:** migration workflow dispatch/history repair, Auth leaked-password setting, live Drive OAuth and upload/OCR/worker round-trip, approved AI provider credentials and grading, isolated backup/restore, manual accessibility and syllabus/answer/privacy reviews, operator assignment, production environment validation. No deployment or release approval is implied.
+
 The latest feature head is `34974141075e1c52df8ba22e29cba8dd230bc6f6`; PR #1 remains draft and unmerged.
 
 **Verified on this exact SHA**
