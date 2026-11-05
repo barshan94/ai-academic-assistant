@@ -1,5 +1,14 @@
 # Owner actions required before production
 
+## Release-gate correction — 2026-11-05
+
+- Supabase's current password-security documentation states that built-in leaked-password protection is available on Pro and above. This project is Free by explicit owner constraint; this setting cannot be enabled on the current plan. The security finding remains unresolved. Do not upgrade or claim it is fixed. A Free-compatible application-level mitigation would need implementation, security review and acceptance before this gate can close. Documentation: https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection
+- The workflow `.github/workflows/reconcile-nonprod-migrations.yml` is **not read-only in its default operation**. Its script first changes the hosted migration ledger using `supabase migration repair` for three previously reviewed SQL-equivalent pairs, then runs `supabase db push --dry-run`. The workflow inputs have been renamed to make the history write explicit. Do not dispatch under a read-only assumption. Do not apply pending DDL without reviewing the dry-run output and receiving explicit approval.
+- The document-worker workflow remains manual-dispatch only. A recurring schedule is not safe to activate until the shared `APP_BASE_URL` secret is verified to point to the intended environment and the complete worker route/migrations are integrated on the default branch. Do not assume the Preview-target Vercel secrets control the GitHub Actions secret target.
+- AI provider setup remains intentionally disabled: no approved provider/model, credential, data-processing terms or spend cap exists. The provider adapter supports OpenAI-compatible Chat Completions; native provider APIs need adapters. No provider or paid usage has been selected on the owner's behalf.
+- The latest Vercel/GitHub checks and deployment status must be evaluated on the exact current PR head; older green runs do not validate later documentation/workflow commits.
+- No migration repair, pending DDL application, production deployment, PR merge, plan upgrade, credential disclosure or live Drive test was performed as part of this audit.
+
 ## Superseding live checkpoint — 2026-11-05 (latest connector verification)
 
 This note supersedes older counts and status statements later in this file.
