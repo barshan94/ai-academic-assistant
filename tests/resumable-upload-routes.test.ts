@@ -267,4 +267,47 @@ describe("resumable upload route security boundaries", () => {
     expect(getDriveAccessTokenMock).not.toHaveBeenCalled();
   });
 
+  it("rejects a first chunk without the PDF file signature before contacting Drive", async () => {
+    decryptDriveUploadSessionMock.mockReturnValueOnce(JSON.stringify({
+      ...validSession,
+      fileSizeBytes: 4,
+    }));
+
+    const response = await uploadChunk(makeRequest(
+      "/api/documents/upload/resumable/chunk",
+      {
+        headers: {
+          "x-upload-session": "opaque-encrypted-session",
+          "content-range": "bytes 0-3/4",
+        },
+        body: "NOPE",
+      },
+    ));
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ error: "The uploaded content does not have a valid PDF signature." });
+    expect(getDriveAccessTokenMock).not.toHaveBeenCalled();
+    expect(sendResumablePdfChunkMock).not.toHaveBeenCalled();
+    expect(createSupabaseServiceRoleClientMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects an invalid checksum at upload start before quota consumption or Drive session creation", async () => {
+    const response = await startUpload(makeRequest(
+      "/api/documents/upload/resumable/start",
+      {
+        body: JSON.stringify({
+          fileName: "Physics.pdf",
+          fileSizeBytes: 1234,
+          sha256: "not-a-sha256",
+        }),
+      },
+    ));
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ error: "The file checksum is invalid." });
+    expect(getDriveAccessTokenMock).not.toHaveBeenCalled();
+    expect(initiateResumablePdfUploadMock).not.toHaveBeenCalled();
+    expect(createSupabaseServiceRoleClientMock).not.toHaveBeenCalled();
+  });
+
 });
