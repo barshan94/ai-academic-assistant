@@ -11,7 +11,7 @@ export default function PracticeSession({ questions }: { questions: PracticeQues
   const [working, setWorking] = useState<Record<string, string>>({});
   const [started, setStarted] = useState(false);
 
-  const progress = useMemo(() => getPracticeProgress(queue.length, attempted, queue, confident), [queue, attempted]);
+  const progress = useMemo(() => getPracticeProgress(queue.length, attempted, queue, confident), [queue, attempted, confident]);
   const current = queue[index];
 
   function start(shuffle: boolean) {
@@ -28,8 +28,14 @@ export default function PracticeSession({ questions }: { questions: PracticeQues
     if (!current) return;
     setAttempted((previous) => {
       const next = new Set(previous);
-      if (next.has(current.id)) next.delete(current.id);
-      else next.add(current.id);
+      if (next.has(current.id)) {
+        next.delete(current.id);
+        setConfident((previousConfident) => {
+          const updated = new Set(previousConfident);
+          updated.delete(current.id);
+          return updated;
+        });
+      } else next.add(current.id);
       return next;
     });
   }
