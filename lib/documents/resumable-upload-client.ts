@@ -56,3 +56,33 @@ export async function queryResumableUploadStatus(
 
   return { complete: body.complete, nextOffset };
 }
+
+/**
+ * Validate a chunk acknowledgement before the browser advances its cursor.
+ * A 308 with no forward progress must never create an unbounded resend loop.
+ */
+export function getConfirmedChunkOffset(input: {
+  currentOffset: number;
+  chunkEndExclusive: number;
+  totalBytes: number;
+  status: ResumableUploadStatus;
+}): number {
+  const { currentOffset, chunkEndExclusive, totalBytes, status } = input;
+  if (
+    !Number.isSafeInteger(currentOffset) ||
+    !Number.isSafeInteger(chunkEndExclusive) ||
+    !Number.isSafeInteger(totalBytes) ||
+    currentOffset < 0 ||
+    chunkEndExclusive <= currentOffset ||
+    chunkEndExclusive > totalBytes ||
+    (status.complete && status.nextOffset !== totalBytes) ||
+    (!status.complete && (
+      !Number.isSafeInteger(status.nextOffset) ||
+      status.nextOffset <= currentOffset ||
+      status.nextOffset > chunkEndExclusive
+    ))
+  ) {
+    throw new Error("Google Drive did not confirm safe forward upload progress.");
+  }
+  return status.complete ? totalBytes : status.nextOffset;
+}
