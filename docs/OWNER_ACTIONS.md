@@ -2,6 +2,21 @@
 
 ## Superseding owner checkpoint — 2026-11-05
 
+
+### Dependency and acceptance-test closure — 2026-11-05
+
+Foundation workflow `41951678974` on commit `189c76f38f3942d4499afd41a592b72a0af7dce8` completed successfully:
+- `npm audit --omit=dev`: 0 vulnerabilities.
+- `npm audit` including development dependencies: 0 vulnerabilities.
+- Lint, TypeScript checks, unit tests, production build and Chromium smoke passed.
+- Database authorization workflow `41951678951` passed.
+- Authenticated two-account browser acceptance `41951678947` completed successfully.
+- Secret scan `41951678957` passed.
+
+ERR-124 is therefore closed for the current lockfile; see `docs/ERR-124_MINIMATCH_REMEDIATION.md`. The earlier 13-moderate aggregate is not reproduced by the current full audit. Do not keep this item as an active vulnerability unless a future audit identifies it again.
+
+The subsequent docs-only commit `77cd13e` has its own CI runs pending at the time this note was written. Do not reuse the older SHA's green checks as proof for the newer SHA; wait for its checks.
+
 ### Live verification addendum — 2026-11-05 (Supabase project read-only)
 
 Project `academic-assistant` (`uqpyzicftxxegajaocxi`) remains ACTIVE_HEALTHY, PostgreSQL 17.11, ap-south-1. No database writes were made in this inspection.
