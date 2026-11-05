@@ -1,5 +1,17 @@
 # Release checkpoint — 2026-11-05
 
+## Superseding verification — 2026-11-05
+
+- Exact feature head: `1b6125ad82b681e504468e85469190d1da808988`.
+- Foundation, Chromium smoke, isolated database authorization, authenticated two-account acceptance and secret scanning all passed on this same commit. See [Foundation](https://github.com/barshan94/ai-academic-assistant/actions/runs/41996672898), [Database](https://github.com/barshan94/ai-academic-assistant/actions/runs/41996673036), [Authenticated E2E](https://github.com/barshan94/ai-academic-assistant/actions/runs/41996672870) and [Secret scan](https://github.com/barshan94/ai-academic-assistant/actions/runs/41996673033).
+- The Vercel Preview feedback check reports no unresolved feedback, but does not establish that a Preview deployment is ready.
+- The worker workflow-method test was corrected to assert the workflow's existing privacy-safe POST/response-validation behavior.
+- PR #1 remains draft, open and unmerged. Production remains untouched.
+
+**Release decision remains NOT APPROVED FOR PRODUCTION.** Live Drive/worker recovery, isolated restore, manual accessibility, academic grading, privacy/legal review, Auth leaked-password limitation and operational ownership remain open.
+
+---
+
 ## Exact branch and commit
 
 - Repository: `barshan94/ai-academic-assistant`
