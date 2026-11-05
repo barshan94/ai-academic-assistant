@@ -250,3 +250,14 @@
 - [ ] Perform a real non-production interruption test: upload a multi-chunk synthetic PDF, interrupt after Drive has accepted at least one chunk, reload/reselect the same file, verify the initial status query returns the confirmed offset, and confirm the final Drive object byte count and SHA-256 match the source.
 - [ ] Repeat with a lost final-chunk response and verify the completed Drive object is registered exactly once without leaving duplicate/orphan documents.
 - [ ] Verify expired-session restart and cross-account rejection in a dedicated test account. Do not use real student documents.
+
+
+## Worker claim safety regression — 2026-11-05
+
+- [x] Add a route regression proving a fresh `running` candidate is not reclaimed and does not prevent the worker from examining and atomically claiming the next eligible queued candidate (commit `1dd4c6b27b81d0bbf16f7aaee0b9402bec53e5c4`).
+- [x] Validate that exact commit with Foundation checks (run `41967385169`), including lint, application/Playwright type-checks, production environment contract, production dependency audit, unit tests, production build and Chromium smoke tests; all jobs passed.
+- [x] Validate the complete local migration chain and database authorization tests in isolated CI (run `41967385280`); passed.
+- [x] Validate authenticated two-account Supabase browser acceptance (run `41967385162`); passed.
+- [x] Validate repository history and working-tree secret scanning (run `41967385184`); passed.
+- [x] Vercel Preview status for this exact commit reported success.
+- [ ] Live non-production worker acceptance remains open: invoke the authenticated POST worker, verify a queued job completes and persists pages, and exercise concurrent claims, stale recovery, retry exhaustion and injected provider/OCR failures. CI mocks and local database tests do not prove the deployed worker is operating.
