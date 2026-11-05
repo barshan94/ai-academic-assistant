@@ -1,3 +1,18 @@
+## Exact-head verification — 2026-11-05 (commit `fb538be82f4aa442e3f998218070018dc1ca7c1a`)
+
+- [x] Foundation checks passed (run [41978767573](https://github.com/barshan94/ai-academic-assistant/actions/runs/41978767573)): lint, type-check, unit tests, production build and Chromium browser smoke tests.
+- [x] Local database authorization tests and migrations passed (run [41978767520](https://github.com/barshan94/ai-academic-assistant/actions/runs/41978767520)).
+- [x] Authenticated two-account browser acceptance passed (run [41978767503](https://github.com/barshan94/ai-academic-assistant/actions/runs/41978767503)).
+- [x] Repository-history secret scanning passed (run [41978767572](https://github.com/barshan94/ai-academic-assistant/actions/runs/41978767572)).
+- [x] The Chromium suite includes liveness/readiness endpoint behavior and public privacy-notice navigation/content assertions.
+- [ ] Live worker invocation/recovery and fault injection, real interrupted-upload integrity, isolated backup restore, manual accessibility/device acceptance, academic-quality grading, privacy/legal review, Auth leaked-password mitigation, migration-history reconciliation and operational ownership remain open.
+- [ ] Vercel deployment remains deferred until the final stage; do not retry the build-rate-limited deployment or pay to bypass the limit.
+- PR #1 remains open, draft and unmerged. No Production deployment or production database change was made.
+
+**Decision: NOT APPROVED FOR PRODUCTION.** These five green checks validate this exact feature-branch commit only. They do not close the outstanding live integration, recovery, human-review, privacy or release-approval gates.
+
+---
+
 ## Current exact-head verification — 2026-11-05 (commit `84d77db35652ad7ef0d83e98b0b12f34a87a4a4f`)
 
 This checkpoint supersedes earlier CI-head references in this document.
