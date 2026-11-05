@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { buildPracticeAnswerSheet, getPracticeProgress, shufflePracticeQuestions, type PracticeQuestion } from "@/lib/chapters/practice-session";
+import { buildPracticeAnswerFilename, buildPracticeAnswerSheet, getPracticeProgress, shufflePracticeQuestions, type PracticeQuestion } from "@/lib/chapters/practice-session";
 
 export default function PracticeSession({ questions, chapterTitle }: { questions: PracticeQuestion[]; chapterTitle: string }) {
   const [queue, setQueue] = useState<PracticeQuestion[]>([]);
@@ -29,13 +29,12 @@ export default function PracticeSession({ questions, chapterTitle }: { questions
     const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
-    const safeName = chapterTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 48) || "chapter";
     anchor.href = url;
-    anchor.download = `${safeName}-practice-answers.txt`;
+    anchor.download = buildPracticeAnswerFilename(chapterTitle);
     document.body.appendChild(anchor);
     anchor.click();
     anchor.remove();
-    URL.revokeObjectURL(url);
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
   function toggleAttempted() {
