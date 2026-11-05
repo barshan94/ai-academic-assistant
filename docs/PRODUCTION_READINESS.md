@@ -388,14 +388,11 @@ Fresh read-only hosted Supabase inspection on 2026-11-03 confirms project `acade
 
 - [x] Document Supabase Free backup limitations and explicitly avoid claiming point-in-time recovery.
 - [x] Implement encrypted logical database export and archive integrity verification helpers.
-- [ ] Create a non-production encrypted backup, verify checksums with the separately stored age identity and copy the encrypted archive to two independent locations.
-- [ ] Rehearse roles/schema restore, Auth Admin API account recreation with original UUIDs/password hashes, and application-data restore in that order on a new isolated Supabase project.
-- [ ] Confirm source and target Auth password-hashing algorithms match; run the importer with the explicit `RESTORE_PASSWORD_HASH_ALGORITHM` acknowledgement and verify the restored owner can sign in with the original password. Separately account for sessions, phone-based sign-in, MFA, SSO and non-email identities that the current importer intentionally does not restore.
-- [ ] Verify the original Drive encryption key and all external credentials are recoverable from the approved secret store.
-- [ ] Define and approve recovery-point and recovery-time objectives based on actual backup cadence and measured restore time.
-- [ ] Complete a restore drill and record the evidence, gaps and corrective actions.
+- [x] Owner decision (2026-11-05): skip the separate-database backup/restore rehearsal; it is outside the requested project scope. Do not create another Supabase project or database for this purpose.
+- [x] Keep the encrypted logical-export and archive-verification helpers as optional recovery tooling; their existence does not establish a tested restore.
+- [ ] Create an operational backup of the live project before any separately approved production migration, using the approved backup procedure and secure storage. This is distinct from the excluded isolated restore drill.
 
-**Hard limitation:** The Supabase CLI logical dump still excludes managed Auth. The backup helper now exports supported email/password account records separately and `scripts/restore-auth-users.mjs` recreates them through the Auth Admin API with original UUIDs and compatible password hashes. The importer intentionally excludes sessions, MFA, SSO, anonymous and non-email identity accounts. Storage objects, project settings and external Google Drive files also remain outside the archive. The full restore remains unproven until an isolated Free-plan restore drill and original-password sign-in succeed.
+**Scope note:** The owner explicitly excluded the isolated restore drill. It is not a current project completion blocker and must not be attempted unless the owner later requests it. No restore capability is claimed or certified by this scope decision.
 
 ## 9. Release and post-release
 
@@ -519,3 +516,8 @@ The previous dated snapshots below are historical. On feature head `ebf318d96a20
 The prior database failure on `aee8269` was fixed by closing four malformed pgTAP SQL dollar-quote delimiters in commit `ebf318d`; the new isolated database workflow passes.
 
 The full development dependency audit still reports 13 moderate transitive minimatch advisory instances in the legacy ESLint dependency graph. Production-only audit is clean. ERR-124 remains open; no incompatible override or force-upgrade was applied. All external/runtime release gates below remain open unless separately supported by evidence. A successful isolated CI run is not production approval.
+
+
+## Superseding owner scope decision — 2026-11-05
+
+The separate-database backup/restore drill is **SKIPPED BY OWNER** and removed from current project release blockers. Do not create another database for it. This does not waive the ordinary requirement to take a protected backup immediately before a separately approved production migration, and it does not claim that disaster recovery has been tested. Older historical checkpoint references to an isolated restore drill are superseded by this decision.
