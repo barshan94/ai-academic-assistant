@@ -5,6 +5,7 @@ import { signOut } from "../actions";
 import { createChapterNoteDraft, generateChapterNoteDraft, updateChapterNoteStatus } from "./actions";
 import PrintNotesButton from "./print-notes-button";
 import DownloadChapterNoteButton from "./download-note-button";
+import PracticeSession from "./practice-session";
 import { checkFormulaSyntax } from "@/lib/ai/formula-checks";
 
 type PageProps = { searchParams: Promise<{ create?: string; status?: string; ai?: string }> };
@@ -145,6 +146,8 @@ export default async function ChapterWorkspacePage({ searchParams }: PageProps) 
                   </div>
                   <h3>{chapter.chapter_code ? chapter.chapter_code + " · " : ""}{chapter.title}</h3>
                   <p className="question-card-meta">{chapterQuestions.length} linked questions · {chapterNotes.length} note versions</p>
+
+                  <PracticeSession questions={chapterQuestions.map((question) => ({ id: question.id, questionNumber: question.question_number, questionText: question.question_text }))} />
 
                   <form action={generateChapterNoteDraft} className="chapter-ai-generate-form">
                     <input type="hidden" name="catalogId" value={chapter.catalog_id} />
