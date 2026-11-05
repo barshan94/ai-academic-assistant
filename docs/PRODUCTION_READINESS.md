@@ -1,3 +1,41 @@
+# Current release checkpoint — 2026-11-05 (exact feature head 64faccf356a9cccbce32e4434007f21aa2b06728)
+
+This section supersedes older status snapshots in this document when describing the current feature-branch verification. Historical entries below remain historical evidence and must not be treated as the current state.
+
+## Current automated evidence
+
+All six GitHub checks completed successfully on the exact head above:
+
+- [x] Foundation: lint, type checks, unit tests, production build and Chromium browser smoke.
+- [x] Local Supabase migration replay and pgTAP/database authorization.
+- [x] Authenticated two-account Supabase acceptance.
+- [x] Full repository-history secret scan.
+- [x] Vercel Preview feedback check.
+- [x] Vercel Preview deployment is **READY** for this exact commit: [open current Preview](https://ai-academic-assistant-l0qfi6ygb-barshan-s-team.vercel.app).
+
+The latest test commit adds regression coverage for rejecting a non-PDF first upload chunk before contacting Drive and rejecting an invalid SHA-256 checksum before quota consumption or Drive session creation.
+
+## Release decision
+
+**NOT APPROVED FOR PRODUCTION.** Green CI and a READY Preview do not prove that live integrations, operational recovery, accessibility, academic quality or legal/privacy controls have been accepted.
+
+PR #1 remains open, draft and unmerged. The deployment above is a Preview (target is null), not Production. No Production deployment, production database change, merge, paid upgrade or data reset was performed.
+
+## Remaining release gates
+
+- [ ] Exercise Google Drive upload end-to-end with a real authorized test account: larger PDF, interrupted upload, resume from Drive-confirmed offset, expired session, duplicate handling, original-PDF byte equality/SHA-256, and cross-account denial.
+- [ ] Exercise the authenticated worker route with a controlled non-production job, including concurrent claims, provider/OCR failure, retry exhaustion, stale-lease recovery and failure-persistence failure. The checked-in workflow is manual-dispatch only; do not infer scheduler readiness.
+- [ ] Complete an encrypted backup and full restore rehearsal on a separate isolated Free-plan target. Do not overwrite the existing academic-assistant or durga-map projects.
+- [ ] Complete manual keyboard, screen-reader, contrast, zoom/reflow and real Android-device accessibility acceptance.
+- [ ] Obtain qualified teacher review of current Cambridge/Edexcel syllabus mappings and independently graded English/Bengali answers.
+- [ ] Approve the AI provider, model, data-processing/retention terms and explicit spend limit; configure credentials only after approval. AI generation remains intentionally disabled until this is done.
+- [ ] Complete privacy/legal review against the final provider and data-flow configuration, publish a responsible contact channel, and assign primary/backup operators.
+- [ ] Resolve the Supabase Free-plan leaked-password-protection limitation with an accepted mitigation or an explicitly approved plan decision. Do not claim the hosted setting is enabled.
+- [ ] Review hosted migration-history/schema parity and complete any approved non-production reconciliation before planning a production migration.
+
+Do not merge or deploy Production until every mandatory release gate has documented evidence and the release owner explicitly approves the immutable commit. No production deployment is authorized by this checkpoint.
+
+---
 ## Superseding exact-head release checkpoint — 2026-11-05 (commit `36436b4094f8b7fb97078769151f5760dfc4ae00`)
 
 All six GitHub checks for this exact feature-branch head completed successfully:
