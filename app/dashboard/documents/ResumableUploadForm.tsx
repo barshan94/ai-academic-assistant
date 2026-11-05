@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { normalizeFilesToPdf } from "@/lib/documents/normalize-to-pdf";
 import { MAX_UPLOAD_BYTES, MAX_IMAGE_COUNT, DRIVE_UPLOAD_CHUNK_BYTES } from "@/lib/documents/upload-limits";
+import { queryResumableUploadStatus } from "@/lib/documents/resumable-upload-client";
 
 const STORAGE_PREFIX = "academic-assistant-upload:";
 
@@ -114,19 +115,12 @@ export function ResumableUploadForm({ disabled }: { disabled: boolean }) {
       // its response. Ask Drive for its authoritative offset before resending.
       if (isResumingStoredSession) {
         setMessage("Checking the last confirmed upload position…");
-        const statusResponse = await fetch("/api/documents/upload/resumable/chunk", {
-          method: "POST",
-          headers: {
-            "X-Upload-Session": stored.sessionToken,
-            "Content-Range": `bytes */${normalized.bytes.byteLength}`,
-          },
-        });
-        const status = await readJson(statusResponse);
-        complete = status.complete === true;
-        offset = typeof status.nextOffset === "number" ? status.nextOffset : 0;
-        if (!Number.isSafeInteger(offset) || offset < 0 || offset > normalized.bytes.byteLength) {
-          throw new Error("Google Drive returned an invalid resume position. The upload was stopped safely.");
-        }
+        const status = await queryResumableUploadStatus(
+          stored.sessionToken,
+          normalized.bytes.byteLength,
+        );
+        complete = status.complete;
+        offset = status.nextOffset;
         setProgress(Math.min(100, Math.floor((offset / normalized.bytes.byteLength) * 100)));
       }
 
@@ -156,30 +150,22 @@ export function ResumableUploadForm({ disabled }: { disabled: boolean }) {
           if (retries >= 2) throw uploadError;
           retries += 1;
           setMessage("Connection interrupted. Checking the last confirmed upload position…");
-          const statusResponse = await fetch("/api/documents/upload/resumable/chunk", {
-            method: "POST",
-            headers: {
-              "X-Upload-Session": stored.sessionToken,
-              "Content-Range": `bytes */${normalized.bytes.byteLength}`,
-            },
-          });
-          const status = await readJson(statusResponse);
-          complete = status.complete === true;
-          offset = typeof status.nextOffset === "number" ? status.nextOffset : 0;
+          const status = await queryResumableUploadStatus(
+            stored.sessionToken,
+            normalized.bytes.byteLength,
+          );
+          complete = status.complete;
+          offset = status.nextOffset;
         }
         setProgress(Math.min(100, Math.floor((offset / normalized.bytes.byteLength) * 100)));
         setMessage(complete ? "Document archived and queued for processing." : `Uploading… ${Math.round((offset / normalized.bytes.byteLength) * 100)}%`);
       }
 
       if (!complete) {
-        const statusResponse = await fetch("/api/documents/upload/resumable/chunk", {
-          method: "POST",
-          headers: {
-            "X-Upload-Session": stored.sessionToken,
-            "Content-Range": `bytes */${normalized.bytes.byteLength}`,
-          },
-        });
-        const status = await readJson(statusResponse);
+        const status = await queryResumableUploadStatus(
+          stored.sessionToken,
+          normalized.bytes.byteLength,
+        );
         if (!status.complete) throw new Error("The upload is not complete yet. Try again to resume it.");
       }
 
