@@ -581,3 +581,16 @@ h2 { font-size: 24px; letter-spacing: -.04em; margin: 0; font-weight: 600; }
     background: Canvas;
   }
 }
+
+
+/* Honour the user's reduced-motion preference across all workspace modules. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
