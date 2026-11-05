@@ -134,3 +134,34 @@ test("mobile landing and login layouts fit a narrow viewport with usable form ta
   }));
   expect(loginWidth.scrollWidth).toBeLessThanOrEqual(loginWidth.clientWidth);
 });
+
+
+test("liveness endpoint returns only a non-cacheable status", async ({ page }) => {
+  const response = await page.request.get("/api/health");
+  expect(response.status()).toBe(200);
+  expect(response.headers()["cache-control"]).toContain("no-store");
+  expect(await response.json()).toEqual({ status: "ok" });
+});
+
+test("readiness endpoint rejects missing and invalid credentials without leaking configuration", async ({ page }) => {
+  const missing = await page.request.get("/api/health/ready");
+  expect(missing.status()).toBe(401);
+  expect(missing.headers()["cache-control"]).toContain("no-store");
+  expect(await missing.json()).toEqual({ status: "unauthorized" });
+
+  const invalid = await page.request.get("/api/health/ready", {
+    headers: { authorization: "Bearer definitely-not-the-cron-secret" },
+  });
+  expect(invalid.status()).toBe(401);
+  expect(invalid.headers()["cache-control"]).toContain("no-store");
+  expect(await invalid.json()).toEqual({ status: "unauthorized" });
+});
+
+test("privacy notice is publicly reachable and states current service limitations", async ({ page }) => {
+  const response = await page.goto("/privacy");
+  expect(response?.status()).toBe(200);
+  await expect(page.getByRole("heading", { name: /your academic data deserves/i })).toBeVisible();
+  await expect(page.getByText(/does not publish a fixed log-retention period/i)).toBeVisible();
+  await expect(page.getByText(/has not been approved for production use/i)).toBeVisible();
+  await expect(page.getByRole("link", { name: /privacy notice/i })).toHaveCount(0);
+});
