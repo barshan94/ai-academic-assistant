@@ -64,3 +64,14 @@ export function buildPracticeAnswerSheet(
   }
   return lines.join("\n");
 }
+
+export function buildPracticeAnswerFilename(chapterTitle: string): string {
+  const safeName = chapterTitle
+    .normalize("NFKC")
+    .toLocaleLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 48)
+    .replace(/-+$/g, "");
+  return `${safeName || "chapter"}-practice-answers.txt`;
+}
