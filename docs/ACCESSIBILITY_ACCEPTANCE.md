@@ -74,3 +74,10 @@ No critical or high issue may remain open for release. Record each defect with r
 | Real Android device acceptance | NOT ASSIGNED | | NOT RUN |
 
 Do not mark this document complete merely because automated accessibility or keyboard smoke tests pass. A named tester must complete the matrix and attach sanitized evidence.
+
+
+## Exact-head automated regression — 2026-11-05
+
+- Tested commit: `813589dd4ece3e03aa0a0414d70d3a84ae06da88`.
+- [x] Reduced-motion browser regression passed on this exact commit as part of the six successful GitHub checks. The test verifies animation duration, iteration count, transition duration and scroll behavior under `prefers-reduced-motion: reduce`.
+- [ ] Manual keyboard-only, NVDA, TalkBack, contrast, 200% zoom/reflow and real Android device acceptance remain NOT RUN. Automated smoke tests do not replace these human checks.
