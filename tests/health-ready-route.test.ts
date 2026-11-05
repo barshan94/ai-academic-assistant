@@ -114,4 +114,19 @@ describe("GET /api/health/ready", () => {
     expect(await response.json()).toEqual({ status: "not_ready" });
     expect(probeCount).toBe(5);
   });
+  it("fails closed when a database readiness probe throws unexpectedly", async () => {
+    createClientMock.mockReturnValue({
+      from: vi.fn(() => ({
+        select: vi.fn(() => ({
+          limit: vi.fn().mockRejectedValue(new Error("private network and database details")),
+        })),
+      })),
+    });
+
+    const response = await GET(authorizedRequest());
+
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({ status: "not_ready" });
+  });
+
 });
