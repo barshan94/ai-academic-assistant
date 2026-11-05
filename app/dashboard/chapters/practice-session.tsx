@@ -66,7 +66,7 @@ export default function PracticeSession({ questions }: { questions: PracticeQues
             <button className="primary-action" type="button" disabled={index >= queue.length - 1} onClick={() => setIndex((value) => Math.min(queue.length - 1, value + 1))}>Next question →</button>
           </div>
           {progress.remaining === 0 ? <p className="notice notice-info" role="status">Every question has been marked attempted. Review your working against the original source material.</p> : null}
-          {index === queue.length - 1 ? <button className="sign-in-link" type="button" onClick={() => { setStarted(false); setQueue([]); setAttempted(new Set()); setIndex(0); }}>End session</button> : null}
+          <button className="sign-in-link" type="button" onClick={() => { setStarted(false); setQueue([]); setAttempted(new Set()); setIndex(0); }}>End session</button>
         </div>
       ) : null}
     </section>
