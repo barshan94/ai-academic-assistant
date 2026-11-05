@@ -623,3 +623,15 @@ The full development dependency audit still reports 13 moderate transitive minim
 ## Superseding owner scope decision — 2026-11-05
 
 The separate-database backup/restore drill is **SKIPPED BY OWNER** and removed from current project release blockers. Do not create another database for it. This does not waive the ordinary requirement to take a protected backup immediately before a separately approved production migration, and it does not claim that disaster recovery has been tested. Older historical checkpoint references to an isolated restore drill are superseded by this decision.
+
+
+## Exact-head product-readiness checkpoint — 2026-11-05
+
+Tested feature head: `813589dd4ece3e03aa0a0414d70d3a84ae06da88`.
+
+- [x] All six GitHub checks passed on this exact SHA: lint/type-check/unit/build and Chromium browser smoke; isolated Supabase migration/pgTAP; authenticated two-account invitation/review/revocation acceptance; repository-history secret scan; Vercel Preview feedback check.
+- [x] Reduced-motion support and its automated browser regression test are included in this head.
+- [x] Exact-head Vercel Preview deployment is READY: https://ai-academic-assistant-p6yj7f6ul-barshan-s-team.vercel.app
+- [x] PR #1 remains open, draft and unmerged. No Production deployment, Production environment change, production database change or paid provider activation was performed.
+
+This is a green feature-branch verification checkpoint, not production approval. Remaining release blockers include live Drive upload interruption/resume and worker failure/recovery acceptance; the worker has no recurring scheduler; AI provider/model, data-processing terms and spend limit remain unapproved; manual screen-reader/contrast/zoom/real-device accessibility checks remain unrun; official syllabus verification and independent subject grading remain incomplete; privacy/legal review, responsible contact channel and named primary/backup operators remain outstanding; and the production environment lacks required server-side configuration. Supabase Free leaked-password protection is unavailable at the current plan and remains a documented limitation. Do not merge or deploy Production until the owner-controlled gates are resolved and explicitly approved.
