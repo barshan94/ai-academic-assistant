@@ -6,7 +6,7 @@
 
 ## Superseding verification checkpoint — 2026-11-05
 
-This checkpoint supersedes all earlier status summaries below. Current feature branch head at this update: `fc8a88730afccbae944df45c23ed2f6f4940ae54`; PR #1 remains draft/open and unmerged.
+This checkpoint supersedes all earlier status summaries below. The application-code baseline verified before the latest documentation-only audit was `4e105458bff92365589cdca172c65209dccb5acb`; later documentation commits require their own CI confirmation. PR #1 remains draft/open and unmerged.
 
 ### Verified CI and dependency state
 - On commit `189c76f38f3942d4499afd41a592b72a0af7dce8`, Foundation, Database authorization, Secret scanning and authenticated two-account browser acceptance all passed. Foundation included lint, application/Playwright type checks, production environment preflight, production build, unit tests and Chromium smoke.
@@ -21,7 +21,8 @@ This checkpoint supersedes all earlier status summaries below. Current feature b
 - Supabase security advisor still reports the 14 authenticated-callable SECURITY DEFINER warnings and one actual Auth warning: leaked-password protection is disabled. Four RLS-enabled/no-policy quota-table notices correspond to private counters with no client grants.
 - Five missing child-side FK indexes were added in hosted migration `20261105020059_index_remaining_foreign_key_columns`, mirrored in the repository, and verified. A catalog query now reports **zero unindexed public foreign keys**; the performance advisor no longer reports that category. No unused indexes were dropped.
 - The hosted migration ledger has 102 entries and the repository has 102 migration files. Three older SQL-equivalent timestamp/name history mismatches remain. The guarded history-only reconciliation/dry-run workflow has not been dispatched in this session; no repair of those three entries is claimed.
-- Live aggregate data: one Drive connection; two completed worker jobs; four document pages; four documents (two ready, two review_required). This proves a prior OCR worker path, not full resumable-upload recovery, original-PDF round-trip acceptance or OCR accuracy.
+- Latest live aggregate data (2026-11-05): one Drive connection; three documents (one ready, two review_required); two completed jobs; three pages; zero queued/running/failed jobs. Two documents have Drive IDs and SHA-256/file-size integrity metadata. This proves prior worker execution and persisted integrity metadata, not fresh resumable-upload recovery, original-PDF round-trip acceptance or OCR accuracy.
+- The checked-in `.github/workflows/document-worker.yml` currently exposes `workflow_dispatch` only. It does not define a recurring schedule; manual dispatch is required until a scheduler is deliberately integrated and verified.
 
 ### Remaining mandatory release gates
 1. Run the guarded non-production migration history reconciliation/dry-run for the three verified SQL-equivalent pairs and retain the workflow evidence.
