@@ -363,11 +363,11 @@ describe("document worker failure redaction", () => {
       maybeSingle: () => Promise<QueryResult>;
     };
     const queryFor = (result: QueryResult): QueryBuilder => {
-      const query = Object.assign(Promise.resolve(result), {
+      const query: QueryBuilder = Object.assign(Promise.resolve(result), {
         select: () => query,
         eq: (_column: string, _value: string) => query,
         maybeSingle: async () => result,
-      }) as QueryBuilder;
+      });
       return query;
     };
     const fromMock = vi.fn((table: string) => {
