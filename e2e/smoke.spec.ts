@@ -165,3 +165,23 @@ test("privacy notice is publicly reachable and states current service limitation
   await expect(page.getByText(/has not been approved for production use/i)).toBeVisible();
   await expect(page.getByRole("link", { name: /back to home/i })).toHaveAttribute("href", "/");
 });
+
+
+test("reduced-motion preference disables non-essential animation and transitions", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+  const motion = await page.evaluate(() => {
+    const style = getComputedStyle(document.documentElement);
+    return {
+      animationDuration: style.animationDuration,
+      animationIterationCount: style.animationIterationCount,
+      transitionDuration: style.transitionDuration,
+      scrollBehavior: style.scrollBehavior,
+    };
+  });
+
+  expect(motion.animationDuration).toBe("1e-05s");
+  expect(motion.animationIterationCount).toBe("1");
+  expect(motion.transitionDuration).toBe("1e-05s");
+  expect(motion.scrollBehavior).toBe("auto");
+});
