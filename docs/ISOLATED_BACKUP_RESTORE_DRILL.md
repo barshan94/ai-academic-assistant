@@ -2,6 +2,16 @@
 
 Status: **procedure prepared; execution not yet evidenced**.
 
+## Free-plan safety preflight — mandatory
+
+This drill must not consume a paid plan, overwrite an existing project, or put the current application data at risk.
+
+- The current `academic-assistant` project is the source/non-production application and is not a restore target. Never restore over it.
+- The separate `durga-map` project contains another application's data and is not a restore target. Do not pause, reset, repurpose or overwrite it.
+- Before creating any target, inspect the Supabase organization for an already-available isolated Free-plan project slot. Do not upgrade, add billing, or create a paid resource. If no safe isolated target is available without affecting either existing project, mark the drill **BLOCKED / NOT RUN** and stop. That is safer than pretending an in-place restore is acceptable.
+- The backup helper exports the selected source project's application data and supported Auth account hashes. Do not run it against a project containing real or private records for this drill. Use synthetic test records in a dedicated isolated source/target only.
+- A successful archive checksum is not a restore. Do not mark this release gate complete until a separate target has accepted the restore and the original test identity has signed in.
+
 This drill is an acceptance gate, not a claim that a backup has been restored. Run it only in an isolated, non-production Supabase project and a separate test Google account/Drive folder. Never paste passwords, service-role keys, OAuth secrets, encryption keys, backup files containing student data, or recovery codes into GitHub.
 
 ## Recovery assets and identity separation
@@ -25,13 +35,15 @@ The repository currently provides:
 
 The backup command requires Node.js, `supabase`, `age`, `psql`, `tar` and `sha256sum` (or `shasum`). Supply `SUPABASE_DB_URL`, `BACKUP_AGE_RECIPIENT` (the public recipient), and `BACKUP_PROJECT_REF` through the current shell's protected environment. Keep the matching age private identity in a separate secure location and set `AGE_IDENTITY_FILE` only when verifying. Never place either identity or database URL in command history or repository files.
 
-Before encryption, the helper validates the entire Auth export against the restore importer's supported email/password account contract. If any active Auth account is outside that scope (including phone, MFA, SSO, anonymous, external provider or unsupported password hash), the backup fails closed instead of creating an archive that cannot complete Auth recovery.\n\nThe helper explicitly excludes Auth sessions/tokens, MFA factors, SSO and non-email external identities, Supabase Storage objects, project settings and external Drive files. The original PDF files remain in Google Drive. It exports email/password account hashes for a separate Auth Admin API recreation path; this is not the same as restoring managed Auth tables. Confirm the current importer implementation and supported hash compatibility before using it. Do not claim phone, MFA, SSO or session continuity.
+Before encryption, the helper validates the entire Auth export against the restore importer's supported email/password account contract. If any active Auth account is outside that scope (including phone, MFA, SSO, anonymous, external provider or unsupported password hash), the backup fails closed instead of creating an archive that cannot complete Auth recovery.
+
+The helper explicitly excludes Auth sessions/tokens, MFA factors, SSO and non-email external identities, Supabase Storage objects, project settings and external Drive files. The original PDF files remain in Google Drive. It exports email/password account hashes for a separate Auth Admin API recreation path; this is not the same as restoring managed Auth tables. Confirm the current importer implementation and supported hash compatibility before using it. Do not claim phone, MFA, SSO or session continuity.
 
 ## Drill procedure
 
 ### A. Prepare isolation
 
-- Create a dedicated non-production Supabase project in the intended region; verify its project reference before any restore.
+- Complete the Free-plan safety preflight above. Use only an already-available isolated Free-plan target; if none exists without disturbing existing projects, stop and record BLOCKED / NOT RUN.
 - Use a separate test Google account and empty test Drive folder. Do not connect the production Drive account.
 - Deploy the exact candidate commit and apply its forward-only migrations to the isolated project.
 - Disable scheduled workers, outbound email, paid AI providers, web research and any production integrations.
@@ -39,10 +51,10 @@ Before encryption, the helper validates the entire Auth export against the resto
 
 ### B. Capture a recoverable backup
 
-- Create a provider-supported database backup/export using the documented Supabase backup method available to the project.
-- Preserve schema, data, indexes, constraints, RLS policies, grants and migration history. If the plan's backup mechanism omits any of these, capture the missing elements separately.
-- Export only synthetic test records for this drill. Include representative owner, question, answer, syllabus, teacher invitation/review, document metadata and job state records.
-- Store the backup encrypted in the approved backup location. Record a checksum and backup timestamp.
+- Populate the isolated source with synthetic test records only: owner, question, answer, syllabus, teacher invitation/review, document metadata and job state records. Do not copy real student or private owner data into the drill.
+- Run the repository helper `bash scripts/backup-supabase.sh` against that isolated source, using the protected environment-variable procedure in `docs/BACKUP_RESTORE.md`. Supabase Free does not provide automatic backups or point-in-time recovery; this is a manual logical export, not a provider snapshot.
+- Run `bash scripts/verify-backup.sh` with the separately stored age identity. Record the archive checksum and timestamp. This verifies archive integrity only.
+- Store the encrypted archive in the approved backup location, separate from the age private identity and the source database credentials.
 - Separately verify that the encryption-key escrow item exists and that access is restricted to its designated custodian. Do not print or log the key.
 
 ### C. Restore to the isolated target
@@ -66,7 +78,7 @@ Before encryption, the helper validates the entire Auth export against the resto
 
 The drill passes only if the restored database is usable, the original test identity signs in with its original password, RLS boundaries hold, and the original encryption identity can decrypt the restored test token. Record each result separately as PASS, FAIL or NOT RUN, with evidence references that contain no secrets.
 
-Record elapsed recovery time and data-loss window. If any check fails, record the failure, stop, repair the procedure and repeat from a fresh isolated target.
+Record elapsed recovery time and data-loss window. If any check fails, record the failure, stop, repair the procedure and repeat from a fresh isolated target. If the Free-plan safety preflight blocks the work, record the exact reason and leave every restore acceptance row as NOT RUN; do not downgrade the gate to a documentation-only pass.
 
 ## Acceptance record template
 
