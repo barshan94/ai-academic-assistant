@@ -1,5 +1,39 @@
 # Owner actions required before production
 
+## Superseding owner checkpoint — 2026-11-05
+
+The latest feature head is `34974141075e1c52df8ba22e29cba8dd230bc6f6`; PR #1 remains draft and unmerged.
+
+**Verified on this exact SHA**
+- Foundation `41882329396`: lint, type-checks, production preflight, production-only audit, build and 241 unit tests across 44 files passed.
+- Chromium smoke: 10 passed / 2 skipped.
+- Isolated database authorization `41882329455`: migration replay and pgTAP suite passed.
+- Authenticated owner/teacher acceptance `41882329427`: 2 passed.
+- Full-history secret scan `41882329409`: passed.
+- Production dependencies audit clean; 13 moderate development-toolchain minimatch findings remain (ERR-124).
+
+**Deployment**
+- The latest READY Preview with application code is commit `9d8303d30b506c3833c46d1f9ec9c2527b2e9583`.
+- The four commits from that Preview to current head contain only workflow/documentation changes; application source is unchanged.
+- The Vercel status check for the current SHA failed with a build-rate-limit response; no deployment exists for the exact current SHA. Production remains on the older `main` commit. Do not interpret the Vercel check as an application build failure.
+
+**Non-production Supabase**
+- Latest read-only inventory: 101 repository migration files, 101 hosted ledger entries, 98 exact matches and 3 timestamp/name mismatches with normalized SQL verified equivalent. No pending schema DDL was identified after those three history pairs are reconciled.
+- The guarded history-only reconciliation/dry-run workflow remains to be run; no hosted ledger or schema change is claimed.
+- Last inspected Auth setting: leaked-password protection disabled. Enable it before any production use.
+- Review the 14 authenticated-callable SECURITY DEFINER RPCs and five unindexed foreign keys; do not blindly convert functions or drop unused indexes.
+
+**Owner-controlled release blockers**
+1. Run the guarded non-production history-only reconciliation/dry-run and retain its output.
+2. Enable Supabase leaked-password protection and recheck Auth settings.
+3. Complete live Google Drive OAuth, upload/resume, OCR and actual worker-completion acceptance (a connected-account banner alone is insufficient).
+4. Approve an AI provider, model, data-processing terms and spending cap; then run and independently grade the cross-subject golden set.
+5. Complete encrypted backup plus isolated restore, including original-password sign-in and Drive-token decryption.
+6. Complete accessibility/device, official syllabus, independent answer-quality, privacy/legal and operator-assignment reviews.
+7. Resolve ERR-124 safely; do not force a breaking ESLint downgrade.
+8. Validate production-only environment variables and deployment configuration, then obtain explicit release approval before merging or deploying.
+
+
 ## Verified live status — 2026-11-04 (read-only)
 
 ### GitHub and Vercel
