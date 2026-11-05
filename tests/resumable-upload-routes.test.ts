@@ -161,6 +161,35 @@ describe("resumable upload route security boundaries", () => {
     expect(createSupabaseServiceRoleClientMock).not.toHaveBeenCalled();
   });
 
+  it("queries Drive for the authoritative offset without sending a chunk body", async () => {
+    getDriveAccessTokenMock.mockResolvedValue("drive-access-token");
+    sendResumablePdfChunkMock.mockResolvedValue({
+      status: 308,
+      range: "bytes=0-999",
+      file: null,
+    });
+
+    const response = await uploadChunk(makeRequest(
+      "/api/documents/upload/resumable/chunk",
+      {
+        headers: {
+          "x-upload-session": "opaque-encrypted-session",
+          "content-range": "bytes */1234",
+        },
+      },
+    ));
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ nextOffset: 1000, complete: false });
+    expect(sendResumablePdfChunkMock).toHaveBeenCalledWith({
+      accessToken: "drive-access-token",
+      sessionUri: validSession.sessionUri,
+      contentRange: "bytes */1234",
+      bytes: new Uint8Array(),
+    });
+    expect(createSupabaseServiceRoleClientMock).not.toHaveBeenCalled();
+  });
+
   it("rejects malformed chunk ranges before contacting Google Drive", async () => {
     const response = await uploadChunk(makeRequest(
       "/api/documents/upload/resumable/chunk",
