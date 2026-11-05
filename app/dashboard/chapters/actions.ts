@@ -4,9 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Json } from "@/types/database";
-import { consumeAIGenerationQuota } from "@/lib/security/ai-generation-quota";
-import { logSafeOperationalEvent } from "@/lib/observability/safe-log";
-import { AIConfigurationError, getAIProviderConfigs } from "@/lib/ai/provider";
+import { buildOfflineChapterNote } from "@/lib/ai/offline-chapter-notes";
 import { parseChapterNoteDraftInput, parseChapterNoteGenerationInput, parseChapterNoteStatusInput } from "@/lib/chapters/note-form";
 
 function lines(value: string, maxItems: number): string[] {
@@ -92,27 +90,11 @@ export async function generateChapterNoteDraft(formData: FormData) {
 
   const pageIds = Array.from(new Set(questions.map((question) => question.document_page_id).filter((id): id is string => Boolean(id))));
   const { data: pages, error: pageError } = pageIds.length
-    ? await supabase.from("document_pages").select("id,page_number,extracted_text,extraction_method").eq("owner_id", user.id).in("id", pageIds)
+    ? await supabase.from("document_pages").select("id,page_number,extracted_text,extraction_method")
+      .eq("owner_id", user.id).in("id", pageIds)
     : { data: [], error: null };
   if (pageError) redirect("/dashboard/chapters?ai=source_error");
   const pageMap = new Map((pages ?? []).map((page) => [page.id, page]));
-
-  // Avoid charging quota when no chapter-note provider is configured.
-  try {
-    getAIProviderConfigs("chapter-note");
-  } catch (error) {
-    if (error instanceof AIConfigurationError) redirect("/dashboard/chapters?ai=not_configured");
-    throw error;
-  }
-
-  const quota = await consumeAIGenerationQuota(supabase, "ai-chapter-note");
-  if (quota !== "allowed") {
-    logSafeOperationalEvent(quota === "limited" ? "ai_generation_quota_exhausted" : "ai_generation_quota_unavailable", {
-      route: "/dashboard/chapters",
-      errorCode: quota === "limited" ? "CHAPTER_NOTE_QUOTA_REACHED" : "CHAPTER_NOTE_QUOTA_RPC_FAILED",
-    });
-    redirect("/dashboard/chapters?ai=" + (quota === "limited" ? "rate_limited" : "rate_limit_unavailable"));
-  }
 
   const sources = questions.map((question, index) => {
     const page = question.document_page_id ? pageMap.get(question.document_page_id) : undefined;
@@ -129,22 +111,16 @@ export async function generateChapterNoteDraft(formData: FormData) {
   });
 
   let generated;
-  let generationMetadata: { provider: string; model: string } | null = null;
   try {
-    const { generateChapterNoteWithRouting } = await import("@/lib/ai/chapter-notes");
-    const routed = await generateChapterNoteWithRouting({
+    generated = buildOfflineChapterNote({
       board: catalog.board,
       qualification: catalog.qualification,
       subject: catalog.subject,
       chapter: chapter.title,
       sources,
     });
-    generated = routed.note;
-    generationMetadata = { provider: routed.config.provider, model: routed.config.model };
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "AI_GENERATION_FAILED";
-    logSafeOperationalEvent("ai_generation_failed", { route: "/dashboard/chapters", errorCode: "CHAPTER_NOTE_GENERATION_FAILED" });
-    redirect("/dashboard/chapters?ai=" + (message === "AI_NOT_CONFIGURED" ? "not_configured" : "failed"));
+  } catch {
+    redirect("/dashboard/chapters?ai=invalid_sources");
   }
 
   const content: Json = {
@@ -153,18 +129,12 @@ export async function generateChapterNoteDraft(formData: FormData) {
     formulas: generated.formulas,
     workedExamples: generated.workedExamples,
     revisionPrompts: generated.revisionPrompts,
-    generatedBy: "ai",
-    reviewRequired: true,
-    sourceReferences: sources.map((source) => ({
-      ref: source.ref,
-      questionId: source.questionId,
-      pageId: source.pageId,
-      pageNumber: source.pageNumber,
-      extractionMethod: source.extractionMethod,
-    })),
-    generationProvider: generationMetadata?.provider ?? "unknown",
-    generationModel: generationMetadata?.model ?? "unknown",
+    generatedBy: "offline-extractive",
+    generationProvider: "local-no-api",
+    generationModel: "deterministic-source-extraction-v1",
     verificationStatus: "not_independently_verified",
+    reviewRequired: true,
+    sourceReferences: generated.sourceReferences,
   };
 
   const { data: noteId, error: saveError } = await supabase.rpc("create_chapter_note_draft", {
@@ -179,7 +149,7 @@ export async function generateChapterNoteDraft(formData: FormData) {
   if (saveError || !noteId) redirect("/dashboard/chapters?ai=save_failed");
 
   revalidatePath("/dashboard/chapters");
-  redirect("/dashboard/chapters?ai=generated");
+  redirect("/dashboard/chapters?ai=offline_generated");
 }
 
 export async function updateChapterNoteStatus(formData: FormData) {
