@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getPracticeProgress, shufflePracticeQuestions, type PracticeQuestion } from "@/lib/chapters/practice-session";
+import { buildPracticeAnswerSheet, getPracticeProgress, shufflePracticeQuestions, type PracticeQuestion } from "@/lib/chapters/practice-session";
 
 const questions: PracticeQuestion[] = [
   { id: "q1", questionNumber: "1", questionText: "First question" },
@@ -46,6 +46,31 @@ describe("free local practice session helpers", () => {
       needsReview: 1,
       percent: 67,
     });
+  });
+
+  it("exports each question, working and honest self-assessment without grading claims", () => {
+    const output = buildPracticeAnswerSheet(
+      "Forces and motion",
+      questions,
+      { q1: "F = ma\\n2 × 3 = 6 N", q3: "Need to review this" },
+      new Set(["q1", "q3"]),
+      new Set(["q1"]),
+    );
+    expect(output).toContain("Forces and motion");
+    expect(output).toContain("Personal practice answer sheet");
+    expect(output).toContain("Self-assessment only; answers have not been graded or verified.");
+    expect(output).toContain("2 × 3 = 6 N");
+    expect(output).toContain("Self-assessment: Confident");
+    expect(output).toContain("Self-assessment: Needs more practice");
+    expect(output).toContain("Question 3");
+    expect(output).not.toContain("Correct answer");
+  });
+
+  it("exports a safe default title and empty-work placeholders", () => {
+    const output = buildPracticeAnswerSheet(" ", [questions[0]], {}, new Set(), new Set());
+    expect(output.startsWith("Chapter practice\\n")).toBe(true);
+    expect(output).toContain("(No working entered)");
+    expect(output).toContain("Not marked attempted");
   });
 
   it("handles empty progress without dividing by zero", () => {
