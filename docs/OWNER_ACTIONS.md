@@ -1,3 +1,7 @@
+## Worker workflow hardening — 2026-11-05
+
+The manual document-worker workflow now validates the response shape rather than treating any HTTP 2xx as successful processing. It distinguishes a completed document (and reports only the bounded page count) from an empty queue/no claimable job, rejects malformed or failed outcomes, and never prints the raw response, internal job ID or error text into GitHub Actions logs. The workflow remains `workflow_dispatch` only; this change does not enable a recurring schedule or prove live worker recovery. A real invocation still requires verified non-production `APP_BASE_URL` and matching `CRON_SECRET` repository secrets, plus live fault-injection acceptance.
+
 # Owner actions required before production
 
 ## Release-gate correction — 2026-11-05
