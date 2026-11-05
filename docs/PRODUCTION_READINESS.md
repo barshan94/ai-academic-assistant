@@ -1,3 +1,31 @@
+# Superseding verification — 2026-11-05 21:35 Asia/Dhaka (feature head `a6e043b56c58a338eece9b2b017f14cdafe114e8`)
+
+This dated entry supersedes earlier "current" references in this document.
+
+## Verified on this exact head
+
+- [x] Foundation checks — [run 42054645868](https://github.com/barshan94/ai-academic-assistant/actions/runs/42054645868).
+- [x] Database authorization / local migrations and pgTAP — [run 42054645918](https://github.com/barshan94/ai-academic-assistant/actions/runs/42054645918).
+- [x] Authenticated browser acceptance — [run 42054646082](https://github.com/barshan94/ai-academic-assistant/actions/runs/42054646082).
+- [x] Full-history secret scan — [run 42054645883](https://github.com/barshan94/ai-academic-assistant/actions/runs/42054645883).
+- [x] Vercel Preview feedback check passed with no unresolved feedback.
+- [x] Vercel Preview deployment is READY from this exact SHA: https://ai-academic-assistant-jwj0v3x4p-barshan-s-team.vercel.app (Preview only).
+- [x] Vercel runtime error-cluster scan returned no errors in the preceding 24 hours. This is an error-cluster scan, not a full functional acceptance test.
+
+## Current hosted security/performance observations
+
+- Security advisor: 14 authenticated-callable SECURITY DEFINER warnings (previously reviewed as intentional owner-scoped functions with auth checks and restricted grants); four informational RLS/no-policy notices for private quota tables; leaked-password protection remains disabled.
+- Performance advisor: 48 informational unused-index notices. Do not remove indexes solely on this signal.
+- No production database or environment changes were made.
+
+## Release decision
+
+**NOT APPROVED FOR PRODUCTION.** PR #1 remains open, draft and unmerged. Production server-side environment variables are still incomplete. Live Drive recovery and authenticated worker fault/retry acceptance, owner-controlled Production secrets/OAuth setup, provider and spend approval, independent academic grading, privacy/legal/accessibility acceptance, operational ownership, Supabase Free leaked-password mitigation, and hosted migration parity remain open. The separate-database backup/restore rehearsal remains skipped by owner instruction.
+
+No merge, Production deployment, Production environment change, paid upgrade, database reset, migration-ledger repair, or data overwrite was performed. Do not promote this branch based on CI/Preview alone.
+
+---
+
 # Superseding current release status — 2026-11-05 (feature head `648e8d3cae0ec360846294cebad555cf62652072`)
 
 This section supersedes every older exact-head status below.
