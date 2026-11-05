@@ -1,3 +1,18 @@
+## Latest exact-head verification — 2026-11-05 (commit `1e0c04744791eeead74ba7abd61f07d122ed4eba`)
+
+- [x] Foundation checks passed (run `41971115856`): ESLint, application and Playwright type-checks, unit tests, production build, and Chromium browser smoke tests.
+- [x] Isolated database authorization workflow passed (run `41971115839`): local Supabase migrations and pgTAP authorization suite.
+- [x] Authenticated two-account browser acceptance passed (run `41971115790`).
+- [x] Secret scanning passed (run `41971115872`).
+- [x] Workflow-trigger optimization and readiness-document updates are included in this exact-head checkpoint.
+- [ ] Live non-production log-sink inspection, authenticated worker POST evidence, worker concurrency/retry/recovery fault injection, resumable-upload interruption/integrity, isolated restore, accessibility, academic-quality and privacy/legal gates remain open.
+- [ ] Vercel deployment remains deferred due the account build-rate limit. Do not pay to bypass it or repeatedly retry; deployment remains the final step after all other gates.
+- PR #1 remains draft/open and unmerged. No Production deployment or production database change was made.
+
+**Decision: NOT APPROVED FOR PRODUCTION.** These green checks validate the exact feature-branch checkpoint only; they do not close the live integration, operational, human-review or release-approval gates.
+
+---
+
 ## Latest exact-head verification — 2026-11-05 (commit `97bd02126b3994442f5533b6a3e6f5bb39519112`)
 
 - [x] Foundation checks passed (GitHub Actions run `41970441472`, #2958).
