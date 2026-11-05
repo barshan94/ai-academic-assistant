@@ -1,5 +1,19 @@
 # Owner actions required before production
 
+## Superseding live checkpoint — 2026-11-05 (latest connector verification)
+
+This note supersedes older counts and status statements later in this file.
+
+- PR #1 head is `4e105458bff92365589cdca172c65209dccb5acb`, still open, draft and unmerged. On this exact SHA, Foundation, Database authorization, Authenticated browser acceptance and Secret scanning all completed successfully.
+- The connected non-production database currently has 1 Drive connection, 3 documents, 2 processing jobs (both completed), 3 document pages, 1 ready document and 2 review-required documents. There are no queued, running or failed jobs. Two Drive-backed documents have a stored Drive file ID, SHA-256 and positive original file size.
+- These database counts prove stored records and completed OCR jobs, not that a fresh upload interruption/resume was exercised, that original-PDF retrieval was byte-for-byte checked in a live browser, or that OCR was independently graded.
+- Vercel reports no runtime error clusters in the last 24 hours. The Hobby plan retains runtime logs for only one hour, so a 24-hour individual log review is unavailable; a recent 30-minute Preview path query returned no log groups. This is not proof that every route was exercised.
+- The latest migration inventory is 102 repository files and 102 hosted ledger entries. The three documented SQL-equivalent version/name mismatches remain; the guarded reconciliation workflow has not been dispatched.
+- No production deployment, production migration, PR merge, secret decryption or credential change was performed.
+
+**Next safe work:** finish the live Google Drive original-PDF and interrupted-upload acceptance, then the remaining Auth, AI, backup/restore, accessibility, academic and privacy gates. Do not call the application production-ready until those are evidenced.
+
+
 ## Superseding owner checkpoint — 2026-11-05
 
 
