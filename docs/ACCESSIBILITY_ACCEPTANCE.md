@@ -1,3 +1,11 @@
+## Automated implementation update — 2026-11-05
+
+- Commit `84d77db35652ad7ef0d83e98b0b12f34a87a4a4f` adds explicit progressbar semantics to the resumable document upload progress indicator: accessible name, min/max/current values and percentage text.
+- The exact-head Foundation workflow, including Chromium browser smoke tests, passed (run [41974968118](https://github.com/barshan94/ai-academic-assistant/actions/runs/41974968118)).
+- This does **not** establish that NVDA, TalkBack, contrast, zoom/reflow, keyboard-only or real-device checks passed. The manual acceptance matrix below remains NOT RUN and must not be marked complete based on CI.
+
+---
+
 # Accessibility acceptance
 
 Status: automated keyboard/mobile smoke checks are not equivalent to full accessibility acceptance. Screen-reader, contrast and real-device checks remain **NOT RUN** until recorded by a human tester.
