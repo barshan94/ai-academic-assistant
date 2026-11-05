@@ -59,7 +59,7 @@ The extraction route has a three-attempt limit and a 100-page extracted-text lim
 - Temporary Google Docs created for extraction are deleted after export.
 - Supabase stores metadata, extracted text and review state; the original PDF remains in the user's Drive.
 - A disconnect action attempts to revoke the Google refresh token and removes the local encrypted token.
-- Resumable uploads are implemented for normalized PDFs up to 50 MB in 1 MB chunks. The background worker is implemented and scheduled through GitHub Actions; it still requires deployment configuration and a non-production acceptance run before it is considered operational.
+- Resumable uploads are implemented for normalized PDFs up to 50 MB in 1 MB chunks. The background worker is implemented, but the checked-in GitHub Actions workflow currently supports manual `workflow_dispatch` only; it does not yet run on a recurring schedule. Worker deployment configuration and non-production acceptance are still required before it is considered operational.
 
 ## Troubleshooting
 
