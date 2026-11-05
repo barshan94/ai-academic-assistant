@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildPracticeAnswerSheet, getPracticeProgress, shufflePracticeQuestions, type PracticeQuestion } from "@/lib/chapters/practice-session";
+import { buildPracticeAnswerFilename, buildPracticeAnswerSheet, getPracticeProgress, shufflePracticeQuestions, type PracticeQuestion } from "@/lib/chapters/practice-session";
 
 const questions: PracticeQuestion[] = [
   { id: "q1", questionNumber: "1", questionText: "First question" },
@@ -58,6 +58,12 @@ describe("free local practice session helpers", () => {
     expect(output.startsWith("Chapter practice\n")).toBe(true);
     expect(output).toContain("(No working entered)");
     expect(output).toContain("Not marked attempted");
+  });
+
+  it("creates safe Unicode filenames without losing Bengali chapter titles", () => {
+    expect(buildPracticeAnswerFilename("পদার্থবিজ্ঞান / বল ও গতি")).toBe("পদার্থবিজ্ঞান-বল-ও-গতি-practice-answers.txt");
+    expect(buildPracticeAnswerFilename("../../")).toBe("chapter-practice-answers.txt");
+    expect(buildPracticeAnswerFilename("A".repeat(100))).toBe(`${"a".repeat(48)}-practice-answers.txt`);
   });
 
   it("handles empty progress without dividing by zero", () => {
