@@ -718,3 +718,9 @@ The Preview deployment for application-code commit `bfd34e3ad5c2df6fc371595114ad
 
 Read-only Vercel environment inventory (values were not decrypted or displayed): Production currently contains only `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. The branch-scoped Preview environment contains the server-side `CRON_SECRET`, `SUPABASE_SERVICE_ROLE_KEY`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_DRIVE_REDIRECT_URI`, and `DRIVE_TOKEN_ENCRYPTION_KEY`. This is the intended non-production separation; it does not satisfy Production configuration. No AI provider key or search-provider key was added.
 
+
+
+## Latest read-only Drive/OCR inventory — 2026-11-06
+
+The existing non-production Supabase project currently reports one Drive connection, two processing jobs (both `completed`), three documents (one `ready`, two `review_required`) and three extracted pages. This count supersedes the older four-document/four-page snapshot in the historical checkpoint above. The completed jobs demonstrate that the worker can process a small happy-path sample; they do not validate resumable upload recovery, token refresh under failure, retry/dead-letter operations, OCR accuracy, or a recurring scheduler. The two review-required documents must not be treated as trusted source material until a teacher checks the extracted pages against their original PDFs.
+
