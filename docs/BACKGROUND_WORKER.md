@@ -1,6 +1,6 @@
 # Background document worker setup
 
-The feature branch includes a scheduled server-side worker at `POST /api/cron/process-documents`. It claims at most one job per invocation, uses conditional database updates to prevent duplicate claims, processes queued/failed jobs, reclaims stale running jobs after 15 minutes, and respects each job's `max_attempts` value.
+The feature branch includes a server-side worker endpoint at `POST /api/cron/process-documents`. It claims at most one job per invocation, uses conditional database updates to prevent duplicate claims, processes queued/failed jobs, reclaims stale running jobs after 15 minutes, and respects each job's `max_attempts` value.
 
 ## Required deployment environment
 
