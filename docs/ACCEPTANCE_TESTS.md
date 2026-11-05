@@ -263,3 +263,12 @@
 - [x] Live non-production processing evidence: two previously queued Drive-backed jobs now show `completed`, 100% progress and one attempt each; each has one persisted OCR page (1,298 and 573 extracted characters respectively). This confirms the worker pipeline has processed real archived PDFs and persisted page rows.
 - [ ] Explicitly invoke the authenticated worker POST and capture its HTTP response/job ID; the database state proves successful processing but does not by itself establish which trigger invoked the route.
 - [ ] Exercise concurrent claims, stale recovery, retry exhaustion and injected provider/OCR failures against the deployed non-production worker. Both observed pages are `review_required` with null OCR confidence, so human review is still required and this is not evidence of academic-content accuracy.
+
+
+## Worker operational logging and failure-persistence regressions — 2026-11-05
+
+- [x] Add focused tests proving operational logs emit only allow-listed metadata, reject malformed/sensitive field values, and keep expected quota exhaustion at warning level (`lib/observability/safe-log.test.ts`).
+- [x] Add worker route coverage proving upstream OCR exception details are not returned and only the generic failure code is persisted (`tests/document-worker-route.test.ts`).
+- [x] Add worker route coverage for the secondary failure path where persisting the failed job also errors; the response remains generic and does not expose database/provider details (`tests/document-worker-route.test.ts`).
+- [ ] Run Foundation CI on the exact latest commit and confirm these new tests, lint, TypeScript checks, build and browser smoke tests pass. No CI result is available for these latest commits yet.
+- [ ] Inspect emitted non-production log records and verify the deployed log sink retains no sensitive metadata beyond the documented allow-list.
