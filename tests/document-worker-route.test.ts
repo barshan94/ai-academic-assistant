@@ -85,6 +85,67 @@ describe("document worker route access and queue preflight", () => {
     expect(Number.isNaN(Date.parse(rpcMock.mock.calls[0][1].p_stale_before))).toBe(false);
   });
 
+  it("does not process a job when another worker wins the atomic claim race", async () => {
+    rpcMock
+      .mockResolvedValueOnce({
+        data: [{
+          id: "job-1",
+          document_id: "document-1",
+          owner_id: "owner-1",
+          status: "queued",
+          started_at: null,
+          attempt_count: 0,
+          max_attempts: 3,
+        }],
+        error: null,
+      })
+      .mockResolvedValueOnce({ data: false, error: null });
+
+    const response = await POST(request("Bearer test-cron-secret-with-sufficient-entropy"));
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ processed: false, reason: "no_claimable_job" });
+    expect(rpcMock).toHaveBeenCalledTimes(2);
+    expect(rpcMock).toHaveBeenNthCalledWith(2, "claim_document_processing_job", {
+      p_document_id: "document-1",
+      p_owner_id: "owner-1",
+      p_job_id: "job-1",
+      p_expected_status: "queued",
+      p_expected_attempt_count: 0,
+      p_expected_started_at: null,
+    });
+  });
+
+  it("terminalizes an exhausted stale job without attempting another claim", async () => {
+    const staleStartedAt = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+    rpcMock
+      .mockResolvedValueOnce({
+        data: [{
+          id: "job-exhausted",
+          document_id: "document-2",
+          owner_id: "owner-2",
+          status: "running",
+          started_at: staleStartedAt,
+          attempt_count: 3,
+          max_attempts: 3,
+        }],
+        error: null,
+      })
+      .mockResolvedValueOnce({ data: true, error: null });
+
+    const response = await POST(request("Bearer test-cron-secret-with-sufficient-entropy"));
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ processed: false, reason: "no_claimable_job" });
+    expect(rpcMock).toHaveBeenCalledTimes(2);
+    expect(rpcMock).toHaveBeenNthCalledWith(2, "terminalize_exhausted_stale_document_job", {
+      p_document_id: "document-2",
+      p_owner_id: "owner-2",
+      p_job_id: "job-exhausted",
+      p_expected_started_at: staleStartedAt,
+    });
+  });
+
   it("does not expose database queue errors to the caller", async () => {
     rpcMock.mockResolvedValue({ data: null, error: { message: "private database connection details" } });
 
