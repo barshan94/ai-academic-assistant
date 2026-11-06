@@ -42,7 +42,7 @@ export default function SolverWorkspace({ questions, solutions }: { questions: Q
       });
       const payload = await response.json() as { answer?: string; error?: string; reviewNotice?: string; solutionId?: string; verification?: string; arithmeticChecks?: Array<{ expression: string; passed: boolean }> };
       if (!response.ok) throw new Error(payload.error || "Request failed.");
-      setResult((payload.answer || "No answer returned.") + "\n\n" + (payload.reviewNotice || ""));
+      setResult((payload.answer || "No answer returned.") + "\n\n" + "Arithmetic scan: " + (payload.verification || "not_verified") + "\n" + (payload.arithmeticChecks || []).map((check) => check.expression + " — " + (check.passed ? "pass" : "FAIL")).join("\n") + "\n\n" + (payload.reviewNotice || ""));
       if (payload.solutionId) {
         const promptLabel = questionText || questions.find((question) => question.id === questionId)?.question_text || [subject, chapter].filter(Boolean).join(" · ") || "Generated study material";
         setHistory((items) => [{
@@ -51,6 +51,7 @@ export default function SolverWorkspace({ questions, solutions }: { questions: Q
           prompt_text: promptLabel,
           output_text: payload.answer || "",
           review_status: "needs_review",
+          verification_status: payload.verification || "not_verified",
           created_at: new Date().toISOString(),
         }, ...items].slice(0, 20));
       }
