@@ -286,17 +286,17 @@ export type Database = {
         Row: {
           id: string; owner_id: string; question_id: string | null; task_type: string;
           prompt_text: string; output_text: string; provider_model: string;
-          review_status: string; created_at: string;
+          review_status: string; verification_status: string; verification_details: Json; created_at: string;
         }
         Insert: {
           id?: string; owner_id: string; question_id?: string | null; task_type: string;
           prompt_text: string; output_text: string; provider_model: string;
-          review_status?: string; created_at?: string;
+          review_status?: string; verification_status?: string; verification_details?: Json; created_at?: string;
         }
         Update: {
           id?: string; owner_id?: string; question_id?: string | null; task_type?: string;
           prompt_text?: string; output_text?: string; provider_model?: string;
-          review_status?: string; created_at?: string;
+          review_status?: string; verification_status?: string; verification_details?: Json; created_at?: string;
         }
         Relationships: [
           {
