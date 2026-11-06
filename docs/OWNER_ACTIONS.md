@@ -1,3 +1,11 @@
+## Public-repository content exposure requiring owner confirmation — 2026-11-06
+
+The default branch `main` currently contains a binary PDF named `PXL_20261103_115517489~2.pdf` (439,083 bytes), introduced by commit [e175b802](https://github.com/barshan94/ai-academic-assistant/commit/e175b80209e7f045b4d079c05b4092f688e8df65). The repository is public. The file is therefore publicly retrievable. Its contents have not been inspected, and no claim is made that it contains personal or student information.
+
+**Owner action:** confirm whether this exact PDF was intentionally published and is safe for public distribution. If it was not intended to be public, remove it from the default branch and assess Git-history removal plus any necessary credential/privacy response. A normal file deletion does not remove historical copies. Do not rewrite public Git history or delete the file on the owner's behalf without explicit confirmation.
+
+This is a repository-exposure review item, not evidence that the PDF contains sensitive information. Until confirmed, do not upload additional private source documents to this public repository.
+
 ## Current authorization and scope — 2026-11-06
 
 This section supersedes every older checklist item below where it conflicts with the current owner instructions.
