@@ -77,7 +77,19 @@ describe("GET /api/health/ready", () => {
     const response = await GET(authorizedRequest());
 
     expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ status: "ready" });
+    expect(await response.json()).toEqual({
+      status: "ready",
+      checks: {
+        supabaseUrl: true,
+        supabasePublishableKey: true,
+        supabaseServiceRoleKey: true,
+        googleOAuth: true,
+        driveTokenEncryption: true,
+        workerSecret: true,
+        aiGeneration: "configured",
+        databaseAndWorkerSchema: true,
+      },
+    });
     expect(getAIProviderConfigsMock).toHaveBeenCalledWith("answer");
     expect(getAIProviderConfigsMock).toHaveBeenCalledWith("chapter-note");
     expect(createClientMock).toHaveBeenCalledOnce();
@@ -115,7 +127,7 @@ describe("GET /api/health/ready", () => {
     const response = await GET(authorizedRequest());
 
     expect(response.status).toBe(503);
-    expect(await response.json()).toEqual({ status: "not_ready" });
+    expect((await response.json()).status).toBe("not_ready");
     expect(createClientMock).not.toHaveBeenCalled();
   });
 
