@@ -25,7 +25,17 @@ Percentages are planned scope estimates, not completed progress.
 - Capture individual questions from teacher-reviewed document pages.
 - Store question text with source page/document provenance and optional board, qualification, subject, chapter and topic metadata.
 - Search the owner's question library and approve/reject captured records.
-- AI segmentation, classification and solution generation remain later M3 work.
+- AI question solving, suggested classification, chapter-note generation and revision-set generation now have an authenticated provider-backed workspace.
+- AI outputs are saved with owner-scoped RLS and a teacher review state; outputs are never promoted to verified automatically.
+- The current arithmetic scanner checks only explicit one-step numeric equalities. Full symbolic, dimensional, unit, diagram and marking-scheme verification remains open.
+
+## Current implementation snapshot (2026-11-06)
+- M3 is partially implemented; live AI provider acceptance is blocked until server-side free-provider credentials/model are configured.
+- M4 has a deliberately narrow arithmetic scan, not general mathematical verification.
+- Syllabus classification is currently a suggestion and must be checked against official board specifications; automated official-syllabus validation is not complete.
+- Chapter notes and revision sets can be generated from approved source questions; integration into versioned chapter-note and practice-set workflows still needs end-to-end acceptance.
+- AI output persistence, teacher approval/rejection, per-owner RLS and atomic generation quotas are implemented in the current database.
+- Full CI has not yet been confirmed for the latest changes. Do not release based on the earlier green run alone.
 
 ## M2 exit criteria
 - Google Drive OAuth is configured and live-tested with the owner's account.
