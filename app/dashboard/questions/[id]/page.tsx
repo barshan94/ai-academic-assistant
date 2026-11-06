@@ -1,3 +1,5 @@
+export const maxDuration = 60;
+
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
