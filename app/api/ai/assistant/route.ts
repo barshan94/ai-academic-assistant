@@ -82,8 +82,8 @@ export async function POST(request: Request) {
     context = [question.subject, question.qualification, question.chapter, question.topic].filter(Boolean).join(" · ");
   }
 
-  if (body.task === "solve" && questionText.length < 5) {
-    return NextResponse.json({ error: "Select a saved question or provide the question text." }, { status: 400 });
+  if ((body.task === "solve" || body.task === "classify") && questionText.length < 5) {
+    return NextResponse.json({ error: "Select a saved question or provide the question text for this task." }, { status: 400 });
   }
 
   if (body.task === "chapter_notes" && (!body.subject || !body.chapter)) {
