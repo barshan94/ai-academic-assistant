@@ -51,7 +51,7 @@ M1 10% foundation; M2 25% document intelligence; M3 45% solver; M4 58% verificat
   - 20261030093217 least_privilege_application_grants
 - RLS is enabled on profiles, documents, document_pages, processing_jobs, questions and drive_connections.
 - Composite foreign keys enforce same-owner relationships between documents and their pages, jobs and questions.
-- Security advisor reports no security lint findings. Performance advisor reports unused indexes on empty tables; no missing foreign-key indexes remain.
+- Earlier security advisor checks reported no findings for the original core tables. A later audit of the AI workspace still identified leaked-password protection disabled and SECURITY DEFINER warnings; the flagged functions were inspected for owner checks, but these warnings remain release items. Performance advisor reports unused indexes on empty tables; no missing foreign-key indexes remain.
 - Current app table grants: anon has no table privileges; authenticated has SELECT/INSERT/UPDATE on profiles and SELECT/INSERT/UPDATE/DELETE on document/page/job/question/Drive tables. TRUNCATE, REFERENCES and TRIGGER are not granted.
 - Default privileges are restricted for tables created by the postgres migration role. Supabase's provider-managed supabase_admin defaults were not changed; continue applying application migrations through the postgres migration path and inspect grants for any table created under another role.
 - Private email/password sign-in, protected dashboard, server-side user checks and sign-out are implemented. Middleware uses @supabase/ssr 0.12.7, getClaims and forwards auth cache headers.
@@ -60,9 +60,9 @@ M1 10% foundation; M2 25% document intelligence; M3 45% solver; M4 58% verificat
 - Supabase stores file metadata and extracted text; source PDFs are archived in the owner's Google Drive.
 - Google Drive OCR extraction creates a temporary Google Doc, exports text, then deletes the temporary Doc. Extracted text is editable page-by-page and requires explicit teacher review.
 - Document processing has a three-attempt limit and 100-page text cap; it is manually started from the library. No automatic background worker or resumable large-file upload exists yet.
-- Manual question capture is implemented: a teacher can create a question from a reviewed page, add board/qualification/subject/chapter/topic metadata, search the question library and approve/reject records. AI segmentation, classification, answering and verification are not implemented yet.
+- Manual question capture is implemented: a teacher can create a question from a reviewed page, add board/qualification/subject/chapter/topic metadata, search the question library and approve/reject records. AI-assisted classification suggestions and answer generation are implemented in the early AI workspace; automated question segmentation and comprehensive verification are not.
 - Unit tests cover PDF byte preservation, PNG conversion, multi-image PDF page count/order, filename sanitization, extracted-text splitting, refresh-token encryption/tamper rejection and question input validation.
-- Live Supabase sign-in, Google OAuth, Drive upload and OCR are NOT yet smoke-tested because owner environment credentials and a live authenticated test session have not been configured.
+- Full live acceptance of Supabase sign-in, Google OAuth, Drive upload, OCR, correction and disconnect remains incomplete. The owner previously reported that a Drive upload succeeded and the file appeared in Drive; that does not replace a complete end-to-end acceptance test.
 
 ## Environment requirements (never commit values)
 - NEXT_PUBLIC_SUPABASE_URL
@@ -91,3 +91,8 @@ M1 10% foundation; M2 25% document intelligence; M3 45% solver; M4 58% verificat
 - Applied Supabase migrations: `20261106154023_question_solutions` (temporary index/policy changes later cleaned up), `20261106154236_ai_assistant_outputs`, `20261106154421_ai_assistant_output_verification`, and `20261106154650_cleanup_ai_assistant_output_rls_and_indexes`.
 - Verified `ai_assistant_outputs` exists with owner-scoped RLS policy. Security advisor still reports leaked-password protection disabled and SECURITY DEFINER warnings; inspected all 14 flagged functions and each references `auth.uid()` and `owner_id`. Internal quota tables intentionally have RLS without direct client policies.
 - Still blocked before release: configure a free-quota AI provider; run live authenticated AI/Drive acceptance; complete official syllabus validation and robust math/science verification; verify backup/restore and accessibility/device checks; resolve Vercel build limit; run full CI successfully.
+
+
+## Follow-up implementation (2026-11-06)
+- Fixed a classification response parsing defect: the provider prompt explicitly requests `null` for uncertain metadata, while the original output schema rejected nulls and discarded the structured classification fields. The schema now accepts nullable subject, qualification, chapter, topic and confidence values; the UI treats null confidence as unknown.
+- Corrected README and AI release-gate documentation: GitHub Actions workflow exists, but a successful run for the latest AI-workspace changes is not confirmed. The only currently visible commit status is Vercel's build-rate-limit failure.
