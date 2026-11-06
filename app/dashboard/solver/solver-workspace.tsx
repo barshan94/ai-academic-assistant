@@ -44,9 +44,15 @@ export default function SolverWorkspace({ questions, solutions }: { questions: Q
       if (!response.ok) throw new Error(payload.error || "Request failed.");
       setResult((payload.answer || "No answer returned.") + "\n\n" + (payload.reviewNotice || ""));
       if (payload.solutionId) {
-        const refreshed = await fetch("/api/ai/solutions/" + payload.solutionId + "/review", { method: "GET" });
-        // The server-rendered list is refreshed after the next navigation; the generated answer remains visible now.
-        void refreshed;
+        const promptLabel = questionText || questions.find((question) => question.id === questionId)?.question_text || [subject, chapter].filter(Boolean).join(" · ") || "Generated study material";
+        setHistory((items) => [{
+          id: payload.solutionId as string,
+          task_type: task,
+          prompt_text: promptLabel,
+          output_text: payload.answer || "",
+          review_status: "needs_review",
+          created_at: new Date().toISOString(),
+        }, ...items].slice(0, 20));
       }
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Something went wrong.");
