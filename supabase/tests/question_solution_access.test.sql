@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(41);
+select plan(43);
 
 -- Isolated identities and records. This test runs inside a transaction and rolls back.
 insert into auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
@@ -169,6 +169,7 @@ select lives_ok(
 );
 select is((select count(*)::integer from public.questions), 1, 'accepted teacher can read the shared question');
 select is((select count(*)::integer from public.question_solutions), 1, 'accepted teacher can read the shared solution');
+select is((select count(*)::integer from public.question_solution_reviews), 0, 'teacher cannot read owner-authored review history');
 select throws_ok(
   $test$select public.record_teacher_solution_review('40000000-0000-4000-8000-000000000003', 'approved', null)$test$,
   '42501',
@@ -227,6 +228,7 @@ select is(
   'generated',
   'a later correction review removes the teacher-verified label'
 );
+select is((select count(*)::integer from public.question_solution_reviews), 2, 'teacher can read only the reviews they personally authored');
 
 select throws_ok(
   $$insert into public.question_solution_reviews (solution_id, owner_id, reviewer_id, decision, correction_notes)
