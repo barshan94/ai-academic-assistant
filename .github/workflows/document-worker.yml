@@ -38,7 +38,7 @@ jobs:
           response_file="$(mktemp)"
           trap 'rm -f "$response_file"' EXIT
 
-          status="$(curl --silent --show-error --output "$response_file" --write-out "%{http_code}" \
+          status="$(curl --silent --show-error --proto "=https" --tlsv1.2 --connect-timeout 10 --output "$response_file" --write-out "%{http_code}" \
             --request POST \
             --header "Authorization: Bearer $CRON_SECRET" \
             --max-time 65 \
@@ -58,7 +58,7 @@ jobs:
 
           processed="$(jq -r '.processed' "$response_file")"
           if [ "$processed" = "true" ]; then
-            page_count="$(jq -er '.page_count | select(type == "number" and . >= 1 and . <= 100)' "$response_file")"
+            page_count="$(jq -er '.page_count | select(type == "number" and . >= 1 and . <= 100 and floor == .)' "$response_file")"
             echo "Worker completed one document; extracted pages: $page_count."
           else
             reason="$(jq -r '.reason // empty' "$response_file")"
