@@ -314,6 +314,47 @@ export type Database = {
     }
     Functions: {
       consume_ai_generation_quota: { Args: { p_bucket: string }; Returns: boolean }
+      consume_document_upload_quota: { Args: Record<PropertyKey, never>; Returns: boolean }
+      register_uploaded_document: {
+        Args: {
+          p_owner_id: string
+          p_file_name: string
+          p_file_size_bytes: number
+          p_sha256: string
+          p_drive_file_id: string
+          p_drive_web_view_link: string | null
+          p_page_count: number | null
+        }
+        Returns: { document_id: string; duplicate: boolean; stored_drive_file_id: string | null }[]
+      }
+      claim_document_processing_job: {
+        Args: {
+          p_document_id: string
+          p_owner_id: string
+          p_job_id: string
+          p_expected_status: string
+          p_expected_attempt_count: number
+          p_expected_started_at: string | null
+        }
+        Returns: boolean
+      }
+      complete_document_processing: {
+        Args: { p_document_id: string; p_owner_id: string; p_job_id: string; p_pages: Json }
+        Returns: number
+      }
+      fail_document_processing: {
+        Args: { p_document_id: string; p_owner_id: string; p_job_id: string; p_error_code: string }
+        Returns: boolean
+      }
+      recover_stale_document_processing_job: {
+        Args: { p_document_id: string; p_owner_id: string; p_job_id: string; p_expected_started_at: string | null }
+        Returns: boolean
+      }
+      save_document_page_correction: {
+        Args: { p_document_id: string; p_owner_id: string; p_page_id: string; p_extracted_text: string }
+        Returns: boolean
+      }
+      approve_document_review: { Args: { p_document_id: string; p_owner_id: string }; Returns: number }
     }
     Enums: {
       [_ in never]: never
