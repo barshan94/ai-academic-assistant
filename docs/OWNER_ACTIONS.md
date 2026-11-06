@@ -226,7 +226,7 @@ Configure repository Actions secrets from the deployment dashboard; never commit
 
 - [x] The separate-database backup/restore rehearsal is **SKIPPED BY OWNER**. Do not create another Supabase project/database for it.
 - [x] Preserve the existing `academic-assistant` and `durga-map` projects; do not reset, overwrite or delete either one.
-- [ ] Do not claim disaster recovery has been tested. Archive-generation and checksum helpers are source-level tooling only; no full restore was performed.
+- Do not claim disaster recovery has been tested. Archive-generation and checksum helpers are source-level tooling only; no full restore was performed.
 - [ ] Revisit this rehearsal only if the owner explicitly changes the scope and a safe, already-available isolated target can be used without disturbing existing data.
 
 ## 4. Academic and legal decisions
