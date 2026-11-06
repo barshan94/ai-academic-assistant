@@ -1,3 +1,15 @@
+## Current owner scope — 2026-11-06
+
+This section supersedes historical instructions elsewhere in this file where they conflict.
+
+- Do not dispatch migration-reconciliation workflows, modify the hosted migration ledger, or apply database migrations. Any earlier authorization is superseded.
+- The separate-database backup/restore rehearsal is skipped by owner scope. Do not create another Supabase project/database; do not claim a restore was tested.
+- Keep the document worker manual-only. Do not dispatch it or add a recurring schedule until route/branch integration, Actions secrets, target environment, authentication and idempotency are all verified.
+- Keep PR #1 draft and unmerged. Do not deploy Production, alter Production configuration, pay for upgrades, or enable paid AI calls.
+- Preserve existing `academic-assistant` and `durga-map` data.
+
+---
+
 # Superseding verification — 2026-11-06 00:39 Asia/Dhaka (feature head `c8122de67c17b5b8e1936df87dd09c72dc675f30`)
 
 The latest Foundation workflow failed because the new answer-sheet export test expected the literal characters `\\n` instead of a real newline. Application lint and all TypeScript checks passed; 332 of 333 unit tests passed. The failure is isolated to the test assertion, not the answer-sheet implementation. The assertion has been corrected to check the actual newline emitted by `lines.join("\\n")`. Re-run the full CI suite on the resulting commit before treating this correction as verified.
