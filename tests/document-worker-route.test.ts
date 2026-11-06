@@ -86,6 +86,14 @@ describe("document worker route access and queue preflight", () => {
     expect(createSupabaseServiceRoleClientMock).not.toHaveBeenCalled();
   });
 
+  it("rejects a configured cron secret shorter than 32 characters", async () => {
+    process.env.CRON_SECRET = "short";
+    const response = await POST(request("Bearer short"));
+    expect(response.status).toBe(401);
+    expect(createSupabaseServiceRoleClientMock).not.toHaveBeenCalled();
+    expect(rpcMock).not.toHaveBeenCalled();
+  });
+
   it("returns a safe service-unavailable response when database credentials are absent", async () => {
     delete process.env.SUPABASE_SERVICE_ROLE_KEY;
     const response = await POST(request("Bearer test-cron-secret-with-sufficient-entropy"));
