@@ -147,8 +147,12 @@ export async function POST(request: Request) {
   if (!response.ok) {
     return NextResponse.json({ error: "AI provider returned an error (" + response.status + "). Check provider quota, model access and server configuration." }, { status: 502 });
   }
-  const raw = extractText(await response.json());
+  let providerPayload: unknown;
+  try { providerPayload = await response.json(); }
+  catch { return NextResponse.json({ error: "AI provider returned an invalid response." }, { status: 502 }); }
+  const raw = extractText(providerPayload);
   if (!raw.trim()) return NextResponse.json({ error: "AI provider returned an empty response." }, { status: 502 });
+  if (raw.length > 30000) return NextResponse.json({ error: "AI provider response exceeded the allowed output size." }, { status: 502 });
 
   const parsed = parseModelOutput(raw);
   const arithmeticChecks = checkExplicitArithmetic(parsed.answer);
