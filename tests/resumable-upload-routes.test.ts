@@ -193,6 +193,53 @@ describe("resumable upload route security boundaries", () => {
     expect(createSupabaseServiceRoleClientMock).not.toHaveBeenCalled();
   });
 
+  it("accepts a signed upload session with the supported 100-page maximum", async () => {
+    decryptDriveUploadSessionMock.mockReturnValueOnce(JSON.stringify({
+      ...validSession,
+      pageCount: 100,
+    }));
+    getDriveAccessTokenMock.mockResolvedValue("drive-access-token");
+    sendResumablePdfChunkMock.mockResolvedValue({
+      status: 308,
+      range: null,
+      file: null,
+    });
+
+    const response = await uploadChunk(makeRequest(
+      "/api/documents/upload/resumable/chunk",
+      {
+        headers: {
+          "x-upload-session": "opaque-encrypted-session",
+          "content-range": "bytes */1234",
+        },
+      },
+    ));
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ nextOffset: 0, complete: false });
+  });
+
+  it("rejects a signed upload session above the 100-page maximum", async () => {
+    decryptDriveUploadSessionMock.mockReturnValueOnce(JSON.stringify({
+      ...validSession,
+      pageCount: 101,
+    }));
+
+    const response = await uploadChunk(makeRequest(
+      "/api/documents/upload/resumable/chunk",
+      {
+        headers: {
+          "x-upload-session": "opaque-encrypted-session",
+          "content-range": "bytes */1234",
+        },
+      },
+    ));
+
+    expect(response.status).toBe(400);
+    expect(getDriveAccessTokenMock).not.toHaveBeenCalled();
+    expect(sendResumablePdfChunkMock).not.toHaveBeenCalled();
+  });
+
   it("rejects malformed chunk ranges before contacting Google Drive", async () => {
     const response = await uploadChunk(makeRequest(
       "/api/documents/upload/resumable/chunk",
