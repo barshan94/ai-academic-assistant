@@ -149,7 +149,7 @@ describe("AI provider fallback policy", () => {
     expect(fetcher).toHaveBeenCalledTimes(2);
   });
 
-  it("bounds sequential fallback attempts to the total routing budget", async () => {
+  it("bounds provider fallback time and leaves room to persist the answer", async () => {
     const manyProviders = JSON.stringify(Array.from({ length: 8 }, (_, index) => ({
       name: "provider-" + index,
       baseUrl: "https://provider-" + index + ".example/v1",
@@ -171,7 +171,7 @@ describe("AI provider fallback policy", () => {
         AI_PROVIDER_POOL: manyProviders,
         AI_ALLOW_PROVIDER_FALLBACKS: "true",
       })).rejects.toThrow("AI_PROVIDER_HTTP_503");
-      expect(fetcher).toHaveBeenCalledTimes(3);
+      expect(fetcher).toHaveBeenCalledTimes(2);
     } finally {
       nowSpy.mockRestore();
     }
