@@ -12,8 +12,8 @@ Use a provider/model with a free quota. Provider free tiers, model availability 
 - Generated content is labelled unverified and is not teacher-approved.
 - Syllabus classification is a suggestion; verify board, qualification, chapter and topic against the official current syllabus.
 - Chapter notes and revision sets use only approved questions in the user's own library. They do not prove syllabus completeness.
-- The assistant does not yet perform reliable symbolic algebra, numerical recomputation, dimensional analysis, OCR diagram interpretation or marking-scheme comparison. Never describe its answers as machine-verified.
-- Generated outputs are not persisted as solution records in this initial integration.
+- A bounded scanner checks only explicit one-step arithmetic equalities printed in the answer. It does not validate symbolic algebra, multi-step derivations, dimensional analysis, units, OCR diagrams, or marking-scheme accuracy. A passing scan is not full verification.
+- Generated outputs are persisted in an owner-scoped table with arithmetic-check evidence and a teacher review state. They remain unverified until reviewed.
 
 ## Remaining release gates
 1. Configure a provider with a suitable free quota and run authenticated end-to-end tests.
