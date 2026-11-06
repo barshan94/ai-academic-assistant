@@ -18,11 +18,11 @@ const requestSchema = z.object({
 
 const outputSchema = z.object({
   answer: z.string().min(20).max(30000),
-  subject: z.string().max(100).optional(),
-  qualification: z.string().max(100).optional(),
-  chapter: z.string().max(150).optional(),
-  topic: z.string().max(150).optional(),
-  confidence: z.number().min(0).max(1).optional(),
+  subject: z.string().max(100).nullable().optional(),
+  qualification: z.string().max(100).nullable().optional(),
+  chapter: z.string().max(150).nullable().optional(),
+  topic: z.string().max(150).nullable().optional(),
+  confidence: z.number().min(0).max(1).nullable().optional(),
 });
 
 const instructions: Record<z.infer<typeof requestSchema>["task"], string> = {
