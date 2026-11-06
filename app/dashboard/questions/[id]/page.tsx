@@ -1,5 +1,3 @@
-export const maxDuration = 60;
-
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -15,6 +13,8 @@ import { compareAnswerToMarkScheme, markSchemeSchema } from "@/lib/ai/mark-schem
 import { ClassificationForm } from "./classification-form";
 import { MarkSchemeEditor } from "./mark-scheme-editor";
 import { getAIProviderConfigs } from "@/lib/ai/provider";
+
+export const maxDuration = 60;
 
 type PageProps = {
   params: Promise<{ id: string }>;
