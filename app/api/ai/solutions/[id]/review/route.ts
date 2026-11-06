@@ -13,10 +13,16 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
   let body: z.infer<typeof schema>;
   try { body = schema.parse(await request.json()); }
   catch { return NextResponse.json({ error: "Choose approve or reject." }, { status: 400 }); }
+  const { data: existing, error: readError } = await supabase.from("ai_assistant_outputs")
+    .select("id,verification_status").eq("id", id).eq("owner_id", user.id).maybeSingle();
+  if (readError || !existing) return NextResponse.json({ error: "Solution not found." }, { status: 404 });
+  if (body.status === "approved" && existing.verification_status === "arithmetic_check_failed") {
+    return NextResponse.json({ error: "This output contains a failed arithmetic check. Correct the answer and generate/review a new version before approval." }, { status: 409 });
+  }
   const { data, error } = await supabase.from("ai_assistant_outputs")
     .update({ review_status: body.status })
     .eq("id", id).eq("owner_id", user.id)
     .select("id,review_status").maybeSingle();
-  if (error || !data) return NextResponse.json({ error: "Solution not found or could not be updated." }, { status: 404 });
+  if (error || !data) return NextResponse.json({ error: "Solution could not be updated." }, { status: 404 });
   return NextResponse.json({ id: data.id, status: data.review_status });
 }
