@@ -2,9 +2,9 @@ name: Foundation checks
 
 on:
   push:
-    branches: [main]
+    branches: [main, 'feature/m3-ai-solver']
   pull_request:
-    branches: [main]
+    branches: [main, 'feature/m3-ai-solver']
   workflow_dispatch:
 
 permissions:
