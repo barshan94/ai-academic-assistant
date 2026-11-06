@@ -80,6 +80,21 @@ describe("owner-authorized original PDF route", () => {
     expect(downloadOriginalPdfFromDriveMock).not.toHaveBeenCalled();
   });
 
+  it("does not extend question-level teacher sharing to the owner's original PDF", async () => {
+    // Teacher invitations grant access to selected question records only.
+    // The original source document remains private to its owning account.
+    const teacherId = "teacher-user-id";
+    const { eqId, eqOwner } = configureUser({ userId: teacherId, document: null });
+
+    const response = await GET(request(), { params: Promise.resolve({ id: documentId }) });
+
+    expect(response.status).toBe(404);
+    expect(eqId).toHaveBeenCalledExactlyOnceWith("id", documentId);
+    expect(eqOwner).toHaveBeenCalledExactlyOnceWith("owner_id", teacherId);
+    expect(getDriveAccessTokenMock).not.toHaveBeenCalled();
+    expect(downloadOriginalPdfFromDriveMock).not.toHaveBeenCalled();
+  });
+
   it("filters the database lookup by both document ID and the authenticated owner", async () => {
     const { eqId, eqOwner } = configureUser();
     getDriveAccessTokenMock.mockResolvedValue("fresh-access-token");
