@@ -190,7 +190,7 @@ async function createReviewFixture() {
       status: "review_required",
     });
     if (pageError) throw new Error("Could not create the isolated E2E extracted-page fixture.");
-    return { supabase, documentId };
+    return { supabase, documentId, fileName: "E2E review fixture " + marker + ".pdf" };
   } catch (error) {
     if (documentId) await supabase.from("documents").delete().eq("id", documentId);
     await supabase.auth.signOut();
@@ -205,9 +205,18 @@ test("owner reviews extracted pages before creating a source-linked question", a
   const fixture = await createReviewFixture();
   try {
     await signIn(page, config.ownerEmail, config.ownerPassword);
-    await page.goto("/dashboard/documents/" + fixture.documentId);
-
-    await expect(page.getByRole("heading", { name: /E2E review fixture/ })).toBeVisible();
+    const response = await page.goto("/dashboard/documents/" + fixture.documentId);
+    const documentHeading = page.locator("main h1");
+    await expect(documentHeading).toBeVisible({ timeout: 10_000 }).catch(async () => {
+      throw new Error("Document review page did not render its document heading: " + JSON.stringify({
+        responseStatus: response?.status() ?? null,
+        currentUrl: page.url(),
+        pageTitle: await page.title(),
+        visibleText: (await page.locator("body").innerText()).slice(0, 2_000),
+        expectedFileName: fixture.fileName,
+      }));
+    });
+    await expect(documentHeading).toHaveText(fixture.fileName);
     await expect(page.getByText("Human review required")).toBeVisible();
     await expect(page.getByText(/Save a question from this page/)).toHaveCount(0);
 
