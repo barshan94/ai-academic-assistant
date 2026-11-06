@@ -61,7 +61,7 @@ export default function PrivacyPage() {
 
       <footer className="footer">
         <Link href="/">Academic Assistant</Link>
-        <span>Privacy notice · Current implementation</span>
+        <span><Link href="/support">Support</Link> · Privacy notice · Current implementation</span>
       </footer>
     </main>
   );
