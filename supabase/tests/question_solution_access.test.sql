@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(39);
+select plan(40);
 
 -- Isolated identities and records. This test runs inside a transaction and rolls back.
 insert into auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
@@ -19,6 +19,17 @@ values ('30000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-0000000
 
 insert into public.question_solutions (id, owner_id, question_id, provider, model, prompt_version, answer_json)
 values ('40000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', '30000000-0000-4000-8000-000000000001', 'test-provider', 'test-model', 'test-v1', '{}'::jsonb);
+
+-- A second owner's question proves that a teacher invitation is scoped to
+-- the exact question, not merely to a teacher account or a shared workspace.
+insert into public.documents (id, owner_id, file_name, mime_type, file_size_bytes)
+values ('20000000-0000-4000-8000-000000000002', '10000000-0000-4000-8000-000000000003', 'other-owner.pdf', 'application/pdf', 100);
+
+insert into public.questions (id, owner_id, document_id, question_text)
+values ('30000000-0000-4000-8000-000000000002', '10000000-0000-4000-8000-000000000003', '20000000-0000-4000-8000-000000000002', 'Unshared owner question');
+
+insert into public.question_solutions (id, owner_id, question_id, provider, model, prompt_version, answer_json)
+values ('40000000-0000-4000-8000-000000000002', '10000000-0000-4000-8000-000000000003', '30000000-0000-4000-8000-000000000002', 'test-provider', 'test-model', 'test-v1', '{}'::jsonb);
 
 insert into public.question_solution_mark_schemes (id, solution_id, owner_id, title, awarding_body, qualification, subject, source_url, source_locator, points)
 values ('50000000-0000-4000-8000-000000000001', '40000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', 'RLS fixture scheme', 'Example Board', 'A Level', 'Physics', 'https://example.test/mark-scheme.pdf', 'Page 1, Question 1', '[{"id":"M1","description":"Fixture point","keyPhrases":["fixture"]}]'::jsonb);
@@ -151,6 +162,12 @@ select lives_ok(
 );
 select is((select count(*)::integer from public.questions), 1, 'accepted teacher can read the shared question');
 select is((select count(*)::integer from public.question_solutions), 1, 'accepted teacher can read the shared solution');
+select throws_ok(
+  $select public.record_teacher_solution_review('40000000-0000-4000-8000-000000000002', 'approved', null)$,
+  '42501',
+  'An active accepted teacher invitation is required',
+  'teacher cannot review a solution belonging to a different owner without a question-specific invitation'
+);
 select is((select count(*)::integer from public.question_solution_mark_schemes), 0, 'teacher cannot read owner-private mark scheme');
 
 select throws_ok(
