@@ -282,7 +282,7 @@ export type Database = {
           },
         ]
       },
-      question_solutions: {
+      ai_assistant_outputs: {
         Row: {
           id: string; owner_id: string; question_id: string | null; task_type: string;
           prompt_text: string; output_text: string; provider_model: string;
@@ -300,7 +300,7 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "question_solutions_question_owner_fk"
+            foreignKeyName: "ai_assistant_outputs_question_owner_fk"
             columns: ["question_id", "owner_id"]
             isOneToOne: false
             referencedRelation: "questions"
