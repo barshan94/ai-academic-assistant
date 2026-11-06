@@ -1,0 +1,119 @@
+"use client";
+
+import { useState } from "react";
+
+type Question = { id: string; question_text: string; subject: string | null; chapter: string | null; review_status: string };
+type Task = "solve" | "classify" | "chapter_notes" | "revision_set";
+type Solution = { id: string; task_type: string; prompt_text: string; output_text: string; review_status: string; verification_status: string; created_at: string };
+
+export default function SolverWorkspace({ questions, solutions }: { questions: Question[]; solutions: Solution[] }) {
+  const [task, setTask] = useState<Task>("solve");
+  const [questionId, setQuestionId] = useState("");
+  const [questionText, setQuestionText] = useState("");
+  const [subject, setSubject] = useState("");
+  const [chapter, setChapter] = useState("");
+  const [language, setLanguage] = useState<"english" | "bengali" | "both">("both");
+  const [result, setResult] = useState("");
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [history, setHistory] = useState(solutions);
+  const [reviewing, setReviewing] = useState("");
+
+  async function review(id: string, status: "approved" | "rejected") {
+    setReviewing(id); setError("");
+    try {
+      const response = await fetch("/api/ai/solutions/" + id + "/review", {
+        method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status }),
+      });
+      const payload = await response.json() as { error?: string };
+      if (!response.ok) throw new Error(payload.error || "Could not save review.");
+      setHistory((items) => items.map((item) => item.id === id ? { ...item, review_status: status } : item));
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Review failed.");
+    } finally { setReviewing(""); }
+  }
+
+  async function run() {
+    setBusy(true); setError(""); setResult("");
+    try {
+      const response = await fetch("/api/ai/assistant", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ task, questionId: questionId || undefined, questionText: questionText || undefined, subject: subject || undefined, chapter: chapter || undefined, language, count: 8 }),
+      });
+      const payload = await response.json() as { answer?: string; error?: string; reviewNotice?: string; solutionId?: string; verification?: string; subject?: string | null; qualification?: string | null; chapter?: string | null; topic?: string | null; confidence?: number | null; arithmeticChecks?: Array<{ expression: string; passed: boolean }> };
+      if (!response.ok) throw new Error(payload.error || "Request failed.");
+      setResult((payload.answer || "No answer returned.") + "\n\n" + [payload.subject && "Subject: " + payload.subject, payload.qualification && "Qualification: " + payload.qualification, payload.chapter && "Chapter: " + payload.chapter, payload.topic && "Topic: " + payload.topic, typeof payload.confidence === "number" && "Classification confidence: " + Math.round(payload.confidence * 100) + "%"].filter(Boolean).join("\n") + "\n\n" + "Arithmetic scan: " + (payload.verification || "not_verified") + "\n" + (payload.arithmeticChecks || []).map((check) => check.expression + " — " + (check.passed ? "pass" : "FAIL")).join("\n") + "\n\n" + (payload.reviewNotice || ""));
+      if (payload.solutionId) {
+        const promptLabel = questionText || questions.find((question) => question.id === questionId)?.question_text || [subject, chapter].filter(Boolean).join(" · ") || "Generated study material";
+        setHistory((items) => [{
+          id: payload.solutionId as string,
+          task_type: task,
+          prompt_text: promptLabel,
+          output_text: payload.answer || "",
+          review_status: "needs_review",
+          verification_status: payload.verification || "not_verified",
+          created_at: new Date().toISOString(),
+        }, ...items].slice(0, 20));
+      }
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Something went wrong.");
+    } finally { setBusy(false); }
+  }
+
+  return (
+    <>
+      <section className="section solver-layout">
+        <div className="solver-panel">
+          <label htmlFor="solver-task">What do you want to do?</label>
+          <select id="solver-task" value={task} onChange={(event) => { setTask(event.target.value as Task); setResult(""); }}>
+            <option value="solve">Solve a question</option>
+            <option value="classify">Classify subject and syllabus topic</option>
+            <option value="chapter_notes">Build chapter notes from approved questions</option>
+            <option value="revision_set">Create an exam revision set</option>
+          </select>
+          {(task === "solve" || task === "classify") && <>
+            <label htmlFor="solver-question">Saved question</label>
+            <select id="solver-question" value={questionId} onChange={(event) => setQuestionId(event.target.value)}>
+              <option value="">Use typed question instead</option>
+              {questions.map((question) => <option key={question.id} value={question.id}>{question.subject || "Unclassified"} · {question.question_text.slice(0, 90)}</option>)}
+            </select>
+            <label htmlFor="solver-text">Question text</label>
+            <textarea id="solver-text" rows={6} value={questionText} onChange={(event) => setQuestionText(event.target.value)} placeholder="Paste the question here if it is not saved in your library." />
+          </>}
+          {(task === "chapter_notes" || task === "revision_set") && <>
+            <label htmlFor="solver-subject">Subject (required for revision, exact filter)</label>
+            <input id="solver-subject" required={task === "revision_set" || task === "chapter_notes"} value={subject} onChange={(event) => setSubject(event.target.value)} placeholder="e.g. Physics" />
+            <label htmlFor="solver-chapter">Chapter (required for chapter notes, exact filter)</label>
+            <input id="solver-chapter" required={task === "chapter_notes"} value={chapter} onChange={(event) => setChapter(event.target.value)} placeholder="e.g. Forces and motion" />
+          </>}
+          <label htmlFor="solver-language">Explanation language</label>
+          <select id="solver-language" value={language} onChange={(event) => setLanguage(event.target.value as typeof language)}>
+            <option value="both">English exam answer + Bengali teaching explanation</option>
+            <option value="english">English</option>
+            <option value="bengali">বাংলা</option>
+          </select>
+          <button className="primary-action" type="button" onClick={run} disabled={busy || ((task === "solve" || task === "classify") && !questionId && questionText.trim().length < 5) || (task === "chapter_notes" && (!subject.trim() || !chapter.trim())) || (task === "revision_set" && !subject.trim())}>{busy ? "Working…" : "Generate"}</button>
+          {error ? <p className="notice notice-error" role="alert">{error}</p> : null}
+        </div>
+        <div className="solver-result" aria-live="polite">
+          <div className="section-heading"><div><p className="eyebrow">GENERATED OUTPUT</p><h2>Working answer</h2></div><span className="document-status">Unverified</span></div>
+          {result ? <pre className="solver-output">{result}</pre> : <div className="empty-state"><h3>No generated output yet</h3><p>Choose a task and generate an answer. Each output is saved privately for teacher review and remains unverified until checked.</p></div>}
+        </div>
+      </section>
+      <section className="section solver-history">
+        <div className="section-heading"><div><p className="eyebrow">PRIVATE HISTORY</p><h2>Saved outputs</h2></div><span className="section-count">{history.length} latest</span></div>
+        {!history.length ? <div className="empty-state"><p>Generated answers will appear here after you refresh this page.</p></div> : history.map((item) => (
+          <article className="solution-history-card" key={item.id}>
+            <div className="question-card-heading"><span className="document-status">{item.review_status.replace("_", " ")}</span><span className="document-status">{item.verification_status.replaceAll("_", " ")}</span><span className="question-subject">{item.task_type.replace("_", " ")}</span></div>
+            <p className="question-card-text">{item.prompt_text.slice(0, 240)}</p>
+            <details><summary>View generated output</summary><pre className="solver-output">{item.output_text}</pre></details>
+            {item.review_status === "needs_review" ? <div className="question-review-actions">
+              <button className="document-action" disabled={reviewing === item.id} onClick={() => review(item.id, "approved")}>Teacher approve</button>
+              <button className="document-action document-action-muted" disabled={reviewing === item.id} onClick={() => review(item.id, "rejected")}>Reject</button>
+            </div> : null}
+          </article>
+        ))}
+      </section>
+    </>
+  );
+}

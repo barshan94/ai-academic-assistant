@@ -1,0 +1,28 @@
+import { NextResponse } from "next/server";
+import { z } from "zod";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+
+const schema = z.object({ status: z.enum(["approved", "rejected"]) });
+
+export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
+  const supabase = await createSupabaseServerClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
+  const { id } = await context.params;
+  if (!z.string().uuid().safeParse(id).success) return NextResponse.json({ error: "Invalid solution ID." }, { status: 400 });
+  let body: z.infer<typeof schema>;
+  try { body = schema.parse(await request.json()); }
+  catch { return NextResponse.json({ error: "Choose approve or reject." }, { status: 400 }); }
+  const { data: existing, error: readError } = await supabase.from("ai_assistant_outputs")
+    .select("id,verification_status").eq("id", id).eq("owner_id", user.id).maybeSingle();
+  if (readError || !existing) return NextResponse.json({ error: "Solution not found." }, { status: 404 });
+  if (body.status === "approved" && existing.verification_status === "arithmetic_check_failed") {
+    return NextResponse.json({ error: "This output contains a failed arithmetic check. Correct the answer and generate/review a new version before approval." }, { status: 409 });
+  }
+  const { data, error } = await supabase.from("ai_assistant_outputs")
+    .update({ review_status: body.status })
+    .eq("id", id).eq("owner_id", user.id)
+    .select("id,review_status").maybeSingle();
+  if (error || !data) return NextResponse.json({ error: "Solution could not be updated." }, { status: 404 });
+  return NextResponse.json({ id: data.id, status: data.review_status });
+}
