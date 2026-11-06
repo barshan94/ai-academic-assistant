@@ -15,6 +15,8 @@ describe("document worker HTTP method", () => {
 
   it("invokes the protected worker with POST and validates a sanitized response", () => {
     expect(workflow).toContain("--request POST");
+    expect(workflow).toContain('--proto "=https" --tlsv1.2 --connect-timeout 10');
+    expect(workflow).toContain('floor == .');
     expect(workflow).not.toContain("--request GET");
     expect(workflow).toContain('--header "Authorization: Bearer $CRON_SECRET"');
     expect(workflow).toContain("CRON_SECRET must contain at least 32 characters");
