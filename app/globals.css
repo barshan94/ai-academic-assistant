@@ -174,3 +174,17 @@ h2 { font-size: 24px; letter-spacing: -.04em; margin: 0; font-weight: 600; }
   .question-search { grid-template-columns: 1fr; }
   .question-card-footer { align-items: flex-start; flex-direction: column; }
 }
+
+
+/* AI study workspace */
+.solver-layout { display: grid; grid-template-columns: minmax(280px, .85fr) minmax(0, 1.15fr); gap: 18px; align-items: start; }
+.solver-panel, .solver-result { display: flex; flex-direction: column; gap: 12px; padding: 22px; border: 1px solid var(--line); border-radius: 12px; background: linear-gradient(145deg, #16212b, #101821); }
+.solver-panel label { margin-top: 7px; color: #c5d0d9; font-size: 11px; font-weight: 650; }
+.solver-panel input, .solver-panel textarea, .solver-panel select { width: 100%; border: 1px solid #354451; border-radius: 7px; background: #0b1219; color: var(--text); padding: 11px 12px; font: inherit; font-size: 12px; }
+.solver-panel textarea { resize: vertical; line-height: 1.6; }
+.solver-panel input:focus, .solver-panel textarea:focus, .solver-panel select:focus { outline: 2px solid #8bd8c766; border-color: var(--accent); }
+.solver-panel button { justify-content: center; margin-top: 9px; cursor: pointer; }
+.solver-panel button:disabled { opacity: .55; cursor: wait; }
+.solver-result .section-heading { margin-bottom: 4px; }
+.solver-output { white-space: pre-wrap; overflow-wrap: anywhere; color: #dce7ef; font: 13px/1.8 ui-monospace, SFMono-Regular, Menlo, monospace; margin: 0; padding: 17px; border: 1px solid var(--line); border-radius: 8px; background: #0b1219; }
+@media (max-width: 760px) { .solver-layout { grid-template-columns: 1fr; } }
