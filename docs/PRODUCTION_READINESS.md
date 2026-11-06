@@ -1,3 +1,22 @@
+# Superseding exact-head verification — 2026-11-06 (commit 7203e2fdba24dea09daf12379b6e95202ee0bcc9)
+
+This entry supersedes older exact-head CI snapshots below. All four required GitHub workflows completed successfully on this exact application head:
+
+- [x] Foundation checks — [run 42184411408](https://github.com/barshan94/ai-academic-assistant/actions/runs/42184411408): locked install, production and full dependency audits (both blocking), ESLint, application and Playwright type checks, unit tests, and production build.
+- [x] Database authorization tests — [run 42184411537](https://github.com/barshan94/ai-academic-assistant/actions/runs/42184411537).
+- [x] Authenticated browser acceptance — [run 42184411418](https://github.com/barshan94/ai-academic-assistant/actions/runs/42184411418).
+- [x] Full-history secret scanning — [run 42184411437](https://github.com/barshan94/ai-academic-assistant/actions/runs/42184411437).
+
+The full dependency audit is now a blocking CI gate and passed on this commit. The CI workflow and test cleanup changes are included in the verified head.
+
+## Release decision — NOT APPROVED FOR PRODUCTION
+
+Green automated checks are not proof of live Production readiness. Production server-side credentials/OAuth, real Drive interruption and recovery, authenticated worker fault/retry acceptance, hosted migration parity, Free-plan leaked-password mitigation, manual accessibility/device acceptance, independent academic grading, privacy/legal review, and named operational ownership remain unresolved. AI generation remains disabled under the strict zero-cost requirement; no paid provider was activated.
+
+Owner constraints remain binding: keep PR #1 draft, open and unmerged; do not deploy Production, alter Production configuration, apply hosted migrations, dispatch the document worker, create another database, or claim a backup/restore rehearsal. Preserve existing project data. No such action was taken in this checkpoint.
+
+---
+
 ## Superseding exact-head verification — 2026-11-06 09:05 Asia/Dhaka
 
 This entry supersedes the older pending/failing CI snapshots below. The four workflow runs and READY Preview below are verified on application/documentation head `f8fa5802bf85a1147c8b3c6411a39c74f88b8c96`; subsequent commits in this section only correct this evidence record and do not change application code.
