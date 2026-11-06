@@ -138,7 +138,7 @@ export async function POST(request: Request) {
   if (!raw.trim()) return NextResponse.json({ error: "AI provider returned an empty response." }, { status: 502 });
 
   const parsed = parseModelOutput(raw);
-  const { data: saved, error: saveError } = await supabase.from("question_solutions").insert({
+  const { data: saved, error: saveError } = await supabase.from("ai_assistant_outputs").insert({
     owner_id: user.id,
     question_id: body.questionId ?? null,
     task_type: body.task,
