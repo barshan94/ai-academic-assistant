@@ -186,7 +186,7 @@ describe("resumable upload route security boundaries", () => {
       "/api/documents/upload/resumable/chunk",
       {
         headers: { "x-upload-session": "opaque-encrypted-session", "content-range": "bytes */1234" },
-        body: new Uint8Array(),
+        body: "",
       },
     ));
 
