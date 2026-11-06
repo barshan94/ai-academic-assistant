@@ -43,7 +43,7 @@ export default async function DocumentReviewPage({ params, searchParams }: PageP
   if (authError || !user) redirect("/login");
 
   const [{ data: document, error: documentError }, { data: pages, error: pagesError }] = await Promise.all([
-    supabase.from("documents").select("id,file_name,status,page_count,drive_file_id,drive_web_view_link,created_at").eq("id", id).eq("owner_id", user.id).maybeSingle(),
+    supabase.from("documents").select("id,file_name,status,page_count,source_page_count,drive_file_id,drive_web_view_link,created_at").eq("id", id).eq("owner_id", user.id).maybeSingle(),
     supabase.from("document_pages").select("id,page_number,extracted_text,extraction_method,status").eq("document_id", id).eq("owner_id", user.id).order("page_number"),
   ]);
 
@@ -54,7 +54,7 @@ export default async function DocumentReviewPage({ params, searchParams }: PageP
     : query.question === "save_failed" ? "save_failed_question"
     : query.review ?? query.process;
   const notice = noticeKey ? notices[noticeKey] : undefined;
-  const extractionStructureWarning = pagesError ? null : getExtractionStructureWarning(document.page_count, pages?.length ?? 0);
+  const extractionStructureWarning = pagesError ? null : getExtractionStructureWarning(document.source_page_count, pages?.length ?? 0);
 
   return (
     <main className="shell">
