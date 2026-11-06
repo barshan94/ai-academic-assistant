@@ -31,6 +31,8 @@ const statusMessages: Record<string, string> = {
   save_failed: "Could not save this entry. Please check the values and try again.",
   not_found: "The selected parent entry was not found in your account.",
   source_required: "Add an HTTPS source URL and source title before marking a syllabus version verified. The database records the verification time.",
+  verify_failed: "Verification was rejected. Check that the source URL and title are present and that the version contains at least one chapter.",
+  catalog_locked: "This syllabus version is no longer a draft, so its chapter and topic structure cannot be changed.",
   imported: "The syllabus was imported atomically as a draft. Review its source and contents before marking it verified.",
   import_duplicate: "A matching syllabus version or chapter/topic already exists. Nothing from this import was saved.",
   import_invalid: "The JSON document is invalid or exceeds the import limits. Check its format and try again.",
@@ -177,7 +179,13 @@ export default async function SyllabusPage({ searchParams }: PageProps) {
                   {catalog.source_url ? <p className="question-card-meta"><a className="document-open" href={catalog.source_url} target="_blank" rel="noreferrer">{catalog.source_title || "Open official source"} ↗</a></p> : <p className="question-card-meta">No source recorded yet.</p>}
                   {catalog.status === "draft" ? (
                     <div className="syllabus-inline-actions">
-                      <form action={verifySyllabusCatalog}><input type="hidden" name="catalogId" value={catalog.id} /><button className="document-action" type="submit" disabled={!catalog.source_url}>Mark verified</button></form>
+                      <form action={verifySyllabusCatalog}>
+                        <input type="hidden" name="catalogId" value={catalog.id} />
+                        <button className="document-action" type="submit" disabled={!catalog.source_url || !catalog.source_title?.trim() || catalogChapters.length === 0}>Mark verified</button>
+                      </form>
+                      {!catalog.source_url || !catalog.source_title?.trim() || catalogChapters.length === 0 ? (
+                        <p className="question-card-meta">Verification requires an HTTPS source URL, source title and at least one chapter.</p>
+                      ) : null}
                       <form action={retireSyllabusCatalog}><input type="hidden" name="catalogId" value={catalog.id} /><button className="document-action document-action-muted" type="submit">Retire version</button></form>
                     </div>
                   ) : catalog.status === "verified" ? (
