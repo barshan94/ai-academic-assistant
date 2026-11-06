@@ -1,18 +1,23 @@
 export type OcrQuality = "likely_readable" | "needs_correction";
 
 function hasFlattenedTableRisk(text: string) {
-  const rowMarkers = text.match(/(?:^|\n)\s*\([a-z]\)\s+/gimu) ?? [];
+  // Do not assume OCR preserves line breaks: PDF-to-Docs conversion can
+  // concatenate labelled rows into a single paragraph.
+  const rowMarkers = text.match(/(?:^|\s)\([a-z]\)\s+/gimu) ?? [];
   const tableHeaders = [
     /\b(?:object|solid|item|product|name)\b/iu,
     /\b(?:radius|length|width|height|mass|time|quantity)\b/iu,
     /\b(?:surface\s+area|total|curved|volume|value|result)\b/iu,
   ].filter((pattern) => pattern.test(text)).length;
 
-  // A table with several labelled rows and multiple column-like headers can
-  // look perfectly readable after OCR while its row/column relationships
-  // have been destroyed. Tabs, pipes, or visibly aligned columns are evidence
-  // that some structure survived; otherwise require a human layout check.
-  const hasColumnSeparators = text.includes("\t") || /\|/.test(text) || / {3,}/u.test(text);
+  // Treat separators as evidence only when they occur on table-like lines;
+  // arbitrary paragraph spacing must not suppress a needed review warning.
+  const tableLikeLines = text.split(/\r?\n/u).filter((line) =>
+    /\([a-z]\)/iu.test(line) || /\b(?:radius|height|surface\s+area|total|curved)\b/iu.test(line),
+  );
+  const visiblyAlignedLines = tableLikeLines.filter((line) => / {3,}/u.test(line)).length;
+  const hasColumnSeparators = text.includes("\t") || /\|/u.test(text) || visiblyAlignedLines >= 2;
+
   return rowMarkers.length >= 3 && tableHeaders >= 2 && !hasColumnSeparators;
 }
 
