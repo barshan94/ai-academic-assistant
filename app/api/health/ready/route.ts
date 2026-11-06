@@ -151,22 +151,40 @@ export async function GET(request: Request) {
     );
   }
 
+  // Return configuration booleans only; never expose secret values, provider
+  // URLs, database identifiers or upstream error messages to the monitor.
+  const checks = {
+    supabaseUrl: hasValidSupabaseUrl(),
+    supabasePublishableKey: Boolean(process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.trim()),
+    supabaseServiceRoleKey: Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()),
+    googleOAuth: Boolean(
+      process.env.GOOGLE_CLIENT_ID?.trim() &&
+      process.env.GOOGLE_CLIENT_SECRET?.trim() &&
+      hasValidGoogleRedirectUri()
+    ),
+    driveTokenEncryption: hasValidDriveEncryptionKey(),
+    workerSecret: (process.env.CRON_SECRET?.length ?? 0) >= 32,
+    aiGeneration: process.env.AI_ENABLED !== "true"
+      ? "disabled"
+      : hasAIProvidersForRequiredTasks() ? "configured" : "misconfigured",
+  };
   const configured = Boolean(
-    hasValidSupabaseUrl() &&
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.trim() &&
-    process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() &&
-    process.env.GOOGLE_CLIENT_ID?.trim() &&
-    process.env.GOOGLE_CLIENT_SECRET?.trim() &&
-    hasValidGoogleRedirectUri() &&
-    (process.env.CRON_SECRET?.length ?? 0) >= 32 &&
-    hasValidDriveEncryptionKey() &&
-    hasAIProvidersForRequiredTasks()
+    checks.supabaseUrl &&
+    checks.supabasePublishableKey &&
+    checks.supabaseServiceRoleKey &&
+    checks.googleOAuth &&
+    checks.driveTokenEncryption &&
+    checks.workerSecret &&
+    checks.aiGeneration !== "misconfigured"
   );
   const databaseConnected = configured && await hasLiveSupabaseConnection();
   const ready = Boolean(configured && databaseConnected);
 
   return NextResponse.json(
-    { status: ready ? "ready" : "not_ready" },
+    {
+      status: ready ? "ready" : "not_ready",
+      checks: { ...checks, databaseAndWorkerSchema: databaseConnected },
+    },
     {
       status: ready ? 200 : 503,
       headers: { "Cache-Control": "no-store" },
