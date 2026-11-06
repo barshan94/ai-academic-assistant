@@ -13,7 +13,7 @@ Configure these repository Actions secrets before enabling real processing:
 | Secret | Value |
 | --- | --- |
 | `APP_BASE_URL` | HTTPS base URL of the deployed application, without a trailing slash |
-| `CRON_SECRET` | A long random secret shared with the deployed application's `CRON_SECRET` environment variable |
+| `CRON_SECRET` | A long random secret of at least 32 characters, shared with the deployed application's `CRON_SECRET` environment variable; both the route and workflow reject shorter values |
 
 The deployed application must also have the existing production environment variables required by the worker and Drive integration:
 
