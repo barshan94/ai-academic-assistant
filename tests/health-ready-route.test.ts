@@ -113,9 +113,28 @@ describe("GET /api/health/ready", () => {
     const response = await GET(authorizedRequest());
 
     expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ status: "ready" });
+    const body = await response.json();
+    expect(body.status).toBe("ready");
+    expect(body.checks.aiGeneration).toBe("disabled");
     expect(getAIProviderConfigsMock).not.toHaveBeenCalled();
     expect(createClientMock).toHaveBeenCalledOnce();
+  });
+
+  it("reports missing integrations without exposing credential values", async () => {
+    delete process.env.GOOGLE_CLIENT_SECRET;
+
+    const response = await GET(authorizedRequest());
+    const body = await response.json();
+    const serialized = JSON.stringify(body);
+
+    expect(response.status).toBe(503);
+    expect(body.status).toBe("not_ready");
+    expect(body.checks.googleOAuth).toBe(false);
+    expect(body.checks.databaseAndWorkerSchema).toBe(false);
+    expect(serialized).not.toContain(requiredEnvironment.SUPABASE_SERVICE_ROLE_KEY);
+    expect(serialized).not.toContain(requiredEnvironment.GOOGLE_CLIENT_SECRET);
+    expect(serialized).not.toContain(requiredEnvironment.CRON_SECRET);
+    expect(serialized).not.toContain(requiredEnvironment.DRIVE_TOKEN_ENCRYPTION_KEY);
   });
 
   it("fails closed when a required AI task has no configured provider", async () => {
