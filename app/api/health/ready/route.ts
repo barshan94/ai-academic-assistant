@@ -56,6 +56,11 @@ function hasValidDriveEncryptionKey() {
 }
 
 function hasAIProvidersForRequiredTasks() {
+  // Zero-cost mode is a supported deployment profile: AI endpoints remain
+  // fail-closed, but disabled providers must not make the core workspace
+  // readiness check fail.
+  if (process.env.AI_ENABLED !== "true") return true;
+
   try {
     getAIProviderConfigs("answer");
     getAIProviderConfigs("chapter-note");
