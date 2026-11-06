@@ -112,6 +112,11 @@ export async function POST(request: Request) {
     "Input:\n" + taskInput,
   ].filter(Boolean).join("\n\n");
 
+  const quotaBucket = body.task === "chapter_notes" || body.task === "revision_set" ? "ai-chapter-note" : "ai-solution";
+  const { data: quotaAllowed, error: quotaError } = await supabase.rpc("consume_ai_generation_quota", { p_bucket: quotaBucket });
+  if (quotaError) return NextResponse.json({ error: "AI quota service is unavailable. Try again later." }, { status: 503 });
+  if (!quotaAllowed) return NextResponse.json({ error: "Free usage limit reached for this 15-minute window. Try again later." }, { status: 429 });
+
   let response: Response;
   try {
     response = await fetch(endpoint.replace(/\/$/, "") + "/chat/completions", {
