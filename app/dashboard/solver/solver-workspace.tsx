@@ -92,7 +92,7 @@ export default function SolverWorkspace({ questions, solutions }: { questions: Q
             <option value="english">English</option>
             <option value="bengali">বাংলা</option>
           </select>
-          <button className="primary-action" type="button" onClick={run} disabled={busy}>{busy ? "Working…" : "Generate"}</button>
+          <button className="primary-action" type="button" onClick={run} disabled={busy || ((task === "solve" || task === "classify") && !questionId && questionText.trim().length < 5) || (task === "chapter_notes" && (!subject.trim() || !chapter.trim())) || (task === "revision_set" && !subject.trim())}>{busy ? "Working…" : "Generate"}</button>
           {error ? <p className="notice notice-error" role="alert">{error}</p> : null}
         </div>
         <div className="solver-result" aria-live="polite">
