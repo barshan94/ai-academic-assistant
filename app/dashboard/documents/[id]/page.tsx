@@ -90,7 +90,8 @@ export default async function DocumentReviewPage({ params, searchParams }: PageP
       ) : (
         <section className="section">
           <div className="section-heading"><div><p className="eyebrow">EXTRACTED CONTENT</p><h2>{pages.length} review pages</h2></div><span className="section-count">Human review required</span></div>
-          {sourceMetadataError ? <p className="notice notice-warning" role="status">Source PDF page-count metadata is unavailable until the latest database migration is applied. Compare every extracted page manually with the original PDF.</p> : null}\n          {extractionStructureWarning ? <p className="notice notice-warning" role="status">{extractionStructureWarning}</p> : null}
+          {sourceMetadataError ? <p className="notice notice-warning" role="status">Source PDF page-count metadata is unavailable until the latest database migration is applied. Compare every extracted page manually with the original PDF.</p> : null}
+          {extractionStructureWarning ? <p className="notice notice-warning" role="status">{extractionStructureWarning}</p> : null}
           <div className="review-list">
             {pages.map((page) => (
               <article className="review-page" key={page.id}>
