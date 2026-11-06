@@ -1,5 +1,10 @@
 # Supabase migration-history reconciliation
 
+## Current owner authorization — 2026-11-06
+
+**DO NOT EXECUTE THIS RUNBOOK.** The current owner scope prohibits dispatching migration-reconciliation workflows, modifying the hosted migration ledger, or applying database migrations. Any earlier authorization recorded below is superseded. This document is retained as historical technical evidence only; its procedure and old “ready” decision are not current instructions. Keep the existing hosted schema and migration history unchanged.
+
+
 ## Superseding snapshot — 2026-11-05
 
 The feature branch now contains **102 migration files** and the connected non-production Supabase ledger contains **102 entries**. The additional migration is `20261105020059_index_remaining_foreign_key_columns`, applied to the existing non-production project and mirrored in the repository.
@@ -34,9 +39,9 @@ The second pair has a singular/plural naming difference, but the SQL statement c
 
 The previous two shared-reference timestamp mismatches documented below are no longer present in the current ledger; those entries now match the repository versions exactly. The former 44-pending-migration list is historical and is not the current state.
 
-## Safe reconciliation procedure
+## Previously reviewed reconciliation procedure — superseded, do not execute
 
-The owner previously authorized reconciliation of this exact existing non-production project, not production. The pinned CLI workflow is deliberately manual and branch-restricted:
+The owner had previously authorized a non-production reconciliation plan. That authorization is superseded by the 2026-11-06 scope above. The steps below are preserved for audit context only; do not dispatch the workflow or execute the script:
 
 1. Use Supabase CLI **2.122.0** and the fixed project ref uqpyzicftxxegajaocxi.
 2. Inspect the current remote migration ledger.
@@ -65,4 +70,4 @@ The connected project was previously inspected read-only. The earlier checks fou
 
 ## Current decision
 
-**Migration ledger: ready for a controlled history-only reconciliation.** The three exact SQL-equivalent pairs have been identified. The next action is the pinned CLI dry-run workflow. No hosted migration-history or schema mutation has yet been performed as part of this latest comparison.
+**NOT AUTHORIZED.** Do not run the reconciliation workflow, repair any hosted migration-history entry, or apply any migration. The three documented pairs remain unchanged. No new hosted ledger or schema mutation is approved.
