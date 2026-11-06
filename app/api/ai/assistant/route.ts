@@ -138,8 +138,21 @@ export async function POST(request: Request) {
   if (!raw.trim()) return NextResponse.json({ error: "AI provider returned an empty response." }, { status: 502 });
 
   const parsed = parseModelOutput(raw);
+  const { data: saved, error: saveError } = await supabase.from("question_solutions").insert({
+    owner_id: user.id,
+    question_id: body.questionId ?? null,
+    task_type: body.task,
+    prompt_text: taskInput.slice(0, 12000),
+    output_text: parsed.answer,
+    provider_model: model,
+    review_status: "needs_review",
+  }).select("id").single();
+  if (saveError || !saved) {
+    return NextResponse.json({ error: "The answer was generated but could not be saved to your private review history." }, { status: 500 });
+  }
   return NextResponse.json({
     ...parsed,
+    solutionId: saved.id,
     task: body.task,
     verification: "not_verified",
     reviewNotice: "AI-generated content is unverified. Check calculations, units, syllabus alignment and source accuracy before teaching or using it as an exam answer.",
