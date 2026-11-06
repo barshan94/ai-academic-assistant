@@ -30,6 +30,7 @@ const statusMessages: Record<string, string> = {
   invalid: "Some fields are invalid. Check the values and try again.",
   save_failed: "Could not save this entry. Please check the values and try again.",
   not_found: "The selected parent entry was not found in your account.",
+  catalog_locked: "This syllabus version is no longer a draft. Its chapter, topic and evidence structure cannot be changed.",
   source_required: "Add an HTTPS source URL and source title before marking a syllabus version verified. The database records the verification time.",
   verify_failed: "Verification was rejected. Check that the source URL and title are present and that the version contains at least one chapter.",
   catalog_locked: "This syllabus version is no longer a draft, so its chapter and topic structure cannot be changed.",
@@ -194,46 +195,46 @@ export default async function SyllabusPage({ searchParams }: PageProps) {
 
                   <div className="syllabus-children">
                     <h4>Chapters ({catalogChapters.length})</h4>
-                    {catalogChapters.map((chapter) => {
+                    {chapterError ? <p className="notice notice-error">Chapter data could not be loaded. Refresh to retry; no conclusion can be drawn about whether chapters exist.</p> : catalogChapters.map((chapter) => {
                       const chapterTopics = (topics ?? []).filter((topic) => topic.chapter_id === chapter.id);
                       return (
                         <div className="syllabus-chapter" key={chapter.id}>
                           <div className="question-card-heading"><strong>{chapter.chapter_code ? chapter.chapter_code + " · " : ""}{chapter.title}</strong><span className="section-count">{chapterTopics.length} topics</span></div>
                           <div className="syllabus-evidence-list">
-                            <strong>Chapter evidence ({(evidence ?? []).filter((item) => item.chapter_id === chapter.id && item.topic_id === null).length})</strong>
-                            {(evidence ?? []).filter((item) => item.chapter_id === chapter.id && item.topic_id === null).map((item) => (
+                            <strong>Chapter evidence {evidenceError ? "(unavailable)" : "(" + (evidence ?? []).filter((item) => item.chapter_id === chapter.id && item.topic_id === null).length + ")"}</strong>
+                            {evidenceError ? <p className="question-card-meta">Evidence citations could not be loaded. Refresh to retry.</p> : (evidence ?? []).filter((item) => item.chapter_id === chapter.id && item.topic_id === null).map((item) => (
                               <p key={item.id}><a href={item.source_url} target="_blank" rel="noreferrer">{item.source_title} ↗</a>{item.source_locator ? " · " + item.source_locator : ""}{item.evidence_excerpt ? <small>{item.evidence_excerpt}</small> : null}</p>
                             ))}
                             <EvidenceForm catalogId={catalog.id} chapterId={chapter.id} />
                           </div>
-                          {chapterTopics.length ? <ul className="syllabus-topic-list">{chapterTopics.map((topic) => {
+                          {topicError ? <p className="notice notice-error">Topic data could not be loaded. Refresh to retry; no conclusion can be drawn about whether topics exist.</p> : chapterTopics.length ? <ul className="syllabus-topic-list">{chapterTopics.map((topic) => {
                             const topicEvidence = (evidence ?? []).filter((item) => item.chapter_id === chapter.id && item.topic_id === topic.id);
                             return <li key={topic.id}>
                               <span>{topic.topic_code ? topic.topic_code + " · " : ""}{topic.title}</span>
                               <div className="syllabus-evidence-list">
-                                <strong>Topic evidence ({topicEvidence.length})</strong>
-                                {topicEvidence.map((item) => <p key={item.id}><a href={item.source_url} target="_blank" rel="noreferrer">{item.source_title} ↗</a>{item.source_locator ? " · " + item.source_locator : ""}{item.evidence_excerpt ? <small>{item.evidence_excerpt}</small> : null}</p>)}
+                                <strong>Topic evidence {evidenceError ? "(unavailable)" : "(" + topicEvidence.length + ")"}</strong>
+                                {evidenceError ? <p className="question-card-meta">Evidence citations could not be loaded. Refresh to retry.</p> : topicEvidence.map((item) => <p key={item.id}><a href={item.source_url} target="_blank" rel="noreferrer">{item.source_title} ↗</a>{item.source_locator ? " · " + item.source_locator : ""}{item.evidence_excerpt ? <small>{item.evidence_excerpt}</small> : null}</p>)}
                                 <EvidenceForm catalogId={catalog.id} chapterId={chapter.id} topicId={topic.id} />
                               </div>
                             </li>;
                           })}</ul> : <p className="question-card-meta">No topics yet.</p>}
-                          <form action={createSyllabusTopic} className="syllabus-add-form">
+                          {!topicError && !chapterError && catalog.status === "draft" ? <form action={createSyllabusTopic} className="syllabus-add-form">
                             <input type="hidden" name="chapterId" value={chapter.id} />
                             <label>New topic<input name="title" required maxLength={160} placeholder="e.g. Moments" /></label>
                             <label>Code<input name="code" maxLength={40} placeholder="Optional" /></label>
                             <label>Order<input name="sortOrder" type="number" min="0" max="10000" defaultValue={chapterTopics.length + 1} /></label>
                             <button className="document-action" type="submit">Add topic</button>
-                          </form>
+                          </form> : null}
                         </div>
                       );
                     })}
-                    <form action={createSyllabusChapter} className="syllabus-add-form">
+                    {!chapterError && catalog.status === "draft" ? <form action={createSyllabusChapter} className="syllabus-add-form">
                       <input type="hidden" name="catalogId" value={catalog.id} />
                       <label>New chapter<input name="title" required maxLength={160} placeholder="e.g. Forces and motion" /></label>
                       <label>Code<input name="code" maxLength={40} placeholder="Optional" /></label>
                       <label>Order<input name="sortOrder" type="number" min="0" max="10000" defaultValue={catalogChapters.length + 1} /></label>
                       <button className="document-action" type="submit">Add chapter</button>
-                    </form>
+                    </form> : null}
                   </div>
                 </article>
               );
