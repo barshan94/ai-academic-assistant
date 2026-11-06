@@ -9,6 +9,7 @@ const {
   sendResumablePdfChunkMock,
   decryptDriveUploadSessionMock,
   deleteDriveFileMock,
+  downloadOriginalPdfFromDriveMock,
 } = vi.hoisted(() => ({
   createSupabaseServerClientMock: vi.fn(),
   createSupabaseServiceRoleClientMock: vi.fn(),
@@ -17,6 +18,7 @@ const {
   sendResumablePdfChunkMock: vi.fn(),
   decryptDriveUploadSessionMock: vi.fn(),
   deleteDriveFileMock: vi.fn(),
+  downloadOriginalPdfFromDriveMock: vi.fn(),
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
@@ -34,6 +36,7 @@ vi.mock("@/lib/drive/google", () => ({
   initiateResumablePdfUpload: initiateResumablePdfUploadMock,
   sendResumablePdfChunk: sendResumablePdfChunkMock,
   deleteDriveFile: deleteDriveFileMock,
+  downloadOriginalPdfFromDrive: downloadOriginalPdfFromDriveMock,
   isGoogleDriveUploadSessionUri: (value: string) => {
     try {
       const url = new URL(value);
@@ -84,6 +87,8 @@ beforeEach(() => {
   sendResumablePdfChunkMock.mockReset();
   decryptDriveUploadSessionMock.mockReset();
   deleteDriveFileMock.mockReset();
+  downloadOriginalPdfFromDriveMock.mockReset();
+  downloadOriginalPdfFromDriveMock.mockResolvedValue(Buffer.alloc(1234));
   createSupabaseServerClientMock.mockResolvedValue({
     auth: {
       getUser: vi.fn().mockResolvedValue({
