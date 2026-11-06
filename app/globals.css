@@ -188,3 +188,8 @@ h2 { font-size: 24px; letter-spacing: -.04em; margin: 0; font-weight: 600; }
 .solver-result .section-heading { margin-bottom: 4px; }
 .solver-output { white-space: pre-wrap; overflow-wrap: anywhere; color: #dce7ef; font: 13px/1.8 ui-monospace, SFMono-Regular, Menlo, monospace; margin: 0; padding: 17px; border: 1px solid var(--line); border-radius: 8px; background: #0b1219; }
 @media (max-width: 760px) { .solver-layout { grid-template-columns: 1fr; } }
+
+.solution-history-card { margin: 12px 0; padding: 17px; border: 1px solid var(--line); border-radius: 10px; background: #111923; }
+.solution-history-card details { margin: 12px 0; color: var(--accent); font-size: 12px; cursor: pointer; }
+.solution-history-card details .solver-output { margin-top: 12px; max-height: 520px; overflow: auto; }
+.solver-history { padding-top: 8px; }
