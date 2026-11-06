@@ -406,6 +406,12 @@ describe("resumable upload route security boundaries", () => {
       documentId: "document-123",
       duplicate: false,
     });
+    expect(downloadOriginalPdfFromDriveMock).toHaveBeenCalledWith({
+      accessToken: "drive-access-token",
+      driveFileId: "drive-file-123",
+      expectedSizeBytes: 1234,
+      expectedSha256: "a".repeat(64),
+    });
     expect(registerRpcMock).toHaveBeenCalledWith("register_uploaded_document", {
       p_owner_id: "owner-A",
       p_file_name: "Physics.pdf",
@@ -414,6 +420,34 @@ describe("resumable upload route security boundaries", () => {
       p_drive_file_id: "drive-file-123",
       p_drive_web_view_link: "https://drive.google.com/file/d/drive-file-123/view",
       p_page_count: null,
+    });
+    expect(deleteDriveFileMock).not.toHaveBeenCalled();
+  });
+
+  it("does not register a Drive PDF when its archived bytes fail the supplied SHA-256 check", async () => {
+    getDriveAccessTokenMock.mockResolvedValue("drive-access-token");
+    sendResumablePdfChunkMock.mockResolvedValue({
+      status: 201,
+      range: null,
+      file: { id: "drive-file-wrong-checksum", mimeType: "application/pdf", size: "1234" },
+    });
+    downloadOriginalPdfFromDriveMock.mockRejectedValue(new Error("Archived PDF checksum does not match."));
+
+    const response = await uploadChunk(makeRequest(
+      "/api/documents/upload/resumable/chunk",
+      {
+        headers: { "x-upload-session": "opaque-encrypted-session", "content-range": "bytes 0-1233/1234" },
+        body: "%PDF-" + "x".repeat(1229),
+      },
+    ));
+
+    expect(response.status).toBe(502);
+    expect(createSupabaseServiceRoleClientMock).not.toHaveBeenCalled();
+    expect(downloadOriginalPdfFromDriveMock).toHaveBeenCalledWith({
+      accessToken: "drive-access-token",
+      driveFileId: "drive-file-wrong-checksum",
+      expectedSizeBytes: 1234,
+      expectedSha256: "a".repeat(64),
     });
     expect(deleteDriveFileMock).not.toHaveBeenCalled();
   });
