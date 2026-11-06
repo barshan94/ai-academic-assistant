@@ -168,9 +168,9 @@ export async function generateStructuredAnswerWithRouting(
   const allowFallbacks = env.AI_ALLOW_PROVIDER_FALLBACKS === "true";
   const candidates = allowFallbacks ? providers : providers.slice(0, 1);
   let lastError: unknown;
-  // A pool can contain up to eight providers. Bound the complete routing path
-  // so sequential fallbacks cannot exceed a serverless request's useful lifetime.
-  const routingDeadline = Date.now() + 60_000;
+  // Reserve time inside the 60-second question action for validation, quota
+  // admission and saving the answer after provider routing has finished.
+  const routingDeadline = Date.now() + 40_000;
 
   for (const config of candidates) {
     const remainingMs = routingDeadline - Date.now();
