@@ -61,7 +61,7 @@ export default function HomePage() {
 
       <footer className="footer">
         <span>Academic Assistant <span className="footer-muted">· Built for careful learning</span></span>
-        <span><Link href="/privacy">Privacy notice</Link> · Private academic workspace</span>
+        <span><Link href="/privacy">Privacy notice</Link> · <Link href="/support">Support</Link> · Private academic workspace</span>
       </footer>
     </main>
   );
