@@ -271,7 +271,7 @@ export async function extractTextFromDrivePdf(input: {
   const body = Buffer.concat([prefix, sourceBytes, suffix]);
 
   const convertResponse = await fetch(
-    "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&ocrLanguage=en&fields=id",
+    "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id",
     {
       method: "POST",
       headers: {
