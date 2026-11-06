@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(30);
+select plan(32);
 
 insert into auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
 values
@@ -89,6 +89,22 @@ select is(
      and d.sha256 = repeat('a', 64)),
   1,
   'first registration creates its processing job in the same transaction'
+);
+
+select is(
+  (select source_page_count from public.documents
+   where owner_id = '12000000-0000-4000-8000-000000000001'
+     and sha256 = repeat('a', 64)),
+  2,
+  'registration preserves the original PDF page count separately'
+);
+
+select is(
+  (select page_count from public.documents
+   where owner_id = '12000000-0000-4000-8000-000000000001'
+     and sha256 = repeat('a', 64)),
+  null,
+  'extracted page count remains unset until processing completes'
 );
 
 select is(
