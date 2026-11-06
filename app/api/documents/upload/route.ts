@@ -20,9 +20,6 @@ export async function POST(request: NextRequest) {
   const { data: { user }, error: userError } = await supabase.auth.getUser();
   if (userError || !user) return NextResponse.redirect(new URL("/login", request.url));
 
-  let uploadedDriveFileId: string | null = null;
-  let accessToken: string | null = null;
-
   try {
     const form = await request.formData();
     const files = form.getAll("files").filter((value): value is File => value instanceof File && value.size > 0);
@@ -31,54 +28,59 @@ export async function POST(request: NextRequest) {
     const normalized = await normalizeFilesToPdf(files);
     const sha256 = createHash("sha256").update(normalized.bytes).digest("hex");
 
-    accessToken = await getDriveAccessToken();
+    const { data: duplicate, error: duplicateError } = await supabase
+      .from("documents")
+      .select("id")
+      .eq("owner_id", user.id)
+      .eq("sha256", sha256)
+      .maybeSingle();
+    if (duplicateError) return redirectWithStatus(request, "failed");
+    if (duplicate) return redirectWithStatus(request, "duplicate");
+
+    const accessToken = await getDriveAccessToken();
     const driveFile = await uploadPdfToDrive({
       accessToken,
       fileName: normalized.fileName,
       bytes: normalized.bytes,
     });
-    uploadedDriveFileId = driveFile.id;
 
-    // One owner-checked database RPC creates the document and its queue job,
-    // enforces the upload quota, and serializes duplicate detection.
-    const { data, error } = await supabase.rpc("register_uploaded_document", {
-      p_owner_id: user.id,
-      p_file_name: normalized.fileName,
-      p_file_size_bytes: normalized.bytes.byteLength,
-      p_sha256: sha256,
-      p_drive_file_id: driveFile.id,
-      p_drive_web_view_link: driveFile.webViewLink,
-      p_page_count: normalized.pageCount,
-    });
+    const { data: document, error: insertError } = await supabase
+      .from("documents")
+      .insert({
+        owner_id: user.id,
+        file_name: normalized.fileName,
+        mime_type: "application/pdf",
+        file_size_bytes: normalized.bytes.byteLength,
+        sha256,
+        drive_file_id: driveFile.id,
+        drive_web_view_link: driveFile.webViewLink,
+        page_count: normalized.pageCount,
+        status: "queued",
+      })
+      .select("id")
+      .single();
 
-    if (error) {
+    if (insertError || !document) {
       await deleteDriveFile(accessToken, driveFile.id);
-      uploadedDriveFileId = null;
-      return redirectWithStatus(request, error.message.toLowerCase().includes("quota") ? "quota" : "save_failed");
-    }
-
-    const registration = Array.isArray(data) ? data[0] : data;
-    if (!registration?.document_id) {
-      await deleteDriveFile(accessToken, driveFile.id);
-      uploadedDriveFileId = null;
       return redirectWithStatus(request, "save_failed");
     }
 
-    if (registration.duplicate) {
-      // Keep the previously archived file; remove only this redundant upload.
-      if (registration.stored_drive_file_id !== driveFile.id) {
-        await deleteDriveFile(accessToken, driveFile.id);
-      }
-      uploadedDriveFileId = null;
-      return redirectWithStatus(request, "duplicate");
+    const { error: jobError } = await supabase.from("processing_jobs").insert({
+      owner_id: user.id,
+      document_id: document.id,
+      stage: "validate",
+      status: "queued",
+      idempotency_key: user.id + ":" + sha256 + ":validate",
+    });
+
+    if (jobError) {
+      await supabase.from("documents").delete().eq("id", document.id).eq("owner_id", user.id);
+      await deleteDriveFile(accessToken, driveFile.id);
+      return redirectWithStatus(request, "queue_failed");
     }
 
-    uploadedDriveFileId = null;
     return redirectWithStatus(request, "success");
   } catch (error) {
-    if (accessToken && uploadedDriveFileId) {
-      try { await deleteDriveFile(accessToken, uploadedDriveFileId); } catch { /* orphan cleanup can be retried manually */ }
-    }
     const message = error instanceof Error ? error.message : "Upload failed.";
     const code = message.includes("Connect Google Drive") ? "drive_not_connected"
       : message.includes("environment variables") || message.includes("not configured") ? "not_configured"
