@@ -43,18 +43,29 @@ export default async function DocumentReviewPage({ params, searchParams }: PageP
   if (authError || !user) redirect("/login");
 
   const [{ data: document, error: documentError }, { data: pages, error: pagesError }] = await Promise.all([
-    supabase.from("documents").select("id,file_name,status,page_count,source_page_count,drive_file_id,drive_web_view_link,created_at").eq("id", id).eq("owner_id", user.id).maybeSingle(),
+    supabase.from("documents").select("id,file_name,status,page_count,drive_file_id,drive_web_view_link,created_at").eq("id", id).eq("owner_id", user.id).maybeSingle(),
     supabase.from("document_pages").select("id,page_number,extracted_text,extraction_method,status").eq("document_id", id).eq("owner_id", user.id).order("page_number"),
   ]);
 
   if (documentError || !document) notFound();
+
+  // Keep document review available while a non-production database is being
+  // brought forward to the source_page_count migration. A missing optional
+  // metadata column must not turn an otherwise authorized document into 404.
+  const { data: sourceMetadata, error: sourceMetadataError } = await supabase
+    .from("documents")
+    .select("source_page_count")
+    .eq("id", id)
+    .eq("owner_id", user.id)
+    .maybeSingle();
+  const sourcePageCount = sourceMetadataError ? null : sourceMetadata?.source_page_count ?? null;
   const noticeKey = query.question === "created" ? "created"
     : query.question === "invalid" ? "invalid_question"
     : query.question === "source_invalid" ? "source_invalid"
     : query.question === "save_failed" ? "save_failed_question"
     : query.review ?? query.process;
   const notice = noticeKey ? notices[noticeKey] : undefined;
-  const extractionStructureWarning = pagesError ? null : getExtractionStructureWarning(document.source_page_count, pages?.length ?? 0);
+  const extractionStructureWarning = pagesError ? null : getExtractionStructureWarning(sourcePageCount, pages?.length ?? 0);
 
   return (
     <main className="shell">
@@ -79,7 +90,7 @@ export default async function DocumentReviewPage({ params, searchParams }: PageP
       ) : (
         <section className="section">
           <div className="section-heading"><div><p className="eyebrow">EXTRACTED CONTENT</p><h2>{pages.length} review pages</h2></div><span className="section-count">Human review required</span></div>
-          {extractionStructureWarning ? <p className="notice notice-warning" role="status">{extractionStructureWarning}</p> : null}
+          {sourceMetadataError ? <p className="notice notice-warning" role="status">Source PDF page-count metadata is unavailable until the latest database migration is applied. Compare every extracted page manually with the original PDF.</p> : null}\n          {extractionStructureWarning ? <p className="notice notice-warning" role="status">{extractionStructureWarning}</p> : null}
           <div className="review-list">
             {pages.map((page) => (
               <article className="review-page" key={page.id}>
