@@ -103,10 +103,41 @@ async function hasLiveSupabaseConnection() {
     // tables required by the shipped document, solver, syllabus, notes and
     // study workflows so a partially migrated database cannot report ready.
     // These are zero-row HEAD requests; no academic content is returned.
-    return await runBoundedChecks(REQUIRED_READINESS_TABLES, 5, async (table) => {
+    const tablesReady = await runBoundedChecks(REQUIRED_READINESS_TABLES, 5, async (table) => {
       const { error } = await supabase.from(table).select("*", { head: true }).limit(1);
       return !error;
     });
+    if (!tablesReady) return false;
+
+    // The current worker and upload flows require this source-metadata column.
+    // A table-only probe would incorrectly report readiness against an older schema.
+    const { error: sourcePageCountError } = await supabase
+      .from("documents")
+      .select("source_page_count", { head: true })
+      .limit(1);
+    if (sourcePageCountError) return false;
+
+    // Probe the exact attempt-fenced RPC signatures without touching data.
+    // Both functions reject attempt_count=0 before acquiring or changing rows.
+    // P0001 is the expected validation error; PGRST202 means the migration is absent.
+    const sentinel = "00000000-0000-4000-8000-000000000000";
+    const [completionProbe, failureProbe] = await Promise.all([
+      supabase.rpc("complete_document_processing", {
+        p_document_id: sentinel,
+        p_owner_id: sentinel,
+        p_job_id: sentinel,
+        p_expected_attempt_count: 0,
+        p_pages: [],
+      }),
+      supabase.rpc("fail_document_processing", {
+        p_document_id: sentinel,
+        p_owner_id: sentinel,
+        p_job_id: sentinel,
+        p_expected_attempt_count: 0,
+        p_error_code: "BACKGROUND_PROCESSING_FAILED",
+      }),
+    ]);
+    return completionProbe.error?.code === "P0001" && failureProbe.error?.code === "P0001";
   } catch {
     return false;
   }
