@@ -1,7 +1,7 @@
 import { PDFDocument } from "pdf-lib";
-import { MAX_UPLOAD_BYTES, MAX_IMAGE_COUNT, safeFileName } from "./upload-limits";
+import { MAX_UPLOAD_BYTES, MAX_IMAGE_COUNT, MAX_DOCUMENT_PAGES, safeFileName } from "./upload-limits";
 
-export { MAX_UPLOAD_BYTES, MAX_IMAGE_COUNT, safeFileName } from "./upload-limits";
+export { MAX_UPLOAD_BYTES, MAX_IMAGE_COUNT, MAX_DOCUMENT_PAGES, safeFileName } from "./upload-limits";
 
 const MAX_IMAGE_EDGE = 4000;
 const MAX_IMAGE_PIXELS = 16_000_000;
@@ -154,7 +154,20 @@ export async function normalizeFilesToPdf(files: File[]) {
       throw new Error("The selected PDF does not have a valid PDF signature.");
     }
     const name = files[0].name.toLowerCase().endsWith(".pdf") ? files[0].name : files[0].name + ".pdf";
-    return { bytes, fileName: safeFileName(name), converted: false, pageCount: null as number | null };
+    let pageCount: number | null = null;
+    try {
+      // Best-effort metadata only: encrypted or unusual PDFs remain uploadable,
+      // but the review UI will not claim page alignment can be checked.
+      const parsedPdf = await PDFDocument.load(bytes, { updateMetadata: false });
+      pageCount = parsedPdf.getPageCount();
+      if (pageCount < 1 || pageCount > MAX_DOCUMENT_PAGES) {
+        throw new Error("PDF page count is outside the supported range.");
+      }
+    } catch (error) {
+      if (error instanceof Error && error.message === "PDF page count is outside the supported range.") throw error;
+      pageCount = null;
+    }
+    return { bytes, fileName: safeFileName(name), converted: false, pageCount };
   }
 
   if (files.some((file) => file.type === "application/pdf")) {
