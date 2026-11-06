@@ -169,6 +169,38 @@ describe("resumable upload route security boundaries", () => {
     expect(createSupabaseServiceRoleClientMock).not.toHaveBeenCalled();
   });
 
+  it("reconciles a completed Drive upload after a lost final response using a status query", async () => {
+    getDriveAccessTokenMock.mockResolvedValue("drive-access-token");
+    sendResumablePdfChunkMock.mockResolvedValue({
+      status: 201,
+      range: null,
+      file: { id: "drive-file-recovered", mimeType: "application/pdf", size: "1234" },
+    });
+    const registerRpcMock = vi.fn().mockResolvedValue({
+      data: [{ document_id: "document-recovered", duplicate: false, stored_drive_file_id: "drive-file-recovered" }],
+      error: null,
+    });
+    createSupabaseServiceRoleClientMock.mockReturnValue({ rpc: registerRpcMock });
+
+    const response = await uploadChunk(makeRequest(
+      "/api/documents/upload/resumable/chunk",
+      {
+        headers: { "x-upload-session": "opaque-encrypted-session", "content-range": "bytes */1234" },
+        body: new Uint8Array(),
+      },
+    ));
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      nextOffset: 1234, complete: true, documentId: "document-recovered", duplicate: false,
+    });
+    expect(downloadOriginalPdfFromDriveMock).toHaveBeenCalledWith({
+      accessToken: "drive-access-token", driveFileId: "drive-file-recovered",
+      expectedSizeBytes: 1234, expectedSha256: "a".repeat(64),
+    });
+    expect(registerRpcMock).toHaveBeenCalledOnce();
+  });
+
   it("queries Drive for the authoritative offset without sending a chunk body", async () => {
     getDriveAccessTokenMock.mockResolvedValue("drive-access-token");
     sendResumablePdfChunkMock.mockResolvedValue({
