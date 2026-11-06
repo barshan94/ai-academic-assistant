@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(52);
+select plan(58);
 
 -- Isolated identities and records. This test runs inside a transaction and rolls back.
 insert into auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
@@ -58,6 +58,14 @@ insert into public.practice_set_items (
   'Owner-private attempt notes', now()
 );
 
+insert into public.weekly_study_sessions (
+  id, owner_id, session_date, title, planned_minutes, notes, status, completed_at
+) values (
+  '90000000-0000-4000-8000-000000000001',
+  '10000000-0000-4000-8000-000000000001',
+  current_date, 'Private study session', 45, 'Personal study notes', 'planned', null
+);
+
 -- The exposed API wrapper is invoker-rights. Only its private implementation
 -- uses definer rights, and anonymous clients cannot access the private schema.
 select is(
@@ -101,6 +109,7 @@ select is(
 select is((select count(*)::integer from public.question_classification_history), 2, 'owner can read classification history for their own questions');
 select is((select count(*)::integer from public.practice_sets), 1, 'owner can read their private practice sets');
 select is((select count(*)::integer from public.practice_set_items), 1, 'owner can read their private practice answers and notes');
+select is((select count(*)::integer from public.weekly_study_sessions), 1, 'owner can read their private weekly study calendar');
 
 select throws_ok(
   $$update public.question_solution_mark_schemes
@@ -161,6 +170,7 @@ select is((select count(*)::integer from public.question_solution_mark_schemes),
 select is((select count(*)::integer from public.question_teacher_invites), 0, 'uninvited account cannot read another user invite');
 select is((select count(*)::integer from public.practice_sets), 0, 'unrelated account cannot read another owner practice history');
 select is((select count(*)::integer from public.practice_set_items), 0, 'unrelated account cannot read another owner answers or notes');
+select is((select count(*)::integer from public.weekly_study_sessions), 0, 'unrelated account cannot read another owners study calendar or notes');
 
 select throws_ok(
   $$insert into public.question_solution_mark_schemes (solution_id, owner_id, title, awarding_body, qualification, subject, source_url, source_locator, points)
@@ -191,6 +201,25 @@ select is((select count(*)::integer from public.question_solutions), 1, 'accepte
 select is((select count(*)::integer from public.question_classification_history), 0, 'accepted teacher cannot read owner-private classification history');
 select is((select count(*)::integer from public.practice_sets), 0, 'accepted teacher cannot read a students private practice sets');
 select is((select count(*)::integer from public.practice_set_items), 0, 'accepted teacher cannot read a students practice answers or notes');
+select is((select count(*)::integer from public.weekly_study_sessions), 0, 'accepted teacher cannot read a students private study calendar or notes');
+select throws_ok(
+  $test$select public.complete_weekly_study_session('90000000-0000-4000-8000-000000000001')$test$,
+  'P0001',
+  'Planned session not found',
+  'accepted teacher cannot complete a students private study session'
+);
+select throws_ok(
+  $test$select public.update_planned_weekly_study_session('90000000-0000-4000-8000-000000000001', current_date, 'Hijacked session', 60, null)$test$,
+  'P0001',
+  'Planned session not found',
+  'accepted teacher cannot edit a students private study session'
+);
+select throws_ok(
+  $test$select public.delete_planned_weekly_study_session('90000000-0000-4000-8000-000000000001')$test$,
+  'P0001',
+  'Planned session not found',
+  'accepted teacher cannot delete a students private study session'
+);
 select throws_ok(
   $test$select public.record_practice_answer('80000000-0000-4000-8000-000000000001', 'correct', 'forged teacher result')$test$,
   'P0001',
