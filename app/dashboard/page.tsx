@@ -16,6 +16,7 @@ export default async function DashboardPage() {
         <span className="brand"><span className="brand-mark">A</span><span>Academic<span className="brand-muted">Assistant</span></span></span>
         <div className="topbar-actions">
           <Link className="sign-in-link" href="/dashboard/questions">Questions</Link>
+          <Link className="sign-in-link" href="/dashboard/solver">AI Study</Link>
           <Link className="sign-in-link" href="/dashboard/documents">Documents</Link>
           <form action={signOut}><button className="signout-button" type="submit">Sign out</button></form>
         </div>
@@ -37,7 +38,7 @@ export default async function DashboardPage() {
         <div className="module-grid">
           <article className="module-card"><span className="module-number">01</span><h3>Question library</h3><p>Capture individual questions from source pages and add board, qualification, subject and chapter metadata.</p><Link className="document-open" href="/dashboard/questions">Open library ↗</Link></article>
           <article className="module-card"><span className="module-number">02</span><h3>Document intake</h3><p>Archive PDFs and image batches in Google Drive, extract text and review corrections.</p><Link className="document-open" href="/dashboard/documents">Open documents ↗</Link></article>
-          <article className="module-card"><span className="module-number">03</span><h3>AI solutions</h3><p>Exam-ready answers and Bengali/English teaching explanations.</p><span className="planned">Planned</span></article>
+          <article className="module-card"><span className="module-number">03</span><h3>AI study workspace</h3><p>Generate worked answers, syllabus suggestions, chapter notes and revision sets using your configured AI provider.</p><Link className="document-open" href="/dashboard/solver">Open AI study ↗</Link></article>
           <article className="module-card"><span className="module-number">04</span><h3>Chapter intelligence</h3><p>Reusable notes, formula sheets and revision material.</p><span className="planned">Planned</span></article>
         </div>
       </section>
