@@ -333,3 +333,8 @@
 - [ ] Complete backup/restore, accessibility, academic-quality and privacy/legal acceptance.
 
 Vercel's status check is blocked by the account's build-rate limit (`upgradeToPro=build-rate-limit`). Deployment is intentionally deferred until the other release gates are complete and the limit resets. PR #1 remains draft/open and unmerged. Production has not been changed. CI success does not approve production.
+
+## Worker scheduler safety
+
+- [ ] Verify on the exact current feature-branch commit that the document-worker workflow remains `workflow_dispatch` only, with no recurring or automatic trigger. A source-level regression test in `tests/document-worker-method.test.ts` now enforces this until route/branch integration, secrets, target environment, authentication and idempotency are explicitly accepted.
+- [ ] Do not dispatch the worker as part of automated CI. Live invocation remains an owner-controlled non-production acceptance step.
