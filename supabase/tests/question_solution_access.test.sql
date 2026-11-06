@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(45);
+select plan(52);
 
 -- Isolated identities and records. This test runs inside a transaction and rolls back.
 insert into auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
@@ -43,6 +43,20 @@ values ('50000000-0000-4000-8000-000000000001', '40000000-0000-4000-8000-0000000
 
 insert into public.question_teacher_invites (id, question_id, owner_id, invited_email)
 values ('60000000-0000-4000-8000-000000000001', '30000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', 'rls-teacher@example.test');
+
+-- Practice snapshots and self-assessment history are private to their owner.
+insert into public.practice_sets (id, owner_id, title, question_count)
+values ('70000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', 'Private practice fixture', 1);
+
+insert into public.practice_set_items (
+  id, owner_id, practice_set_id, question_id, position, question_text, subject, outcome, response_notes, answered_at
+) values (
+  '80000000-0000-4000-8000-000000000001',
+  '10000000-0000-4000-8000-000000000001',
+  '70000000-0000-4000-8000-000000000001',
+  null, 1, 'Private practice snapshot', 'Physics', 'incorrect',
+  'Owner-private attempt notes', now()
+);
 
 -- The exposed API wrapper is invoker-rights. Only its private implementation
 -- uses definer rights, and anonymous clients cannot access the private schema.
@@ -85,6 +99,8 @@ select is(
   'owner can read their saved mark scheme'
 );
 select is((select count(*)::integer from public.question_classification_history), 2, 'owner can read classification history for their own questions');
+select is((select count(*)::integer from public.practice_sets), 1, 'owner can read their private practice sets');
+select is((select count(*)::integer from public.practice_set_items), 1, 'owner can read their private practice answers and notes');
 
 select throws_ok(
   $$update public.question_solution_mark_schemes
@@ -143,6 +159,8 @@ select throws_ok(
 select is((select count(*)::integer from public.question_solutions), 0, 'uninvited account cannot read saved solutions');
 select is((select count(*)::integer from public.question_solution_mark_schemes), 0, 'uninvited account cannot read mark schemes');
 select is((select count(*)::integer from public.question_teacher_invites), 0, 'uninvited account cannot read another user invite');
+select is((select count(*)::integer from public.practice_sets), 0, 'unrelated account cannot read another owner practice history');
+select is((select count(*)::integer from public.practice_set_items), 0, 'unrelated account cannot read another owner answers or notes');
 
 select throws_ok(
   $$insert into public.question_solution_mark_schemes (solution_id, owner_id, title, awarding_body, qualification, subject, source_url, source_locator, points)
@@ -171,6 +189,14 @@ select lives_ok(
 select is((select count(*)::integer from public.questions), 1, 'accepted teacher can read the shared question');
 select is((select count(*)::integer from public.question_solutions), 1, 'accepted teacher can read the shared solution');
 select is((select count(*)::integer from public.question_classification_history), 0, 'accepted teacher cannot read owner-private classification history');
+select is((select count(*)::integer from public.practice_sets), 0, 'accepted teacher cannot read a students private practice sets');
+select is((select count(*)::integer from public.practice_set_items), 0, 'accepted teacher cannot read a students practice answers or notes');
+select throws_ok(
+  $test$select public.record_practice_answer('80000000-0000-4000-8000-000000000001', 'correct', 'forged teacher result')$test$,
+  'P0001',
+  'Practice item not found',
+  'accepted teacher cannot alter a students private practice result'
+);
 select is((select count(*)::integer from public.question_solution_reviews), 0, 'teacher cannot read owner-authored review history');
 select throws_ok(
   $test$select public.record_teacher_solution_review('40000000-0000-4000-8000-000000000003', 'approved', null)$test$,
