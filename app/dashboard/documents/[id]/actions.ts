@@ -16,15 +16,16 @@ export async function savePageCorrection(formData: FormData) {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) redirect("/login");
 
-  const { data: saved, error } = await supabase.rpc("save_document_page_correction", {
-    p_document_id: documentId,
-    p_owner_id: user.id,
-    p_page_id: pageId,
-    p_extracted_text: extractedText,
-  });
+  const { error } = await supabase.from("document_pages").update({
+    extracted_text: extractedText,
+    extraction_method: "manual",
+    status: "review_required",
+  }).eq("id", pageId).eq("document_id", documentId).eq("owner_id", user.id);
 
-  redirect("/dashboard/documents/" + encodeURIComponent(documentId) +
-    (error || !saved ? "?review=save_failed" : "?review=saved"));
+  if (!error) {
+    await supabase.from("documents").update({ status: "review_required" }).eq("id", documentId).eq("owner_id", user.id);
+  }
+  redirect("/dashboard/documents/" + encodeURIComponent(documentId) + (error ? "?review=save_failed" : "?review=saved"));
 }
 
 export async function approveDocument(formData: FormData) {
@@ -33,13 +34,27 @@ export async function approveDocument(formData: FormData) {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) redirect("/login");
 
-  const { data: approvedPageCount, error } = await supabase.rpc("approve_document_review", {
-    p_document_id: documentId,
-    p_owner_id: user.id,
-  });
+  const { data: pages, error: pageError } = await supabase
+    .from("document_pages")
+    .select("id")
+    .eq("document_id", documentId)
+    .eq("owner_id", user.id);
+
+  if (pageError || !pages?.length) redirect("/dashboard/documents/" + encodeURIComponent(documentId) + "?review=empty");
+
+  const { error: updatePagesError } = await supabase
+    .from("document_pages")
+    .update({ status: "complete" })
+    .eq("document_id", documentId)
+    .eq("owner_id", user.id);
+  const { error: updateDocumentError } = await supabase
+    .from("documents")
+    .update({ status: "ready" })
+    .eq("id", documentId)
+    .eq("owner_id", user.id);
 
   redirect("/dashboard/documents/" + encodeURIComponent(documentId) +
-    (error || !approvedPageCount ? "?review=approve_failed" : "?review=approved"));
+    (updatePagesError || updateDocumentError ? "?review=approve_failed" : "?review=approved"));
 }
 
 export async function createQuestionFromPage(formData: FormData) {
