@@ -1,57 +1,21 @@
 # ERR-124 — minimatch advisory scope reconciliation
 
-## Superseding verification — 2026-11-05
+## Superseding verification — 2026-11-06
 
-**Status: CLOSED for the current committed dependency graph.**
+**Current lockfile audit status: CLOSED / PASS.** On exact feature-branch commit `7203e2fdba24dea09daf12379b6e95202ee0bcc9`, the Foundation workflow completed both `npm audit --omit=dev` and the full `npm audit` successfully. The full dependency audit is now a blocking CI step, not an advisory/continue-on-error step.
 
-The latest Foundation workflow for commit `189c76f38f3942d4499afd41a592b72a0af7dce8` completed these steps successfully:
-- `npm audit --omit=dev`: `found 0 vulnerabilities`
-- `npm audit` (full dependency tree, including development dependencies): `found 0 vulnerabilities`
+This establishes that the committed dependency graph had no vulnerabilities reported by npm's current audit data at this checkpoint. It does **not** mean future dependency graphs are safe, that the GitHub Advisory Database range has been corrected, or that minimatch 3 is generally vulnerability-free. Re-run both audits after dependency or lockfile changes.
 
-The earlier aggregate 13-moderate result is no longer reproducible against the current lockfile and current npm advisory data. No forced override or breaking ESLint downgrade was needed. This closes the current ERR-124 gate; re-run both audits on future dependency/lockfile changes. This is a point-in-time audit, not a guarantee against future advisories.
+## Historical advisory-range investigation
 
+The upstream maintainer's [GHSA-g3hv-75wg-m249 advisory](https://github.com/isaacs/minimatch/security/advisories/GHSA-g3hv-75wg-m249) identified **minimatch 10.2.6** as affected and **11.0.1** as patched in the reviewed advisory snapshot. The GitHub Advisory Database previously published a broader range `<11.0.1`, which conflicted with that version-specific publisher evidence. A clarification request was opened at [github/advisory-database#10811](https://github.com/github/advisory-database/issues/10811). This historical discrepancy is retained for audit context; no claim is made here that the advisory database has changed.
 
-Status: **no compatible dependency migration is justified for this CVE on the current lockfile; scanner discrepancy remains open pending GitHub Advisory Database clarification**. Do not force a major-version override into legacy ESLint consumers.
+The previously inspected lockfile contained root `minimatch@3.1.5` for legacy ESLint consumers and nested `minimatch@11.0.3` for modern typescript-estree. No unsupported major-version override or broad toolchain migration was justified. The current closure is based on the successful full audit, not on treating the historical advisory discrepancy as an exemption.
 
-## Authoritative advisory evidence
+## Ongoing control
 
-The upstream maintainer's [GHSA-g3hv-75wg-m249 advisory](https://github.com/isaacs/minimatch/security/advisories/GHSA-g3hv-75wg-m249) identifies **minimatch 10.2.6** as the affected version and **11.0.1** as the patched version. Its technical description is specifically about `firstPhasePreProcess()`, `optimizationLevel >= 2`, and the repeated `globParts` expansion followed by pairwise processing.
+1. Keep the lockfile and pinned install reproducible.
+2. Keep both production-only and full-tree audits blocking in CI.
+3. Reassess any new audit finding from its actual package path, dependency role, advisory range and exploitability; do not force an incompatible major-version override.
+4. Reopen ERR-124 if a future lockfile audit reports a relevant vulnerability.
 
-The GitHub Advisory Database currently publishes the broader range `<11.0.1`, which conflicts with the upstream maintainer's affected-version field and the described implementation. A public clarification request is open at [github/advisory-database#10811](https://github.com/github/advisory-database/issues/10811). That issue is a request for clarification, not an accepted exemption or a confirmed database correction.
-
-## Feature-branch lockfile evidence
-
-Reviewed `package-lock.json` on `feature/m3-ai-solver` (blob `42a7e4abf9951b89ac80835fe819bb8ca764f658`):
-
-| Installed package path | Locked version | Assessment for this specific advisory |
-| --- | ---: | --- |
-| `node_modules/minimatch` | 3.1.5 | Not the upstream-publisher-identified affected version 10.2.6; source does not contain the described modern preprocessing implementation |
-| `node_modules/@typescript-eslint/typescript-estree/node_modules/minimatch` | 11.0.3 | Above the upstream patched version 11.0.1 |
-
-No `minimatch@10.2.6` package entry was found in the complete lockfile. The root `3.1.5` copy is required by legacy ESLint dependency ranges such as `^3.1.5`; the nested `11.0.3` copy satisfies the modern typescript-estree dependency range. Both are development dependencies, not application runtime dependencies.
-
-The root v3.1.5 source lacks `firstPhasePreProcess`, `secondPhasePreProcess`, and `optimizationLevel`, which are the mechanisms described in the upstream advisory. This is a version-specific assessment for CVE-2026-118764 only. It is not a claim that minimatch 3 is generally free of other vulnerabilities.
-
-## Decision
-
-1. **Do not force minimatch 11 into packages declaring a v3 API range.** That would create an unsupported dependency graph and could break ESLint.
-2. **Do not perform a broad ESLint/Next.js major migration solely to clear this advisory scanner result.** The installed graph does not contain the publisher-identified vulnerable 10.2.6 release.
-3. Keep the nested scoped override to patched `minimatch@11.0.3` for typescript-estree.
-4. Keep the committed lockfile and reproducible `npm ci` installation.
-5. Retain this finding as a scanner/advisory-range discrepancy until the GitHub Advisory Database issue is resolved or the upstream publisher clarifies a broader affected range.
-6. Independently inspect the full 13-moderate install-time audit summary. Do not attribute all 13 findings to minimatch; the current CI logs only show the aggregate count and do not include the detailed `npm audit` report.
-7. Re-run the complete audit after obtaining detailed advisory records. The last verified `npm audit --omit=dev` result was zero production vulnerabilities; this does not establish a clean development dependency audit.
-
-## Verification recorded
-
-- Complete feature lockfile inspected; exactly two minimatch package entries were found: 3.1.5 and 11.0.3.
-- Upstream maintainer advisory checked on 2026-11-01: affected version listed as 10.2.6; patched version 11.0.1.
-- GitHub Advisory Database clarification request #10811 checked on 2026-11-01 and remains open.
-- Latest Foundation CI run `41323931410` passed lint, TypeScript checks, unit tests and production build. Its install log reports 13 moderate vulnerabilities in aggregate; the production-only audit reports zero vulnerabilities.
-- No package or lockfile mutation was made because the evidence does not justify an incompatible override or broad toolchain migration.
-
-## Closure criteria
-
-Close ERR-124 when the GitHub Advisory Database corrects or explains the affected range, or when the upstream publisher confirms that the installed 3.1.5 implementation is affected by this specific CVE. If that happens, choose a compatibility-preserving toolchain migration or a narrowly reviewed patch, regenerate the lockfile with the pinned toolchain, and run the full verification suite.
-
-If the database remains broad but the publisher continues to identify only 10.2.6, retain a documented, reviewed false-positive disposition for this CVE. Other minimatch advisories and the remaining development-tree audit findings must still be evaluated independently.
