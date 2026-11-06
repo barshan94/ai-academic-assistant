@@ -51,6 +51,7 @@ describe("GET /api/health/ready", () => {
           limit: vi.fn().mockResolvedValue({ error: null }),
         })),
       })),
+      rpc: vi.fn().mockResolvedValue({ data: null, error: { code: "P0001" } }),
     });
   });
 
@@ -81,7 +82,14 @@ describe("GET /api/health/ready", () => {
     expect(getAIProviderConfigsMock).toHaveBeenCalledWith("chapter-note");
     expect(createClientMock).toHaveBeenCalledOnce();
     const client = createClientMock.mock.results[0].value;
-    expect(client.from).toHaveBeenCalledTimes(REQUIRED_READINESS_TABLES.length);
+    expect(client.from).toHaveBeenCalledTimes(REQUIRED_READINESS_TABLES.length + 1);
+    expect(client.rpc).toHaveBeenCalledTimes(2);
+    expect(client.rpc).toHaveBeenCalledWith("complete_document_processing", expect.objectContaining({
+      p_expected_attempt_count: 0,
+    }));
+    expect(client.rpc).toHaveBeenCalledWith("fail_document_processing", expect.objectContaining({
+      p_expected_attempt_count: 0,
+    }));
   });
 
   it("accepts strict zero-cost mode without probing disabled AI providers", async () => {
@@ -109,6 +117,37 @@ describe("GET /api/health/ready", () => {
     expect(response.status).toBe(503);
     expect(await response.json()).toEqual({ status: "not_ready" });
     expect(createClientMock).not.toHaveBeenCalled();
+  });
+
+  it("fails closed when the attempt-fenced worker RPC migrations are missing", async () => {
+    const client = createClientMock.mock.results[0]?.value;
+    client.rpc.mockImplementation((name: string) => Promise.resolve({
+      data: null,
+      error: { code: name === "complete_document_processing" ? "PGRST202" : "P0001" },
+    }));
+
+    const response = await GET(authorizedRequest());
+
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({ status: "not_ready" });
+  });
+
+  it("fails closed when the source page-count column is missing", async () => {
+    createClientMock.mockReturnValue({
+      from: vi.fn((table: string) => ({
+        select: vi.fn((column: string) => ({
+          limit: vi.fn().mockResolvedValue({
+            error: table === "documents" && column === "source_page_count" ? { code: "42703" } : null,
+          }),
+        })),
+      })),
+      rpc: vi.fn().mockResolvedValue({ data: null, error: { code: "P0001" } }),
+    });
+
+    const response = await GET(authorizedRequest());
+
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({ status: "not_ready" });
   });
 
   it("fails closed when a required database table cannot be probed", async () => {
