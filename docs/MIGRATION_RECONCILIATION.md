@@ -82,3 +82,14 @@ Two migrations were applied to the connected non-production project during the 2
 Matching SQL files have been added to `supabase/migrations/` on `feature/m3-ai-solver` so the change is visible and reviewable. The resulting live schema has `documents.source_page_count`; `register_uploaded_document` writes this column, permits up to 100 source pages, and is executable only by `service_role`.
 
 This does **not** authorize further migrations or migration-history repair. Do not run this reconciliation workflow, apply the attempt-fencing migration, dispatch the worker, or change Production. The live completion/failure RPC signatures remain older than the feature worker's attempt-fenced signatures; readiness must remain fail-closed until the owner explicitly changes the migration restriction.
+
+## Current exact version inventory — 2026-11-06
+
+A fresh version-only comparison after the two migration records above reports 108 hosted ledger entries and 107 migration files on this feature branch.
+
+- Three already documented history-only pairs still differ by version: hosted `20261103162903` vs repository `20261103163000`; hosted `20261104124726` vs repository `20261104100000`; hosted `20261104125214` vs repository `20261104110000`.
+- Three feature-branch migrations are not in the hosted ledger: `20261106100000_align_document_page_count_limit`, `20261106110000_preserve_source_pdf_page_count`, and `20261106120000_fence_document_processing_attempts`. These include the attempt-fenced completion/failure RPCs required by the current worker.
+- Four AI Assistant output migrations exist in the hosted ledger but not in this feature branch: `20261106154023`, `20261106154236`, `20261106154421`, and `20261106154650`. They are present on the default branch; do not copy or replay them blindly into this branch.
+- The two migration records created during this session now have matching files and are no longer version-only mismatches.
+
+This inventory is read-only. The owner restriction remains: do not dispatch reconciliation, edit the hosted ledger, or apply the three pending feature migrations. The readiness route checks for the attempt-fenced RPC signatures and must continue to report not-ready against the current hosted schema.
