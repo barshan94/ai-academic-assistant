@@ -33,7 +33,6 @@ const statusMessages: Record<string, string> = {
   catalog_locked: "This syllabus version is no longer a draft. Its chapter, topic and evidence structure cannot be changed.",
   source_required: "Add an HTTPS source URL and source title before marking a syllabus version verified. The database records the verification time.",
   verify_failed: "Verification was rejected. Check that the source URL and title are present and that the version contains at least one chapter.",
-  catalog_locked: "This syllabus version is no longer a draft, so its chapter and topic structure cannot be changed.",
   imported: "The syllabus was imported atomically as a draft. Review its source and contents before marking it verified.",
   import_duplicate: "A matching syllabus version or chapter/topic already exists. Nothing from this import was saved.",
   import_invalid: "The JSON document is invalid or exceeds the import limits. Check its format and try again.",
