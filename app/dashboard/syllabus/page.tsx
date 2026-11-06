@@ -194,18 +194,18 @@ export default async function SyllabusPage({ searchParams }: PageProps) {
                   ) : null}
 
                   <div className="syllabus-children">
-                    <h4>Chapters ({catalogChapters.length})</h4>
+                    <h4>Chapters {chapterError ? "(unavailable)" : "(" + catalogChapters.length + ")"}</h4>
                     {chapterError ? <p className="notice notice-error">Chapter data could not be loaded. Refresh to retry; no conclusion can be drawn about whether chapters exist.</p> : catalogChapters.map((chapter) => {
                       const chapterTopics = (topics ?? []).filter((topic) => topic.chapter_id === chapter.id);
                       return (
                         <div className="syllabus-chapter" key={chapter.id}>
-                          <div className="question-card-heading"><strong>{chapter.chapter_code ? chapter.chapter_code + " · " : ""}{chapter.title}</strong><span className="section-count">{chapterTopics.length} topics</span></div>
+                          <div className="question-card-heading"><strong>{chapter.chapter_code ? chapter.chapter_code + " · " : ""}{chapter.title}</strong><span className="section-count">{topicError ? "Topics unavailable" : chapterTopics.length + " topics"}</span></div>
                           <div className="syllabus-evidence-list">
                             <strong>Chapter evidence {evidenceError ? "(unavailable)" : "(" + (evidence ?? []).filter((item) => item.chapter_id === chapter.id && item.topic_id === null).length + ")"}</strong>
                             {evidenceError ? <p className="question-card-meta">Evidence citations could not be loaded. Refresh to retry.</p> : (evidence ?? []).filter((item) => item.chapter_id === chapter.id && item.topic_id === null).map((item) => (
                               <p key={item.id}><a href={item.source_url} target="_blank" rel="noreferrer">{item.source_title} ↗</a>{item.source_locator ? " · " + item.source_locator : ""}{item.evidence_excerpt ? <small>{item.evidence_excerpt}</small> : null}</p>
                             ))}
-                            <EvidenceForm catalogId={catalog.id} chapterId={chapter.id} />
+                            {!evidenceError && catalog.status === "draft" ? <EvidenceForm catalogId={catalog.id} chapterId={chapter.id} /> : null}
                           </div>
                           {topicError ? <p className="notice notice-error">Topic data could not be loaded. Refresh to retry; no conclusion can be drawn about whether topics exist.</p> : chapterTopics.length ? <ul className="syllabus-topic-list">{chapterTopics.map((topic) => {
                             const topicEvidence = (evidence ?? []).filter((item) => item.chapter_id === chapter.id && item.topic_id === topic.id);
@@ -214,7 +214,7 @@ export default async function SyllabusPage({ searchParams }: PageProps) {
                               <div className="syllabus-evidence-list">
                                 <strong>Topic evidence {evidenceError ? "(unavailable)" : "(" + topicEvidence.length + ")"}</strong>
                                 {evidenceError ? <p className="question-card-meta">Evidence citations could not be loaded. Refresh to retry.</p> : topicEvidence.map((item) => <p key={item.id}><a href={item.source_url} target="_blank" rel="noreferrer">{item.source_title} ↗</a>{item.source_locator ? " · " + item.source_locator : ""}{item.evidence_excerpt ? <small>{item.evidence_excerpt}</small> : null}</p>)}
-                                <EvidenceForm catalogId={catalog.id} chapterId={chapter.id} topicId={topic.id} />
+                                {!evidenceError && catalog.status === "draft" ? <EvidenceForm catalogId={catalog.id} chapterId={chapter.id} topicId={topic.id} /> : null}
                               </div>
                             </li>;
                           })}</ul> : <p className="question-card-meta">No topics yet.</p>}
