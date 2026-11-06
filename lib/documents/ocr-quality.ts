@@ -12,19 +12,19 @@ function hasFlattenedTableRisk(text: string) {
   // look perfectly readable after OCR while its row/column relationships
   // have been destroyed. Tabs, pipes, or visibly aligned columns are evidence
   // that some structure survived; otherwise require a human layout check.
-  const hasColumnSeparators = text.includes("\\t") || /\|/.test(text) || / {3,}/u.test(text);
+  const hasColumnSeparators = text.includes("\t") || /\|/.test(text) || / {3,}/u.test(text);
   return rowMarkers.length >= 3 && tableHeaders >= 2 && !hasColumnSeparators;
 }
 
 export function assessOcrTextQuality(text: string): OcrQuality {
-  const compact = text.replace(/\\s/gu, "");
+  const compact = text.replace(/\s/gu, "");
   if (compact.length < 40) return "needs_correction";
 
-  const tokens = text.match(/[\\p{L}\\p{N}]+/gu) ?? [];
+  const tokens = text.match(/[\p{L}\p{N}]+/gu) ?? [];
   const fragments = tokens.filter((token) => [...token].length === 1).length;
-  const letters = text.match(/\\p{L}/gu) ?? [];
-  const latinLetters = text.match(/\\p{Script=Latin}/gu) ?? [];
-  const readable = (text.match(/[\\p{L}\\p{N}]/gu) ?? []).length;
+  const letters = text.match(/\p{L}/gu) ?? [];
+  const latinLetters = text.match(/\p{Script=Latin}/gu) ?? [];
+  const readable = (text.match(/[\p{L}\p{N}]/gu) ?? []).length;
   const readableRatio = readable / compact.length;
   const fragmentRatio = tokens.length ? fragments / tokens.length : 1;
   const mostlyLatin = letters.length > 0 && latinLetters.length / letters.length > 0.8;
