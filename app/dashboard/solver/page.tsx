@@ -10,7 +10,7 @@ export default async function SolverPage() {
   const supabase = await createSupabaseServerClient();
   const { data: { user }, error } = await supabase.auth.getUser();
   if (error || !user) redirect("/login");
-  const { data: questions } = await supabase.from("questions")
+  const { data: solutions } = await supabase.from("question_solutions")\n    .select("id,task_type,prompt_text,output_text,review_status,created_at")\n    .eq("owner_id", user.id).order("created_at", { ascending: false }).limit(20);\n  const { data: questions } = await supabase.from("questions")
     .select("id,question_text,subject,chapter,review_status")
     .eq("owner_id", user.id).order("created_at", { ascending: false }).limit(100);
 
@@ -25,7 +25,7 @@ export default async function SolverPage() {
         <h1>Understand, solve <span>and revise.</span></h1>
         <p className="hero-copy">Generate worked solutions, classify syllabus topics, build chapter notes and create revision sets from your approved question library.</p>
       </section>
-      <SolverWorkspace questions={questions ?? []} />
+      <SolverWorkspace questions={questions ?? []} solutions={solutions ?? []} />
     </main>
   );
 }
