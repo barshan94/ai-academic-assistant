@@ -21,8 +21,6 @@
 - [x] Store document metadata, page text, processing jobs and Drive connection state in owner-scoped Supabase tables.
 - [x] Use AES-256-GCM encryption for stored Drive refresh tokens; unit tests cover round-trip and tamper rejection.
 - [x] Use owner-bound OAuth state and same-origin checks for document POST routes.
-- [x] Register the uploaded document, upload quota and processing job in one owner-checked database transaction; duplicate uploads retain the original Drive archive.
-- [x] Claim processing jobs with compare-and-set leases; page replacement, job completion, page correction and document approval use atomic database transitions.
 - [x] Provide editable page-level extracted text and an explicit teacher-review action.
 - [x] Provide a Drive disconnect action that attempts token revocation.
 - [x] Enforce a three-attempt processing limit and a 100-page text cap.
