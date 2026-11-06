@@ -17,6 +17,7 @@ describe("document worker HTTP method", () => {
     expect(workflow).toContain("--request POST");
     expect(workflow).not.toContain("--request GET");
     expect(workflow).toContain('--header "Authorization: Bearer $CRON_SECRET"');
+    expect(workflow).toContain("CRON_SECRET must contain at least 32 characters");
     expect(workflow).not.toContain("--retry");
     expect(workflow).toContain('response_file="$(mktemp)"');
     expect(workflow).toContain('--output "$response_file"');
