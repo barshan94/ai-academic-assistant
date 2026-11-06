@@ -336,5 +336,6 @@ Vercel's status check is blocked by the account's build-rate limit (`upgradeToPr
 
 ## Worker scheduler safety
 
-- [ ] Verify on the exact current feature-branch commit that the document-worker workflow remains `workflow_dispatch` only, with no recurring or automatic trigger. A source-level regression test in `tests/document-worker-method.test.ts` now enforces this until route/branch integration, secrets, target environment, authentication and idempotency are explicitly accepted.
-- [ ] Do not dispatch the worker as part of automated CI. Live invocation remains an owner-controlled non-production acceptance step.
+- [x] Add a source-level regression test in `tests/document-worker-method.test.ts` that requires the document-worker workflow to remain `workflow_dispatch` only and rejects recurring or automatic triggers.
+- [ ] Confirm this guard passes on the exact current feature-branch head in Foundation CI.
+- Do not dispatch the worker as part of automated CI. Live invocation remains an owner-controlled non-production acceptance step.
