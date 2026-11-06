@@ -22,52 +22,40 @@ export async function POST(request: NextRequest, context: RouteContext) {
   if (authError || !user) return NextResponse.redirect(new URL("/login", request.url));
 
   const { id } = await context.params;
-  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
-    return redirectToDocument(request, id, "not_found");
-  }
-
   const { data: document, error: documentError } = await supabase
     .from("documents")
     .select("id,drive_file_id,status")
     .eq("id", id)
     .eq("owner_id", user.id)
-    .maybeSingle();
+    .single();
 
   if (documentError || !document?.drive_file_id) return redirectToDocument(request, id, "not_found");
   if (document.status === "ready") return redirectToDocument(request, id, "already_reviewed");
 
   const { data: job, error: jobError } = await supabase
     .from("processing_jobs")
-    .select("id,status,attempt_count,max_attempts,started_at")
+    .select("id,status,attempt_count,max_attempts")
     .eq("document_id", id)
     .eq("owner_id", user.id)
     .maybeSingle();
 
   if (jobError || !job) return redirectToDocument(request, id, "job_missing");
   if (job.status === "completed") return redirectToDocument(request, id, "already_processed");
-
-  if (job.status === "running" && job.attempt_count >= job.max_attempts) {
-    const { data: recovered } = await supabase.rpc("recover_stale_document_processing_job", {
-      p_document_id: id,
-      p_owner_id: user.id,
-      p_job_id: job.id,
-      p_expected_started_at: job.started_at,
-    });
-    return redirectToDocument(request, id, recovered ? "retry_limit" : "already_processing");
-  }
-
+  if (job.status === "running") return redirectToDocument(request, id, "already_processing");
   if (job.attempt_count >= job.max_attempts) return redirectToDocument(request, id, "retry_limit");
-  if (!["queued", "failed", "running"].includes(job.status)) return redirectToDocument(request, id, "not_processable");
 
-  const { data: claimed, error: claimError } = await supabase.rpc("claim_document_processing_job", {
-    p_document_id: id,
-    p_owner_id: user.id,
-    p_job_id: job.id,
-    p_expected_status: job.status,
-    p_expected_attempt_count: job.attempt_count,
-    p_expected_started_at: job.started_at,
-  });
-  if (claimError || !claimed) return redirectToDocument(request, id, "already_processing");
+  const { data: claimedJob, error: claimError } = await supabase.from("processing_jobs").update({
+    status: "running",
+    stage: "ocr",
+    progress: 10,
+    attempt_count: job.attempt_count + 1,
+    started_at: new Date().toISOString(),
+    error_code: null,
+    error_message: null,
+  }).eq("id", job.id).eq("owner_id", user.id).in("status", ["queued", "failed"]).select("id").maybeSingle();
+  if (claimError || !claimedJob) return redirectToDocument(request, id, "already_processing");
+
+  await supabase.from("documents").update({ status: "processing" }).eq("id", id).eq("owner_id", user.id);
 
   try {
     const accessToken = await getDriveAccessToken();
@@ -80,24 +68,47 @@ export async function POST(request: NextRequest, context: RouteContext) {
     if (!pages.length) throw new Error("No readable text was detected. The file needs manual review.");
     if (pages.length > 100) throw new Error("The document exceeded the 100-page processing limit.");
 
-    // Page replacement, document review state and job completion commit atomically.
-    const { error: completeError } = await supabase.rpc("complete_document_processing", {
-      p_document_id: id,
-      p_owner_id: user.id,
-      p_job_id: job.id,
-      p_pages: pages,
-    });
-    if (completeError) throw new Error("The extracted pages could not be committed safely.");
+    const { error: deleteError } = await supabase
+      .from("document_pages")
+      .delete()
+      .eq("document_id", id)
+      .eq("owner_id", user.id);
+    if (deleteError) throw new Error("Could not prepare the document pages for reprocessing.");
+
+    const pageRows = pages.map((text, index) => ({
+      owner_id: user.id,
+      document_id: id,
+      page_number: index + 1,
+      extracted_text: text,
+      extraction_method: "ocr",
+      status: "review_required",
+    }));
+    const { error: insertError } = await supabase.from("document_pages").insert(pageRows);
+    if (insertError) throw new Error("Could not save extracted document text.");
+
+    await supabase.from("documents").update({
+      status: "review_required",
+      page_count: pages.length,
+    }).eq("id", id).eq("owner_id", user.id);
+
+    await supabase.from("processing_jobs").update({
+      status: "completed",
+      stage: "ocr",
+      progress: 100,
+      completed_at: new Date().toISOString(),
+      error_code: null,
+      error_message: null,
+    }).eq("id", job.id).eq("owner_id", user.id);
 
     return redirectToDocument(request, id, "complete");
-  } catch {
-    // Keep failure transitions atomic and avoid storing provider/OAuth error details.
-    const { error: failError } = await supabase.rpc("fail_document_processing", {
-      p_document_id: id,
-      p_owner_id: user.id,
-      p_job_id: job.id,
-      p_error_code: "DOCUMENT_PROCESSING_FAILED",
-    });
-    return redirectToDocument(request, id, failError ? "processing_state_error" : "processing_failed");
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Document processing failed.";
+    await supabase.from("documents").update({ status: "failed" }).eq("id", id).eq("owner_id", user.id);
+    await supabase.from("processing_jobs").update({
+      status: "failed",
+      error_code: "DOCUMENT_PROCESSING_FAILED",
+      error_message: message.slice(0, 500),
+    }).eq("id", job.id).eq("owner_id", user.id);
+    return redirectToDocument(request, id, "processing_failed");
   }
 }
