@@ -81,7 +81,7 @@ export default async function DocumentReviewPage({ params, searchParams }: PageP
             {pages.map((page) => (
               <article className="review-page" key={page.id}>
                 <div className="review-page-heading"><h3>Page {page.page_number}</h3><span className="document-status">{page.status.replace("_", " ")} · {page.extraction_method ?? "unknown"}</span></div>
-                {page.extraction_method === "ocr" && assessOcrTextQuality(page.extracted_text ?? "") === "needs_correction" ? <p className="notice notice-warning" role="status">OCR quality looks unreliable. Compare this page with the original in Google Drive and correct the extracted text before creating questions.</p> : null}
+                {page.extraction_method === "ocr" && assessOcrTextQuality(page.extracted_text ?? "") === "needs_correction" ? <p className="notice notice-warning" role="status">OCR quality or table layout may be unreliable. Compare this page with the original PDF, especially table rows, columns, symbols and mathematical notation, then correct the extracted text before creating questions.</p> : null}
                 <form action={savePageCorrection} className="review-form">
                   <input type="hidden" name="pageId" value={page.id} />
                   <input type="hidden" name="documentId" value={document.id} />
