@@ -131,6 +131,7 @@ describe("document worker successful processing path", () => {
       p_document_id: "doc-1",
       p_owner_id: "owner-1",
       p_job_id: "job-1",
+      p_expected_attempt_count: 1,
       p_pages: ["Page one extracted text", "Page two extracted text"],
     });
   });
@@ -172,6 +173,7 @@ describe("document worker successful processing path", () => {
       p_document_id: "doc-1",
       p_owner_id: "owner-1",
       p_job_id: "job-1",
+      p_expected_attempt_count: 1,
       p_error_code: "BACKGROUND_PROCESSING_FAILED",
     });
     expect(rpc).not.toHaveBeenCalledWith("complete_document_processing", expect.anything());
