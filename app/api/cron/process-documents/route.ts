@@ -148,6 +148,7 @@ export async function POST(request: Request) {
         p_document_id: documentId,
         p_owner_id: ownerId,
         p_job_id: jobId,
+        p_expected_attempt_count: candidate.attempt_count + 1,
         p_pages: pages,
       });
       if (completionError || completedPageCount !== pages.length) {
@@ -163,6 +164,7 @@ export async function POST(request: Request) {
         p_document_id: documentId,
         p_owner_id: ownerId,
         p_job_id: jobId,
+        p_expected_attempt_count: candidate.attempt_count + 1,
         p_error_code: "BACKGROUND_PROCESSING_FAILED",
       });
       if (failureError || failurePersisted !== true) {
