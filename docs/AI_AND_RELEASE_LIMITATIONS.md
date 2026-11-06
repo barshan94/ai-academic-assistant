@@ -13,12 +13,13 @@ Use a provider/model with a free quota. Provider free tiers, model availability 
 - Syllabus classification is a suggestion; verify board, qualification, chapter and topic against the official current syllabus.
 - Chapter notes and revision sets use only approved questions in the user's own library. They do not prove syllabus completeness.
 - A bounded scanner checks only explicit one-step arithmetic equalities printed in the answer. It does not validate symbolic algebra, multi-step derivations, dimensional analysis, units, OCR diagrams, or marking-scheme accuracy. A passing scan is not full verification.
-- Generated outputs are persisted in an owner-scoped table with arithmetic-check evidence and a teacher review state. They remain unverified until reviewed.
+- Generated outputs are persisted in an owner-scoped table with arithmetic-check evidence and a teacher review state. They remain unverified until reviewed. Approval is blocked when the explicit arithmetic scanner finds a failed equality; a passing scan still does not prove correctness.
 
 ## Remaining release gates
 1. Configure a provider with a suitable free quota and run authenticated end-to-end tests.
-2. Add durable solution history and teacher correction/versioning.
-3. Implement deterministic mathematics/physics checks with tests and explicit unsupported-case handling.
-4. Validate syllabus metadata against official board specifications.
+2. Configure an OpenAI-compatible provider with a free quota and verify real authenticated generation; no provider credentials are stored in the repository.
+3. Implement broader deterministic mathematics/physics checks with tests and explicit unsupported-case handling; the current scanner is intentionally narrow.
+4. Validate syllabus metadata against official board specifications and record syllabus versions.
 5. Exercise Drive OAuth, upload, OCR, correction and disconnect using the actual owner account.
 6. Complete restore/recovery, accessibility, mobile-device and production security checks before public release.
+7. Obtain a successful CI run for the current main commit and a successful production build/deployment when the Vercel build limit permits.
