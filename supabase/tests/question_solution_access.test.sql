@@ -170,7 +170,7 @@ select lives_ok(
 select is((select count(*)::integer from public.questions), 1, 'accepted teacher can read the shared question');
 select is((select count(*)::integer from public.question_solutions), 1, 'accepted teacher can read the shared solution');
 select throws_ok(
-  $select public.record_teacher_solution_review('40000000-0000-4000-8000-000000000003', 'approved', null)$,
+  $test$select public.record_teacher_solution_review('40000000-0000-4000-8000-000000000003', 'approved', null)$test$,
   '42501',
   'An active accepted teacher invitation is required',
   'teacher cannot review another question belonging to the same owner without a separate invitation'
