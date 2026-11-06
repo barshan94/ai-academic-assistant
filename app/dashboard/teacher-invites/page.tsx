@@ -36,7 +36,8 @@ export default async function TeacherInvitesPage({ searchParams }: PageProps) {
     .sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at))
     .slice(0, 50);
   const outgoing = outgoingResult.data ?? [];
-  const inviteError = incomingResult.error || acceptedResult.error || outgoingResult.error;
+  const incomingLoadError = incomingResult.error || acceptedResult.error;
+  const outgoingLoadError = outgoingResult.error;
   const message = query.invite === "accepted" ? "Invitation accepted. You can now open the shared question."
     : query.invite === "not_available" ? "This invitation is unavailable. It may be expired, revoked, already accepted, assigned to another email, or your account email may not be confirmed."
     : query.invite === "invalid" ? "The invitation details were invalid." : undefined;
@@ -48,8 +49,8 @@ export default async function TeacherInvitesPage({ searchParams }: PageProps) {
       </header>
       <section className="hero documents-hero"><p className="eyebrow">COLLABORATION</p><h1>Teacher <span>invitations.</span></h1><p className="hero-copy">Accept an invitation to review a specific question and its saved AI answer drafts. Access is limited to the question shared with you.</p></section>
       {message ? <p className="notice notice-info" role="status">{message}</p> : null}
-      {inviteError ? <p className="notice notice-error">Could not load invitations.</p> : null}
       <section className="section"><h2>Invitations for you</h2>
+        {incomingLoadError ? <p className="notice notice-error" role="alert">Could not load all invitations for you. Refresh the page to try again.</p> : null}
         {incoming.length ? incoming.map((invite) => <article className="question-card" key={invite.id}>
           <p className="question-card-meta">Question ID: {invite.question_id}</p><p className="question-card-meta">Invited {new Date(invite.created_at).toLocaleString()}</p>
           {!invite.accepted_by ? <p className="question-card-meta">Acceptance deadline: {new Date(invite.expires_at).toLocaleString()}</p> : null}
@@ -57,14 +58,15 @@ export default async function TeacherInvitesPage({ searchParams }: PageProps) {
             : invite.accepted_by ? <p className="notice notice-info">Accepted — access remains active until revoked. <Link href={"/dashboard/questions/" + invite.question_id}>Open shared question →</Link></p>
             : new Date(invite.expires_at).getTime() <= Date.now() ? <p className="notice notice-info">This invitation has expired. Ask the owner to send a new invitation.</p>
             : <form action={acceptQuestionTeacherInvite}><input type="hidden" name="inviteId" value={invite.id} /><button className="primary-action" type="submit">Accept invitation →</button></form>}
-        </article>) : <p className="question-card-meta">No invitations have been sent to this account email.</p>}
+        </article>) : !incomingLoadError ? <p className="question-card-meta">No invitations have been sent to this account email.</p> : null}
       </section>
       <section className="section"><h2>Invitations you sent</h2>
+        {outgoingLoadError ? <p className="notice notice-error" role="alert">Could not load invitations you sent. Refresh the page to try again.</p> : null}
         {outgoing.length ? outgoing.map((invite) => <article className="question-card" key={invite.id}>
           <p>{invite.invited_email}</p><p className="question-card-meta">Question ID: {invite.question_id}</p>
           <p className="question-card-meta">{invite.revoked_at ? "Revoked" : invite.accepted_by ? "Accepted — active until revoked" : new Date(invite.expires_at).getTime() <= Date.now() ? "Expired — re-invitation allowed" : "Waiting for acceptance"}</p>
           {!invite.accepted_by && !invite.revoked_at ? <p className="question-card-meta">Acceptance deadline: {new Date(invite.expires_at).toLocaleString()}</p> : null}
-        </article>) : <p className="question-card-meta">You have not invited a teacher yet.</p>}
+        </article>) : !outgoingLoadError ? <p className="question-card-meta">You have not invited a teacher yet.</p> : null}
       </section>
     </main>
   );
