@@ -166,7 +166,10 @@ describe("GET /api/health/ready", () => {
     const response = await GET(authorizedRequest());
 
     expect(response.status).toBe(503);
-    expect(await response.json()).toEqual({ status: "not_ready" });
+    const body = await response.json();
+    expect(body.status).toBe("not_ready");
+    expect(body.checks.databaseAndWorkerSchema).toBe(false);
+    expect(body.checks.aiGeneration).toBe("configured");
   });
 
   it("fails closed when the source page-count column is missing", async () => {
@@ -184,7 +187,10 @@ describe("GET /api/health/ready", () => {
     const response = await GET(authorizedRequest());
 
     expect(response.status).toBe(503);
-    expect(await response.json()).toEqual({ status: "not_ready" });
+    const body = await response.json();
+    expect(body.status).toBe("not_ready");
+    expect(body.checks.databaseAndWorkerSchema).toBe(false);
+    expect(body.checks.aiGeneration).toBe("configured");
   });
 
   it("fails closed when a required database table cannot be probed", async () => {
@@ -203,7 +209,10 @@ describe("GET /api/health/ready", () => {
     const response = await GET(authorizedRequest());
 
     expect(response.status).toBe(503);
-    expect(await response.json()).toEqual({ status: "not_ready" });
+    const body = await response.json();
+    expect(body.status).toBe("not_ready");
+    expect(body.checks.databaseAndWorkerSchema).toBe(false);
+    expect(body.checks.aiGeneration).toBe("configured");
     expect(probeCount).toBe(5);
   });
 
@@ -219,7 +228,10 @@ describe("GET /api/health/ready", () => {
     const response = await GET(authorizedRequest());
 
     expect(response.status).toBe(503);
-    expect(await response.json()).toEqual({ status: "not_ready" });
+    const body = await response.json();
+    expect(body.status).toBe("not_ready");
+    expect(body.checks.databaseAndWorkerSchema).toBe(false);
+    expect(body.checks.aiGeneration).toBe("configured");
   });
 });
 
