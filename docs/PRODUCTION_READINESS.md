@@ -1,17 +1,17 @@
 ## Superseding exact-head verification — 2026-11-06 09:05 Asia/Dhaka
 
-This entry supersedes the older pending/failing CI snapshots below. Current feature branch head: `fea324000818e674ac31adbfbdf69b67b837b9a9`.
+This entry supersedes the older pending/failing CI snapshots below. Current feature branch head: `f8fa5802bf85a1147c8b3c6411a39c74f88b8c96` (documentation-only commit after the verified application code head `fea324000818e674ac31adbfbdf69b67b837b9a9`).
 
 ### Exact-head automated verification — ALL PASS
 
-- [x] Foundation — [run 42152506904](https://github.com/barshan94/ai-academic-assistant/actions/runs/42152506904): production dependency audit, full dependency audit report, ESLint, application and Playwright type-checks, unit tests, Next.js production build, and Chromium browser smoke.
-- [x] Database authorization and isolated local migration replay/pgTAP — [run 42152506931](https://github.com/barshan94/ai-academic-assistant/actions/runs/42152506931).
-- [x] Authenticated two-account Supabase/Playwright acceptance — [run 42152506891](https://github.com/barshan94/ai-academic-assistant/actions/runs/42152506891).
-- [x] Full-history secret scan — [run 42152506933](https://github.com/barshan94/ai-academic-assistant/actions/runs/42152506933).
+- [x] Foundation — [run 42154137309](https://github.com/barshan94/ai-academic-assistant/actions/runs/42152506904): production dependency audit, full dependency audit report, ESLint, application and Playwright type-checks, unit tests, Next.js production build, and Chromium browser smoke.
+- [x] Database authorization and isolated local migration replay/pgTAP — [run 42154137291](https://github.com/barshan94/ai-academic-assistant/actions/runs/42152506931).
+- [x] Authenticated two-account Supabase/Playwright acceptance — [run 42154137379](https://github.com/barshan94/ai-academic-assistant/actions/runs/42152506891).
+- [x] Full-history secret scan — [run 42154137207](https://github.com/barshan94/ai-academic-assistant/actions/runs/42152506933).
 
 ### Exact-head Preview
 
-Vercel Preview deployment `dpl_DZmgyBsGcQJXvxVzH6JcXqzn7ET3` is `READY` for the exact SHA above: https://ai-academic-assistant-p356cpcu5-barshan-s-team.vercel.app. This is Preview only; no Production target was selected. A READY deployment is not equivalent to a live authenticated route, OAuth, Drive recovery, or production acceptance test.
+Vercel Preview deployment `dpl_9d3DW7q7jQ1HsFdZZCfg5a5bnUms` is `READY` for the exact SHA above: https://ai-academic-assistant-qb6ehha0c-barshan-s-team.vercel.app. This is Preview only; no Production target was selected. A READY deployment is not equivalent to a live authenticated route, OAuth, Drive recovery, or production acceptance test.
 
 ### Owner scope — unchanged and binding
 
