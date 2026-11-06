@@ -3,7 +3,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseServiceRoleClient } from "@/lib/supabase/service-role";
 import { logSafeOperationalEvent } from "@/lib/observability/safe-log";
 import { decryptDriveUploadSession } from "@/lib/drive/crypto";
-import { getDriveAccessToken, sendResumablePdfChunk, deleteDriveFile, isGoogleDriveUploadSessionUri } from "@/lib/drive/google";
+import { getDriveAccessToken, sendResumablePdfChunk, deleteDriveFile, downloadOriginalPdfFromDrive, isGoogleDriveUploadSessionUri } from "@/lib/drive/google";
 import { isValidDriveChunk, parseDriveUploadOffset, readDriveUploadChunk } from "@/lib/drive/resumable-upload";
 import { MAX_UPLOAD_BYTES, MAX_DOCUMENT_PAGES, safeFileName } from "@/lib/documents/upload-limits";
 
@@ -30,6 +30,18 @@ async function saveCompletedUpload(
     await deleteDriveFile(accessToken, file.id);
     throw new Error("Google Drive returned a file with an unexpected type or size. The incomplete archive was removed.");
   }
+
+  // The checksum is supplied by the browser, so verify the bytes actually
+  // archived in Drive before persisting that checksum as trusted metadata.
+  // A lost response or transient download failure leaves the Drive object in
+  // place; retrying the status query can safely reconcile the completed upload.
+  const accessToken = await getDriveAccessToken();
+  await downloadOriginalPdfFromDrive({
+    accessToken,
+    driveFileId: file.id,
+    expectedSizeBytes: session.fileSizeBytes,
+    expectedSha256: session.sha256,
+  });
 
   // This client is server-only. The caller's session was verified before the
   // route reached this function; authenticated users cannot call the RPC.
