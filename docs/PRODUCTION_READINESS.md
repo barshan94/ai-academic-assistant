@@ -1,3 +1,22 @@
+# Superseding exact-head verification — 2026-11-06 (commit 60841ebc68c7f84ecaffae06b7c6b12819f2b23d)
+
+All four required GitHub Actions workflows completed successfully on this exact feature-branch head:
+
+- [x] Foundation checks — [run 42225030683](https://github.com/barshan94/ai-academic-assistant/actions/runs/42225030683): lint, application and Playwright type checks, unit tests, production build and Chromium smoke.
+- [x] Database authorization tests — [run 42225033472](https://github.com/barshan94/ai-academic-assistant/actions/runs/42225033472): isolated local migrations and pgTAP.
+- [x] Authenticated two-account browser acceptance — [run 42225033425](https://github.com/barshan94/ai-academic-assistant/actions/runs/42225033425).
+- [x] Full-history secret scanning — [run 42225030679](https://github.com/barshan94/ai-academic-assistant/actions/runs/42225030679).
+
+All jobs and steps in these four workflows completed successfully. The Vercel status check for this commit is also successful. The application code is unchanged from the previously verified application checkpoint; this head updates README/release documentation and worker operating-mode wording.
+
+## Release decision — NOT APPROVED FOR PRODUCTION
+
+This exact-head CI result does not close live release gates: Production server credentials and owner-controlled Google OAuth setup; live Google Drive upload/interruption/resume, original-PDF retrieval and cross-account denial; worker fault/retry/recovery acceptance; hosted migration-history/schema parity; a Free-compatible mitigation for Supabase leaked-password protection; backup/recovery limitations; manual accessibility/device checks; independently graded academic answer quality and official syllabus verification; privacy/legal review; and named operational ownership.
+
+Owner constraints remain binding: keep PR #1 open, draft and unmerged; do not deploy Production, alter Production configuration, apply or repair hosted migrations, dispatch the document worker, create another database, or claim a backup/restore rehearsal. Preserve existing project data. AI generation remains disabled in strict zero-cost mode. No such release or hosted operation was performed in this checkpoint.
+
+---
+
 # Superseding exact-head verification — 2026-11-06 (commit 8133a290d094ea2d424656928e1e1321fad3f45e)
 
 This entry supersedes earlier exact-head CI snapshots below. All four required GitHub Actions workflows completed successfully on this exact branch head:
