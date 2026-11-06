@@ -362,6 +362,7 @@ describe("document worker failure redaction", () => {
       p_document_id: "document-1",
       p_owner_id: "owner-1",
       p_job_id: "job-1",
+      p_expected_attempt_count: 1,
       p_error_code: "BACKGROUND_PROCESSING_FAILED",
     });
     expect(extractTextFromDrivePdfMock).toHaveBeenCalledOnce();
@@ -436,6 +437,7 @@ describe("document worker failure redaction", () => {
       p_document_id: "document-1",
       p_owner_id: "owner-1",
       p_job_id: "job-1",
+      p_expected_attempt_count: 1,
       p_error_code: "BACKGROUND_PROCESSING_FAILED",
     });
   });
