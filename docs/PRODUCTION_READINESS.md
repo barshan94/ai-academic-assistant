@@ -1,6 +1,6 @@
 ## Superseding exact-head verification — 2026-11-06 09:05 Asia/Dhaka
 
-This entry supersedes the older pending/failing CI snapshots below. Current feature branch head: `1c91938cc0aa090053cb1fe1d921904d13607b24` (documentation-only correction after the verified application code head `fea324000818e674ac31adbfbdf69b67b837b9a9`). The four workflow runs and READY Preview below are verified on application/documentation head `f8fa5802bf85a1147c8b3c6411a39c74f88b8c96`.
+This entry supersedes the older pending/failing CI snapshots below. The four workflow runs and READY Preview below are verified on application/documentation head `f8fa5802bf85a1147c8b3c6411a39c74f88b8c96`; subsequent commits in this section only correct this evidence record and do not change application code.
 
 ### Exact-head automated verification — ALL PASS
 
