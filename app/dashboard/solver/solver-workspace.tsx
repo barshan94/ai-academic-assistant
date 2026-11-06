@@ -4,7 +4,7 @@ import { useState } from "react";
 
 type Question = { id: string; question_text: string; subject: string | null; chapter: string | null; review_status: string };
 type Task = "solve" | "classify" | "chapter_notes" | "revision_set";
-type Solution = { id: string; task_type: string; prompt_text: string; output_text: string; review_status: string; created_at: string };
+type Solution = { id: string; task_type: string; prompt_text: string; output_text: string; review_status: string; verification_status: string; created_at: string };
 
 export default function SolverWorkspace({ questions, solutions }: { questions: Question[]; solutions: Solution[] }) {
   const [task, setTask] = useState<Task>("solve");
@@ -40,7 +40,7 @@ export default function SolverWorkspace({ questions, solutions }: { questions: Q
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ task, questionId: questionId || undefined, questionText: questionText || undefined, subject: subject || undefined, chapter: chapter || undefined, language, count: 8 }),
       });
-      const payload = await response.json() as { answer?: string; error?: string; reviewNotice?: string; solutionId?: string };
+      const payload = await response.json() as { answer?: string; error?: string; reviewNotice?: string; solutionId?: string; verification?: string; arithmeticChecks?: Array<{ expression: string; passed: boolean }> };
       if (!response.ok) throw new Error(payload.error || "Request failed.");
       setResult((payload.answer || "No answer returned.") + "\n\n" + (payload.reviewNotice || ""));
       if (payload.solutionId) {
@@ -103,7 +103,7 @@ export default function SolverWorkspace({ questions, solutions }: { questions: Q
         <div className="section-heading"><div><p className="eyebrow">PRIVATE HISTORY</p><h2>Saved outputs</h2></div><span className="section-count">{history.length} latest</span></div>
         {!history.length ? <div className="empty-state"><p>Generated answers will appear here after you refresh this page.</p></div> : history.map((item) => (
           <article className="solution-history-card" key={item.id}>
-            <div className="question-card-heading"><span className="document-status">{item.review_status.replace("_", " ")}</span><span className="question-subject">{item.task_type.replace("_", " ")}</span></div>
+            <div className="question-card-heading"><span className="document-status">{item.review_status.replace("_", " ")}</span><span className="document-status">{item.verification_status.replaceAll("_", " ")}</span><span className="question-subject">{item.task_type.replace("_", " ")}</span></div>
             <p className="question-card-text">{item.prompt_text.slice(0, 240)}</p>
             <details><summary>View generated output</summary><pre className="solver-output">{item.output_text}</pre></details>
             {item.review_status === "needs_review" ? <div className="question-review-actions">
