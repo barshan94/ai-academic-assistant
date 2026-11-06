@@ -58,7 +58,7 @@ function query(result: QueryResult): QueryBuilder {
 }
 
 beforeEach(() => {
-  process.env.CRON_SECRET = "test-cron-secret";
+  process.env.CRON_SECRET = "test-cron-secret-with-sufficient-entropy";
   process.env.NEXT_PUBLIC_SUPABASE_URL = "https://test.supabase.co";
   process.env.SUPABASE_SERVICE_ROLE_KEY = "test-service-role";
   process.env.GOOGLE_CLIENT_ID = "test-client";
@@ -114,7 +114,7 @@ describe("document worker successful processing path", () => {
 
     const response = await POST(new Request("https://academic.example/api/cron/process-documents", {
       method: "POST",
-      headers: { authorization: "Bearer test-cron-secret" },
+      headers: { authorization: "Bearer test-cron-secret-with-sufficient-entropy" },
     }));
 
     expect(response.status).toBe(200);
@@ -163,7 +163,7 @@ describe("document worker successful processing path", () => {
 
     const response = await POST(new Request("https://academic.example/api/cron/process-documents", {
       method: "POST",
-      headers: { authorization: "Bearer test-cron-secret" },
+      headers: { authorization: "Bearer test-cron-secret-with-sufficient-entropy" },
     }));
 
     expect(response.status).toBe(500);
