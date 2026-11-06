@@ -15,7 +15,7 @@ function authorized(request: Request) {
   const expected = process.env.CRON_SECRET;
   const match = request.headers.get("authorization")?.match(/^Bearer\s+([^\s]+)$/i);
   const supplied = match?.[1];
-  if (!expected || !supplied) return false;
+  if (!expected || expected.length < 32 || !supplied) return false;
   const left = Buffer.from(expected);
   const right = Buffer.from(supplied);
   return left.length === right.length && timingSafeEqual(left, right);
