@@ -158,7 +158,9 @@ export default async function SyllabusPage({ searchParams }: PageProps) {
 
       <section className="section">
         <div className="section-heading"><div><p className="eyebrow">YOUR REFERENCES</p><h2>Versions and chapter structure</h2></div></div>
-        {!catalogs?.length ? (
+        {catalogError ? (
+          <div className="empty-state"><h3>Catalogue unavailable</h3><p>Your syllabus versions could not be loaded. Refresh the page to retry; this is not an empty catalogue.</p></div>
+        ) : !catalogs?.length ? (
           <div className="empty-state"><h3>No syllabus versions yet</h3><p>Create a version above. This catalogue starts empty intentionally; the app will not invent official board specifications or chapter mappings.</p></div>
         ) : (
           <div className="syllabus-catalog-list">
