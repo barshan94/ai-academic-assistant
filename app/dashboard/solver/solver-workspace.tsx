@@ -81,10 +81,10 @@ export default function SolverWorkspace({ questions, solutions }: { questions: Q
             <textarea id="solver-text" rows={6} value={questionText} onChange={(event) => setQuestionText(event.target.value)} placeholder="Paste the question here if it is not saved in your library." />
           </>}
           {(task === "chapter_notes" || task === "revision_set") && <>
-            <label htmlFor="solver-subject">Subject (optional exact filter)</label>
-            <input id="solver-subject" value={subject} onChange={(event) => setSubject(event.target.value)} placeholder="e.g. Physics" />
-            <label htmlFor="solver-chapter">Chapter (optional exact filter)</label>
-            <input id="solver-chapter" value={chapter} onChange={(event) => setChapter(event.target.value)} placeholder="e.g. Forces and motion" />
+            <label htmlFor="solver-subject">Subject (required for revision, exact filter)</label>
+            <input id="solver-subject" required={task === "revision_set" || task === "chapter_notes"} id="solver-subject" value={subject} onChange={(event) => setSubject(event.target.value)} placeholder="e.g. Physics" />
+            <label htmlFor="solver-chapter">Chapter (required for chapter notes, exact filter)</label>
+            <input id="solver-chapter" required={task === "chapter_notes"} id="solver-chapter" value={chapter} onChange={(event) => setChapter(event.target.value)} placeholder="e.g. Forces and motion" />
           </>}
           <label htmlFor="solver-language">Explanation language</label>
           <select id="solver-language" value={language} onChange={(event) => setLanguage(event.target.value as typeof language)}>
