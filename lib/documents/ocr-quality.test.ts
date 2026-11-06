@@ -15,6 +15,29 @@ describe("assess OCR text quality", () => {
     expect(assessOcrTextQuality("Questio\u043b 1: Explain how the surface area of a cylinder is calculated.")).toBe("needs_correction");
   });
 
+  it("flags readable OCR when textbook table row and column relationships were flattened", () => {
+    const flattenedExerciseTable = [
+      "solid object radius vertical height curved surface area total surface area",
+      "(a) sphere 3 cm *",
+      "(b) cylinder 4 cm 5 cm *",
+      "(c) cone 6 cm 8 cm *",
+      "(d) cylinder 0.7 m 1 m *",
+    ].join("\n");
+
+    expect(assessOcrTextQuality(flattenedExerciseTable)).toBe("needs_correction");
+  });
+
+  it("does not flag a table when explicit column separators survived extraction", () => {
+    const tabSeparatedTable = [
+      "solid object\tradius\tvertical height\tcurved surface area\ttotal surface area",
+      "(a)\tsphere\t3 cm\t*\t",
+      "(b)\tcylinder\t4 cm\t5 cm\t*",
+      "(c)\tcone\t6 cm\t8 cm\t*",
+    ].join("\n");
+
+    expect(assessOcrTextQuality(tabSeparatedTable)).toBe("likely_readable");
+  });
+
   it("does not mistake readable variable-heavy mathematics for OCR noise", () => {
     expect(assessOcrTextQuality("Let x = 2, y = 3, and z = 4. Find x + y + z. Explain your answer using the values given above and show each calculation clearly.")).toBe("likely_readable");
   });
