@@ -848,3 +848,12 @@ This checkpoint supersedes older live-status statements where they conflict.
 - Latest full four-workflow CI evidence remains on the previous application head until the new readiness changes and migration-audit files complete their own checks.
 
 **Release decision: NOT APPROVED FOR PRODUCTION.** The owner restrictions above remain binding.
+
+## Exact current head and environment inventory — 2026-11-06
+
+- Current feature branch head: `aed378b2018d81bf0417a7788276a71760736090`. The latest full Foundation, Database authorization, authenticated two-account and secret-scan successes are on earlier commit `81df242ce2743d70fb8dbd3ca5010da4cfe71723`; no workflow run is recorded for the current head, so these latest readiness/test/documentation changes are **not yet CI-verified**.
+- Latest READY Vercel Preview found in deployment history is commit `a538e39361a7eabd7af3900ae93143a481e06f8a`. It predates the later readiness/test/documentation commits. The current head's Vercel status reports the team's build-rate limit. The protected Preview endpoint returned 401 to the connector, so no current live readiness response is claimed.
+- Production Vercel has only the public Supabase URL and publishable key. There are no Production values for the Supabase service-role key, Google OAuth client credentials/callback, Drive encryption key, or cron secret. These server-side values are scoped to the feature Preview. No AI provider key/model is configured.
+- A free-tier Gemini configuration path is now documented and covered by a local provider-config unit test. It is optional and remains disabled; Google's free tier may use submitted content to improve its products, so it is not approved for confidential student content without accepting those terms.
+
+**Release decision remains NOT APPROVED.** Do not merge, deploy Production, copy Preview secrets, enable AI, or apply further hosted migrations under the current owner scope.
