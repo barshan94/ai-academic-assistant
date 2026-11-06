@@ -96,3 +96,10 @@ M1 10% foundation; M2 25% document intelligence; M3 45% solver; M4 58% verificat
 ## Follow-up implementation (2026-11-06)
 - Fixed a classification response parsing defect: the provider prompt explicitly requests `null` for uncertain metadata, while the original output schema rejected nulls and discarded the structured classification fields. The schema now accepts nullable subject, qualification, chapter, topic and confidence values; the UI treats null confidence as unknown.
 - Corrected README and AI release-gate documentation: GitHub Actions workflow exists, but a successful run for the latest AI-workspace changes is not confirmed. The only currently visible commit status is Vercel's build-rate-limit failure.
+
+
+## CI and provider audit (2026-11-06)
+- Verified GitHub Actions run `https://github.com/barshan94/ai-academic-assistant/actions/runs/42250788938` completed successfully for commit `3b9da033ee45113ab0589b12fc47180fec9ac62c`: npm ci, production dependency audit, ESLint, TypeScript, Vitest and Next.js build all passed.
+- Extracted provider output parsing into `lib/ai/model-output.ts` and added tests for nullable classification metadata, fenced JSON, plain text fallback, invalid confidence and output-size bounds.
+- Vercel project environment-variable names were inspected without decrypting secrets. No `AI_BASE_URL`, `AI_API_KEY` or `AI_MODEL` exists in the project; no AI provider can run until the owner adds a provider key and model. Google Drive OAuth secrets are currently scoped to the `feature/m3-ai-solver` Preview branch rather than confirmed for Production.
+- Vercel build rate limit remains an external deployment blocker. A green GitHub Actions build does not override that platform limit.
