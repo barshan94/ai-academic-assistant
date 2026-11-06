@@ -21,6 +21,12 @@ describe("explicit arithmetic checks", () => {
     expect(getVerificationLabel(checks)).toBe("not_verified");
   });
 
+  it("handles negative values and subtraction", () => {
+    const checks = checkExplicitArithmetic("-4 + 7 = 3; 5 − 9 = -4");
+    expect(checks).toHaveLength(2);
+    expect(checks.every((item) => item.passed)).toBe(true);
+  });
+
   it("does not divide by zero", () => {
     expect(checkExplicitArithmetic("4 / 0 = 2")).toHaveLength(0);
   });
