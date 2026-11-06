@@ -1,3 +1,29 @@
+# Release-gate recheck — 2026-11-06 (after commit 0009bf6)
+
+This checkpoint supersedes older claims about the current branch and hosted worker compatibility.
+
+## Verified in this recheck
+
+- [x] The feature branch contains owner/teacher privacy assertions for private question revision confidence and review scheduling; `supabase/tests/question_solution_access.test.sql` has `plan(60)` and 60 assertion calls.
+- [x] `supabase/tests/document_worker_attempt_fencing.test.sql` covers stale-attempt fencing and rejects cross-account completion/failure calls.
+- [x] Latest completed GitHub Actions run set found on branch: commit `81df242ce2743d70fb8dbd3ca5010da4cfe71723` — Foundation, Database authorization tests, Authenticated browser acceptance and Secret scanning all succeeded (runs 42243959468, 42243959400, 42243959553 and 42243959402).
+- [x] Current feature branch head is `0009bf6ecfb2aa40d342c9c850419d23ba3f108a`; that exact head does **not** have a corresponding four-workflow success set. Its Vercel status is rate-limited. Do not transfer the older green CI result to this newer head.
+- [x] Read-only hosted Supabase inspection confirms the deployed `complete_document_processing` and `fail_document_processing` RPCs still have the old four-argument signatures, while the branch worker calls the new attempt-fenced five-argument signatures. The hosted migration inventory does not contain `20261106120000_fence_document_processing_attempts`.
+- [x] Hosted RPC privilege inspection also shows authenticated EXECUTE remains granted on the old worker completion/failure functions. Their deployed definitions are SECURITY INVOKER; the branch migration revokes anon/public and grants authenticated/service_role for the new owner-checked signatures.
+- [x] Security Advisor still reports 14 authenticated-callable SECURITY DEFINER RPC warnings, four private quota tables with RLS/no policies (expected private boundary, not client-accessible), and leaked-password protection disabled.
+- [x] PR #1 remains draft and unmerged. GitHub reports the PR is not mergeable (dirty); comparison against current `main` is diverged (feature branch 80 commits behind, 2,289 ahead in GitHub's comparison, with 300 changed files). No blind force-push, snapshot rewrite, or merge was performed.
+
+## Release decision — NOT APPROVED
+
+The worker cannot safely process jobs against the current hosted schema. The hosted schema/migration mismatch is a hard release blocker. Do not dispatch the worker or expose document processing until a reviewed, forward-only migration is applied to the approved non-production project and the live RPC signatures/privileges are rechecked.
+
+## Scope and actions deliberately not performed
+
+- Vercel deployment/build work is deferred by owner request until the rate limit clears.
+- No hosted database DDL, migration-ledger repair, migration dispatch, worker dispatch, production environment mutation, Production deployment, PR merge, paid plan/provider activation, or data reset was performed.
+- Production server credentials/OAuth, AI provider approval (AI remains disabled in zero-cost mode), leaked-password mitigation, official syllabus/answer-quality review, privacy/legal review, manual accessibility/device checks, public PDF publication confirmation, and named operational ownership remain owner-controlled gates.
+- Existing backup/restore rehearsal remains excluded by owner instruction; no restore is claimed.
+
 # Superseding exact-head verification — 2026-11-06 (commit 60841ebc68c7f84ecaffae06b7c6b12819f2b23d)
 
 All four required GitHub Actions workflows completed successfully on this exact feature-branch head:
