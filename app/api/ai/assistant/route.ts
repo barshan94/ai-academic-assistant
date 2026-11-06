@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { checkExplicitArithmetic, getVerificationLabel } from "@/lib/ai/arithmetic-check";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -138,6 +139,8 @@ export async function POST(request: Request) {
   if (!raw.trim()) return NextResponse.json({ error: "AI provider returned an empty response." }, { status: 502 });
 
   const parsed = parseModelOutput(raw);
+  const arithmeticChecks = checkExplicitArithmetic(parsed.answer);
+  const verification = getVerificationLabel(arithmeticChecks);
   const { data: saved, error: saveError } = await supabase.from("ai_assistant_outputs").insert({
     owner_id: user.id,
     question_id: body.questionId ?? null,
@@ -154,8 +157,9 @@ export async function POST(request: Request) {
     ...parsed,
     solutionId: saved.id,
     task: body.task,
-    verification: "not_verified",
-    reviewNotice: "AI-generated content is unverified. Check calculations, units, syllabus alignment and source accuracy before teaching or using it as an exam answer.",
+    verification,
+    arithmeticChecks,
+    reviewNotice: "AI-generated content is not fully verified. The optional arithmetic scan checks only explicit one-step numeric equalities; it does not verify algebra, units, diagrams, reasoning, syllabus alignment or marking-scheme accuracy.",
     sourceCount: sourceQuestions.length,
   });
 }
