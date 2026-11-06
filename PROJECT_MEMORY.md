@@ -79,3 +79,15 @@ M1 10% foundation; M2 25% document intelligence; M3 45% solver; M4 58% verificat
 4. Build AI question segmentation/classification and structured exam-answer generation.
 5. Add math/science verification and teacher-correction versioning.
 6. Continue syllabus/chapter intelligence, revision and production readiness.
+
+
+## AI study workspace implementation update (2026-11-06)
+- Added authenticated AI workspace route and dashboard page for question solving, suggested classification, chapter notes from approved questions, and revision sets from approved questions.
+- AI provider is configured only through server-side `AI_BASE_URL`, `AI_API_KEY`, and `AI_MODEL`; no paid inference fallback. Free provider quota must be checked by the owner before use.
+- AI outputs persist in `ai_assistant_outputs` with owner-scoped RLS, teacher review state, model metadata, and bounded arithmetic-check evidence.
+- AI generation uses the existing atomic `consume_ai_generation_quota` RPC (5 solution/classification calls or 3 chapter/revision calls per 15-minute window).
+- Arithmetic scanner only checks explicit one-step numeric equalities. It is not symbolic, dimensional, unit, diagram, or marking-scheme verification. Failed arithmetic checks block teacher approval.
+- Added unit tests for arithmetic checks. They have not yet been run in this environment; the latest GitHub status currently reports the Vercel build-rate-limit failure and no confirmed GitHub Actions result.
+- Applied Supabase migrations: `20261106154023_question_solutions` (temporary index/policy changes later cleaned up), `20261106154236_ai_assistant_outputs`, `20261106154421_ai_assistant_output_verification`, and `20261106154650_cleanup_ai_assistant_output_rls_and_indexes`.
+- Verified `ai_assistant_outputs` exists with owner-scoped RLS policy. Security advisor still reports leaked-password protection disabled and SECURITY DEFINER warnings; inspected all 14 flagged functions and each references `auth.uid()` and `owner_id`. Internal quota tables intentionally have RLS without direct client policies.
+- Still blocked before release: configure a free-quota AI provider; run live authenticated AI/Drive acceptance; complete official syllabus validation and robust math/science verification; verify backup/restore and accessibility/device checks; resolve Vercel build limit; run full CI successfully.
