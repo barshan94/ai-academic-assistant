@@ -73,7 +73,7 @@ export async function POST(request: Request) {
 
   let questionText = body.questionText ?? "";
   let context = "";
-  if (body.questionId) {
+  if (body.questionId && (body.task === "solve" || body.task === "classify")) {
     const { data: question, error } = await supabase.from("questions")
       .select("question_text,subject,qualification,chapter,topic,review_status")
       .eq("id", body.questionId).eq("owner_id", user.id).maybeSingle();
@@ -155,7 +155,7 @@ export async function POST(request: Request) {
   const verification = getVerificationLabel(arithmeticChecks);
   const { data: saved, error: saveError } = await supabase.from("ai_assistant_outputs").insert({
     owner_id: user.id,
-    question_id: body.questionId ?? null,
+    question_id: body.task === "solve" || body.task === "classify" ? body.questionId ?? null : null,
     task_type: body.task,
     prompt_text: taskInput.slice(0, 12000),
     output_text: parsed.answer,
