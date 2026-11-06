@@ -120,11 +120,17 @@ describe("GET /api/health/ready", () => {
   });
 
   it("fails closed when the attempt-fenced worker RPC migrations are missing", async () => {
-    const client = createClientMock.mock.results[0]?.value;
-    client.rpc.mockImplementation((name: string) => Promise.resolve({
-      data: null,
-      error: { code: name === "complete_document_processing" ? "PGRST202" : "P0001" },
-    }));
+    createClientMock.mockReturnValue({
+      from: vi.fn(() => ({
+        select: vi.fn(() => ({
+          limit: vi.fn().mockResolvedValue({ error: null }),
+        })),
+      })),
+      rpc: vi.fn((name: string) => Promise.resolve({
+        data: null,
+        error: { code: name === "complete_document_processing" ? "PGRST202" : "P0001" },
+      })),
+    });
 
     const response = await GET(authorizedRequest());
 
