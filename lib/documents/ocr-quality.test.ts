@@ -27,6 +27,23 @@ describe("assess OCR text quality", () => {
     expect(assessOcrTextQuality(flattenedExerciseTable)).toBe("needs_correction");
   });
 
+  it("flags labelled table rows even when OCR concatenates them into one line", () => {
+    const flattenedSingleLine = "solid object radius vertical height curved surface area total surface area (a) sphere 3 cm * (b) cylinder 4 cm 5 cm * (c) cone 6 cm 8 cm * (d) cylinder 0.7 m 1 m *";
+    expect(assessOcrTextQuality(flattenedSingleLine)).toBe("needs_correction");
+  });
+
+  it("does not let unrelated paragraph spacing hide a flattened table", () => {
+    const flattenedWithParagraphSpacing = [
+      "solid object radius vertical height curved surface area total surface area",
+      "(a) sphere 3 cm *",
+      "(b) cylinder 4 cm 5 cm *",
+      "(c) cone 6 cm 8 cm *",
+      "(d) cylinder 0.7 m 1 m *",
+      "An explanatory paragraph with unusually   large spacing follows.",
+    ].join("\\n");
+    expect(assessOcrTextQuality(flattenedWithParagraphSpacing)).toBe("needs_correction");
+  });
+
   it("does not flag a table when explicit column separators survived extraction", () => {
     const tabSeparatedTable = [
       "solid object\tradius\tvertical height\tcurved surface area\ttotal surface area",
