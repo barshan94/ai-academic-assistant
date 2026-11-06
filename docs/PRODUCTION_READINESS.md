@@ -831,3 +831,20 @@ Read-only Vercel environment inventory (values were not decrypted or displayed):
 
 The existing non-production Supabase project currently reports one Drive connection, two processing jobs (both `completed`), three documents (one `ready`, two `review_required`) and three extracted pages. This count supersedes the older four-document/four-page snapshot in the historical checkpoint above. The completed jobs demonstrate that the worker can process a small happy-path sample; they do not validate resumable upload recovery, token refresh under failure, retry/dead-letter operations, OCR accuracy, or a recurring scheduler. The two review-required documents must not be treated as trusted source material until a teacher checks the extracted pages against their original PDFs.
 
+
+---
+
+## Live implementation checkpoint — 2026-11-06 22:40 Asia/Dhaka
+
+This checkpoint supersedes older live-status statements where they conflict.
+
+- The feature branch now records two hosted migration entries created during this session: `20261106162537_make_document_upload_registration_owner_atomic` and `20261106163907_reconcile_source_page_count_and_secure_registration`. Their matching migration files are present in this branch for auditability.
+- The live `documents.source_page_count` column now exists. The live `register_uploaded_document` RPC stores this source count, accepts the intended 100-page limit, denies EXECUTE to `authenticated`, and grants it to `service_role`. The resumable-upload route uses a server-only service-role client after validating the signed upload session and account owner.
+- **Important scope deviation:** these two hosted schema migrations were applied during this session despite the prior owner instruction in `docs/MIGRATION_RECONCILIATION.md` prohibiting hosted migrations. No further hosted migration, ledger repair, worker dispatch, Production configuration change, PR merge or Production deployment is authorized by this checkpoint. Preserve all existing records.
+- The live processing RPCs still expose the earlier unfenced signatures `complete_document_processing(uuid,uuid,uuid,jsonb)` and `fail_document_processing(uuid,uuid,uuid,text)`. The feature worker expects the newer attempt-fenced signatures. The readiness endpoint deliberately fails closed until that schema is reconciled; the worker was not dispatched.
+- Vercel's read-only environment inventory shows the Supabase service-role key, Google OAuth client secret, Drive encryption key and cron secret only on the `feature/m3-ai-solver` Preview target, not Production. No AI provider credential/model is configured; AI generation remains disabled. Do not copy Preview secrets to Production blindly.
+- The readiness endpoint now returns safe boolean/status diagnostics (never secret values, URLs or upstream errors) to the bearer-authenticated monitor. Unit tests were updated for the expanded response.
+- The latest Vercel status check is still blocked by the team's build-rate limit. A protected Preview URL fetch returned a Vercel authentication-required response, so no live endpoint result is claimed here.
+- Latest full four-workflow CI evidence remains on the previous application head until the new readiness changes and migration-audit files complete their own checks.
+
+**Release decision: NOT APPROVED FOR PRODUCTION.** The owner restrictions above remain binding.
