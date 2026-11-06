@@ -178,10 +178,10 @@ select is(
     repeat('e', 64),
     'drive-maximum-pages',
     null,
-    50
+    100
   )),
   1,
-  'registration accepts the maximum supported page count of fifty'
+  'registration accepts the maximum supported page count of one hundred'
 );
 
 select is(
@@ -216,31 +216,30 @@ select throws_ok(
 select throws_ok(
   $$select * from public.register_uploaded_document(
     '12000000-0000-4000-8000-000000000001',
-    'fifty-one-pages.pdf',
+    'one-hundred-one-pages.pdf',
     1024,
     repeat('3', 64),
+    'drive-one-hundred-one-pages',
+    null,
+    101
+  )$$,
+  'P0001',
+  'Uploaded document metadata is invalid',
+  'registration rejects a page count above one hundred'
+);
+
+select is(
+  (select count(*)::integer from public.register_uploaded_document(
+    '12000000-0000-4000-8000-000000000001',
+    'fifty-one-pages.pdf',
+    1024,
+    repeat('4', 64),
     'drive-fifty-one-pages',
     null,
     51
-  )$$,
-  'P0001',
-  'Uploaded document metadata is invalid',
-  'registration rejects a page count above fifty'
-);
-
-select throws_ok(
-  $$select * from public.register_uploaded_document(
-    '12000000-0000-4000-8000-000000000001',
-    'one-hundred-pages.pdf',
-    1024,
-    repeat('4', 64),
-    'drive-one-hundred-pages',
-    null,
-    100
-  )$$,
-  'P0001',
-  'Uploaded document metadata is invalid',
-  'registration rejects the legacy one-hundred-page upper bound'
+  )),
+  1,
+  'registration accepts page counts above the old fifty-page restriction'
 );
 
 select throws_ok(
