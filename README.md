@@ -34,7 +34,8 @@ A personal, web-based AI academic workspace for a tutor working across Edexcel O
 - ESLint and Vitest configuration with initial smoke tests.
 - Private Supabase sign-in and protected dashboard.
 - Google Drive OAuth with encrypted refresh-token storage and disconnect/revocation; PDF archiving; JPEG/PNG batch-to-PDF conversion; OCR extraction; editable per-page corrections and explicit teacher review.
-- A manual, source-linked question library with board, qualification, subject, chapter and topic metadata; search and teacher approval/rejection. AI question classification and solving are not implemented yet.
+- A manual, source-linked question library with board, qualification, subject, chapter and topic metadata; search and teacher approval/rejection.
+- An authenticated AI study workspace for worked solutions, suggested syllabus classification, chapter notes and revision sets. It requires an explicitly configured OpenAI-compatible provider and labels all output unverified; no paid provider is enabled automatically.
 - Architecture, data model, roadmap, security, authentication, Drive setup, PDF processing and operations documentation.
 
 ## Development
@@ -47,3 +48,6 @@ Do not commit `.env.local`, credentials, service-role keys, OAuth tokens, studen
 
 ## Current status
 The latest GitHub Actions run passed pinned dependency installation (`npm ci`), `npm audit` with zero reported vulnerabilities, ESLint, TypeScript, Vitest and the Next.js production build. Supabase profile/document/page/job/question/Drive-connection tables and owner-scoped RLS are applied; composite foreign keys prevent child rows from referencing another owner's document. The private sign-in, Drive OAuth, PDF/image batch upload, OCR extraction, per-page correction, teacher review and manual source-linked question library are implemented in code. Estimated implementation progress is 25%; this is not a claim of production readiness. Live authentication and Google Drive workflows still need the owner's environment credentials and an end-to-end smoke test. Upload is capped at 4 MB; resumable uploads and automatic background workers are not implemented. OCR output remains unverified until the owner checks it against the original. The AI solver and chapter-intelligence modules remain planned.
+
+## AI study workspace
+Open **Dashboard → AI Study** to solve a saved or pasted question, request suggested syllabus classification, or create chapter notes and revision sets from approved questions. Configure `AI_BASE_URL`, `AI_API_KEY` and `AI_MODEL` as server-only deployment variables. Select a provider with a free quota; provider limits can change. Generated output is not stored as a verified solution and must be checked by the teacher. See [AI and release limitations](docs/AI_AND_RELEASE_LIMITATIONS.md).
