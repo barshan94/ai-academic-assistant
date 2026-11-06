@@ -22,6 +22,7 @@ jobs:
         run: |
           test -n "$APP_BASE_URL" || { echo "::error::APP_BASE_URL secret is missing"; exit 1; }
           test -n "$CRON_SECRET" || { echo "::error::CRON_SECRET secret is missing"; exit 1; }
+          [ "${#CRON_SECRET}" -ge 32 ] || { echo "::error::CRON_SECRET must contain at least 32 characters"; exit 1; }
           case "$APP_BASE_URL" in
             https://*) ;;
             *) echo "::error::APP_BASE_URL must use HTTPS"; exit 1 ;;
