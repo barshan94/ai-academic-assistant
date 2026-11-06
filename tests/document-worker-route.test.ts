@@ -63,7 +63,14 @@ afterEach(() => {
 
 describe("document worker route access and queue preflight", () => {
   it("rejects missing or incorrect bearer credentials before creating a service-role client", async () => {
-    for (const auth of [undefined, "Bearer wrong-secret", "Basic test-cron-secret-with-sufficient-entropy"]) {
+    for (const auth of [
+      undefined,
+      "Bearer wrong-secret",
+      "Basic test-cron-secret-with-sufficient-entropy",
+      "test-cron-secret-with-sufficient-entropy",
+      "Bearer",
+      "Bearer test-cron-secret-with-sufficient-entropy extra",
+    ]) {
       const response = await POST(request(auth));
       expect(response.status).toBe(401);
       expect(await response.json()).toEqual({ error: "Unauthorized" });
