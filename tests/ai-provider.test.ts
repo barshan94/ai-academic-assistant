@@ -85,6 +85,23 @@ describe("task-aware provider selection", () => {
       model: "legacy-model",
     });
   });
+
+  it("accepts Google's OpenAI-compatible Gemini endpoint on the existing adapter", () => {
+    const [provider] = getAIProviderConfigs("answer", {
+      AI_ENABLED: "true",
+      AI_PROVIDER_NAME: "gemini-ai-studio",
+      AI_API_BASE_URL: "https://generativelanguage.googleapis.com/v1beta/openai",
+      AI_API_KEY: "server-side-gemini-key",
+      AI_MODEL: "gemini-3.6-flash",
+    });
+
+    expect(provider).toMatchObject({
+      provider: "gemini-ai-studio",
+      baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai",
+      model: "gemini-3.6-flash",
+    });
+    expect(provider.apiKey).toBe("server-side-gemini-key");
+  });
 });
 
 describe("AI provider fallback policy", () => {
