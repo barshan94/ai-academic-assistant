@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { checkExplicitArithmetic, getVerificationLabel } from "@/lib/ai/arithmetic-check";
+import { parseAssistantOutput } from "@/lib/ai/model-output";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -14,15 +15,6 @@ const requestSchema = z.object({
   chapter: z.string().trim().max(150).optional(),
   language: z.enum(["english", "bengali", "both"]).default("both"),
   count: z.number().int().min(3).max(20).default(8),
-});
-
-const outputSchema = z.object({
-  answer: z.string().min(20).max(30000),
-  subject: z.string().max(100).nullable().optional(),
-  qualification: z.string().max(100).nullable().optional(),
-  chapter: z.string().max(150).nullable().optional(),
-  topic: z.string().max(150).nullable().optional(),
-  confidence: z.number().min(0).max(1).nullable().optional(),
 });
 
 const instructions: Record<z.infer<typeof requestSchema>["task"], string> = {
@@ -39,15 +31,6 @@ function extractText(payload: unknown): string {
   return typeof content === "string" ? content : "";
 }
 
-function parseModelOutput(raw: string) {
-  const cleaned = raw.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
-  try {
-    const parsed: unknown = JSON.parse(cleaned);
-    const result = outputSchema.safeParse(parsed);
-    if (result.success) return result.data;
-  } catch { /* Use the provider's plain-text answer below. */ }
-  return { answer: raw };
-}
 
 export async function POST(request: Request) {
   const supabase = await createSupabaseServerClient();
@@ -154,7 +137,7 @@ export async function POST(request: Request) {
   if (!raw.trim()) return NextResponse.json({ error: "AI provider returned an empty response." }, { status: 502 });
   if (raw.length > 30000) return NextResponse.json({ error: "AI provider response exceeded the allowed output size." }, { status: 502 });
 
-  const parsed = parseModelOutput(raw);
+  const parsed = parseAssistantOutput(raw);
   const arithmeticChecks = checkExplicitArithmetic(parsed.answer);
   const verification = getVerificationLabel(arithmeticChecks);
   const { data: saved, error: saveError } = await supabase.from("ai_assistant_outputs").insert({
