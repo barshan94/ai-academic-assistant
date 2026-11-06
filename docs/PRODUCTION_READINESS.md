@@ -1,13 +1,13 @@
 ## Superseding exact-head verification — 2026-11-06 09:05 Asia/Dhaka
 
-This entry supersedes the older pending/failing CI snapshots below. Current feature branch head: `f8fa5802bf85a1147c8b3c6411a39c74f88b8c96` (documentation-only commit after the verified application code head `fea324000818e674ac31adbfbdf69b67b837b9a9`).
+This entry supersedes the older pending/failing CI snapshots below. Current feature branch head: `1c91938cc0aa090053cb1fe1d921904d13607b24` (documentation-only correction after the verified application code head `fea324000818e674ac31adbfbdf69b67b837b9a9`). The four workflow runs and READY Preview below are verified on application/documentation head `f8fa5802bf85a1147c8b3c6411a39c74f88b8c96`.
 
 ### Exact-head automated verification — ALL PASS
 
-- [x] Foundation — [run 42154137309](https://github.com/barshan94/ai-academic-assistant/actions/runs/42152506904): production dependency audit, full dependency audit report, ESLint, application and Playwright type-checks, unit tests, Next.js production build, and Chromium browser smoke.
-- [x] Database authorization and isolated local migration replay/pgTAP — [run 42154137291](https://github.com/barshan94/ai-academic-assistant/actions/runs/42152506931).
-- [x] Authenticated two-account Supabase/Playwright acceptance — [run 42154137379](https://github.com/barshan94/ai-academic-assistant/actions/runs/42152506891).
-- [x] Full-history secret scan — [run 42154137207](https://github.com/barshan94/ai-academic-assistant/actions/runs/42152506933).
+- [x] Foundation — [run 42154137309](https://github.com/barshan94/ai-academic-assistant/actions/runs/42154137309): production dependency audit, full dependency audit report, ESLint, application and Playwright type-checks, unit tests, Next.js production build, and Chromium browser smoke.
+- [x] Database authorization and isolated local migration replay/pgTAP — [run 42154137291](https://github.com/barshan94/ai-academic-assistant/actions/runs/42154137291).
+- [x] Authenticated two-account Supabase/Playwright acceptance — [run 42154137379](https://github.com/barshan94/ai-academic-assistant/actions/runs/42154137379).
+- [x] Full-history secret scan — [run 42154137207](https://github.com/barshan94/ai-academic-assistant/actions/runs/42154137207).
 
 ### Exact-head Preview
 
