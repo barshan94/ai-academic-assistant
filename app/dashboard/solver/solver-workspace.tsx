@@ -3,7 +3,8 @@
 import { useState } from "react";
 
 type Question = { id: string; question_text: string; subject: string | null; chapter: string | null; review_status: string };
-type Task = "solve" | "classify" | "chapter_notes" | "revision_set";\ntype Solution = { id: string; task_type: string; prompt_text: string; output_text: string; review_status: string; created_at: string };
+type Task = "solve" | "classify" | "chapter_notes" | "revision_set";
+type Solution = { id: string; task_type: string; prompt_text: string; output_text: string; review_status: string; created_at: string };
 
 export default function SolverWorkspace({ questions, solutions }: { questions: Question[]; solutions: Solution[] }) {
   const [task, setTask] = useState<Task>("solve");
@@ -14,9 +15,22 @@ export default function SolverWorkspace({ questions, solutions }: { questions: Q
   const [language, setLanguage] = useState<"english" | "bengali" | "both">("both");
   const [result, setResult] = useState("");
   const [error, setError] = useState("");
-  const [busy, setBusy] = useState(false);\n  const [history, setHistory] = useState(solutions);\n  const [reviewing, setReviewing] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [history, setHistory] = useState(solutions);
+  const [reviewing, setReviewing] = useState("");
 
-  async function review(id: string, status: "approved" | "rejected") {\n    setReviewing(id); setError("");\n    try {\n      const response = await fetch("/api/ai/solutions/" + id + "/review", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status }) });\n      const payload = await response.json() as { error?: string };\n      if (!response.ok) throw new Error(payload.error || "Could not save review.");\n      setHistory((items) => items.map((item) => item.id === id ? { ...item, review_status: status } : item));\n    } catch (caught) { setError(caught instanceof Error ? caught.message : "Review failed."); }\n    finally { setReviewing(""); }\n  }\n\n  async function run() {
+  async function review(id: string, status: "approved" | "rejected") {
+    setReviewing(id); setError("");
+    try {
+      const response = await fetch("/api/ai/solutions/" + id + "/review", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status }) });
+      const payload = await response.json() as { error?: string };
+      if (!response.ok) throw new Error(payload.error || "Could not save review.");
+      setHistory((items) => items.map((item) => item.id === id ? { ...item, review_status: status } : item));
+    } catch (caught) { setError(caught instanceof Error ? caught.message : "Review failed."); }
+    finally { setReviewing(""); }
+  }
+
+  async function run() {
     setBusy(true); setError(""); setResult("");
     try {
       const response = await fetch("/api/ai/assistant", {
@@ -25,7 +39,9 @@ export default function SolverWorkspace({ questions, solutions }: { questions: Q
       });
       const payload = await response.json() as { answer?: string; error?: string; reviewNotice?: string };
       if (!response.ok) throw new Error(payload.error || "Request failed.");
-      setResult((payload.answer || "No answer returned.") + "\n\n" + (payload.reviewNotice || ""));
+      setResult((payload.answer || "No answer returned.") + "
+
+" + (payload.reviewNotice || ""));
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Something went wrong.");
     } finally { setBusy(false); }
