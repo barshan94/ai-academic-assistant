@@ -1,3 +1,18 @@
+# Superseding hosted worker migration verification — 2026-11-06
+
+The approved existing non-production project `academic-assistant` (`uqpyzicftxxegajaocxi`, ap-south-1) received the attempt-fencing migration through the Supabase migration action. This was a non-production schema change only; Production was not touched.
+
+- [x] Applied migration: `fence_document_processing_attempts`.
+- [x] Supabase recorded it as version `20261106175801`.
+- [x] Read-only post-migration query confirms `complete_document_processing(uuid,uuid,uuid,integer,jsonb)` and `fail_document_processing(uuid,uuid,uuid,integer,text)`.
+- [x] Both functions are SECURITY INVOKER; anon EXECUTE is false; authenticated and service_role EXECUTE are true. The function bodies enforce owner matching for non-service callers and exact attempt fencing.
+- [x] Repository migration file was renamed to `supabase/migrations/20261106175801_fence_document_processing_attempts.sql` to match the hosted ledger version; the old unrecorded timestamped file was removed.
+- [ ] Do not dispatch the worker until live non-production Drive upload/OCR and failure/retry acceptance has been run. This recheck did not invoke the worker or mutate document data.
+
+This closes the specific hosted attempt-fencing RPC mismatch. It does not close the broader release gate. The PR remains draft/dirty, current-head CI is not verified, Vercel is rate-limited, and owner-controlled Production credentials, Auth leaked-password mitigation, academic/privacy/legal/accessibility acceptance and operational ownership remain outstanding.
+
+---
+
 # Release-gate recheck — 2026-11-06 (after commit 0009bf6)
 
 This checkpoint supersedes older claims about the current branch and hosted worker compatibility.
