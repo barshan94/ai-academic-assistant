@@ -23,6 +23,7 @@ const requiredEnvironment: Record<string, string> = {
   GOOGLE_CLIENT_SECRET: "google-secret-test",
   GOOGLE_DRIVE_REDIRECT_URI: "https://app.example.com/api/drive/callback",
   DRIVE_TOKEN_ENCRYPTION_KEY: Buffer.alloc(32, 7).toString("base64"),
+  AI_ENABLED: "true",
 };
 
 let originalEnvironment: Record<string, string | undefined> = {};
@@ -81,6 +82,20 @@ describe("GET /api/health/ready", () => {
     expect(createClientMock).toHaveBeenCalledOnce();
     const client = createClientMock.mock.results[0].value;
     expect(client.from).toHaveBeenCalledTimes(REQUIRED_READINESS_TABLES.length);
+  });
+
+  it("accepts strict zero-cost mode without probing disabled AI providers", async () => {
+    process.env.AI_ENABLED = "false";
+    getAIProviderConfigsMock.mockImplementation(() => {
+      throw new Error("AI is intentionally disabled");
+    });
+
+    const response = await GET(authorizedRequest());
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ status: "ready" });
+    expect(getAIProviderConfigsMock).not.toHaveBeenCalled();
+    expect(createClientMock).toHaveBeenCalledOnce();
   });
 
   it("fails closed when a required AI task has no configured provider", async () => {
