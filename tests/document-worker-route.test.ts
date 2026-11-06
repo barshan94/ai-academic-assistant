@@ -306,7 +306,7 @@ describe("document worker failure redaction", () => {
     const queryFor = (result: QueryResult): QueryBuilder => {
       const query: QueryBuilder = Object.assign(Promise.resolve(result), {
         select: () => query,
-        eq: (_column: string, _value: string) => query,
+        eq: () => query,
         maybeSingle: async () => result,
       });
       return query;
@@ -380,7 +380,7 @@ describe("document worker failure redaction", () => {
     const queryFor = (result: QueryResult): QueryBuilder => {
       const query: QueryBuilder = Object.assign(Promise.resolve(result), {
         select: () => query,
-        eq: (_column: string, _value: string) => query,
+        eq: () => query,
         maybeSingle: async () => result,
       });
       return query;
