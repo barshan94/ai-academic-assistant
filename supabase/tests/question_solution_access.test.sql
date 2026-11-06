@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(58);
+select plan(60);
 
 -- Isolated identities and records. This test runs inside a transaction and rolls back.
 insert into auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
@@ -66,6 +66,16 @@ insert into public.weekly_study_sessions (
   current_date, 'Private study session', 45, 'Personal study notes', 'planned', null
 );
 
+-- Revision confidence and scheduling are owner-private even when a question is shared with a teacher.
+insert into public.question_revision_progress (
+  id, owner_id, question_id, confidence, status, next_review_at, last_reviewed_at, review_count
+) values (
+  '91000000-0000-4000-8000-000000000001',
+  '10000000-0000-4000-8000-000000000001',
+  '30000000-0000-4000-8000-000000000001',
+  3, 'review', now() + interval '4 days', now(), 1
+);
+
 -- The exposed API wrapper is invoker-rights. Only its private implementation
 -- uses definer rights, and anonymous clients cannot access the private schema.
 select is(
@@ -107,6 +117,7 @@ select is(
   'owner can read their saved mark scheme'
 );
 select is((select count(*)::integer from public.question_classification_history), 2, 'owner can read classification history for their own questions');
+select is((select count(*)::integer from public.question_revision_progress), 1, 'owner can read their private revision confidence and schedule');
 select is((select count(*)::integer from public.practice_sets), 1, 'owner can read their private practice sets');
 select is((select count(*)::integer from public.practice_set_items), 1, 'owner can read their private practice answers and notes');
 select is((select count(*)::integer from public.weekly_study_sessions), 1, 'owner can read their private weekly study calendar');
@@ -199,6 +210,7 @@ select lives_ok(
 select is((select count(*)::integer from public.questions), 1, 'accepted teacher can read the shared question');
 select is((select count(*)::integer from public.question_solutions), 1, 'accepted teacher can read the shared solution');
 select is((select count(*)::integer from public.question_classification_history), 0, 'accepted teacher cannot read owner-private classification history');
+select is((select count(*)::integer from public.question_revision_progress), 0, 'accepted teacher cannot read owner-private revision confidence or schedule');
 select is((select count(*)::integer from public.practice_sets), 0, 'accepted teacher cannot read a students private practice sets');
 select is((select count(*)::integer from public.practice_set_items), 0, 'accepted teacher cannot read a students practice answers or notes');
 select is((select count(*)::integer from public.weekly_study_sessions), 0, 'accepted teacher cannot read a students private study calendar or notes');
