@@ -32,7 +32,8 @@ Set these values in the hosting provider's server-side environment settings. Nev
 | `GOOGLE_DRIVE_REDIRECT_URI` | Yes | Exact HTTPS URL ending `/api/drive/callback`. |
 | `DRIVE_TOKEN_ENCRYPTION_KEY` | Yes | Canonical Base64 encoding of exactly 32 random bytes. Keep stable and back it up separately. |
 | `CRON_SECRET` | Yes | Random secret of at least 32 characters, shared with GitHub worker and readiness monitor secrets. |
-| `AI_ENABLED` | No | Defaults to the disabled/zero-provider profile when unset or not `true`. Keep `false` for strict zero-cost operation; readiness does not require AI provider credentials in this mode. |\n| `AI_API_KEY`, `AI_MODEL` | Required only when `AI_ENABLED=true` and no valid provider pool is configured | Single OpenAI-compatible provider configuration. Provider calls may incur charges. |
+| `AI_ENABLED` | No | Defaults to the disabled/zero-provider profile when unset or not `true`. Keep `false` for strict zero-cost operation; readiness does not require AI provider credentials in this mode. |
+| `AI_API_KEY`, `AI_MODEL` | Required only when `AI_ENABLED=true` and no valid provider pool is configured | Single OpenAI-compatible provider configuration. Provider calls may incur charges. |
 | `AI_API_BASE_URL`, `AI_PROVIDER_NAME` | Optional | Defaults to OpenAI-compatible base URL and provider label. |
 | `AI_PROVIDER_POOL` | Alternative | JSON array of up to eight providers. At least one enabled provider must support both `answer` and `chapter-note`. |
 | `AI_ALLOW_PROVIDER_FALLBACKS` | Optional | Defaults off; enabling may incur additional charges. |
