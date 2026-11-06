@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { PDFDocument } from "pdf-lib";
 import {
   MAX_IMAGE_COUNT,
   MAX_UPLOAD_BYTES,
@@ -44,6 +45,24 @@ describe("normalizeFilesToPdf", () => {
     expect(result.fileName).toBe(".._paper.pdf");
     expect(result.converted).toBe(false);
     expect(result.pageCount).toBeNull();
+  });
+
+  it("reads the source page count from a valid PDF without changing its bytes", async () => {
+    const pdf = await PDFDocument.create();
+    pdf.addPage();
+    pdf.addPage();
+    const bytes = new Uint8Array(await pdf.save());
+    const result = await normalizeFilesToPdf([file(bytes, "two-pages.pdf", "application/pdf")]);
+    expect(result.pageCount).toBe(2);
+    expect(result.bytes).toEqual(bytes);
+  });
+
+  it("rejects a readable PDF above the supported 100-page limit", async () => {
+    const pdf = await PDFDocument.create();
+    for (let index = 0; index < 101; index += 1) pdf.addPage();
+    const bytes = new Uint8Array(await pdf.save());
+    await expect(normalizeFilesToPdf([file(bytes, "too-many-pages.pdf", "application/pdf")]))
+      .rejects.toThrow("outside the supported range");
   });
 
   it("rejects a PDF with an invalid signature", async () => {
