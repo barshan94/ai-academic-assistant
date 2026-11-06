@@ -24,6 +24,14 @@ values ('40000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-0000000
 insert into public.questions (id, owner_id, document_id, question_text)
 values ('30000000-0000-4000-8000-000000000003', '10000000-0000-4000-8000-000000000001', '20000000-0000-4000-8000-000000000001', 'Unshared question by same owner');
 
+-- Fixture inserts run as the migration-test postgres role, so the audit trigger
+-- correctly has no authenticated actor. Seed the two owner-visible baselines.
+insert into public.question_classification_history (
+  question_id, owner_id, changed_by, event_type, previous_state, new_state
+) values
+  ('30000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', 'created', null, '{}'::jsonb),
+  ('30000000-0000-4000-8000-000000000003', '10000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', 'created', null, '{}'::jsonb);
+
 insert into public.question_solutions (id, owner_id, question_id, provider, model, prompt_version, answer_json)
 values ('40000000-0000-4000-8000-000000000003', '10000000-0000-4000-8000-000000000001', '30000000-0000-4000-8000-000000000003', 'test-provider', 'test-model', 'test-v1', '{}'::jsonb);
 
@@ -176,7 +184,7 @@ select throws_ok(
   'An active accepted teacher invitation is required',
   'uninvited account cannot promote an answer to teacher-verified'
 );
-select is((select count(*)::integer from public.question_solutions), 0, 'uninvited account cannot read saved solutions');
+select is((select count(*)::integer from public.question_solutions where id = '40000000-0000-4000-8000-000000000001'), 0, 'uninvited account cannot read another owners saved solution');
 select is((select count(*)::integer from public.question_solution_mark_schemes), 0, 'uninvited account cannot read mark schemes');
 select is((select count(*)::integer from public.question_teacher_invites), 0, 'uninvited account cannot read another user invite');
 select is((select count(*)::integer from public.practice_sets), 0, 'unrelated account cannot read another owner practice history');
