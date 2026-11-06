@@ -24,4 +24,9 @@ describe("document worker HTTP method", () => {
     expect(workflow).not.toContain("--output /dev/null");
     expect(workflow).not.toContain('cat "$response_file"');
   });
+
+  it("keeps queue processing opt-in with no recurring or automatic trigger", () => {
+    expect(workflow).toMatch(/^on:\s*\n  workflow_dispatch:\s*$/m);
+    expect(workflow).not.toMatch(/^\s{2}(?:schedule|push|pull_request|repository_dispatch):/m);
+  });
 });
