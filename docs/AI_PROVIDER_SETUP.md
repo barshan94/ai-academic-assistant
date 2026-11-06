@@ -57,3 +57,30 @@ Fallback is disabled by default. Set `AI_ALLOW_PROVIDER_FALLBACKS=true` only whe
 The router does not yet estimate per-model token cost or dynamically score quality, latency or historical availability. Priority is a manual owner-controlled choice, not an automatic price optimizer. AI answer and chapter-note request quotas still apply.
 
 Do not enable a paid endpoint or fallback without explicit budget approval. Review each provider's data-processing and retention terms before sending question text or opt-in source context.
+## No-billing option: Google AI Studio free tier
+
+The existing OpenAI-compatible adapter can call Gemini without a new SDK or code path. Google's official compatibility endpoint supports Chat Completions:
+
+`https://generativelanguage.googleapis.com/v1beta/openai`
+
+For a no-billing trial, create a Gemini API key in [Google AI Studio](https://aistudio.google.com/api-keys), keep the project on Google's **Free** tier, and configure these server-side variables:
+
+```dotenv
+AI_ENABLED=true
+AI_PROVIDER_NAME=gemini-ai-studio
+AI_API_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai
+AI_API_KEY=YOUR_GEMINI_API_KEY
+AI_MODEL=gemini-3.6-flash
+AI_ALLOW_PROVIDER_FALLBACKS=false
+```
+
+Do not enable Cloud Billing or switch the AI Studio project to a paid tier. The free tier has model-specific rate limits and may not be sufficient for a busy production app. Google's pricing page identifies free input/output token access for selected models, while paid tiers provide higher limits. Bangladesh is listed among the supported Gemini API regions.
+
+**Privacy warning:** Google states that Free-tier content may be used to improve its products. Do not send confidential student records, personal identifiers, private exam materials or other sensitive content through this tier unless the data-use terms are acceptable. The application currently sends question text and any selected source context to the configured provider. For sensitive academic content, keep `AI_ENABLED=false` until a suitable data-processing arrangement is in place.
+
+References:
+- [Gemini OpenAI compatibility](https://ai.google.dev/gemini-api/docs/openai)
+- [Gemini API pricing and free tier](https://ai.google.dev/gemini-api/docs/pricing)
+- [Available regions](https://ai.google.dev/gemini-api/docs/available-regions)
+
+This is an optional owner-controlled configuration. No API key is created or stored by this repository, and AI remains disabled until the owner adds the key and explicitly sets `AI_ENABLED=true`.
