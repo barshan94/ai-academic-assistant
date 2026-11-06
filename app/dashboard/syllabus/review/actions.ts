@@ -28,6 +28,9 @@ export async function bulkUpdateClassificationStatus(formData: FormData) {
   if (error?.message.includes("BULK_REVIEW_NO_CHANGE")) {
     redirect("/dashboard/syllabus/review?bulk=noop");
   }
+  if (error?.message.includes("selected batch is stale")) {
+    redirect("/dashboard/syllabus/review?bulk=stale");
+  }
   if (error || typeof updatedCount !== "number") {
     redirect("/dashboard/syllabus/review?bulk=failed");
   }
