@@ -10,7 +10,7 @@ export default async function SolverPage() {
   const supabase = await createSupabaseServerClient();
   const { data: { user }, error } = await supabase.auth.getUser();
   if (error || !user) redirect("/login");
-  const { data: solutions } = await supabase.from("question_solutions")
+  const { data: solutions } = await supabase.from("ai_assistant_outputs")
     .select("id,task_type,prompt_text,output_text,review_status,created_at")
     .eq("owner_id", user.id).order("created_at", { ascending: false }).limit(20);
   const { data: questions } = await supabase.from("questions")
