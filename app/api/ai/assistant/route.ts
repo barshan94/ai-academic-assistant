@@ -86,12 +86,19 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Select a saved question or provide the question text." }, { status: 400 });
   }
 
+  if (body.task === "chapter_notes" && (!body.subject || !body.chapter)) {
+    return NextResponse.json({ error: "Choose both a subject and chapter so notes do not mix unrelated topics." }, { status: 400 });
+  }
+  if (body.task === "revision_set" && !body.subject) {
+    return NextResponse.json({ error: "Choose a subject for a focused revision set." }, { status: 400 });
+  }
+
   let sourceQuestions: string[] = [];
   if (body.task === "chapter_notes" || body.task === "revision_set") {
     let query = supabase.from("questions").select("question_text,subject,chapter,topic")
       .eq("owner_id", user.id).eq("review_status", "approved");
-    if (body.subject) query = query.ilike("subject", body.subject);
-    if (body.chapter) query = query.ilike("chapter", body.chapter);
+    if (body.subject) query = query.eq("subject", body.subject);
+    if (body.chapter) query = query.eq("chapter", body.chapter);
     const { data, error } = await query.order("created_at", { ascending: false }).limit(30);
     if (error) return NextResponse.json({ error: "Could not load approved source questions." }, { status: 500 });
     sourceQuestions = (data ?? []).map((item) => item.question_text);
