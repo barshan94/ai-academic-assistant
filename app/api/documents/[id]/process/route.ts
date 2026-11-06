@@ -117,6 +117,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       p_document_id: id,
       p_owner_id: user.id,
       p_job_id: job.id,
+      p_expected_attempt_count: job.attempt_count + 1,
       p_pages: pages,
     });
     if (completionError || completedPageCount !== pages.length) {
@@ -132,6 +133,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       p_document_id: id,
       p_owner_id: user.id,
       p_job_id: job.id,
+      p_expected_attempt_count: job.attempt_count + 1,
       p_error_code: "DOCUMENT_PROCESSING_FAILED",
     });
     if (failureError || failurePersisted !== true) {
