@@ -46,7 +46,7 @@ export default async function QuestionsPage({ searchParams }: QuestionsPageProps
       <section className="hero documents-hero">
         <p className="eyebrow">QUESTION BANK · EARLY M3</p>
         <h1>Your question <span>library.</span></h1>
-        <p className="hero-copy">Capture individual questions from reviewed source pages, add syllabus metadata, and approve your own question records. AI classification and solving are not enabled yet.</p>
+        <p className="hero-copy">Capture individual questions from reviewed source pages, add syllabus metadata, and approve your own question records. AI solving and suggested syllabus classification are available in the AI Study workspace; generated results remain unverified.</p>
       </section>
 
       {notice ? <p className="notice notice-info" role="status">{notice}</p> : null}
