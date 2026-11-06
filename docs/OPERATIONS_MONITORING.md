@@ -28,7 +28,7 @@ The deployed application must also have the required readiness configuration:
 - `GOOGLE_CLIENT_SECRET`
 - `GOOGLE_DRIVE_REDIRECT_URI`
 - `DRIVE_TOKEN_ENCRYPTION_KEY`
-- `AI_API_KEY` and `AI_MODEL`, or a valid `AI_PROVIDER_POOL` supporting both `answer` and `chapter-note`
+- AI provider credentials and a provider/pool covering `answer` and `chapter-note` only when `AI_ENABLED=true`; for strict zero-cost mode keep AI disabled and leave provider credentials unset
 
 Use the exact same `CRON_SECRET` for the protected readiness endpoint and scheduled document worker. Rotate it in the deployment and GitHub repository together.
 
