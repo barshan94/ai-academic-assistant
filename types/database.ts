@@ -69,6 +69,7 @@ export type Database = {
           mime_type: string
           owner_id: string
           page_count: number | null
+          source_page_count: number | null
           sha256: string | null
           status: string
           updated_at: string
@@ -83,6 +84,7 @@ export type Database = {
           mime_type: string
           owner_id: string
           page_count?: number | null
+          source_page_count?: number | null
           sha256?: string | null
           status?: string
           updated_at?: string
@@ -97,6 +99,7 @@ export type Database = {
           mime_type?: string
           owner_id?: string
           page_count?: number | null
+          source_page_count?: number | null
           sha256?: string | null
           status?: string
           updated_at?: string
