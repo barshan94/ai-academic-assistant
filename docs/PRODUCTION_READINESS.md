@@ -857,3 +857,10 @@ This checkpoint supersedes older live-status statements where they conflict.
 - A free-tier Gemini configuration path is now documented and covered by a local provider-config unit test. It is optional and remains disabled; Google's free tier may use submitted content to improve its products, so it is not approved for confidential student content without accepting those terms.
 
 **Release decision remains NOT APPROVED.** Do not merge, deploy Production, copy Preview secrets, enable AI, or apply further hosted migrations under the current owner scope.
+
+## Final implementation delta — 2026-11-06
+
+- The bearer-authenticated readiness endpoint now returns component-level booleans/status labels for Supabase, Google OAuth, Drive token encryption, worker secret, AI state and database/worker schema. It never returns credential values, provider URLs or upstream error text.
+- Readiness tests now cover the explicit AI-disabled state and verify that missing-integration diagnostics do not expose service-role, OAuth, cron or encryption secrets.
+- The AI provider setup now documents Google's OpenAI-compatible Gemini endpoint as an optional no-billing route; a unit test covers the adapter configuration. AI remains disabled until the owner supplies a key and explicitly enables it. Free-tier content-use terms are disclosed.
+- These are code/documentation changes only. The latest changes have no recorded GitHub Actions run yet; do not reuse earlier green checks as validation of this exact head.
