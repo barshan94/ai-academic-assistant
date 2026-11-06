@@ -281,6 +281,32 @@ export type Database = {
             referencedColumns: ["id", "owner_id"]
           },
         ]
+      },
+      question_solutions: {
+        Row: {
+          id: string; owner_id: string; question_id: string | null; task_type: string;
+          prompt_text: string; output_text: string; provider_model: string;
+          review_status: string; created_at: string;
+        }
+        Insert: {
+          id?: string; owner_id: string; question_id?: string | null; task_type: string;
+          prompt_text: string; output_text: string; provider_model: string;
+          review_status?: string; created_at?: string;
+        }
+        Update: {
+          id?: string; owner_id?: string; question_id?: string | null; task_type?: string;
+          prompt_text?: string; output_text?: string; provider_model?: string;
+          review_status?: string; created_at?: string;
+        }
+        Relationships: [
+          {
+            foreignKeyName: "question_solutions_question_owner_fk"
+            columns: ["question_id", "owner_id"]
+            isOneToOne: false
+            referencedRelation: "questions"
+            referencedColumns: ["id", "owner_id"]
+          }
+        ]
       }
     }
     Views: {
