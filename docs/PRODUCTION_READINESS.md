@@ -1,3 +1,36 @@
+## Superseding exact-head verification — 2026-11-06 09:05 Asia/Dhaka
+
+This entry supersedes the older pending/failing CI snapshots below. Current feature branch head: `fea324000818e674ac31adbfbdf69b67b837b9a9`.
+
+### Exact-head automated verification — ALL PASS
+
+- [x] Foundation — [run 42152506904](https://github.com/barshan94/ai-academic-assistant/actions/runs/42152506904): production dependency audit, full dependency audit report, ESLint, application and Playwright type-checks, unit tests, Next.js production build, and Chromium browser smoke.
+- [x] Database authorization and isolated local migration replay/pgTAP — [run 42152506931](https://github.com/barshan94/ai-academic-assistant/actions/runs/42152506931).
+- [x] Authenticated two-account Supabase/Playwright acceptance — [run 42152506891](https://github.com/barshan94/ai-academic-assistant/actions/runs/42152506891).
+- [x] Full-history secret scan — [run 42152506933](https://github.com/barshan94/ai-academic-assistant/actions/runs/42152506933).
+
+### Exact-head Preview
+
+Vercel Preview deployment `dpl_DZmgyBsGcQJXvxVzH6JcXqzn7ET3` is `READY` for the exact SHA above: https://ai-academic-assistant-p356cpcu5-barshan-s-team.vercel.app. This is Preview only; no Production target was selected. A READY deployment is not equivalent to a live authenticated route, OAuth, Drive recovery, or production acceptance test.
+
+### Owner scope — unchanged and binding
+
+- Keep PR #1 open, draft and unmerged. Do not deploy Production or alter Production configuration.
+- Do not dispatch migration-reconciliation workflows, alter the hosted migration ledger, or apply hosted migrations. Do not modify the existing `academic-assistant` or `durga-map` data.
+- Do not create a second database or claim a backup/restore rehearsal occurred. That rehearsal is explicitly excluded by owner instruction; disaster recovery remains unproven.
+- Keep the document worker manual-only. Do not dispatch it or add a scheduler before route/branch integration, credentials, environment targeting, authentication and idempotency have been independently verified.
+- No paid upgrade, paid AI call, or search-provider activation. Strict zero-cost mode keeps AI generation disabled.
+
+### Production release decision — NOT APPROVED
+
+Automated code/database/browser/secret checks and exact-head Preview are green. They do not remove the external release gates: Production server-side environment credentials and owner-controlled OAuth setup; live Google Drive interruption/resume and integrity; worker failure/retry/recovery acceptance and scheduling decision; migration-history/schema parity review (without changing hosted history under current owner scope); Supabase Free leaked-password-protection limitation and accepted mitigation; manual accessibility/device checks; qualified syllabus and independent answer grading; privacy/legal review and published contact; named operational owners. No honest basis exists to call the service production-ready while these remain unverified.
+
+The branch-scoped Preview environment has the Drive/server credentials configured, but the Production environment has only the public Supabase URL and publishable key among the required application variables. Secret values were not decrypted or displayed. Do not copy Preview credentials blindly: the token-encryption key must remain compatible with any already encrypted Drive refresh tokens, and OAuth redirect/client configuration must be owner-controlled.
+
+No merge, Production deployment, Production environment mutation, hosted schema/data change, worker invocation, migration-ledger repair, paid service activation or second database was performed in this checkpoint.
+
+---
+
 ## Current owner scope — 2026-11-06
 
 This section supersedes historical instructions elsewhere in this file where they conflict.
