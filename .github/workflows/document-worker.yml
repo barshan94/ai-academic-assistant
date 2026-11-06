@@ -22,22 +22,53 @@ jobs:
         run: |
           test -n "$APP_BASE_URL" || { echo "::error::APP_BASE_URL secret is missing"; exit 1; }
           test -n "$CRON_SECRET" || { echo "::error::CRON_SECRET secret is missing"; exit 1; }
+          [ "${#CRON_SECRET}" -ge 32 ] || { echo "::error::CRON_SECRET must contain at least 32 characters"; exit 1; }
           case "$APP_BASE_URL" in
             https://*) ;;
             *) echo "::error::APP_BASE_URL must use HTTPS"; exit 1 ;;
           esac
 
-      - name: Process one queued document
+      - name: Invoke worker and validate sanitized result
         env:
           APP_BASE_URL: ${{ secrets.APP_BASE_URL }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        shell: bash
         run: |
-          status="$(curl --silent --show-error --output /dev/null --write-out "%{http_code}" \
+          set -euo pipefail
+          response_file="$(mktemp)"
+          trap 'rm -f "$response_file"' EXIT
+
+          status="$(curl --silent --show-error --proto "=https" --tlsv1.2 --connect-timeout 10 --output "$response_file" --write-out "%{http_code}" \
             --request POST \
             --header "Authorization: Bearer $CRON_SECRET" \
             --max-time 65 \
             "${APP_BASE_URL%/}/api/cron/process-documents")"
+
           case "$status" in
             2*) ;;
             *) echo "::error::Document worker returned HTTP $status"; exit 1 ;;
           esac
+
+          # Never print the raw response: keep internal job IDs and error text
+          # out of Actions logs. Accept only the documented bounded outcomes.
+          if ! jq -e 'type == "object" and (.processed | type == "boolean")' "$response_file" >/dev/null; then
+            echo "::error::Document worker returned an invalid JSON response"
+            exit 1
+          fi
+
+          processed="$(jq -r '.processed' "$response_file")"
+          if [ "$processed" = "true" ]; then
+            page_count="$(jq -er '.page_count | select(type == "number" and . >= 1 and . <= 100 and floor == .)' "$response_file")"
+            echo "Worker completed one document; extracted pages: $page_count."
+          else
+            reason="$(jq -r '.reason // empty' "$response_file")"
+            case "$reason" in
+              queue_empty|no_claimable_job)
+                echo "Worker endpoint healthy; no claimable document was available."
+                ;;
+              *)
+                echo "::error::Worker did not complete a document; inspect the protected job state."
+                exit 1
+                ;;
+            esac
+          fi

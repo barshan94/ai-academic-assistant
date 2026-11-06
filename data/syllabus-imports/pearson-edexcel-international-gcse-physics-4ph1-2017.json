@@ -1,0 +1,221 @@
+{
+  "formatVersion": 1,
+  "catalog": {
+    "board": "Pearson Edexcel",
+    "qualification": "International GCSE",
+    "subject": "Physics",
+    "version": "2017 specification, Issue 4 (September 2024)",
+    "effectiveFrom": null,
+    "effectiveTo": null,
+    "sourceUrl": "https://qualifications.pearson.com/content/dam/pdf/International%20GCSE/Physics/2017/specification-and-sample-assessments/international-gcse-physics-2017-specification.pdf",
+    "sourceTitle": "Pearson Edexcel International GCSE in Physics (4PH1), Specification – Issue 4 – September 2024"
+  },
+  "chapters": [
+    {
+      "code": "1",
+      "title": "Forces and motion",
+      "sortOrder": 1,
+      "topics": [
+        {
+          "code": "1(a)",
+          "title": "Units",
+          "sortOrder": 1
+        },
+        {
+          "code": "1(b)",
+          "title": "Movement and position",
+          "sortOrder": 2
+        },
+        {
+          "code": "1(c)",
+          "title": "Forces, movement, shape and momentum",
+          "sortOrder": 3
+        }
+      ]
+    },
+    {
+      "code": "2",
+      "title": "Electricity",
+      "sortOrder": 2,
+      "topics": [
+        {
+          "code": "2(a)",
+          "title": "Units",
+          "sortOrder": 1
+        },
+        {
+          "code": "2(b)",
+          "title": "Mains electricity",
+          "sortOrder": 2
+        },
+        {
+          "code": "2(c)",
+          "title": "Energy and voltage in circuits",
+          "sortOrder": 3
+        },
+        {
+          "code": "2(d)",
+          "title": "Electric charge",
+          "sortOrder": 4
+        }
+      ]
+    },
+    {
+      "code": "3",
+      "title": "Waves",
+      "sortOrder": 3,
+      "topics": [
+        {
+          "code": "3(a)",
+          "title": "Units",
+          "sortOrder": 1
+        },
+        {
+          "code": "3(b)",
+          "title": "Properties of waves",
+          "sortOrder": 2
+        },
+        {
+          "code": "3(c)",
+          "title": "The electromagnetic spectrum",
+          "sortOrder": 3
+        },
+        {
+          "code": "3(d)",
+          "title": "Light and sound",
+          "sortOrder": 4
+        }
+      ]
+    },
+    {
+      "code": "4",
+      "title": "Energy resources and energy transfers",
+      "sortOrder": 4,
+      "topics": [
+        {
+          "code": "4(a)",
+          "title": "Units",
+          "sortOrder": 1
+        },
+        {
+          "code": "4(b)",
+          "title": "Energy transfers",
+          "sortOrder": 2
+        },
+        {
+          "code": "4(c)",
+          "title": "Work and power",
+          "sortOrder": 3
+        },
+        {
+          "code": "4(d)",
+          "title": "Energy resources and electricity generation",
+          "sortOrder": 4
+        }
+      ]
+    },
+    {
+      "code": "5",
+      "title": "Solids, liquids and gases",
+      "sortOrder": 5,
+      "topics": [
+        {
+          "code": "5(a)",
+          "title": "Units",
+          "sortOrder": 1
+        },
+        {
+          "code": "5(b)",
+          "title": "Density and pressure",
+          "sortOrder": 2
+        },
+        {
+          "code": "5(c)",
+          "title": "Change of state",
+          "sortOrder": 3
+        },
+        {
+          "code": "5(d)",
+          "title": "Ideal gas molecules",
+          "sortOrder": 4
+        }
+      ]
+    },
+    {
+      "code": "6",
+      "title": "Magnetism and electromagnetism",
+      "sortOrder": 6,
+      "topics": [
+        {
+          "code": "6(a)",
+          "title": "Units",
+          "sortOrder": 1
+        },
+        {
+          "code": "6(b)",
+          "title": "Magnetism",
+          "sortOrder": 2
+        },
+        {
+          "code": "6(c)",
+          "title": "Electromagnetism",
+          "sortOrder": 3
+        },
+        {
+          "code": "6(d)",
+          "title": "Electromagnetic induction",
+          "sortOrder": 4
+        }
+      ]
+    },
+    {
+      "code": "7",
+      "title": "Radioactivity and particles",
+      "sortOrder": 7,
+      "topics": [
+        {
+          "code": "7(a)",
+          "title": "Units",
+          "sortOrder": 1
+        },
+        {
+          "code": "7(b)",
+          "title": "Radioactivity",
+          "sortOrder": 2
+        },
+        {
+          "code": "7(c)",
+          "title": "Fission and fusion",
+          "sortOrder": 3
+        }
+      ]
+    },
+    {
+      "code": "8",
+      "title": "Astrophysics",
+      "sortOrder": 8,
+      "topics": [
+        {
+          "code": "8(a)",
+          "title": "Units",
+          "sortOrder": 1
+        },
+        {
+          "code": "8(b)",
+          "title": "Motion in the universe",
+          "sortOrder": 2
+        },
+        {
+          "code": "8(c)",
+          "title": "Stellar evolution",
+          "sortOrder": 3
+        },
+        {
+          "code": "8(d)",
+          "title": "Cosmology",
+          "sortOrder": 4
+        }
+      ]
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PDFDocument } from "pdf-lib";
 import { MAX_UPLOAD_BYTES, normalizeFilesToPdf, normalizeToPdf, safeFileName } from "@/lib/documents/normalize-to-pdf";
 
@@ -6,10 +6,49 @@ const onePixelPng = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p1sAAAAASUVORK5CYII=",
   "base64",
 );
+const onePixelJpeg = Buffer.from(
+  "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////2wBDAf//////////////////////////////////////////////////////////////////////////////////////wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAX/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIQAxAAAAF//8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABBQJ//8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAgBAwEBPwF//8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAgBAgEBPwF//8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQAGPwJ//8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPyF//9k=",
+  "base64",
+);
+
+const drawCalls: string[] = [];
+let bitmapOptions: ImageBitmapOptions | undefined;
+
+class MockOffscreenCanvas {
+  width: number;
+  height: number;
+  constructor(width: number, height: number) {
+    this.width = width;
+    this.height = height;
+  }
+  getContext() {
+    return {
+      fillStyle: "",
+      fillRect: () => drawCalls.push("white-background"),
+      drawImage: () => drawCalls.push("draw-image"),
+    };
+  }
+  async convertToBlob(options?: ImageEncodeOptions) {
+    drawCalls.push("quality:" + options?.quality);
+    return new Blob([onePixelJpeg], { type: "image/jpeg" });
+  }
+}
+
+beforeEach(() => {
+  drawCalls.length = 0;
+  bitmapOptions = undefined;
+  vi.stubGlobal("OffscreenCanvas", MockOffscreenCanvas);
+  vi.stubGlobal("createImageBitmap", async (_source: Blob, options?: ImageBitmapOptions) => {
+    bitmapOptions = options;
+    return { width: 1, height: 1, close: vi.fn() };
+  });
+});
+
+afterEach(() => vi.unstubAllGlobals());
 
 describe("document normalization", () => {
   it("preserves an existing PDF byte-for-byte", async () => {
-    const source = Buffer.from("%PDF-1.7\nminimal test fixture");
+    const source = Buffer.from("%PDF-1.7\\nminimal test fixture");
     const file = new File([source], "paper.pdf", { type: "application/pdf" });
     const result = await normalizeToPdf(file);
 
@@ -18,7 +57,7 @@ describe("document normalization", () => {
     expect(Buffer.from(result.bytes)).toEqual(source);
   });
 
-  it("converts a valid PNG image into a PDF", async () => {
+  it("converts a valid PNG image into a PDF and applies browser image orientation", async () => {
     const file = new File([onePixelPng], "question.png", { type: "image/png" });
     const result = await normalizeToPdf(file);
 
@@ -26,6 +65,9 @@ describe("document normalization", () => {
     expect(result.fileName).toBe("question.pdf");
     expect(Buffer.from(result.bytes).subarray(0, 5).toString()).toBe("%PDF-");
     expect(result.pageCount).toBe(1);
+    expect(bitmapOptions?.imageOrientation).toBe("from-image");
+    expect(drawCalls).toContain("white-background");
+    expect(drawCalls).toContain("draw-image");
   });
 
   it("combines multiple images into pages in selection order", async () => {
@@ -37,6 +79,27 @@ describe("document normalization", () => {
     expect(result.fileName).toBe("first-combined.pdf");
     expect(result.pageCount).toBe(2);
     expect(pdf.getPageCount()).toBe(2);
+  });
+
+  it("converts a JPEG into a PDF", async () => {
+    const file = new File([onePixelJpeg], "phone-photo.jpg", { type: "image/jpeg" });
+    const result = await normalizeToPdf(file);
+    expect(result.converted).toBe(true);
+    expect(result.fileName).toBe("phone-photo.pdf");
+    expect((await PDFDocument.load(result.bytes)).getPageCount()).toBe(1);
+  });
+
+  it("rejects oversized JPEG dimensions before decoding the bitmap", async () => {
+    const oversizedJpeg = Uint8Array.from([
+      0xff, 0xd8, 0xff, 0xc0, 0x00, 0x11, 0x08,
+      0x13, 0x88, 0x17, 0x70, 0x03, 0x01, 0x11, 0x00,
+      0x02, 0x11, 0x00, 0x03, 0x11, 0x00,
+    ]);
+    const decode = vi.fn(async () => ({ width: 6000, height: 5000, close: vi.fn() }));
+    vi.stubGlobal("createImageBitmap", decode);
+    const file = new File([oversizedJpeg], "oversized.jpg", { type: "image/jpeg" });
+    await expect(normalizeToPdf(file)).rejects.toThrow("dimensions exceed the safe conversion limit");
+    expect(decode).not.toHaveBeenCalled();
   });
 
   it("rejects unsupported file signatures", async () => {
@@ -51,8 +114,17 @@ describe("document normalization", () => {
   });
 
   it("rejects uploads above the aggregate size limit", async () => {
-    const file = new File([new Uint8Array(MAX_UPLOAD_BYTES + 1)], "large.png", { type: "image/png" });
-    await expect(normalizeToPdf(file)).rejects.toThrow("smaller than 4 MB");
+    const oversized = { size: MAX_UPLOAD_BYTES + 1 } as unknown as File;
+    await expect(normalizeToPdf(oversized)).rejects.toThrow("50 MB or smaller");
+  });
+
+  it("rejects PNG dimensions above the safe pixel limit before decoding", async () => {
+    const oversizedPng = Uint8Array.from(onePixelPng);
+    const view = new DataView(oversizedPng.buffer);
+    view.setUint32(16, 6000, false);
+    view.setUint32(20, 5000, false);
+    const file = new File([oversizedPng], "oversized.png", { type: "image/png" });
+    await expect(normalizeToPdf(file)).rejects.toThrow("dimensions exceed the safe conversion limit");
   });
 
   it("sanitizes path separators and control characters from filenames", () => {

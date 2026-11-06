@@ -1,0 +1,187 @@
+import { expect, test } from "@playwright/test";
+
+test("public landing page renders the academic workspace", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: /turn questions into/i })).toBeVisible();
+  await expect(page.getByRole("link", { name: /sign in/i })).toHaveAttribute("href", "/login");
+  await expect(page.getByText("Physics", { exact: true })).toBeVisible();
+});
+
+test("login page exposes accessible email and password fields", async ({ page }) => {
+  await page.goto("/login");
+  await expect(page.getByRole("heading", { name: /welcome back/i })).toBeVisible();
+  await expect(page.getByLabel("Email address")).toHaveAttribute("type", "email");
+  await expect(page.getByLabel("Password")).toHaveAttribute("type", "password");
+  await expect(page.getByRole("button", { name: /sign in/i })).toBeVisible();
+});
+
+test("protected dashboard redirects to login when auth is unconfigured", async ({ page }) => {
+  await page.goto("/dashboard");
+  await expect(page).toHaveURL(/\/login\?error=configuration$/);
+  await expect(page.locator("p.auth-error")).toContainText(/authentication is not configured/i);
+});
+
+test("private dashboard redirects and API errors retain no-store and no-index policies", async ({ page }) => {
+  const redirect = await page.request.get("/dashboard", { maxRedirects: 0 });
+  expect(redirect.status()).toBe(307);
+  expect(redirect.headers()["cache-control"]).toContain("private");
+  expect(redirect.headers()["cache-control"]).toContain("no-store");
+  expect(redirect.headers()["x-robots-tag"]).toContain("noindex");
+
+  const apiError = await page.request.post("/api/documents/upload/resumable/start", {
+    headers: { origin: "https://attacker.invalid", "content-type": "application/json" },
+    data: { fileName: "forged.pdf", fileSizeBytes: 1024, sha256: "a".repeat(64), pageCount: null },
+  });
+  expect(apiError.status()).toBe(403);
+  expect(apiError.headers()["cache-control"]).toContain("private");
+  expect(apiError.headers()["cache-control"]).toContain("no-store");
+  expect(apiError.headers()["x-robots-tag"]).toContain("noindex");
+});
+
+test("teacher invitations page is protected when auth is unconfigured", async ({ page }) => {
+  await page.goto("/dashboard/teacher-invites");
+  await expect(page).toHaveURL(/\/login\?error=configuration$/);
+  await expect(page.locator("p.auth-error")).toContainText(/authentication is not configured/i);
+});
+
+test("all workspace modules fail closed when Supabase auth is unconfigured", async ({ page }) => {
+  const protectedRoutes = [
+    "/dashboard/documents",
+    "/dashboard/questions",
+    "/dashboard/chapters",
+    "/dashboard/syllabus",
+    "/dashboard/revision",
+    "/dashboard/practice",
+    "/dashboard/study-plan",
+    "/dashboard/teacher-invites",
+  ];
+
+  for (const route of protectedRoutes) {
+    await page.goto(route);
+    await expect(page).toHaveURL(/\/login\?error=configuration$/);
+    await expect(page.locator("p.auth-error")).toContainText(/authentication is not configured/i);
+  }
+});
+
+test("resumable upload endpoints reject cross-site requests before processing", async ({ page }) => {
+  await page.goto("/");
+  const startUrl = new URL("/api/documents/upload/resumable/start", page.url()).toString();
+  const chunkUrl = new URL("/api/documents/upload/resumable/chunk", page.url()).toString();
+
+  const start = await page.request.post(startUrl, {
+    headers: { origin: "https://attacker.invalid", "content-type": "application/json" },
+    data: { fileName: "forged.pdf", fileSizeBytes: 1024, sha256: "a".repeat(64), pageCount: null },
+  });
+  const chunk = await page.request.post(chunkUrl, {
+    headers: { origin: "https://attacker.invalid", "x-upload-session": "forged", "content-range": "bytes */1024" },
+  });
+
+  expect(start.status()).toBe(403);
+  expect(chunk.status()).toBe(403);
+});
+
+test("application responses include baseline browser security headers", async ({ page }) => {
+  const response = await page.goto("/");
+  expect(response).not.toBeNull();
+  const headers = response!.headers();
+
+  expect(headers["x-frame-options"]).toBe("DENY");
+  expect(headers["x-content-type-options"]).toBe("nosniff");
+  expect(headers["referrer-policy"]).toBe("strict-origin-when-cross-origin");
+  expect(headers["permissions-policy"]).toContain("camera=()");
+  expect(headers["strict-transport-security"]).toContain("max-age=63072000");
+});
+
+test("keyboard navigation exposes the skip link and visible focus", async ({ page }) => {
+  await page.goto("/");
+  await page.keyboard.press("Tab");
+  const skipLink = page.getByRole("link", { name: "Skip to main content" });
+  await expect(skipLink).toBeFocused();
+  await expect(skipLink).toHaveAttribute("href", "#main-content");
+  const focusStyle = await skipLink.evaluate((element) => getComputedStyle(element).outlineStyle);
+  expect(focusStyle).not.toBe("none");
+});
+
+test("mobile landing and login layouts fit a narrow viewport with usable form targets", async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 800 });
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: /turn questions into/i })).toBeVisible();
+  await expect(page.getByRole("link", { name: /sign in/i })).toBeVisible();
+
+  const landingWidth = await page.locator("html").evaluate((element) => ({
+    scrollWidth: element.scrollWidth,
+    clientWidth: element.clientWidth,
+  }));
+  expect(landingWidth.scrollWidth).toBeLessThanOrEqual(landingWidth.clientWidth);
+
+  await page.goto("/login");
+  const email = page.getByLabel("Email address");
+  const password = page.getByLabel("Password");
+  const submit = page.getByRole("button", { name: /sign in/i });
+  await expect(email).toBeVisible();
+  await expect(password).toBeVisible();
+  await expect(submit).toBeVisible();
+
+  for (const control of [email, password, submit]) {
+    const box = await control.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.height).toBeGreaterThanOrEqual(44);
+  }
+
+  const loginWidth = await page.locator("html").evaluate((element) => ({
+    scrollWidth: element.scrollWidth,
+    clientWidth: element.clientWidth,
+  }));
+  expect(loginWidth.scrollWidth).toBeLessThanOrEqual(loginWidth.clientWidth);
+});
+
+
+test("liveness endpoint returns only a non-cacheable status", async ({ page }) => {
+  const response = await page.request.get("/api/health");
+  expect(response.status()).toBe(200);
+  expect(response.headers()["cache-control"]).toContain("no-store");
+  expect(await response.json()).toEqual({ status: "ok" });
+});
+
+test("readiness endpoint rejects missing and invalid credentials without leaking configuration", async ({ page }) => {
+  const missing = await page.request.get("/api/health/ready");
+  expect(missing.status()).toBe(401);
+  expect(missing.headers()["cache-control"]).toContain("no-store");
+  expect(await missing.json()).toEqual({ status: "unauthorized" });
+
+  const invalid = await page.request.get("/api/health/ready", {
+    headers: { authorization: "Bearer definitely-not-the-cron-secret" },
+  });
+  expect(invalid.status()).toBe(401);
+  expect(invalid.headers()["cache-control"]).toContain("no-store");
+  expect(await invalid.json()).toEqual({ status: "unauthorized" });
+});
+
+test("privacy notice is publicly reachable and states current service limitations", async ({ page }) => {
+  const response = await page.goto("/privacy");
+  expect(response?.status()).toBe(200);
+  await expect(page.getByRole("heading", { name: /your academic data deserves/i })).toBeVisible();
+  await expect(page.getByText(/does not publish a fixed log-retention period/i)).toBeVisible();
+  await expect(page.getByText(/has not been approved for production use/i)).toBeVisible();
+  await expect(page.getByRole("link", { name: /back to home/i })).toHaveAttribute("href", "/");
+});
+
+
+test("reduced-motion preference disables non-essential animation and transitions", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+  const motion = await page.evaluate(() => {
+    const style = getComputedStyle(document.documentElement);
+    return {
+      animationDuration: style.animationDuration,
+      animationIterationCount: style.animationIterationCount,
+      transitionDuration: style.transitionDuration,
+      scrollBehavior: style.scrollBehavior,
+    };
+  });
+
+  expect(motion.animationDuration).toBe("1e-05s");
+  expect(motion.animationIterationCount).toBe("1");
+  expect(motion.transitionDuration).toBe("1e-05s");
+  expect(motion.scrollBehavior).toBe("auto");
+});

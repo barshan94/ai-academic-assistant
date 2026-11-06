@@ -9,13 +9,15 @@
 6. After each milestone, report what changed, what was tested, failures, remaining work and cumulative project estimate.
 7. Do not mark a milestone complete until its exit criteria pass.
 
-## Required checks
+## Required checks (separate testing phase)
 - Formatting/lint.
 - TypeScript typecheck.
 - Production build.
 - Unit/integration tests relevant to the change.
 - Database migration and RLS checks for schema/security changes.
 - Manual smoke test for user-visible workflows.
+
+Do not deliberately run this checklist during an implementation-first phase when the owner has explicitly asked to defer testing. CI may still execute automatically after commits; record those outcomes without treating them as permission to switch phases.
 
 ## Academic quality process
 Maintain a versioned golden test set covering:

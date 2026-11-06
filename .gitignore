@@ -8,3 +8,10 @@ coverage/
 !.env.example
 .DS_Store
 *.log
+
+# Local database backups can contain private student/user records and encrypted tokens.
+/backups/
+*.dump
+*.backup
+*.sql.gz
+backup-*.sql

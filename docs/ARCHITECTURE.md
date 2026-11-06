@@ -9,10 +9,10 @@ Use a modular monolith for the web application and API, with durable background 
 3. Google Drive API for long-term user-owned file storage.
 4. Intake pipeline for validation, image preprocessing, PDF creation, extraction and OCR.
 5. Question segmentation and classification against board, qualification, syllabus and topic taxonomy.
-6. AI router selecting provider/model by task capability, quality, cost, latency and availability.
+6. AI router selecting among owner-configured OpenAI-compatible provider/model endpoints by task capability and owner-defined priority; optional fallback is disabled by default. Dynamic quality/cost/latency scoring remains a future capability and is not claimed as implemented.
 7. Solver services for mathematics, physics, ICT and computer science.
 8. Verification services using SymPy or equivalent deterministic checks where appropriate.
-9. Retrieval and research service that prioritizes the user's library and uses web research only when necessary.
+9. Retrieval and research service that prioritizes the user's library: the solver can opt in to up to three approved chapter-note versions from the exact confirmed syllabus chapter. Optional owner-initiated Brave web search is available only when needed; search leads are not automatically treated as verified evidence. Only the manually entered query is sent, and returned leads remain unverified until the owner checks the publisher and source document.
 10. Background job orchestration with idempotency, bounded retries, checkpoints and progress.
 
 ## Processing flow

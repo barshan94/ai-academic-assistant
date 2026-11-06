@@ -28,11 +28,15 @@ export async function disconnectDrive() {
     }
   }
 
+  // Keep the encrypted refresh token if Google revocation failed. Removing
+  // the only stored copy would make a transient failure impossible to retry.
+  if (!revoked) redirect("/dashboard/documents?drive=revocation_failed");
+
   const { error: deleteError } = await supabase
     .from("drive_connections")
     .delete()
     .eq("owner_id", user.id);
 
   if (deleteError) redirect("/dashboard/documents?drive=disconnect_failed");
-  redirect("/dashboard/documents?drive=" + (revoked ? "disconnected" : "revocation_warning"));
+  redirect("/dashboard/documents?drive=disconnected");
 }

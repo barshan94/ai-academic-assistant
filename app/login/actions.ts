@@ -4,8 +4,13 @@ import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export async function signIn(formData: FormData) {
-  const email = String(formData.get("email") ?? "").trim();
-  const password = String(formData.get("password") ?? "");
+  const rawEmail = formData.get("email");
+  const rawPassword = formData.get("password");
+  if (typeof rawEmail !== "string" || typeof rawPassword !== "string") {
+    redirect("/login?error=missing_fields");
+  }
+  const email = rawEmail.trim();
+  const password = rawPassword;
 
   if (!email || !password) {
     redirect("/login?error=missing_fields");

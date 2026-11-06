@@ -1,0 +1,162 @@
+# Superseding verification — 2026-11-05 21:35 Asia/Dhaka (feature head `a6e043b56c58a338eece9b2b017f14cdafe114e8`)
+
+This dated entry supersedes earlier "current" references in this document.
+
+## Verified on this exact head
+
+- [x] Foundation checks — [run 42054645868](https://github.com/barshan94/ai-academic-assistant/actions/runs/42054645868).
+- [x] Database authorization / local migrations and pgTAP — [run 42054645918](https://github.com/barshan94/ai-academic-assistant/actions/runs/42054645918).
+- [x] Authenticated browser acceptance — [run 42054646082](https://github.com/barshan94/ai-academic-assistant/actions/runs/42054646082).
+- [x] Full-history secret scan — [run 42054645883](https://github.com/barshan94/ai-academic-assistant/actions/runs/42054645883).
+- [x] Vercel Preview feedback check passed with no unresolved feedback.
+- [x] Vercel Preview deployment is READY from this exact SHA: https://ai-academic-assistant-jwj0v3x4p-barshan-s-team.vercel.app (Preview only).
+- [x] Vercel runtime error-cluster scan returned no errors in the preceding 24 hours. This is an error-cluster scan, not a full functional acceptance test.
+
+## Current hosted security/performance observations
+
+- Security advisor: 14 authenticated-callable SECURITY DEFINER warnings (previously reviewed as intentional owner-scoped functions with auth checks and restricted grants); four informational RLS/no-policy notices for private quota tables; leaked-password protection remains disabled.
+- Performance advisor: 48 informational unused-index notices. Do not remove indexes solely on this signal.
+- No production database or environment changes were made.
+
+## Release decision
+
+**NOT APPROVED FOR PRODUCTION.** PR #1 remains open, draft and unmerged. Production server-side environment variables are still incomplete. Live Drive recovery and authenticated worker fault/retry acceptance, owner-controlled Production secrets/OAuth setup, provider and spend approval, independent academic grading, privacy/legal/accessibility acceptance, operational ownership, Supabase Free leaked-password mitigation, and hosted migration parity remain open. The separate-database backup/restore rehearsal remains skipped by owner instruction.
+
+No merge, Production deployment, Production environment change, paid upgrade, database reset, migration-ledger repair, or data overwrite was performed. Do not promote this branch based on CI/Preview alone.
+
+---
+
+# Superseding exact-head release checkpoint — 2026-11-05 (commit `648e8d3cae0ec360846294cebad555cf62652072`)
+
+This section is the current release checkpoint and supersedes all historical head references below.
+
+## Exact-head automated verification — PASS
+
+All six checks completed successfully on the exact feature-branch head `648e8d3`:
+
+- [x] Foundation lint, TypeScript checks, production dependency audits, unit tests, production build and Chromium browser smoke — [run 42053412812](https://github.com/barshan94/ai-academic-assistant/actions/runs/42053412812).
+- [x] Local Supabase migrations and pgTAP/database authorization — [run 42053413126](https://github.com/barshan94/ai-academic-assistant/actions/runs/42053413126).
+- [x] Authenticated two-account Supabase acceptance — [run 42053413041](https://github.com/barshan94/ai-academic-assistant/actions/runs/42053413041).
+- [x] Full repository-history secret scan — [run 42053412933](https://github.com/barshan94/ai-academic-assistant/actions/runs/42053412933).
+- [x] Vercel Preview feedback check — no unresolved feedback.
+- [x] Vercel Preview deployment — [READY](https://ai-academic-assistant-8a42nabac-barshan-s-team.vercel.app), built from this exact commit. This is a Preview deployment, not Production.
+
+The latest upload tests verify Drive-confirmed MIME type and byte-size checks before registration, cleanup after a confirmed size mismatch, preservation of a Drive object when database registration has an uncertain outcome, and cleanup of a newly uploaded duplicate while preserving the original.
+
+## Current release decision
+
+**NOT APPROVED FOR PRODUCTION.** Green CI and a READY Preview establish a strong automated code checkpoint; they do not close the remaining live integration and human acceptance gates.
+
+PR #1 remains open, draft and unmerged. No Production deployment, Production environment change, production database change, merge, paid upgrade, reset, migration-ledger repair or data overwrite was performed.
+
+## Remaining gates — not waived
+
+1. **Live Drive upload recovery:** real non-production multi-chunk interruption/resume, lost final-response recovery, expired-session restart, duplicate/idempotency behavior, cross-account denial and final source-vs-Drive byte-count/SHA-256 equality.
+2. **Live worker acceptance:** capture an authenticated worker POST response; exercise wrong-secret rejection, concurrent claims, stale-lease recovery, retry exhaustion and injected OCR/provider failures against the deployed non-production worker. Two completed OCR jobs are evidence of extraction and persistence only; both pages remain `review_required` with null OCR confidence.
+3. **Production configuration:** Vercel Production currently has only the public Supabase URL and publishable key among the required environment entries. Required server-side credentials are not configured for Production. Do not copy Preview secrets blindly: the Drive token-encryption key must remain compatible with already encrypted refresh tokens, and OAuth/AI credentials require owner-controlled setup.
+4. **AI approval and academic quality:** no AI provider/model, data-processing terms or spend limit has been approved. AI generation remains disabled. After explicit approval, independently grade a Cambridge/Edexcel O/A Level golden set in Bengali and English; phrase matching is not proof of correctness.
+5. **Privacy, legal and accessibility:** complete qualified privacy/legal review, publish a responsible contact, assign primary/backup operators, and perform manual keyboard, screen-reader, contrast, zoom/reflow, reduced-motion and Android-device acceptance.
+6. **Supabase Free limitation:** leaked-password protection remains disabled on the current plan. Document and accept a mitigation or make an explicit plan decision; do not claim it is enabled.
+7. **Hosted migration parity:** review migration-history/schema parity before planning any Production migration. Do not rewrite the hosted migration ledger as part of this checkpoint.
+8. **Backup/restore:** the separate-database restore rehearsal is explicitly excluded by the owner's instruction. Do not create another database for this purpose and do not overwrite either existing project. A checksum is not a restore test; the limitation remains documented.
+
+## Safe next actions
+
+Continue branch-only code, test and documentation improvements. Use synthetic data for live acceptance. Keep Production untouched, keep PR #1 draft/unmerged, and do not enable paid AI or a recurring worker schedule without explicit approval and a safe integrated release.
+
+---
+
+## Superseding exact-head release checkpoint — 2026-11-05 (commit `36436b4094f8b7fb97078769151f5760dfc4ae00`)
+
+All six GitHub checks for this exact feature-branch head completed successfully:
+
+- [x] Foundation: lint, application/Playwright type checks, unit tests, production dependency audit and production build (run [41997382423](https://github.com/barshan94/ai-academic-assistant/actions/runs/41997382423)).
+- [x] Chromium browser smoke tests (Foundation run [41997382423](https://github.com/barshan94/ai-academic-assistant/actions/runs/41997382423)).
+- [x] Local Supabase migrations and pgTAP/database authorization (run [41997382424](https://github.com/barshan94/ai-academic-assistant/actions/runs/41997382424)).
+- [x] Authenticated two-account Supabase browser acceptance (run [41997382318](https://github.com/barshan94/ai-academic-assistant/actions/runs/41997382318)); the authenticated acceptance step actually executed and passed.
+- [x] Repository-history secret scan (run [41997382315](https://github.com/barshan94/ai-academic-assistant/actions/runs/41997382315)).
+- [x] Vercel Preview integration reports no unresolved feedback.
+
+The matching Vercel Preview deployment is READY for this exact commit: [open Preview](https://ai-academic-assistant-1jz1mhcwg-barshan-s-team.vercel.app). This is a Preview only, not Production.
+
+PR #1 remains open, draft and unmerged. No Production deployment, production database change, paid upgrade or merge was performed.
+
+**Release decision: NOT APPROVED FOR PRODUCTION.** Live Google Drive interruption/resume and original-PDF integrity, worker POST/fault-injection and recovery, isolated backup restoration, manual accessibility/device acceptance, independent academic grading, privacy/legal approval, the Supabase Free leaked-password-protection limitation, migration-history review and named operational ownership remain open. Green CI does not close these live and human acceptance gates.
+
+---
+
+# Release checkpoint — 2026-11-05
+
+## Superseding verification — 2026-11-05
+
+- Exact feature head: `1b6125ad82b681e504468e85469190d1da808988`.
+- Foundation, Chromium smoke, isolated database authorization, authenticated two-account acceptance and secret scanning all passed on this same commit. See [Foundation](https://github.com/barshan94/ai-academic-assistant/actions/runs/41996672898), [Database](https://github.com/barshan94/ai-academic-assistant/actions/runs/41996673036), [Authenticated E2E](https://github.com/barshan94/ai-academic-assistant/actions/runs/41996672870) and [Secret scan](https://github.com/barshan94/ai-academic-assistant/actions/runs/41996673033).
+- The Vercel Preview feedback check reports no unresolved feedback, but does not establish that a Preview deployment is ready.
+- The worker workflow-method test was corrected to assert the workflow's existing privacy-safe POST/response-validation behavior.
+- PR #1 remains draft, open and unmerged. Production remains untouched.
+
+**Release decision remains NOT APPROVED FOR PRODUCTION.** Live Drive/worker recovery, isolated restore, manual accessibility, academic grading, privacy/legal review, Auth leaked-password limitation and operational ownership remain open.
+
+---
+
+## Exact branch and commit
+
+- Repository: `barshan94/ai-academic-assistant`
+- Branch: `feature/m3-ai-solver`
+- Pull request: #1 (draft, open, unmerged)
+- Verified commit: `808542d57e14f6d13da21272647dd0ff4c4c1c6a`
+- Production deployment: not performed; Production remains untouched.
+
+This checkpoint supersedes earlier statements that the 2026-11-05 resumable-upload regression tests were still awaiting CI. The exact commit above has now completed all four required GitHub Actions workflows successfully.
+
+## Verified CI results on this exact commit
+
+| Workflow | Result | Evidence |
+|---|---|---|
+| Foundation checks | PASS | Lint, application/Playwright TypeScript checks, environment-contract validation, dependency audits, unit tests and production build completed successfully. |
+| Chromium browser smoke | PASS | 10 passed, 2 skipped. The two credentialed cases are covered by the separate authenticated workflow below. |
+| Database authorization | PASS | Fresh isolated local Supabase database; all 12 pgTAP files passed, 256 assertions total. |
+| Authenticated browser acceptance | PASS | Two dedicated non-production accounts; 2 Playwright tests passed: owner document/page review and source-linked question flow; teacher invitation, review and revocation lifecycle. |
+| Secret scanning | PASS | Full repository history and working tree scan completed successfully. |
+
+The authenticated browser workflow used masked non-production Supabase credentials. Its success is evidence for the exercised owner/teacher flows, not proof that every feature or integration has been accepted.
+
+## Resumable Google Drive upload coverage now verified
+
+On this exact commit, Foundation CI includes the new upload-recovery implementation and tests. The covered behaviors include:
+
+- Resume asks Google Drive for its authoritative accepted-byte offset before sending more data.
+- A missing, invalid, out-of-range or inconsistent offset is rejected.
+- The client refuses to proceed when Drive confirms no forward progress.
+- The reported offset cannot move beyond the chunk just sent.
+- Completion is accepted only when the full source-file length is confirmed.
+- Status queries send no chunk body.
+- Route tests reject cross-origin requests, unauthenticated starts, cross-account sessions and malformed byte ranges before sensitive Drive/service-role work.
+
+These are automated tests with mocked Drive responses. They do **not** replace the real Google Drive interruption/recovery acceptance test.
+
+## Vercel status
+
+The Vercel status for this commit reports a build-rate-limit failure with a Vercel upgrade prompt. This is a provider account/plan limit, not a failing application assertion. No paid upgrade is approved or required for the code changes in this checkpoint. A usable Preview deployment for this exact commit is therefore not confirmed by this status.
+
+## Release blockers still open
+
+1. **Live Drive recovery:** use a synthetic multi-chunk PDF in a non-production account; interrupt after an accepted chunk, reload/reselect, verify Drive-confirmed resume, then compare final byte count and SHA-256. Also test a lost final-chunk response, expired session and cross-account rejection.
+2. **Document worker:** activate and exercise the worker against a non-production deployment/database; prove successful OCR/page persistence, wrong-secret rejection, atomic claims, retry exhaustion and stale-job recovery. A queued job or route smoke test is not successful OCR acceptance.
+3. **AI provider:** no provider/model and spend approval are configured. Keep generation disabled until the owner chooses a provider and explicitly approves any possible charges. Then validate output quality and failure handling.
+4. **Academic quality:** independently grade a representative Cambridge/Edexcel O/A Level golden set across supported subjects, including Bengali and English explanations, calculations, citations and mark-scheme alignment.
+5. **Backup/restore:** archive checksums are not a restore rehearsal. Establish a genuinely isolated free-plan target and prove a synthetic backup can be restored without touching this project or the separate Durga Map project.
+6. **Security/account settings:** Supabase leaked-password protection is unavailable on the current Free plan. Record the limitation and mitigations; do not imply this setting is enabled.
+7. **Privacy/accessibility/product acceptance:** finish privacy/legal review, keyboard/screen-reader/contrast/reduced-motion acceptance, mobile device checks, public product-status review and private-cache/account-switching checks.
+8. **Operations:** name primary and backup operators and verify incident/recovery procedures.
+
+## Safety decisions
+
+- Keep PR #1 draft and unmerged.
+- Do not deploy Production.
+- Do not dispatch the migration-history reconciliation workflow or rewrite the hosted migration ledger.
+- Do not reset, overwrite or delete existing Supabase data.
+- Do not buy a paid plan or enable paid AI usage.
+- Use synthetic data for remaining acceptance tests; never use real student documents.
+
+**Conclusion:** the exact latest feature-branch commit is green across GitHub CI, database authorization, authenticated owner/teacher browser acceptance and secret scanning. The project is not production-ready because several live integration, recovery, academic-quality, privacy and operational gates remain unverified.

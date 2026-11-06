@@ -4,15 +4,15 @@ on:
   workflow_dispatch:
     inputs:
       operation:
-        description: "Choose a safe ledger-repair/dry-run, or explicitly apply the approved non-production migration chain"
+        description: "This operation WRITES migration-history repairs for three previously verified SQL-equivalent pairs, then runs a schema dry-run. It does not apply pending DDL."
         required: true
         type: choice
         options:
-          - reconcile-and-dry-run
-          - reconcile-and-apply
-        default: reconcile-and-dry-run
+          - repair-history-and-dry-run
+          - repair-history-and-apply
+        default: repair-history-and-dry-run
       confirmation:
-        description: "For apply only, type exactly: APPLY uqpyzicftxxegajaocxi"
+        description: "For pending DDL apply only, type exactly: APPLY uqpyzicftxxegajaocxi. History repairs happen in either operation."
         required: false
         type: string
 
@@ -56,13 +56,13 @@ jobs:
               exit 1
             fi
           done
-          if [ "$OPERATION" = "reconcile-and-apply" ]; then
+          if [ "$OPERATION" = "repair-history-and-apply" ]; then
             if [ "$CONFIRMATION" != "APPLY uqpyzicftxxegajaocxi" ]; then
               echo "::error::Apply requires the exact target confirmation phrase."
               exit 1
             fi
             echo "APPLY_PENDING_MIGRATIONS=true" >> "$GITHUB_ENV"
-          elif [ "$OPERATION" = "reconcile-and-dry-run" ]; then
+          elif [ "$OPERATION" = "repair-history-and-dry-run" ]; then
             echo "APPLY_PENDING_MIGRATIONS=false" >> "$GITHUB_ENV"
           else
             echo "::error::Unsupported operation."
@@ -70,7 +70,7 @@ jobs:
           fi
           echo "Secrets are present; values are not displayed."
 
-      - name: Reconcile the approved project and run the reviewed migration dry-run
+      - name: Reconcile the approved project and run the reviewed dry-run or explicitly confirmed apply
         shell: bash
         run: |
           set -euo pipefail

@@ -1,0 +1,136 @@
+name: Production readiness monitor
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-readiness-monitor
+  cancel-in-progress: true
+
+jobs:
+  readiness:
+    name: Check protected application readiness
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Validate monitor configuration
+        shell: bash
+        env:
+          APP_BASE_URL: ${{ secrets.APP_BASE_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          set -Eeuo pipefail
+          node --input-type=module <<'NODE'
+          const raw = process.env.APP_BASE_URL;
+          let url;
+          try { url = new URL(raw ?? ""); } catch { url = null; }
+          if (!url || url.protocol !== "https:" || !url.hostname ||
+              url.username || url.password || url.pathname !== "/" ||
+              url.search || url.hash) {
+            console.error("::error::APP_BASE_URL must be a clean HTTPS origin without credentials, path, query or fragment.");
+            process.exit(1);
+          }
+          if ((process.env.CRON_SECRET?.length ?? 0) < 32) {
+            console.error("::error::CRON_SECRET is missing or too short.");
+            process.exit(1);
+          }
+          NODE
+
+      - name: Check application readiness and latency
+        shell: bash
+        env:
+          APP_BASE_URL: ${{ secrets.APP_BASE_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          READINESS_MAX_SECONDS: "10"
+        run: |
+          set -Eeuo pipefail
+          node --input-type=module <<'NODE'
+          const url = new URL("/api/health/ready", process.env.APP_BASE_URL);
+          const started = performance.now();
+          let response;
+          try {
+            response = await fetch(url, {
+              headers: { Authorization: `Bearer ${process.env.CRON_SECRET}` },
+              cache: "no-store",
+              redirect: "error",
+              signal: AbortSignal.timeout(20_000),
+            });
+          } catch {
+            console.error("::error::Application readiness endpoint could not be reached safely.");
+            process.exit(1);
+          }
+
+          if (response.status !== 200) {
+            await response.body?.cancel().catch(() => {});
+            console.error(`::error::Application readiness check failed (HTTP ${response.status}).`);
+            process.exit(1);
+          }
+
+          const reader = response.body?.getReader();
+          const chunks = [];
+          let totalBytes = 0;
+          if (reader) {
+            try {
+              while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                totalBytes += value.byteLength;
+                if (totalBytes > 4096) {
+                  await reader.cancel().catch(() => {});
+                  throw new Error("Readiness response exceeded 4 KiB.");
+                }
+                chunks.push(Buffer.from(value));
+              }
+            } finally {
+              reader.releaseLock();
+            }
+          }
+
+          let payload;
+          try {
+            payload = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(Buffer.concat(chunks)));
+          } catch {
+            console.error("::error::Readiness endpoint returned invalid JSON.");
+            process.exit(1);
+          }
+          if (payload?.status !== "ready") {
+            console.error("::error::Readiness endpoint did not confirm ready status.");
+            process.exit(1);
+          }
+
+          const elapsed = (performance.now() - started) / 1000;
+          if (elapsed > Number(process.env.READINESS_MAX_SECONDS)) {
+            console.error("::error::Readiness response exceeded the configured latency threshold.");
+            process.exit(1);
+          }
+          console.log(`Application readiness check passed in ${elapsed.toFixed(2)}s.`);
+          NODE
+
+      - name: Send optional operations alert
+        if: failure()
+        shell: bash
+        env:
+          ALERT_WEBHOOK_URL: ${{ secrets.ALERT_WEBHOOK_URL }}
+          WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -Eeuo pipefail
+          if [[ -z "$ALERT_WEBHOOK_URL" ]]; then
+            echo "::notice::No alert webhook configured; rely on GitHub Actions failure notifications."
+            exit 0
+          fi
+          if [[ ! "$ALERT_WEBHOOK_URL" =~ ^https:// ]]; then
+            echo "::warning::ALERT_WEBHOOK_URL must use HTTPS; notification skipped."
+            exit 0
+          fi
+
+          payload="$(printf '{"text":"Production readiness monitor failed. Details: %s"}' "$WORKFLOW_URL")"
+          if ! curl --silent --fail --max-time 10 --proto '=https' --max-redirs 0 \
+            --header "Content-Type: application/json" \
+            --data "$payload" "$ALERT_WEBHOOK_URL" >/dev/null 2>&1; then
+            echo "::warning::Operations alert delivery failed."
+          fi

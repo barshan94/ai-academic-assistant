@@ -1,0 +1,10 @@
+# Narrow exception for a synthetic CI fixture, not a credential.
+# The original high-entropy placeholder was replaced with a low-entropy value
+# in commit 3bff0e7c59bbb87cd7016ba0ac364b3ebb977cad. Gitleaks scans PR history,
+# so the historical diff remains detectable. This fingerprint is scoped to the
+# exact historical commit, file, rule and line; all other findings remain fatal.
+[allowlist]
+description = "Exact historical synthetic CRON_SECRET CI fixture false positive"
+fingerprints = [
+  "680ea72f74768a25e31b89aea9dac034b1ea75c2:.github/workflows/ci.yml:generic-api-key:50",
+]

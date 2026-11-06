@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { assessOcrTextQuality } from "@/lib/documents/ocr-quality";
+import { getExtractionStructureWarning } from "@/lib/documents/extraction-structure";
 import { approveDocument, createQuestionFromPage, savePageCorrection } from "./actions";
 
 type PageProps = {
@@ -15,6 +17,7 @@ const notices: Record<string, string> = {
   processing_failed: "Text extraction failed. Check the original PDF and retry if attempts remain.",
   already_processed: "This document has already been extracted. Review the pages below.",
   already_processing: "Another request is already processing this document. Refresh in a moment.",
+  recovery_failed: "The stale processing attempt could not be recovered safely. Refresh the document and try again.",
   job_missing: "No processing job was found for this document. Contact support before re-uploading.",
   retry_limit: "The three-attempt processing limit has been reached. Review the source file manually.",
   not_found: "Document not found or you do not have access to it.",
@@ -24,10 +27,12 @@ const notices: Record<string, string> = {
   approved: "You marked this document as reviewed. This is a teacher review status, not an automated accuracy guarantee.",
   approve_failed: "The review status could not be updated completely. Refresh and inspect the document.",
   empty: "There are no extracted pages to approve.",
+  confirm_required: "Confirm that you compared every extracted page with the original PDF before marking it reviewed.",
   created: "Question saved to your question library.",
   invalid_question: "Check the question text and metadata, then try again.",
   source_invalid: "The selected page does not belong to this document or account.",
   save_failed_question: "The question could not be saved.",
+  document_not_reviewed: "Review and approve this document before adding questions to your library.",
 };
 
 export default async function DocumentReviewPage({ params, searchParams }: PageProps) {
@@ -38,17 +43,29 @@ export default async function DocumentReviewPage({ params, searchParams }: PageP
   if (authError || !user) redirect("/login");
 
   const [{ data: document, error: documentError }, { data: pages, error: pagesError }] = await Promise.all([
-    supabase.from("documents").select("id,file_name,status,page_count,drive_web_view_link,created_at").eq("id", id).eq("owner_id", user.id).maybeSingle(),
+    supabase.from("documents").select("id,file_name,status,page_count,drive_file_id,drive_web_view_link,created_at").eq("id", id).eq("owner_id", user.id).maybeSingle(),
     supabase.from("document_pages").select("id,page_number,extracted_text,extraction_method,status").eq("document_id", id).eq("owner_id", user.id).order("page_number"),
   ]);
 
   if (documentError || !document) notFound();
+
+  // Keep document review available while a non-production database is being
+  // brought forward to the source_page_count migration. A missing optional
+  // metadata column must not turn an otherwise authorized document into 404.
+  const { data: sourceMetadata, error: sourceMetadataError } = await supabase
+    .from("documents")
+    .select("source_page_count")
+    .eq("id", id)
+    .eq("owner_id", user.id)
+    .maybeSingle();
+  const sourcePageCount = sourceMetadataError ? null : sourceMetadata?.source_page_count ?? null;
   const noticeKey = query.question === "created" ? "created"
     : query.question === "invalid" ? "invalid_question"
     : query.question === "source_invalid" ? "source_invalid"
     : query.question === "save_failed" ? "save_failed_question"
     : query.review ?? query.process;
   const notice = noticeKey ? notices[noticeKey] : undefined;
+  const extractionStructureWarning = pagesError ? null : getExtractionStructureWarning(sourcePageCount, pages?.length ?? 0);
 
   return (
     <main className="shell">
@@ -61,7 +78,8 @@ export default async function DocumentReviewPage({ params, searchParams }: PageP
         <p className="eyebrow">DOCUMENT REVIEW · {document.status.toUpperCase().replace("_", " ")}</p>
         <h1>{document.file_name}</h1>
         <p className="hero-copy">Check the extracted text against the source document. Correct mistakes before marking this document reviewed.</p>
-        {document.drive_web_view_link ? <a className="document-open" href={document.drive_web_view_link} target="_blank" rel="noreferrer">Open original in Google Drive ↗</a> : null}
+        {document.drive_file_id ? <a className="document-open" href={"/api/documents/" + encodeURIComponent(document.id) + "/original"} target="_blank" rel="noreferrer">View verified original PDF ↗</a> : null}
+        {document.drive_web_view_link ? <a className="document-open" href={document.drive_web_view_link} target="_blank" rel="noreferrer">Open in Google Drive ↗</a> : null}
       </section>
 
       {notice ? <p className="notice notice-info" role="status">{notice}</p> : null}
@@ -72,10 +90,13 @@ export default async function DocumentReviewPage({ params, searchParams }: PageP
       ) : (
         <section className="section">
           <div className="section-heading"><div><p className="eyebrow">EXTRACTED CONTENT</p><h2>{pages.length} review pages</h2></div><span className="section-count">Human review required</span></div>
+          {sourceMetadataError ? <p className="notice notice-warning" role="status">Source PDF page-count metadata is unavailable until the latest database migration is applied. Compare every extracted page manually with the original PDF.</p> : null}
+          {extractionStructureWarning ? <p className="notice notice-warning" role="status">{extractionStructureWarning}</p> : null}
           <div className="review-list">
             {pages.map((page) => (
               <article className="review-page" key={page.id}>
                 <div className="review-page-heading"><h3>Page {page.page_number}</h3><span className="document-status">{page.status.replace("_", " ")} · {page.extraction_method ?? "unknown"}</span></div>
+                {page.extraction_method === "ocr" && assessOcrTextQuality(page.extracted_text ?? "") === "needs_correction" ? <p className="notice notice-warning" role="status">OCR quality or table layout may be unreliable. Compare this page with the original PDF, especially table rows, columns, symbols and mathematical notation, then correct the extracted text before creating questions.</p> : null}
                 <form action={savePageCorrection} className="review-form">
                   <input type="hidden" name="pageId" value={page.id} />
                   <input type="hidden" name="documentId" value={document.id} />
@@ -83,32 +104,40 @@ export default async function DocumentReviewPage({ params, searchParams }: PageP
                   <textarea id={"page-text-" + page.id} name="extractedText" defaultValue={page.extracted_text ?? ""} rows={10} maxLength={50000} required />
                   <button className="document-action" type="submit">Save correction</button>
                 </form>
+{document.status === "ready" ? (
                 <details className="question-create">
                   <summary>Save a question from this page</summary>
-                  <p>Copy one individual question into the field below. This creates a source-linked question record; it does not generate an answer.</p>
-                  <form action={createQuestionFromPage} className="question-create-form">
-                    <input type="hidden" name="documentId" value={document.id} />
-                    <input type="hidden" name="documentPageId" value={page.id} />
-                    <label htmlFor={"question-text-" + page.id}>Question text</label>
-                    <textarea id={"question-text-" + page.id} name="questionText" defaultValue={page.extracted_text ?? ""} rows={5} maxLength={20000} required />
-                    <div className="question-fields">
-                      <label>Question number<input name="questionNumber" placeholder="e.g. 3(b)" maxLength={40} /></label>
-                      <label>Board<input name="board" placeholder="e.g. Cambridge" maxLength={120} /></label>
-                      <label>Qualification<input name="qualification" placeholder="e.g. O Level" maxLength={120} /></label>
-                      <label>Subject<input name="subject" placeholder="e.g. Physics" maxLength={120} /></label>
-                      <label>Chapter<input name="chapter" placeholder="Chapter name" maxLength={120} /></label>
-                      <label>Topic<input name="topic" placeholder="Topic name" maxLength={120} /></label>
-                    </div>
-                    <button className="document-action" type="submit">Add to question library</button>
-                  </form>
+                                    <p>Copy one individual question into the field below. This creates a source-linked question record; it does not generate an answer.</p>
+                                    <form action={createQuestionFromPage} className="question-create-form">
+                                      <input type="hidden" name="documentId" value={document.id} />
+                                      <input type="hidden" name="documentPageId" value={page.id} />
+                                      <label htmlFor={"question-text-" + page.id}>Question text</label>
+                                      <textarea id={"question-text-" + page.id} name="questionText" defaultValue={page.extracted_text ?? ""} rows={5} maxLength={20000} required />
+                                      <div className="question-fields">
+                                        <label>Question number<input name="questionNumber" placeholder="e.g. 3(b)" maxLength={40} /></label>
+                                        <label>Board<input name="board" placeholder="e.g. Cambridge" maxLength={120} /></label>
+                                        <label>Qualification<input name="qualification" placeholder="e.g. O Level" maxLength={120} /></label>
+                                        <label>Subject<input name="subject" placeholder="e.g. Physics" maxLength={120} /></label>
+                                        <label>Chapter<input name="chapter" placeholder="Chapter name" maxLength={120} /></label>
+                                        <label>Topic<input name="topic" placeholder="Topic name" maxLength={120} /></label>
+                                      </div>
+                                      <button className="document-action" type="submit">Add to question library</button>
+                                    </form>
                 </details>
+              ) : (
+                <p className="notice notice-info">Approve this document after checking every page before adding questions to your library.</p>
+              )}
               </article>
             ))}
           </div>
           {document.status !== "ready" ? (
             <form action={approveDocument} className="approve-panel">
               <input type="hidden" name="documentId" value={document.id} />
-              <div><h3>Finished checking every page?</h3><p>Approving marks the extracted pages as teacher-reviewed. It does not mean the AI has solved or independently verified the questions.</p></div>
+              <div>
+                <h3>Finished checking every page?</h3>
+                <p>Compare each page with the original PDF in Google Drive. OCR quality indicators are only heuristics; they cannot verify mathematical notation, diagrams, missing lines or factual accuracy.</p>
+                <label className="review-confirmation"><input type="checkbox" name="confirmReviewed" value="yes" required /> I compared every extracted page with the original and corrected any mistakes.</label>
+              </div>
               <button className="primary-action" type="submit">Mark reviewed <span aria-hidden="true">✓</span></button>
             </form>
           ) : <p className="notice notice-success">Teacher review completed.</p>}

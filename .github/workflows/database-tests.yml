@@ -1,0 +1,53 @@
+name: Database authorization tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: database-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  database:
+    name: Local Supabase migrations and pgTAP
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Supabase CLI
+        uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3
+        with:
+          version: 2.122.0
+
+      # The repository already contains migrations and pgTAP tests. init adds
+      # the missing local config without linking to or modifying a hosted project.
+      - name: Initialize local Supabase configuration
+        run: |
+          supabase init
+          # Select currently free wildcard-bindable ports rather than assuming
+          # a fixed high port is unused on the hosted runner.
+          DB_PORT="$(python3 -c 'import socket; s=socket.socket(); s.bind(("0.0.0.0", 0)); print(s.getsockname()[1]); s.close()')"
+          SHADOW_PORT="$(python3 -c 'import socket; s=socket.socket(); s.bind(("0.0.0.0", 0)); print(s.getsockname()[1]); s.close()')"
+          while [ "$SHADOW_PORT" = "$DB_PORT" ]; do
+            SHADOW_PORT="$(python3 -c 'import socket; s=socket.socket(); s.bind(("0.0.0.0", 0)); print(s.getsockname()[1]); s.close()')"
+          done
+          echo "Using isolated Supabase database port $DB_PORT and shadow port $SHADOW_PORT"
+          sed -i "/^\[db\]$/,/^\[/ s/^port = .*/port = $DB_PORT/" supabase/config.toml
+          sed -i "/^\[db\]$/,/^\[/ s/^shadow_port = .*/shadow_port = $SHADOW_PORT/" supabase/config.toml
+
+      - name: Start isolated local database and apply migrations
+        run: supabase db start
+
+      - name: Run database authorization tests
+        run: supabase test db
