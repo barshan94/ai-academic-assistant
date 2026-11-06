@@ -1,3 +1,27 @@
+# Superseding exact-head verification — 2026-11-06 (commit 8133a290d094ea2d424656928e1e1321fad3f45e)
+
+This entry supersedes earlier exact-head CI snapshots below. All four required GitHub Actions workflows completed successfully on this exact branch head:
+
+- [x] Foundation checks — [run 42219452120](https://github.com/barshan94/ai-academic-assistant/actions/runs/42219452120).
+- [x] Database authorization tests — [run 42219452174](https://github.com/barshan94/ai-academic-assistant/actions/runs/42219452174).
+- [x] Authenticated two-account browser acceptance — [run 42219452266](https://github.com/barshan94/ai-academic-assistant/actions/runs/42219452266).
+- [x] Full-history secret scanning — [run 42219452287](https://github.com/barshan94/ai-academic-assistant/actions/runs/42219452287).
+
+The Foundation workflow includes locked dependency installation, production and full dependency audits, ESLint, application and Playwright type checks, unit tests, production build and Chromium smoke tests. The database workflow runs isolated local migrations and pgTAP. The authenticated workflow completed its two-account Supabase browser acceptance job successfully.
+
+Vercel Preview deployment for this commit is READY: https://ai-academic-assistant-1iwj0uytx-barshan-s-team.vercel.app. This confirms the Preview build/deployment state only; it does not establish successful live OAuth, Drive, worker, academic-quality or production acceptance.
+
+## Verified configuration gap
+
+A read-only Vercel environment inventory found the required server-side application credentials configured for the feature/m3-ai-solver Preview target, while the inspected sensitive credentials were not configured for Production. The public Supabase URL and publishable key are configured for Production. No environment variables were changed and no secret values were displayed. Production configuration remains an owner-controlled release gate; do not copy Preview secrets blindly, especially the Drive token-encryption key and OAuth callback/client settings.
+
+## Release decision — NOT APPROVED FOR PRODUCTION
+
+Green CI and a READY Preview do not close the live release gates: Production credentials and OAuth setup; real Google Drive upload/interruption/resume and original-file retrieval/cross-account denial; worker fault/retry/recovery acceptance and a deliberate scheduling decision; hosted migration-history/schema parity; Supabase Free leaked-password-protection limitation and accepted mitigation; backup/recovery limitations; manual accessibility/device checks; independently graded academic answer quality and official syllabus verification; privacy/legal review; and named operational ownership.
+
+Owner constraints remain binding: keep PR #1 open, draft and unmerged; do not deploy Production, alter Production configuration, apply or repair hosted migrations, dispatch the document worker, create another database, or claim a backup/restore rehearsal. Preserve existing project data. No such action was taken in this checkpoint.
+
+---
 # Superseding exact-head verification — 2026-11-06 (commit 7203e2fdba24dea09daf12379b6e95202ee0bcc9)
 
 This entry supersedes older exact-head CI snapshots below. All four required GitHub workflows completed successfully on this exact application head:
