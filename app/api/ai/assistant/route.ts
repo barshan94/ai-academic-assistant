@@ -149,6 +149,8 @@ export async function POST(request: Request) {
     output_text: parsed.answer,
     provider_model: model,
     review_status: "needs_review",
+    verification_status: verification,
+    verification_details: arithmeticChecks,
   }).select("id").single();
   if (saveError || !saved) {
     return NextResponse.json({ error: "The answer was generated but could not be saved to your private review history." }, { status: 500 });
