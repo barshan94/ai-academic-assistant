@@ -11,7 +11,7 @@ create table if not exists public.question_solutions (
   created_at timestamptz not null default now(),
   constraint question_solutions_question_owner_fk
     foreign key (question_id, owner_id)
-    references public.questions(id, owner_id) on delete set null
+    references public.questions(id, owner_id) on delete cascade
 );
 
 create index if not exists question_solutions_owner_created_idx
