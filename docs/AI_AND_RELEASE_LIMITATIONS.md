@@ -22,3 +22,6 @@ Use a provider/model with a free quota. Provider free tiers, model availability 
 4. Validate syllabus metadata against official board specifications.
 5. Exercise Drive OAuth, upload, OCR, correction and disconnect using the actual owner account.
 6. Complete restore/recovery, accessibility, mobile-device and production security checks before public release.
+
+
+CI acceptance: this change exists to trigger the repository's full lint, type-check, test and production-build workflow against the AI workspace changes.
