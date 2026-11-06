@@ -11,6 +11,10 @@ describe("extraction structure warning", () => {
     expect(getExtractionStructureWarning(3, 3)).toBeNull();
   });
 
+  it("also warns when extraction invents extra page boundaries", () => {
+    expect(getExtractionStructureWarning(3, 4)).toContain("produced 4 review page(s)");
+  });
+
   it("does not invent a source page count when metadata is unavailable", () => {
     expect(getExtractionStructureWarning(null, 1)).toBeNull();
   });
