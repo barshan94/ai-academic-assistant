@@ -13,7 +13,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
   let body: z.infer<typeof schema>;
   try { body = schema.parse(await request.json()); }
   catch { return NextResponse.json({ error: "Choose approve or reject." }, { status: 400 }); }
-  const { data, error } = await supabase.from("question_solutions")
+  const { data, error } = await supabase.from("ai_assistant_outputs")
     .update({ review_status: body.status })
     .eq("id", id).eq("owner_id", user.id)
     .select("id,review_status").maybeSingle();
