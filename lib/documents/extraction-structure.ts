@@ -5,7 +5,7 @@ export function getExtractionStructureWarning(sourcePageCount: number | null, ex
     || sourcePageCount < 1
     || !Number.isInteger(extractedPageCount)
     || extractedPageCount < 0
-    || extractedPageCount >= sourcePageCount
+    || extractedPageCount === sourcePageCount
   ) {
     return null;
   }
