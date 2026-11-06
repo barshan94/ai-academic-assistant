@@ -172,6 +172,28 @@ describe("GET /api/health/ready", () => {
     expect(body.checks.aiGeneration).toBe("configured");
   });
 
+  it("fails closed when the attempt-fenced failure RPC signature is missing", async () => {
+    createClientMock.mockReturnValue({
+      from: vi.fn(() => ({
+        select: vi.fn(() => ({
+          limit: vi.fn().mockResolvedValue({ error: null }),
+        })),
+      })),
+      rpc: vi.fn((name: string) => Promise.resolve({
+        data: null,
+        error: { code: name === "fail_document_processing" ? "PGRST202" : "P0001" },
+      })),
+    });
+
+    const response = await GET(authorizedRequest());
+
+    expect(response.status).toBe(503);
+    const body = await response.json();
+    expect(body.status).toBe("not_ready");
+    expect(body.checks.databaseAndWorkerSchema).toBe(false);
+    expect(body.checks.aiGeneration).toBe("configured");
+  });
+
   it("fails closed when the source page-count column is missing", async () => {
     createClientMock.mockReturnValue({
       from: vi.fn((table: string) => ({
