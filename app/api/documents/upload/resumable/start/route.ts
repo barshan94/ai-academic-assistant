@@ -3,7 +3,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { logSafeOperationalEvent } from "@/lib/observability/safe-log";
 import { getDriveAccessToken, initiateResumablePdfUpload } from "@/lib/drive/google";
 import { encryptDriveUploadSession } from "@/lib/drive/crypto";
-import { MAX_UPLOAD_BYTES, safeFileName } from "@/lib/documents/upload-limits";
+import { MAX_UPLOAD_BYTES, MAX_DOCUMENT_PAGES, safeFileName } from "@/lib/documents/upload-limits";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -73,8 +73,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "The file checksum is invalid." }, { status: 400 });
     }
     if (body.pageCount !== null && body.pageCount !== undefined &&
-        (!Number.isInteger(body.pageCount) || body.pageCount < 1 || body.pageCount > 50)) {
-      return NextResponse.json({ error: "Image batches must contain no more than 50 pages." }, { status: 400 });
+        (!Number.isInteger(body.pageCount) || body.pageCount < 1 || body.pageCount > MAX_DOCUMENT_PAGES)) {
+      return NextResponse.json({ error: "Documents must contain no more than 100 pages." }, { status: 400 });
     }
 
     const fileName = safeFileName(typeof body.fileName === "string" ? body.fileName : "");
