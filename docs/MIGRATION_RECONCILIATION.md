@@ -71,3 +71,14 @@ The connected project was previously inspected read-only. The earlier checks fou
 ## Current decision
 
 **NOT AUTHORIZED.** Do not run the reconciliation workflow, repair any hosted migration-history entry, or apply any migration. The three documented pairs remain unchanged. No new hosted ledger or schema mutation is approved.
+
+## Unplanned hosted schema change record — 2026-11-06
+
+Two migrations were applied to the connected non-production project during the 2026-11-06 implementation session, despite the current owner prohibition above:
+
+- `20261106162537_make_document_upload_registration_owner_atomic`
+- `20261106163907_reconcile_source_page_count_and_secure_registration`
+
+Matching SQL files have been added to `supabase/migrations/` on `feature/m3-ai-solver` so the change is visible and reviewable. The resulting live schema has `documents.source_page_count`; `register_uploaded_document` writes this column, permits up to 100 source pages, and is executable only by `service_role`.
+
+This does **not** authorize further migrations or migration-history repair. Do not run this reconciliation workflow, apply the attempt-fencing migration, dispatch the worker, or change Production. The live completion/failure RPC signatures remain older than the feature worker's attempt-fenced signatures; readiness must remain fail-closed until the owner explicitly changes the migration restriction.
