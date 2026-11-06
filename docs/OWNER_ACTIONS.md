@@ -1,10 +1,20 @@
+## Current authorization and scope — 2026-11-06
+
+This section supersedes every older checklist item below where it conflicts with the current owner instructions.
+
+- **Hosted migrations:** do not dispatch the migration-reconciliation workflow, edit the hosted migration ledger, or apply migrations. Any migration authorization recorded in older notes is superseded. Keep both the hosted schema and ledger unchanged.
+- **Backup/restore:** the owner declined a separate-database restore rehearsal. Do not create another Supabase project/database for it. Record the rehearsal as **SKIPPED BY OWNER**, not passed and not an active release blocker. Preserve both existing projects.
+- **Worker:** keep the document-worker workflow manual-dispatch only and do not dispatch it until the Preview target, branch-integrated route and migrations, GitHub Actions secrets, authentication and idempotency have all been verified. Do not add a recurring schedule.
+- **Release:** keep PR #1 draft and unmerged; do not deploy Production. Keep paid services and AI provider calls disabled.
+- **Data:** do not reset, overwrite or delete records in `academic-assistant` or `durga-map`.
+
 ## Superseding live audit — 2026-11-05 (read-only)
 
 - Latest feature commit before this note: `7d099a99954ba6d18b9f2c76590b2716c306fb6f`. All six exact-head GitHub checks passed (Foundation/Chromium, local Supabase migrations + pgTAP, authenticated two-account acceptance, secret scan and Vercel Preview feedback). Its Vercel Preview is READY: https://ai-academic-assistant-11pocm1ee-barshan-s-team.vercel.app. This documentation update will create a new head and requires fresh CI.
 - Supabase organization is Free. The connected `academic-assistant` project is ACTIVE_HEALTHY (PostgreSQL 17.11, ap-south-1). Read-only inventory shows 102 repository migration files and 102 hosted entries: 99 exact version matches plus three already-documented SQL-equivalent version/name pairs. No migration repair or schema change was performed in this audit.
 - All 31 public tables returned by the live inventory have RLS enabled. Four RLS/no-policy advisor notices refer to private quota-counter tables with no client table policies. The 14 authenticated-callable SECURITY DEFINER functions each set an empty search_path, deny anon EXECUTE, and contain an auth.uid() check; the separate trigger-only definer function is not executable by anon or authenticated. Do not remove these grants blindly; continue owner-scoped behavior tests. The leaked-password-protection warning remains unresolved on Free.
 - Performance advisor reports 48 unused indexes on this low-volume database; no indexes were dropped. The previous unindexed-FK finding is absent.
-- Only two projects are present in the Free organization: `academic-assistant` and `durga-map`. Both must be preserved. The isolated backup/restore drill is now recorded as **BLOCKED / NOT RUN** because no separate restore target is available. Do not create a paid resource or overwrite either project.
+- Only two projects are present in the Free organization: `academic-assistant` and `durga-map`. Both must be preserved. The separate-database backup/restore rehearsal is **SKIPPED BY OWNER**; do not create another project/database or overwrite either project.
 - No production deployment, production migration, migration-history repair, merge, plan upgrade, reset or credential change was performed.
 
 ## Worker workflow hardening — 2026-11-05
@@ -33,7 +43,7 @@ This note supersedes older counts and status statements later in this file.
 - The latest migration inventory is 102 repository files and 102 hosted ledger entries. The three documented SQL-equivalent version/name mismatches remain; the guarded reconciliation workflow has not been dispatched.
 - No production deployment, production migration, PR merge, secret decryption or credential change was performed.
 
-**Next safe work:** finish live Google Drive original-PDF and interrupted-upload acceptance, then the remaining Auth, AI, backup/restore, accessibility, academic and privacy gates. The checked-in worker workflow is manual-dispatch only, not a recurring scheduler. Do not call the application production-ready until these gates are evidenced.
+**Next safe work:** complete live Google Drive original-PDF and interrupted-upload acceptance, then the remaining worker fault/recovery, AI-provider approval, accessibility/device, academic-quality, privacy/legal and operational-ownership gates. The separate-database restore rehearsal is excluded by owner scope. The checked-in worker workflow is manual-dispatch only, not a recurring scheduler. Do not call the application production-ready until the remaining gates have evidence.
 
 
 ## Superseding owner checkpoint — 2026-11-05
@@ -184,10 +194,8 @@ Operations-only PR #2 was merged to `main` as `fbca5d21cc6325b43a47ecbd7a5d5f487
 - [ ] Confirm the non-production Vercel deployment target and deploy only after the implementation branch is ready for the testing phase.
 - [x] Inventory the existing Supabase organization and projects. Reuse the existing Free-plan `academic-assistant` project as the non-production candidate; do not create another account or project by default.
 - [x] Owner confirmed `academic-assistant` as the dedicated non-production reconciliation/testing target; no reset is proposed. `durga-map` remains excluded because it contains existing application data.
-- [x] Owner authorized the hosted migration plan on 2026-11-01, including version-aware repair of the two byte-identical renamed migration pairs and application of the 44 pending migrations. This authorization applies only to the existing non-production project; it does not authorize production changes.
-- [ ] Execute the approved plan with the pinned Supabase CLI (`2.122.0`) using `scripts/reconcile-nonprod-supabase-migrations.sh`. The script exports credentials through environment variables and no longer places the database password in the CLI process argument list. The connected Supabase interface does not expose version-specific migration repair, so the hosted project remains unchanged until a CLI session is available. Do not substitute generic SQL or migration-apply calls.
-  - **Available now:** the operations-only [PR #2](https://github.com/barshan94/ai-academic-assistant/pull/2) was merged to the default branch as `fbca5d21cc6325b43a47ecbd7a5d5f487b7579c4`. The manual GitHub Actions workflow `.github/workflows/reconcile-nonprod-migrations.yml` is now dispatchable. First add repository Actions secrets `SUPABASE_ACCESS_TOKEN` (scoped to this project) and `SUPABASE_DB_PASSWORD`; never send them in chat. Open Actions → Non-production Supabase migration reconciliation → Run workflow on `feature/m3-ai-solver`. Start with `reconcile-and-dry-run`; this repairs only the two previously SQL-verified migration version entries, then prints the pending migration dry-run without applying the 44 pending DDL migrations. Review the output. Only after deciding to apply, run again with `reconcile-and-apply` and type the exact confirmation phrase requested by the workflow. This is a non-production-only operation; it does not deploy the app. The workflow has not yet been dispatched because the two repository secrets are not configured.
-- [ ] After the migrations are reconciled, create two disposable confirmed Auth users and configure the documented authenticated E2E secrets/variable; do not use personal or production accounts.
+- [x] The migration workflow was previously authorized in a historical plan, but that authorization is superseded by the current owner scope. **Do not dispatch it.** Do not repair the hosted migration ledger or apply any pending DDL. Keep the existing project unchanged.
+- [x] Two disposable confirmed owner/teacher Auth accounts and the authenticated E2E secrets are already configured; exact-head CI has exercised their owner/teacher lifecycle. Do not create additional accounts unless a future test specifically requires them.
 - [ ] Configure the server-side Supabase URL, publishable key and service-role key in the hosting provider. The service-role key must remain server-only.
 - [x] Existing Google Cloud project `AI Academic Assistant`, Drive API, OAuth consent configuration, and OAuth Web client `AI Academic Assistant Web` were created. Keep the existing localhost callback and add the current preview callback to Authorized redirect URIs whenever the preview host changes.
 - [ ] Confirm Google consent-screen publishing mode and refresh-token lifetime. Store the existing OAuth client ID/secret and a stable 32-byte Drive token-encryption key in the hosting provider's secret store.
@@ -214,17 +222,12 @@ Configure repository Actions secrets from the deployment dashboard; never commit
 - [ ] Assign a named human operator, backup owner and incident contact. Define who responds to worker backlog, quota failures, provider outages, suspected data exposure and key loss.
 - [ ] Decide log retention and alert thresholds after collecting a non-production baseline. GitHub Actions notifications are not guaranteed paging.
 
-## 3. Backup and recovery
+## 3. Backup and recovery — excluded by owner scope
 
-- [ ] Generate an age key pair on a trusted workstation. Store the private identity separately from encrypted archives and verify that the recovery owner can access it.
-- [ ] Run scripts/backup-supabase.sh against the isolated project; it now requires the Supabase CLI, psql and age. Do not put the database URL in shell history or command-line arguments.
-- [ ] Run scripts/verify-backup.sh with the separately stored age identity.
-- [ ] Copy the encrypted archive to two independent locations and record archive date, project reference, CLI version and checksum evidence without recording secrets.
-- [ ] Rehearse roles/schema restore on a dedicated otherwise-empty target, then run scripts/restore-auth-users.mjs against the target Auth Admin API, then restore application data so original Auth UUID foreign keys resolve. Existing matching UUID/email accounts are skipped to support interrupted imports; their password hashes are not compared.
-- [ ] Confirm the target Auth project uses the same password-hashing algorithm as the source and set RESTORE_PASSWORD_HASH_ALGORITHM accordingly before importing. The importer refuses mixed hash algorithms.
-- [ ] Confirm the restored email/password owner can sign in with the existing password. The importer deliberately rejects phone-based, MFA, SSO, anonymous and non-email identity accounts; sessions and refresh tokens must be re-established. Storage objects, project settings and Google Drive files are separate recovery concerns.
-- [ ] Preserve the exact original DRIVE_TOKEN_ENCRYPTION_KEY in an approved secret manager. A newly generated key cannot decrypt existing tokens.
-- [ ] Approve realistic RPO/RTO targets only after a restore drill measures backup cadence and restore time.
+- [x] The separate-database backup/restore rehearsal is **SKIPPED BY OWNER**. Do not create another Supabase project/database for it.
+- [x] Preserve the existing `academic-assistant` and `durga-map` projects; do not reset, overwrite or delete either one.
+- [ ] Do not claim disaster recovery has been tested. Archive-generation and checksum helpers are source-level tooling only; no full restore was performed.
+- [ ] Revisit this rehearsal only if the owner explicitly changes the scope and a safe, already-available isolated target can be used without disturbing existing data.
 
 ## 4. Academic and legal decisions
 
