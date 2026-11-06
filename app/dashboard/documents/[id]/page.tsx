@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { assessOcrTextQuality } from "@/lib/documents/ocr-quality";
+import { getExtractionStructureWarning } from "@/lib/documents/extraction-structure";
 import { approveDocument, createQuestionFromPage, savePageCorrection } from "./actions";
 
 type PageProps = {
@@ -53,6 +54,7 @@ export default async function DocumentReviewPage({ params, searchParams }: PageP
     : query.question === "save_failed" ? "save_failed_question"
     : query.review ?? query.process;
   const notice = noticeKey ? notices[noticeKey] : undefined;
+  const extractionStructureWarning = getExtractionStructureWarning(document.page_count, pages?.length ?? 0);
 
   return (
     <main className="shell">
@@ -77,6 +79,7 @@ export default async function DocumentReviewPage({ params, searchParams }: PageP
       ) : (
         <section className="section">
           <div className="section-heading"><div><p className="eyebrow">EXTRACTED CONTENT</p><h2>{pages.length} review pages</h2></div><span className="section-count">Human review required</span></div>
+          {extractionStructureWarning ? <p className="notice notice-warning" role="status">{extractionStructureWarning}</p> : null}
           <div className="review-list">
             {pages.map((page) => (
               <article className="review-page" key={page.id}>
