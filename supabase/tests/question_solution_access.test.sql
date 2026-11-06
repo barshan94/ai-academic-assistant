@@ -180,7 +180,7 @@ select throws_ok(
 );
 
 select throws_ok(
-  $select public.record_teacher_solution_review('40000000-0000-4000-8000-000000000002', 'approved', null)$,
+  $test$select public.record_teacher_solution_review('40000000-0000-4000-8000-000000000002', 'approved', null)$test$,
   '42501',
   'An active accepted teacher invitation is required',
   'teacher cannot review a solution belonging to a different owner without a question-specific invitation'
