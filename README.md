@@ -27,7 +27,7 @@ A personal academic workspace for Edexcel O/A Level, SSC and HSC tutoring. It ac
 ## Implemented
 - Private sign-in and owner-protected document library.
 - Google Drive OAuth code with encrypted refresh-token storage, PDF archiving, browser-side image-to-PDF conversion and OCR correction workflow. Resumable 1 MB chunk uploads support PDFs up to 50 MB, encrypted upload-session tokens and server-confirmed resume offsets.
-- Scheduled document queue worker with conditional job claiming, 15-minute stale-job recovery, bounded retries, owner-scoped service-role operations and protection for question/chapter-note page references; deployment setup is documented in `docs/DOCUMENT_WORKER_SETUP.md`.
+- Bounded document queue worker with conditional job claiming, 15-minute stale-job recovery, bounded retries, owner-scoped service-role operations and protection for question/chapter-note page references. The GitHub Actions workflow is manual-dispatch only; it is not scheduled or proven operational against the live Preview. Setup is documented in `docs/DOCUMENT_WORKER_SETUP.md`.
 - Manual source-linked question library with board, qualification, subject, syllabus version, chapter and topic metadata, owner review states and classification filters.
 - Owner-scoped versioned syllabus catalogues with source provenance, hierarchical chapter/topic references and same-owner foreign-key constraints.
 - A private syllabus catalogue workspace, atomic versioned JSON import, dependent chapter/topic classification selectors, transparent lexical suggestions with matched-term explanations, source provenance display, append-only before/after classification history, and a prioritized review queue.
@@ -83,65 +83,36 @@ Never commit .env.local, service-role keys, OAuth tokens, student personal data 
 - Database/API security review: `docs/SECURITY_BOUNDARY_AUDIT.md`.
 - Exact repository-versus-connected-project migration ledger comparison: `docs/MIGRATION_RECONCILIATION.md`.
 
-## Current status (3 November 2026)
+## Current status — 6 November 2026
 
-M1–M8 application features are substantially implemented on `feature/m3-ai-solver`. The current branch includes the latest authenticated-E2E fixture refactor (commit `4d0e18b4f54b51b0142faf48e67ff9f8c2e6e049`). The immediately preceding baseline commit `dd546e6cb57f331705204f2e154c264bbb1c6b10` passed Foundation checks, database authorization checks and secret scanning. Those baseline checks covered lint, typecheck, unit tests, build, production dependency audit, browser smoke and pgTAP; the new E2E fixture refactor still needs a fresh CI run before it can be called verified. Full dev-inclusive audit continues to report 13 moderate findings in the legacy development toolchain (ERR-124); production-only audit reports zero.
+Implementation is substantially complete across the M1–M8 feature scope, but this project is **not approved for Production**. The current branch is `feature/m3-ai-solver`; PR #1 remains open, draft and unmerged.
 
-The existing non-production Supabase project `academic-assistant` has now been reconciled and updated with the repository migration chain: 44 pending migrations were applied successfully and the hosted ledger contains 97 entries. The public schema has 31 tables with RLS enabled on all 31, 50 policies across 27 tables, and the expected syllabus seed catalogue (4 catalogues, 30 chapters and 170 topics). No database reset was performed. The 4 internal quota tables intentionally have no direct client policies. Static review of 15 SECURITY DEFINER functions found none executable by anon; 14 remain executable by authenticated and were reviewed for fixed search paths and owner/auth checks. This is not a substitute for full adversarial IDOR testing.
+### Latest verified application checkpoint
 
-- **M2:** resumable uploads up to 50 MB, upload quotas and a bounded document worker are implemented. Live Google OAuth/Drive, interruption recovery, worker scheduling and external deployment configuration still need acceptance.
-- **M3–M4:** structured AI answer generation, saved versions, owner/teacher review history and question-scoped invitations are implemented. Live provider generation with explicit cost approval, a manually graded golden question set and real two-account browser acceptance remain release gates. AI provider calls require explicit `AI_ENABLED=true` and credentials; strict zero-cost mode keeps `AI_ENABLED=false` and uses offline/manual workflows.
-- **M5:** four Cambridge/Pearson Edexcel science draft catalogues are seeded for curator review (30 chapters, 170 numbered topic headings). They are not verified or published for ordinary users until a real curator checks them.
-- **M6:** chapter-note drafting and versioned review are implemented; live AI evaluation and browser acceptance of downloads/print layout remain.
-- **M7:** revision, practice, analytics and study planning are implemented in code; hosted acceptance remains.
-- **M8:** encrypted logical-backup creation and archive-integrity verification are implemented, but a full account-and-data restore is not proven. Production preflight, deployment, monitoring and incident-response procedures are committed; production deployment remains unauthorized.
+- Application code commit `8133a290d094ea2d424656928e1e1321fad3f45e` passed all four required GitHub Actions workflows: Foundation (lint, type checks, dependency audits, unit tests, production build and Chromium smoke), isolated database authorization/migration tests, authenticated two-account browser acceptance, and full-history secret scanning.
+- Vercel Preview for that application commit is READY: https://ai-academic-assistant-1iwj0uytx-barshan-s-team.vercel.app. Preview readiness is not proof of live OAuth, Drive, worker, academic quality or Production readiness.
+- Subsequent commits update release and zero-cost documentation only. They do not change application code; the four passing workflow results above are tied to `8133a290`, not claimed as new runs on the documentation-only head.
+- The latest documentation changes clarify that `AI_ENABLED=false` is a supported no-provider profile. AI generation and provider-based web research remain intentionally unavailable in strict zero-cost mode.
 
-The authenticated two-account browser test no longer requires manually maintained `E2E_QUESTION_ID` or `E2E_SOLUTION_ID` secrets. It creates a uniquely labelled document, page, question and answer using the owner account's publishable-key session, runs the invitation/review/revocation lifecycle, then deletes only those fixture records. The workflow now requires six values: Supabase URL, publishable key, owner email/password and teacher email/password. The workflow remains gated by the repository variable `ENABLE_AUTHENTICATED_E2E=true`; do not enable it until the two accounts are confirmed to be non-production test accounts. Fixture cleanup runs in the test's `finally` block; an interrupted runner may leave clearly labelled E2E fixture records for manual cleanup.
+### Current operating constraints
 
-No merge to `main`, production deployment, additional Supabase project creation or production migration is authorized.
+- Keep the existing Supabase Free project and existing Google Drive account; do not create another database or pay for AI/search/hosting upgrades.
+- Keep `AI_ENABLED=false`, AI fallbacks off and provider/search credentials unset unless the owner explicitly changes the zero-cost decision.
+- Keep the document worker manual-dispatch only. Do not dispatch it or add a schedule until live non-production route, credentials, migration and fault/retry acceptance are complete.
+- Keep PR #1 open, draft and unmerged. Do not deploy Production, change Production environment settings, apply or repair hosted migrations, or alter existing `academic-assistant` and `durga-map` data.
+- The separate-database backup/restore rehearsal was skipped by owner instruction. Do not describe it as completed or create a second database.
 
-Resumable-upload browser state is validated against the selected file and treated as best-effort: malformed or cross-account sessions are discarded, and a current upload can proceed when browser storage is unavailable. Reload-based resume still depends on browser storage being available.
+### Remaining release gates
 
+- Owner-controlled Production server credentials, Google OAuth client and exact redirect configuration.
+- Live Google Drive upload integrity, interruption/resume, original-PDF retrieval, cross-account denial and token recovery.
+- Worker concurrency, retry, stale-lease and failure-recovery acceptance against a safe non-production target.
+- Hosted migration-history/schema parity review; no hosted ledger or schema mutation is authorized.
+- A Free-compatible mitigation for the Supabase leaked-password-protection limitation.
+- Qualified syllabus verification and independent grading of representative Physics, Mathematics and Computer Science answers. The AI golden-set remains unevaluated against a live model; AI remains disabled.
+- Manual accessibility/device acceptance, privacy/legal review, published support contact and named primary/backup operators.
+- Backup/restore remains unproven; the separate-database rehearsal was skipped by owner instruction.
 
-The document worker also enforces streamed response-size limits when downloading PDFs from Drive (50 MB), receiving OCR text (10 MB), and parsing OCR conversion metadata (64 KiB); this protects worker memory independently of the original upload checks.
+See `docs/PRODUCTION_READINESS.md`, `docs/PRODUCTION_LAUNCH_RUNBOOK.md` and `docs/OWNER_ACTIONS.md` for the detailed release gate and current authorization boundaries.
 
-
-## Outstanding release acceptance gates
-
-The following procedures are committed, but their human/external acceptance steps are deliberately not marked complete:
-
-- [Isolated backup and restore drill](docs/ISOLATED_BACKUP_RESTORE_DRILL.md): the encrypted logical-backup helper and archive-integrity verifier exist; a real isolated restore, original-password sign-in and original Drive-token encryption-key recovery still require execution.
-- [ERR-124 minimatch remediation](docs/ERR-124_MINIMATCH_REMEDIATION.md): the lockfile still contains a legacy minimatch 3.x dependency path. Do not force v11 into legacy consumers; complete the reviewed compatible migration/patch and audit.
-- [Accessibility acceptance](docs/ACCESSIBILITY_ACCEPTANCE.md): automated smoke checks do not replace screen-reader, contrast, zoom/reflow and real-device acceptance.
-- [Academic, privacy and operations acceptance](docs/ACADEMIC_PRIVACY_OPERATIONS_ACCEPTANCE.md): official syllabus validation, independent human grading, qualified privacy/legal review and named primary/backup operators remain required.
-
-A procedure or checklist is not evidence of a successful drill, review or approval. Keep each gate open until its evidence is recorded against the tested commit.
-
-## Superseding verification snapshot — 4 November 2026
-
-The earlier dated status notes in this README are historical. The latest feature head `ebf318d96a20de2bfeddf6f4fe0ae9fba6813a7a` has fresh passing GitHub Actions for foundation checks, isolated database migration/authorization tests, authenticated two-account browser acceptance and full-history secret scanning. Foundation validation passed **213 unit tests across 41 files**, Chromium smoke tests, lint, TypeScript checks, production environment preflight, production-only dependency audit and production build.
-
-The previous pgTAP syntax failure was fixed in `ebf318d`; all latest workflow checks now pass. The full development dependency audit still reports 13 moderate transitive minimatch advisory instances in the legacy ESLint graph; production dependencies have zero audit findings. ERR-124 remains open pending compatibility-safe resolution.
-
-Live Google OAuth/Drive acceptance, live AI-provider evaluation with approved credentials/budget, hosted migration reconciliation, full isolated backup/restore proof, accessibility and academic/privacy review remain external release gates. PR #1 remains draft and unmerged. No production deployment is authorized.
-
-
-## Superseding live verification snapshot — 5 November 2026
-
-Current feature branch head: `34974141075e1c52df8ba22e29cba8dd230bc6f6` (PR #1 remains draft/open).
-
-Latest GitHub Actions for this exact commit:
-- Foundation run `41882329396`: lint, application and Playwright type-checks, production environment preflight, production-only dependency audit, build, and **241 unit tests across 44 files** passed.
-- Chromium smoke: **10 passed, 2 skipped**.
-- Database authorization run `41882329455`: clean local Supabase migration replay and pgTAP authorization suite passed.
-- Authenticated two-account acceptance run `41882329427`: **2 passed**, including invitation, teacher review, owner visibility and revocation lifecycle.
-- Full-history secret scan run `41882329409`: passed.
-- Production dependency audit: **0 findings**. Full development dependency audit: **13 moderate minimatch findings** remain (ERR-124); do not force an incompatible ESLint downgrade.
-
-Latest read-only non-production Supabase inventory (4 November): 101 repository migrations and 101 hosted ledger entries; 98 exact version/name matches and 3 timestamp/name mismatches with SQL verified equivalent. No pending schema DDL was identified after those three history pairs are reconciled. The history-only repair/dry-run workflow has not yet been run; no hosted ledger or schema change is claimed. Supabase Auth leaked-password protection was still disabled at the last inspection. Security/performance advisor findings require review; see `docs/OWNER_ACTIONS.md`.
-
-Vercel: the latest available READY Preview is for application commit `9d8303d30b506c3833c46d1f9ec9c2527b2e9583`. A GitHub comparison confirms the four commits from that deployment to the current head change only workflow/documentation files, not application source. The Vercel check for the current documentation commit reports a build-rate-limit failure, and there is no deployment for the exact current SHA. Production remains on the older `main` version; no production release is authorized.
-
-Still-open release gates: full Google Drive/OAuth upload-resume-OCR-worker acceptance; approved live AI provider/model and golden-set grading; three-pair hosted migration-history reconciliation; full isolated backup/restore drill; ERR-124 remediation; Auth leaked-password protection; manual accessibility/device checks; official syllabus and independent answer review; qualified privacy/legal review; named primary/backup operators; production environment validation and explicit release approval.
-
-A passing CI run is not production approval. Do not merge PR #1 or deploy the feature to Production until the mandatory gates are evidenced and the owner explicitly approves the release.
+**Release decision: NOT APPROVED FOR PRODUCTION.** Passing CI and a READY Preview are necessary engineering evidence, not a substitute for the remaining owner-controlled and human acceptance steps.
