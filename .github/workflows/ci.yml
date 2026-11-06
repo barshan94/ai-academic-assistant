@@ -58,11 +58,9 @@ jobs:
         # The full development-tree audit below remains a tracked release gate.
         run: npm audit --omit=dev
 
-      - name: Report full dependency audit (tracked release gate)
-        # Keep development-toolchain advisories visible without treating them as
-        # production runtime exposure. ERR-124 remains open until the lint
-        # toolchain can be upgraded without breaking the Next.js ESLint setup.
-        continue-on-error: true
+      - name: Audit the full dependency tree
+        # The exact current lockfile reports zero vulnerabilities. Keep the
+        # development toolchain under the same blocking audit as runtime code.
         run: npm audit
 
       - name: Install temporary Playwright types for validation
