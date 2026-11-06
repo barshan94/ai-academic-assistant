@@ -54,7 +54,7 @@ export default async function DocumentReviewPage({ params, searchParams }: PageP
     : query.question === "save_failed" ? "save_failed_question"
     : query.review ?? query.process;
   const notice = noticeKey ? notices[noticeKey] : undefined;
-  const extractionStructureWarning = getExtractionStructureWarning(document.page_count, pages?.length ?? 0);
+  const extractionStructureWarning = pagesError ? null : getExtractionStructureWarning(document.page_count, pages?.length ?? 0);
 
   return (
     <main className="shell">
