@@ -412,10 +412,9 @@ describe("document worker failure redaction", () => {
         error: null,
       })
       .mockResolvedValueOnce({ data: true, error: null })
-      .mockResolvedValueOnce({
-        data: null,
-        error: { message: "private database error and connection string" },
-      });
+      .mockRejectedValueOnce(
+        new Error("private database transport failure and connection string"),
+      );
     extractTextFromDrivePdfMock.mockRejectedValueOnce(new Error("private OCR provider response"));
     vi.stubGlobal("fetch", vi.fn(async () => new Response(
       JSON.stringify({ access_token: "test-access-token" }),
@@ -433,6 +432,7 @@ describe("document worker failure redaction", () => {
     });
     expect(JSON.stringify(body)).not.toContain("private");
     expect(JSON.stringify(body)).not.toContain("connection string");
+    expect(JSON.stringify(body)).not.toContain("transport failure");
     expect(rpcMock).toHaveBeenNthCalledWith(3, "fail_document_processing", {
       p_document_id: "document-1",
       p_owner_id: "owner-1",
