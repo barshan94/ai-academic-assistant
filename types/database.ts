@@ -629,6 +629,47 @@ export type Database = {
           },
         ]
       }
+      question_importance: {
+        Row: {
+          created_at: string
+          id: string
+          importance_level: string
+          marked_by: string
+          owner_id: string
+          question_id: string
+          rationale: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          importance_level: string
+          marked_by: string
+          owner_id: string
+          question_id: string
+          rationale?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          importance_level?: string
+          marked_by?: string
+          owner_id?: string
+          question_id?: string
+          rationale?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "question_importance_question_owner_fk"
+            columns: ["question_id", "owner_id"]
+            isOneToOne: true
+            referencedRelation: "questions"
+            referencedColumns: ["id", "owner_id"]
+          },
+        ]
+      }
       question_classification_history: {
         Row: {
           changed_at: string
