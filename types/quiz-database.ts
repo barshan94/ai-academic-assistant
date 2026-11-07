@@ -51,6 +51,16 @@ export type DatabaseWithQuiz = Omit<DatabaseWithPractice, "public"> & {
         Args: { p_quiz_id: string; p_status: string };
         Returns: boolean;
       };
+      update_generated_quiz_question: {
+        Args: {
+          p_quiz_id: string;
+          p_question_index: number;
+          p_prompt: string;
+          p_correct_answer: string;
+          p_explanation: string;
+        };
+        Returns: boolean;
+      };
     };
   };
 };
