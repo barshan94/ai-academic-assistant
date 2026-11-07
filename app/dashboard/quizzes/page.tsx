@@ -7,7 +7,7 @@ import type { DatabaseWithQuiz, GeneratedQuizRow } from "@/types/quiz-database";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 type QuizPageProps = {
-  searchParams: Promise<{ generate?: string; status?: string }>;
+  searchParams: Promise<{ generate?: string; status?: string; edit?: string }>;
 };
 
 export default async function QuizzesPage({ searchParams }: QuizPageProps) {
