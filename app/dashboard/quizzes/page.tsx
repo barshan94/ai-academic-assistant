@@ -31,6 +31,27 @@ export default async function QuizzesPage({ searchParams }: QuizPageProps) {
       .limit(30),
   ]);
 
+  const approvedQuestionIds = (questions ?? []).map((question) => question.id);
+  const { data: importanceMarks, error: importanceError } = approvedQuestionIds.length
+    ? await supabase.from("question_importance")
+      .select("question_id,importance_level,rationale")
+      .eq("owner_id", user.id)
+      .in("question_id", approvedQuestionIds)
+    : { data: [], error: null };
+  const importanceByQuestion = new Map((importanceMarks ?? []).map((mark) => [mark.question_id, mark]));
+  const importanceRank: Record<string, number> = { core: 3, high: 2, medium: 1 };
+  const rankedQuestions = [...(questions ?? [])].sort((a, b) =>
+    (importanceRank[importanceByQuestion.get(b.id)?.importance_level ?? ""] ?? 0) -
+    (importanceRank[importanceByQuestion.get(a.id)?.importance_level ?? ""] ?? 0)
+  );
+  const defaultSubject = subjects[0];
+  const preselectedImportantIds = new Set(
+    rankedQuestions
+      .filter((question) => question.subject === defaultSubject && importanceByQuestion.has(question.id))
+      .slice(0, 20)
+      .map((question) => question.id)
+  );
+
   const sourceQuestionIds = Array.from(new Set((quizzes ?? []).flatMap((quiz) => quiz.source_question_ids)));
   const { data: sourceQuestions, error: sourceQuestionError } = sourceQuestionIds.length
     ? await db.from("questions")
@@ -77,7 +98,7 @@ export default async function QuizzesPage({ searchParams }: QuizPageProps) {
       </section>
 
       {notice ? <p className="notice notice-info" role="status">{notice}</p> : null}
-      {questionError || quizError || sourceQuestionError ? <p className="notice notice-error">Some quiz workspace data could not be loaded. Refresh or check the database connection.</p> : null}
+      {questionError || quizError || sourceQuestionError || importanceError ? <p className="notice notice-error">Some quiz workspace data could not be loaded. Refresh or check the database connection.</p> : null}
 
       <section className="section">
         <div className="section-heading"><div><p className="eyebrow">NEW QUIZ DRAFT</p><h2>Choose source material</h2></div><span className="section-count">{questions?.length ?? 0} approved questions loaded</span></div>
@@ -93,12 +114,19 @@ export default async function QuizzesPage({ searchParams }: QuizPageProps) {
             </div>
             <div className="chapter-source-picker">
               <strong>Select 1–20 approved source questions from the selected subject</strong>
-              {(questions ?? []).map((question) => (
-                <label className="chapter-source-option" key={question.id}>
-                  <input type="checkbox" name="questionIds" value={question.id} />
-                  <span><strong>{question.subject ?? "Unspecified subject"}</strong>{question.chapter ? " · " + question.chapter : ""}{question.question_number ? " · Q" + question.question_number : ""}<br />{question.question_text.slice(0, 360)}</span>
-                </label>
-              ))}
+              <p className="question-card-meta">Your Core, High and Medium questions for the default subject are preselected first (up to 20). You can change the selection. Priority is a teacher's revision choice, not an exam prediction.</p>
+              {rankedQuestions.map((question) => {
+                const priority = importanceByQuestion.get(question.id);
+                return (
+                  <label className="chapter-source-option" key={question.id}>
+                    <input type="checkbox" name="questionIds" value={question.id} defaultChecked={preselectedImportantIds.has(question.id)} />
+                    <span><strong>{question.subject ?? "Unspecified subject"}</strong>{question.chapter ? " · " + question.chapter : ""}{question.question_number ? " · Q" + question.question_number : ""}
+                      {priority ? <span className="document-status"> · {priority.importance_level.toUpperCase()} PRIORITY</span> : null}
+                      <br />{question.question_text.slice(0, 360)}
+                    </span>
+                  </label>
+                );
+              })}
             </div>
             <p className="question-card-meta">The server rechecks ownership, approval status, duplicate IDs and subject consistency before sending source text to the configured provider. AI generation is opt-in and requires AI_ENABLED=true plus a quiz-capable provider.</p>
             <button className="primary-action" type="submit">Generate source-linked quiz draft →</button>
