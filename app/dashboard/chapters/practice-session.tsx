@@ -64,7 +64,7 @@ export default function PracticeSession({ questions, chapterTitle }: { questions
           <p className="eyebrow">ZERO-COST ACTIVE RECALL</p>
           <h4>Practice this chapter</h4>
         </div>
-        <span className="section-count">{questions.length} approved questions</span>
+        <span className="section-count">{questions.length} practice items</span>
       </div>
       {!started ? (
         <div className="hero-actions">
@@ -81,6 +81,7 @@ export default function PracticeSession({ questions, chapterTitle }: { questions
           <div className="chapter-practice-progress" role="progressbar" aria-label="Practice progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress.percent}>
             <span style={{ width: progress.percent + "%" }} />
           </div>
+          <p className="question-card-meta">{current.sourceLabel ?? "Approved question"}</p>
           <p className="chapter-practice-question">{current.questionNumber ? current.questionNumber + ". " : ""}{current.questionText}</p>
           <label className="practice-working-label">Your working / answer (kept only in this browser session; export before ending)
             <textarea rows={5} value={working[current.id] ?? ""} onChange={(event) => setWorking((previous) => ({ ...previous, [current.id]: event.target.value }))} placeholder="Write your method, calculations and final answer here. Nothing is uploaded or saved." />
