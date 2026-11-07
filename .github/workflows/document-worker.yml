@@ -12,6 +12,8 @@ concurrency:
 
 jobs:
   process-one-document:
+    # Never let this credentialed job run from an arbitrary dispatch ref.
+    if: github.ref == 'refs/heads/feature/m3-ai-solver'
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
@@ -23,10 +25,12 @@ jobs:
           test -n "$APP_BASE_URL" || { echo "::error::APP_BASE_URL secret is missing"; exit 1; }
           test -n "$CRON_SECRET" || { echo "::error::CRON_SECRET secret is missing"; exit 1; }
           [ "${#CRON_SECRET}" -ge 32 ] || { echo "::error::CRON_SECRET must contain at least 32 characters"; exit 1; }
-          case "$APP_BASE_URL" in
-            https://*) ;;
-            *) echo "::error::APP_BASE_URL must use HTTPS"; exit 1 ;;
-          esac
+          # This job sends CRON_SECRET to APP_BASE_URL. Restrict it to this
+          # repository's Vercel Preview hostname and an origin-only URL.
+          if [[ ! "$APP_BASE_URL" =~ ^https://ai-academic-assistant-[a-z0-9-]+-barshan-s-team\.vercel\.app$ ]]; then
+            echo "::error::APP_BASE_URL must be this project's Vercel Preview origin"
+            exit 1
+          fi
 
       - name: Invoke worker and validate sanitized result
         env:
