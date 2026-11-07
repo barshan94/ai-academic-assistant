@@ -1,6 +1,6 @@
 export type QuizSourceQuestion = {
   id: string;
-  question_number: number | null;
+  question_number: string | null;
   question_text: string;
   subject: string | null;
   chapter: string | null;
