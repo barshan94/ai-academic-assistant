@@ -7,6 +7,7 @@ import PrintNotesButton from "./print-notes-button";
 import DownloadChapterNoteButton from "./download-note-button";
 import PracticeSession from "./practice-session";
 import { checkFormulaSyntax } from "@/lib/ai/formula-checks";
+import { buildNoteRevisionQuestions } from "@/lib/chapters/practice-session";
 
 type PageProps = { searchParams: Promise<{ create?: string; status?: string; ai?: string }> };
 type NoteContent = {
@@ -139,6 +140,13 @@ export default async function ChapterWorkspacePage({ searchParams }: PageProps) 
               const catalog = catalogMap.get(chapter.catalog_id);
               const chapterQuestions = (questions ?? []).filter((item) => item.syllabus_chapter_id === chapter.id);
               const chapterNotes = (notes ?? []).filter((item) => item.chapter_id === chapter.id);
+              // Notes are ordered by version descending; only the newest approved version supplies prompts.
+              const latestApprovedNote = chapterNotes.find((note) => note.status === "approved");
+              const approvedNoteContent = latestApprovedNote?.content_json as unknown as NoteContent | undefined;
+              const noteRevisionQuestions = buildNoteRevisionQuestions(
+                latestApprovedNote?.id ?? null,
+                Array.isArray(approvedNoteContent?.revisionPrompts) ? approvedNoteContent.revisionPrompts : [],
+              );
               const chapterPageIds = new Set(chapterQuestions.map((q) => q.document_page_id).filter((id): id is string => Boolean(id)));
               const chapterPages = (pages ?? []).filter((page) => chapterPageIds.has(page.id));
               return (
@@ -148,9 +156,12 @@ export default async function ChapterWorkspacePage({ searchParams }: PageProps) 
                     <span className="question-subject">{catalog?.board} · {catalog?.subject} · {catalog?.version}</span>
                   </div>
                   <h3>{chapter.chapter_code ? chapter.chapter_code + " · " : ""}{chapter.title}</h3>
-                  <p className="question-card-meta">{chapterQuestions.length} linked questions · {chapterNotes.length} note versions</p>
+                  <p className="question-card-meta">{chapterQuestions.length} linked questions · {chapterNotes.length} note versions · {noteRevisionQuestions.length} prompts from the latest approved note</p>
 
-                  <PracticeSession chapterTitle={chapter.title} questions={chapterQuestions.map((question) => ({ id: question.id, questionNumber: question.question_number, questionText: question.question_text }))} />
+                  <PracticeSession chapterTitle={chapter.title} questions={[
+                    ...chapterQuestions.map((question) => ({ id: question.id, questionNumber: question.question_number, questionText: question.question_text })),
+                    ...noteRevisionQuestions,
+                  ]} />
 
                   <form action={generateChapterNoteDraft} className="chapter-ai-generate-form">
                     <input type="hidden" name="catalogId" value={chapter.catalog_id} />
