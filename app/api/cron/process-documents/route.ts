@@ -62,12 +62,29 @@ export async function POST(request: Request) {
   // One job per invocation keeps runtime bounded. The conditional UPDATE is
   // the claim operation: concurrent cron invocations cannot both own a job.
   const staleBefore = new Date(Date.now() - 15 * 60 * 1000).toISOString();
-  const { data: candidates, error: candidateError } = await supabase.rpc("list_claimable_document_jobs", {
-    p_stale_before: staleBefore,
-    p_limit: 10,
-  });
-
-  if (candidateError) return Response.json({ error: "Could not read the processing queue." }, { status: 500 });
+  let candidates;
+  try {
+    const result = await supabase.rpc("list_claimable_document_jobs", {
+      p_stale_before: staleBefore,
+      p_limit: 10,
+    });
+    if (result.error) {
+      logSafeOperationalEvent("document_queue_read_failed", {
+        route: "/api/cron/process-documents",
+        errorCode: "DOCUMENT_QUEUE_READ_FAILED",
+      });
+      return Response.json({ error: "Could not read the processing queue." }, { status: 500 });
+    }
+    candidates = result.data;
+  } catch {
+    // A rejected transport promise must be handled just like a returned
+    // database error; never let provider/connection details reach the caller.
+    logSafeOperationalEvent("document_queue_read_failed", {
+      route: "/api/cron/process-documents",
+      errorCode: "DOCUMENT_QUEUE_READ_FAILED",
+    });
+    return Response.json({ error: "Could not read the processing queue." }, { status: 500 });
+  }
   if (!candidates?.length) return Response.json({ processed: false, reason: "queue_empty" });
 
   for (const candidate of candidates) {
