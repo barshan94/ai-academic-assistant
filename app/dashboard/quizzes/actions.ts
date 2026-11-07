@@ -123,3 +123,40 @@ export async function updateQuizDraftStatus(formData: FormData) {
   revalidatePath("/dashboard/quizzes");
   redirect("/dashboard/quizzes?status=updated");
 }
+
+
+const editQuestionSchema = z.object({
+  quizId: z.string().uuid(),
+  questionIndex: z.coerce.number().int().min(0).max(29),
+  prompt: z.string().trim().min(1).max(2000),
+  correctAnswer: z.string().trim().min(1).max(1000),
+  explanation: z.string().trim().min(1).max(2000),
+});
+
+export async function updateQuizDraftQuestion(formData: FormData) {
+  const parsed = editQuestionSchema.safeParse({
+    quizId: formData.get("quizId") ?? "",
+    questionIndex: formData.get("questionIndex") ?? "",
+    prompt: formData.get("prompt") ?? "",
+    correctAnswer: formData.get("correctAnswer") ?? "",
+    explanation: formData.get("explanation") ?? "",
+  });
+  if (!parsed.success) redirect("/dashboard/quizzes?edit=invalid");
+
+  const supabase = await createSupabaseServerClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) redirect("/login");
+
+  const db = supabase as unknown as SupabaseClient<DatabaseWithQuiz>;
+  const { data, error } = await db.rpc("update_generated_quiz_question", {
+    p_quiz_id: parsed.data.quizId,
+    p_question_index: parsed.data.questionIndex,
+    p_prompt: parsed.data.prompt,
+    p_correct_answer: parsed.data.correctAnswer,
+    p_explanation: parsed.data.explanation,
+  });
+  if (error || !data) redirect("/dashboard/quizzes?edit=blocked");
+
+  revalidatePath("/dashboard/quizzes");
+  redirect("/dashboard/quizzes?edit=saved");
+}
