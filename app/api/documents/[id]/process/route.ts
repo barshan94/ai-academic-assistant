@@ -28,7 +28,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
   const { id } = await context.params;
   const { data: document, error: documentError } = await supabase
     .from("documents")
-    .select("id,drive_file_id,status")
+    .select("id,drive_file_id,status,file_size_bytes,sha256")
     .eq("id", id)
     .eq("owner_id", user.id)
     .single();
@@ -107,6 +107,8 @@ export async function POST(request: NextRequest, context: RouteContext) {
     const extractedText = await extractTextFromDrivePdf({
       accessToken,
       driveFileId: document.drive_file_id,
+      expectedSizeBytes: document.file_size_bytes,
+      expectedSha256: document.sha256,
     });
     const pages = splitExtractedText(extractedText);
 
