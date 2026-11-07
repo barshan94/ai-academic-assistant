@@ -58,6 +58,7 @@ export default async function DashboardPage() {
           <article className="module-card"><span className="module-number">08</span><h3>Custom practice sets</h3><p>Build focused sessions from approved questions and keep a history of your self-marked results.</p><Link className="document-open" href="/dashboard/practice">Create practice set ↗</Link></article>
           <article className="module-card"><span className="module-number">09</span><h3>Practice performance</h3><p>Review cross-session outcomes by subject, chapter and topic using your own recorded results.</p><Link className="document-open" href="/dashboard/practice/insights">View practice insights ↗</Link></article>
           <article className="module-card"><span className="module-number">10</span><h3>Quiz builder</h3><p>Generate source-linked MCQ and short-answer drafts, review explanations and approve teacher content.</p><Link className="document-open" href="/dashboard/quizzes">Open quiz workspace ↗</Link></article>
+          <article className="module-card"><span className="module-number">11</span><h3>Syllabus practice priorities</h3><p>Spot verified syllabus topics that still need approved question-bank coverage. No unsupported exam predictions.</p><Link className="document-open" href="/dashboard/priorities">Review study priorities ↗</Link></article>
         </div>
       </section>
     </main>
