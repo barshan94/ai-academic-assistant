@@ -36,6 +36,9 @@ export function parseGeneratedQuiz(raw: unknown, allowedRefs: string[]): Generat
   const quiz = quizSchema.parse(raw);
   const allowed = new Set(allowedRefs);
   for (const question of quiz.questions) {
+    if (new Set(question.sourceRefs).size !== question.sourceRefs.length) {
+      throw new AIProviderError("QUIZ_DUPLICATE_SOURCE");
+    }
     if (question.sourceRefs.some((ref) => !allowed.has(ref))) {
       throw new AIProviderError("QUIZ_UNKNOWN_SOURCE");
     }
