@@ -28,6 +28,12 @@ describe("academic answer schema", () => {
     expect(examAnswerSchema.safeParse({ ...valid, workingSteps: [{ step: "1" }] }).success).toBe(false);
   });
 
+  it("requires reasoning steps in new AI answers while preserving legacy saved drafts", () => {
+    const conceptualWithoutSteps = { ...valid, workingSteps: [] };
+    expect(examAnswerSchema.safeParse(conceptualWithoutSteps).success).toBe(true);
+    expect(() => parseExamAnswer(JSON.stringify(conceptualWithoutSteps))).toThrow();
+  });
+
   it("requires explicit verification arrays and bounds output sizes", () => {
     expect(examAnswerSchema.safeParse({ ...valid, chemistryChecks: undefined }).success).toBe(false);
     expect(examAnswerSchema.safeParse({ ...valid, examAnswer: "x".repeat(20001) }).success).toBe(false);
