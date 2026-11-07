@@ -149,7 +149,7 @@ export async function updateQuizDraftQuestion(formData: FormData) {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) redirect("/login");
 
-  const options = parsed.data.options === "" ? [] : parsed.data.options.split("\\n").map((value) => value.trim());
+  const options = parsed.data.options === "" ? [] : parsed.data.options.split("\n").map((value) => value.trim());
   if (options.some((value) => !value) || new Set(options).size !== options.length ||
       (options.length !== 0 && options.length !== 4)) {
     redirect("/dashboard/quizzes?edit=invalid");
