@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(15);
+select plan(20);
 
 insert into auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
 values
@@ -24,9 +24,15 @@ select is(public.consume_ai_generation_quota('ai-chapter-note'), true, 'second c
 select is(public.consume_ai_generation_quota('ai-chapter-note'), true, 'third chapter-note generation is allowed');
 select is(public.consume_ai_generation_quota('ai-chapter-note'), false, 'fourth chapter-note generation is blocked');
 
+select is(public.consume_ai_generation_quota('ai-quiz'), true, 'first quiz generation is allowed independently of answer and chapter-note usage');
+select is(public.consume_ai_generation_quota('ai-quiz'), true, 'second quiz generation is allowed');
+select is(public.consume_ai_generation_quota('ai-quiz'), true, 'third quiz generation is allowed');
+select is(public.consume_ai_generation_quota('ai-quiz'), false, 'fourth quiz generation is blocked');
+
 set local request.jwt.claim.sub = '11000000-0000-4000-8000-000000000022';
 set local request.jwt.claims = '{"sub":"11000000-0000-4000-8000-000000000022","role":"authenticated","email":"quota-outsider@example.test"}';
 select is(public.consume_ai_generation_quota('ai-solution'), true, 'another account has an independent quota');
+select is(public.consume_ai_generation_quota('ai-quiz'), true, 'another account has an independent quiz quota');
 
 set local request.jwt.claim.sub = '11000000-0000-4000-8000-000000000021';
 set local request.jwt.claims = '{"sub":"11000000-0000-4000-8000-000000000021","role":"authenticated","email":"quota-owner@example.test"}';
