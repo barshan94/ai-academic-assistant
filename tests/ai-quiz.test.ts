@@ -30,6 +30,13 @@ describe("source-grounded quiz validation", () => {
     }, ["S1"])).toThrow(new AIProviderError("QUIZ_UNKNOWN_SOURCE"));
   });
 
+  it("rejects duplicate source references rather than implying independent provenance", () => {
+    expect(() => parseGeneratedQuiz({
+      ...validQuiz,
+      questions: [{ ...validQuiz.questions[0], sourceRefs: ["S1", "S1"] }],
+    }, ["S1"])).toThrow(new AIProviderError("QUIZ_DUPLICATE_SOURCE"));
+  });
+
   it("rejects MCQs without exactly four distinct options or a matching answer", () => {
     expect(() => parseGeneratedQuiz({
       ...validQuiz,
