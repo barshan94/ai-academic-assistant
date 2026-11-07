@@ -1,6 +1,6 @@
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(10);
+select plan(12);
 
 insert into auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
 values
@@ -14,8 +14,8 @@ values ('63000000-0000-4000-8000-000000000001', '61000000-0000-4000-8000-0000000
 insert into public.questions (id, owner_id, document_id, document_page_id, question_text, subject, chapter, review_status)
 values ('64000000-0000-4000-8000-000000000001', '61000000-0000-4000-8000-000000000001', '62000000-0000-4000-8000-000000000001', '63000000-0000-4000-8000-000000000001', 'What is velocity?', 'Physics', 'Motion', 'approved');
 
-select ok(has_function_privilege('authenticated', 'public.update_generated_quiz_question(uuid,integer,text,text,text)', 'EXECUTE'), 'authenticated users can call the draft question edit RPC');
-select ok(not has_function_privilege('anon', 'public.update_generated_quiz_question(uuid,integer,text,text,text)', 'EXECUTE'), 'anonymous users cannot call the draft question edit RPC');
+select ok(has_function_privilege('authenticated', 'public.update_generated_quiz_question(uuid,integer,text,text[],text,text)', 'EXECUTE'), 'authenticated users can call the draft question edit RPC');
+select ok(not has_function_privilege('anon', 'public.update_generated_quiz_question(uuid,integer,text,text[],text,text)', 'EXECUTE'), 'anonymous users cannot call the draft question edit RPC');
 select ok(not has_table_privilege('authenticated', 'public.generated_quizzes', 'UPDATE'), 'authenticated users cannot bypass the edit RPC');
 
 create temporary table quiz_edit_fixture (id uuid);
@@ -35,7 +35,7 @@ select public.save_generated_quiz_draft(
 
 select ok((select id is not null from quiz_edit_fixture), 'owner can create a quiz draft for edit tests');
 select is(
-  public.update_generated_quiz_question((select id from quiz_edit_fixture), 0, 'Define velocity.', 'Speed in a direction', 'Velocity is speed with direction.'),
+  public.update_generated_quiz_question((select id from quiz_edit_fixture), 0, 'Define velocity.', array['Speed in a direction','Displacement per time','Mass times acceleration','Change in energy'], 'Speed in a direction', 'Velocity is speed with direction.'),
   true,
   'owner can edit prompt and explanation on an unpublished draft'
 );
@@ -49,17 +49,27 @@ select is(
   'Velocity is speed with direction.',
   'edited explanation is persisted'
 );
+select is(
+  (select quiz_json->'questions'->0->'options'->>1 from public.generated_quizzes where id=(select id from quiz_edit_fixture)),
+  'Displacement per time',
+  'edited MCQ options are persisted'
+);
 
 select throws_ok(
-  $sql$select public.update_generated_quiz_question((select id from quiz_edit_fixture), 0, 'Define velocity.', 'Wrong answer', 'Explanation')$sql$,
+  $sql$select public.update_generated_quiz_question((select id from quiz_edit_fixture), 0, 'Define velocity.', array['Speed in a direction','Displacement per time','Mass times acceleration','Change in energy'], 'Wrong answer', 'Explanation')$sql$,
   'P0001', 'MCQ answer must match one of its options',
   'MCQ correct answer must remain one of the existing options'
+);
+select throws_ok(
+  $sql$select public.update_generated_quiz_question((select id from quiz_edit_fixture), 0, 'Define velocity.', array['Only one option'], 'Only one option', 'Explanation')$sql$,
+  'P0001', 'MCQs require exactly four options',
+  'MCQ edits must contain exactly four options'
 );
 
 set local request.jwt.claim.sub = '61000000-0000-4000-8000-000000000002';
 set local request.jwt.claims = '{"sub":"61000000-0000-4000-8000-000000000002","role":"authenticated","email":"quiz-edit-other@example.test"}';
 select is(
-  public.update_generated_quiz_question((select id from quiz_edit_fixture), 0, 'Forged prompt', 'Speed in a direction', 'Forged explanation'),
+  public.update_generated_quiz_question((select id from quiz_edit_fixture), 0, 'Forged prompt', array['Speed in a direction','Displacement per time','Mass times acceleration','Change in energy'], 'Speed in a direction', 'Forged explanation'),
   false,
   'another account cannot edit the owner quiz'
 );
@@ -68,7 +78,7 @@ set local request.jwt.claim.sub = '61000000-0000-4000-8000-000000000001';
 set local request.jwt.claims = '{"sub":"61000000-0000-4000-8000-000000000001","role":"authenticated","email":"quiz-edit-owner@example.test"}';
 select public.update_generated_quiz_status((select id from quiz_edit_fixture), 'approved');
 select throws_ok(
-  $sql$select public.update_generated_quiz_question((select id from quiz_edit_fixture), 0, 'Late edit', 'Speed in a direction', 'Late explanation')$sql$,
+  $sql$select public.update_generated_quiz_question((select id from quiz_edit_fixture), 0, 'Late edit.', array['Speed in a direction','Displacement per time','Mass times acceleration','Change in energy'], 'Speed in a direction', 'Late explanation')$sql$,
   'P0001', 'Only quiz drafts can be edited',
   'approved quiz content is immutable through the draft edit RPC'
 );
