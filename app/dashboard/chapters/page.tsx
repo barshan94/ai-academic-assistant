@@ -228,6 +228,43 @@ export default async function ChapterWorkspacePage({ searchParams }: PageProps) 
                           })}
                         </div>
                         {note.supersedes_id ? <p className="question-card-meta">Revision of an earlier version.</p> : null}
+                        <details className="chapter-note-author">
+                          <summary>Create a revised version of this note</summary>
+                          <form action={createChapterNoteDraft} className="review-form">
+                            <input type="hidden" name="catalogId" value={chapter.catalog_id} />
+                            <input type="hidden" name="chapterId" value={chapter.id} />
+                            <input type="hidden" name="supersedesId" value={note.id} />
+                            <label>Revised note title<input name="title" required maxLength={200} defaultValue={note.title} /></label>
+                            <label>Chapter summary<textarea name="summary" rows={3} maxLength={4000} defaultValue={content.summary ?? ""} /></label>
+                            <div className="question-fields">
+                              <label>Key concepts (one per line)<textarea name="concepts" rows={4} maxLength={8000} defaultValue={content.concepts?.join("\n") ?? ""} /></label>
+                              <label>Formulas (one per line)<textarea name="formulas" rows={4} maxLength={5000} defaultValue={content.formulas?.join("\n") ?? ""} /></label>
+                              <label>Worked examples (one per line)<textarea name="workedExamples" rows={4} maxLength={10000} defaultValue={content.workedExamples?.join("\n") ?? ""} /></label>
+                            </div>
+                            <label>Revision prompts (one per line)<textarea name="revisionPrompts" rows={3} maxLength={5000} defaultValue={content.revisionPrompts?.join("\n") ?? ""} /></label>
+                            <div className="chapter-source-picker">
+                              <strong>Keep or change source questions</strong>
+                              {chapterQuestions.map((question) => (
+                                <label className="chapter-source-option" key={question.id}>
+                                  <input type="checkbox" name="questionIds" value={question.id} defaultChecked={noteSources.some((source) => source.source_kind === "question" && source.question_id === question.id)} />
+                                  <span>{question.question_number ? question.question_number + ". " : ""}{question.question_text.slice(0, 260)}</span>
+                                </label>
+                              ))}
+                            </div>
+                            {chapterPages.length ? <div className="chapter-source-picker">
+                              <strong>Keep or change source pages</strong>
+                              {chapterPages.map((page) => {
+                                const doc = documentMap.get(page.document_id);
+                                return <label className="chapter-source-option" key={page.id}>
+                                  <input type="checkbox" name="documentPageIds" value={page.id} defaultChecked={noteSources.some((source) => source.source_kind === "document_page" && source.document_page_id === page.id)} />
+                                  <span>{doc?.file_name ?? "Source document"} · page {page.page_number}</span>
+                                </label>;
+                              })}
+                            </div> : null}
+                            <p className="question-card-meta">Saving creates a new immutable version and preserves this version's history. At least one valid source is required. Review and approve the new version separately.</p>
+                            <button className="primary-action" type="submit">Save revised version →</button>
+                          </form>
+                        </details>
                         {note.status === "draft" ? <div className="question-review-actions">
                           <form action={updateChapterNoteStatus}><input type="hidden" name="noteId" value={note.id} /><input type="hidden" name="status" value="approved" /><button className="document-action" type="submit">Approve reviewed draft</button></form>
                           <form action={updateChapterNoteStatus}><input type="hidden" name="noteId" value={note.id} /><input type="hidden" name="status" value="archived" /><button className="document-action document-action-muted" type="submit">Archive</button></form>
