@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(60);
+select plan(64);
 
 -- Isolated identities and records. This test runs inside a transaction and rolls back.
 insert into auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
@@ -268,6 +268,33 @@ select throws_ok(
   '42501',
   null,
   'accepted teacher cannot insert an owner-private mark scheme'
+);
+
+-- The authorized review RPC validates the decision and correction payload
+-- before writing any audit event or changing verification state.
+select throws_ok(
+  $select public.record_teacher_solution_review('40000000-0000-4000-8000-000000000001', 'maybe', null)$,
+  '22023',
+  'Invalid teacher review decision',
+  'teacher review rejects an unsupported decision'
+);
+select throws_ok(
+  $select public.record_teacher_solution_review('40000000-0000-4000-8000-000000000001', 'needs_correction', null)$,
+  '22023',
+  'Correction notes are required',
+  'a correction decision requires explanatory notes'
+);
+select throws_ok(
+  $select public.record_teacher_solution_review('40000000-0000-4000-8000-000000000001', 'needs_correction', repeat('x', 5001))$,
+  '22023',
+  'Review notes must not exceed 5000 characters',
+  'teacher review rejects correction notes above the 5000-character limit'
+);
+select throws_ok(
+  $select public.record_teacher_solution_review('40000000-0000-4000-8000-000000000099', 'approved', null)$,
+  'P0002',
+  'Solution not found',
+  'teacher review rejects a nonexistent solution without creating an audit event'
 );
 
 -- Teacher reviews use the authorized RPC. Direct table INSERT is no longer
