@@ -1,4 +1,5 @@
 import { MAX_UPLOAD_BYTES } from "@/lib/documents/upload-limits";
+import { readLimitedResponseText } from "@/lib/http/read-limited-response";
 
 export type ResumableUploadStatus = {
   complete: boolean;
@@ -32,29 +33,42 @@ export async function queryResumableUploadStatus(
       "Content-Range": `bytes */${totalBytes}`,
     },
   });
-  const body = await response.json() as {
-    error?: string;
-    complete?: boolean;
-    nextOffset?: number;
-  };
 
-  if (!response.ok) {
-    throw new Error(body.error || "Could not check the upload position.");
+  let body: unknown;
+  try {
+    body = JSON.parse(await readLimitedResponseText(response, 16 * 1024));
+  } catch {
+    throw new Error("The upload status response was invalid or too large.");
+  }
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    throw new Error("The upload status response was invalid.");
   }
 
-  const nextOffset = body.nextOffset;
+  const payload = body as {
+    error?: unknown;
+    complete?: unknown;
+    nextOffset?: unknown;
+  };
+  if (!response.ok) {
+    const message = typeof payload.error === "string" && payload.error.length > 0 && payload.error.length <= 300
+      ? payload.error
+      : "Could not check the upload position.";
+    throw new Error(message);
+  }
+
+  const nextOffset = payload.nextOffset;
   if (
-    typeof body.complete !== "boolean" ||
+    typeof payload.complete !== "boolean" ||
     typeof nextOffset !== "number" ||
     !Number.isSafeInteger(nextOffset) ||
     nextOffset < 0 ||
     nextOffset > totalBytes ||
-    (body.complete && nextOffset !== totalBytes)
+    (payload.complete && nextOffset !== totalBytes)
   ) {
     throw new Error("Google Drive returned an invalid resume position. The upload was stopped safely.");
   }
 
-  return { complete: body.complete, nextOffset };
+  return { complete: payload.complete, nextOffset };
 }
 
 /**
