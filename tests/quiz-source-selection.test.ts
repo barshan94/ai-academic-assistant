@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   getPreselectedQuizSourceIds,
   getQuizQuestionsForSubject,
+  getQuizSourceScopeError,
   type QuizSourceQuestion,
   type QuizSourceImportance,
 } from "@/lib/quiz-source-selection";
@@ -36,6 +37,14 @@ describe("quiz source subject selection", () => {
   it("does not preselect questions from another subject", () => {
     expect(getPreselectedQuizSourceIds(questions, importance, "Physics"))
       .not.toContain("c1");
+  });
+
+
+  it("rejects source questions outside the requested subject or chapter", () => {
+    expect(getQuizSourceScopeError([questions[0], questions[2]], "Physics", null)).toBeNull();
+    expect(getQuizSourceScopeError([questions[0], questions[2]], "Chemistry", null)).toBe("subject");
+    expect(getQuizSourceScopeError([questions[0], questions[2]], "Physics", "Motion")).toBe("chapter");
+    expect(getQuizSourceScopeError([questions[0]], "Physics", "Motion")).toBeNull();
   });
 
   it("limits automatic preselection to twenty questions", () => {
