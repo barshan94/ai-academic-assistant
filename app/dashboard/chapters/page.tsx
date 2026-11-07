@@ -237,6 +237,8 @@ export default async function ChapterWorkspacePage({ searchParams }: PageProps) 
                             <input type="hidden" name="catalogId" value={chapter.catalog_id} />
                             <input type="hidden" name="chapterId" value={chapter.id} />
                             <input type="hidden" name="supersedesId" value={note.id} />
+                            {noteSources.filter((source) => source.source_kind === "question" && source.question_id && !chapterQuestions.some((question) => question.id === source.question_id)).map((source) => <input key={source.id} type="hidden" name="questionIds" value={source.question_id!} />)}
+                            {noteSources.filter((source) => source.source_kind === "document_page" && source.document_page_id && !chapterPages.some((page) => page.id === source.document_page_id)).map((source) => <input key={source.id} type="hidden" name="documentPageIds" value={source.document_page_id!} />)}
                             <label>Revised note title<input name="title" required maxLength={200} defaultValue={note.title} /></label>
                             <label>Chapter summary<textarea name="summary" rows={3} maxLength={4000} defaultValue={content.summary ?? ""} /></label>
                             <div className="question-fields">
