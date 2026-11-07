@@ -115,7 +115,7 @@ export async function POST(request: Request) {
 
     try {
       const [{ data: document, error: documentError }, { data: connection, error: connectionError }] = await Promise.all([
-        supabase.from("documents").select("id,drive_file_id,status").eq("id", documentId).eq("owner_id", ownerId).maybeSingle(),
+        supabase.from("documents").select("id,drive_file_id,status,file_size_bytes,sha256").eq("id", documentId).eq("owner_id", ownerId).maybeSingle(),
         supabase.from("drive_connections").select("encrypted_refresh_token").eq("owner_id", ownerId).maybeSingle(),
       ]);
       if (documentError || !document?.drive_file_id) throw new Error("The source document or its Drive file is unavailable.");
@@ -139,7 +139,12 @@ export async function POST(request: Request) {
       }
 
       const accessToken = await refreshDriveAccessToken(connection.encrypted_refresh_token);
-      const extractedText = await extractTextFromDrivePdf({ accessToken, driveFileId: document.drive_file_id });
+      const extractedText = await extractTextFromDrivePdf({
+        accessToken,
+        driveFileId: document.drive_file_id,
+        expectedSizeBytes: document.file_size_bytes,
+        expectedSha256: document.sha256,
+      });
       const pages = splitExtractedText(extractedText);
       if (!pages.length) throw new Error("No readable text was detected. The file needs manual review.");
       if (pages.length > 100) throw new Error("The document exceeded the 100-page processing limit.");
