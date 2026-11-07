@@ -9,6 +9,7 @@ export const REQUIRED_READINESS_TABLES = [
   "question_solution_mark_schemes",
   "question_teacher_invites",
   "question_solution_reviews",
+  "generated_quizzes",
   "question_classification_history",
   "syllabus_catalogs",
   "syllabus_chapters",
