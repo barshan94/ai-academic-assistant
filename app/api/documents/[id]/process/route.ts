@@ -34,6 +34,9 @@ export async function POST(request: NextRequest, context: RouteContext) {
     .single();
 
   if (documentError || !document?.drive_file_id) return redirectToDocument(request, id, "not_found");
+  if (!Number.isSafeInteger(document.file_size_bytes) || document.file_size_bytes < 1 || typeof document.sha256 !== "string" || !/^[a-f0-9]{64}$/.test(document.sha256)) {
+    return redirectToDocument(request, id, "integrity_metadata_missing");
+  }
   if (document.status === "ready") return redirectToDocument(request, id, "already_reviewed");
 
   const { data: job, error: jobError } = await supabase
