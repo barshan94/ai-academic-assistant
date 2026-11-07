@@ -7,10 +7,16 @@ export async function consumeAIGenerationQuota(
   supabase: SupabaseClient,
   bucket: "ai-solution" | "ai-chapter-note" | "ai-quiz",
 ): Promise<AIGenerationQuotaResult> {
-  const { data, error } = await supabase.rpc("consume_ai_generation_quota", {
-    p_bucket: bucket,
-  });
+  try {
+    const { data, error } = await supabase.rpc("consume_ai_generation_quota", {
+      p_bucket: bucket,
+    });
 
-  if (error || typeof data !== "boolean") return "unavailable";
-  return data ? "allowed" : "limited";
+    if (error || typeof data !== "boolean") return "unavailable";
+    return data ? "allowed" : "limited";
+  } catch {
+    // Fail closed if the quota RPC cannot be reached; never make an AI call
+    // when usage admission cannot be confirmed.
+    return "unavailable";
+  }
 }
