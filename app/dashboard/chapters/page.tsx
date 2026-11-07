@@ -261,7 +261,7 @@ export default async function ChapterWorkspacePage({ searchParams }: PageProps) 
                                 </label>;
                               })}
                             </div> : null}
-                            <p className="question-card-meta">Saving creates a new immutable version and preserves this version's history. At least one valid source is required. Review and approve the new version separately.</p>
+                            <p className="question-card-meta">Saving creates a new immutable version and preserves this version&apos;s history. At least one valid source is required. Review and approve the new version separately.</p>
                             <button className="primary-action" type="submit">Save revised version →</button>
                           </form>
                         </details>
