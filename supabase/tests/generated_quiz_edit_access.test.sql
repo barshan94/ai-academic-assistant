@@ -19,6 +19,7 @@ select ok(not has_function_privilege('anon', 'public.update_generated_quiz_quest
 select ok(not has_table_privilege('authenticated', 'public.generated_quizzes', 'UPDATE'), 'authenticated users cannot bypass the edit RPC');
 
 create temporary table quiz_edit_fixture (id uuid);
+grant all on table quiz_edit_fixture to authenticated;
 set local role authenticated;
 set local request.jwt.claim.sub = '61000000-0000-4000-8000-000000000001';
 set local request.jwt.claims = '{"sub":"61000000-0000-4000-8000-000000000001","role":"authenticated","email":"quiz-edit-owner@example.test"}';
