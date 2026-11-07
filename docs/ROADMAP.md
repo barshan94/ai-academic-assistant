@@ -554,3 +554,16 @@ This checkpoint records isolated CI success only. It does not authorize merge, d
 - [ ] Remaining release gates are unchanged: live AI-provider generation and human grading, live Google Drive/OCR acceptance, hosted migration reconciliation, actual backup/restore proof, accessibility, privacy/academic/operations sign-off and release approval.
 
 This checkpoint confirms isolated CI only. It does not establish production readiness or authorize merge, deployment or production database changes.
+
+
+## Current feature-branch verification — 2026-11-07 (commit 57dcd876)
+
+- [x] Foundation workflow [42368530556](https://github.com/barshan94/ai-academic-assistant/actions/runs/42368530556): lint, application type-check, unit tests, production build and configured browser smoke checks passed.
+- [x] Database authorization workflow [42368530554](https://github.com/barshan94/ai-academic-assistant/actions/runs/42368530554): isolated local migration replay and pgTAP authorization tests passed.
+- [x] Generated quiz validation rejects duplicate source-reference labels in both the application parser and the database RPC; regression tests cover each boundary.
+- [x] Quiz source selection now filters approved questions by the selected subject, resets preselection when the subject changes, prioritizes marked questions for that subject and caps selection at 20.
+- [x] A first Foundation run for the subject-picker change caught a TypeScript mismatch between the database's string question-number field and a numeric test/helper assumption. The helper/test data were aligned with the database representation; the later exact-head Foundation and database workflows above passed.
+
+These checks establish isolated CI only. They do not validate live AI output, provider availability/cost, Google Drive/OCR round trips, hosted database parity, accessibility, or production deployment.
+
+Remaining release gates are unchanged: live AI-provider generation and independent human grading; live Google Drive upload/retrieval/interruption-resume/OCR acceptance; hosted migration/schema review within the owner's no-hosted-mutation restriction; Free-plan security limitations and accepted mitigation; recovery proof within the owner's approved scope; manual accessibility/device checks; privacy/legal and academic review; named operational ownership; and explicit release approval. Keep PR #1 draft and unmerged; do not deploy Production or mutate hosted data/configuration.
