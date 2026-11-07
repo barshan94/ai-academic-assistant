@@ -56,7 +56,7 @@ export default async function PrioritiesPage() {
     : { data: [] as PriorityQuestion[], error: null };
 
   const catalogMap = new Map((catalogs ?? []).map((catalog) => [catalog.id, catalog]));
-  const topicsByChapter = new Map<string, typeof topics>();
+  const topicsByChapter = new Map<string, NonNullable<typeof topics>>();
   for (const topic of topics ?? []) {
     const items = topicsByChapter.get(topic.chapter_id) ?? [];
     items.push(topic);
