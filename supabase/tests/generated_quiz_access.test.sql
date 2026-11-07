@@ -1,7 +1,7 @@
 begin;
 
 create extension if not exists pgtap with schema extensions;
-select plan(16);
+select plan(17);
 
 insert into auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
 values
@@ -95,6 +95,16 @@ select throws_ok(
   )$sql$,
   'P0001', 'Quiz references an unavailable source',
   'database rejects a source reference outside the saved source list'
+);
+
+select throws_ok(
+  $sql$select public.save_generated_quiz_draft(
+    'Duplicate source references', 'Physics', null,
+    '{"title":"Duplicate source references","instructions":"Answer","questions":[{"type":"short_answer","prompt":"Q","options":[],"correctAnswer":"A","explanation":"E","difficulty":"easy","sourceRefs":["S1","S1"]}]}'::jsonb,
+    array['54000000-0000-4000-8000-000000000001']::uuid[]
+  )$sql$,
+  'P0001', 'Quiz source references must be distinct',
+  'database rejects duplicated source references within a generated question'
 );
 
 select throws_ok(
