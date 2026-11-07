@@ -127,17 +127,18 @@ export function ResumableUploadForm({ disabled }: { disabled: boolean }) {
       while (!complete && offset < normalized.bytes.byteLength) {
         const end = Math.min(offset + DRIVE_UPLOAD_CHUNK_BYTES, normalized.bytes.byteLength);
         const chunk = normalized.bytes.slice(offset, end);
-        const response = await fetch("/api/documents/upload/resumable/chunk", {
-          method: "POST",
-          headers: {
-            "X-Upload-Session": stored.sessionToken,
-            "Content-Range": `bytes ${offset}-${end - 1}/${normalized.bytes.byteLength}`,
-            "Content-Type": "application/octet-stream",
-          },
-          body: chunk,
-        });
-
         try {
+          // Include network-level fetch failures in the recovery path. Drive may
+          // have accepted the chunk even when the browser never received its response.
+          const response = await fetch("/api/documents/upload/resumable/chunk", {
+            method: "POST",
+            headers: {
+              "X-Upload-Session": stored.sessionToken,
+              "Content-Range": `bytes ${offset}-${end - 1}/${normalized.bytes.byteLength}`,
+              "Content-Type": "application/octet-stream",
+            },
+            body: chunk,
+          });
           const result = await readJson(response);
           const confirmedStatus = {
             complete: result.complete === true,
