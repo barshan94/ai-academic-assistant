@@ -34,11 +34,11 @@ begin
   end if;
   if p_quiz_json is null or jsonb_typeof(p_quiz_json) <> 'object'
      or octet_length(p_quiz_json::text) > 250000
-     or jsonb_typeof(p_quiz_json->'title') <> 'string'
+     or jsonb_typeof(p_quiz_json->'title') is distinct from 'string'
      or char_length(trim(p_quiz_json->>'title')) not between 1 and 160
-     or jsonb_typeof(p_quiz_json->'instructions') <> 'string'
+     or jsonb_typeof(p_quiz_json->'instructions') is distinct from 'string'
      or char_length(trim(p_quiz_json->>'instructions')) not between 1 and 1000
-     or jsonb_typeof(p_quiz_json->'questions') <> 'array'
+     or jsonb_typeof(p_quiz_json->'questions') is distinct from 'array'
      or jsonb_array_length(p_quiz_json->'questions') not between 1 and 30 then
     raise exception 'Invalid quiz content';
   end if;
@@ -62,24 +62,24 @@ begin
   for v_question in
     select item.value from jsonb_array_elements(p_quiz_json->'questions') as item(value)
   loop
-    if jsonb_typeof(v_question) <> 'object'
+    if jsonb_typeof(v_question) is distinct from 'object'
        or coalesce(v_question->>'type', '') not in ('mcq', 'short_answer')
-       or jsonb_typeof(v_question->'prompt') <> 'string'
+       or jsonb_typeof(v_question->'prompt') is distinct from 'string'
        or char_length(trim(v_question->>'prompt')) not between 1 and 2000
-       or jsonb_typeof(v_question->'correctAnswer') <> 'string'
+       or jsonb_typeof(v_question->'correctAnswer') is distinct from 'string'
        or char_length(trim(v_question->>'correctAnswer')) not between 1 and 1000
-       or jsonb_typeof(v_question->'explanation') <> 'string'
+       or jsonb_typeof(v_question->'explanation') is distinct from 'string'
        or char_length(trim(v_question->>'explanation')) not between 1 and 2000
        or coalesce(v_question->>'difficulty', '') not in ('easy', 'medium', 'hard')
-       or jsonb_typeof(v_question->'options') <> 'array'
-       or jsonb_typeof(v_question->'sourceRefs') <> 'array'
+       or jsonb_typeof(v_question->'options') is distinct from 'array'
+       or jsonb_typeof(v_question->'sourceRefs') is distinct from 'array'
        or jsonb_array_length(v_question->'sourceRefs') not between 1 and 20 then
       raise exception 'Invalid quiz question structure';
     end if;
 
     if exists (
       select 1 from jsonb_array_elements(v_question->'sourceRefs') as refs(value)
-      where jsonb_typeof(refs.value) <> 'string'
+      where jsonb_typeof(refs.value) is distinct from 'string'
     ) then
       raise exception 'Invalid quiz source reference';
     end if;
@@ -100,7 +100,7 @@ begin
       if jsonb_array_length(v_options) <> 4
          or exists (
            select 1 from jsonb_array_elements(v_options) as options(value)
-           where jsonb_typeof(options.value) <> 'string'
+           where jsonb_typeof(options.value) is distinct from 'string'
              or char_length(trim(options.value #>> '{}')) not between 1 and 500
          ) then
         raise exception 'MCQs require four non-empty text options';
