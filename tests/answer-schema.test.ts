@@ -10,6 +10,10 @@ const valid = {
   bengaliExplanation: "নিউটনের দ্বিতীয় সূত্র।",
   englishExplanation: "Newton's second law.",
   keyConcepts: ["Force"],
+  tips: ["Check units before substituting."],
+  shortcuts: [],
+  alternativeMethods: [],
+  commonMistakes: ["Confusing mass and weight."],
   assumptions: [],
   limitations: [],
 };
@@ -30,7 +34,7 @@ describe("academic answer schema", () => {
     expect(examAnswerSchema.safeParse({ ...valid, keyConcepts: Array(21).fill("concept") }).success).toBe(false);
   });
 
-  it("parses JSON without accepting malformed content", () => {
+  it("backfills new study-guidance fields for older saved answers", () => {\n    const legacy = { ...valid };\n    delete (legacy as Partial<typeof valid>).tips;\n    delete (legacy as Partial<typeof valid>).shortcuts;\n    delete (legacy as Partial<typeof valid>).alternativeMethods;\n    delete (legacy as Partial<typeof valid>).commonMistakes;\n    const parsed = examAnswerSchema.parse(legacy);\n    expect(parsed.tips).toEqual([]);\n    expect(parsed.shortcuts).toEqual([]);\n    expect(parsed.alternativeMethods).toEqual([]);\n    expect(parsed.commonMistakes).toEqual([]);\n  });\n\n  it("bounds each generated study-guidance list", () => {\n    expect(examAnswerSchema.safeParse({ ...valid, tips: Array(13).fill("tip") }).success).toBe(false);\n    expect(examAnswerSchema.safeParse({ ...valid, shortcuts: ["x".repeat(501)] }).success).toBe(false);\n  });\n\n  it("parses JSON without accepting malformed content", () => {
     expect(parseExamAnswer(JSON.stringify(valid))).toEqual(valid);
     expect(() => parseExamAnswer("not-json")).toThrow();
   });
