@@ -29,6 +29,21 @@ describe("chapter note Markdown export", () => {
     expect(markdown).toContain("[S1] Question ID: question-123 · Page ID: page-456 · Page 4 · Extraction: pdf_text");
   });
 
+  it("labels free offline extraction honestly and preserves generation provenance", () => {
+    const markdown = buildChapterNoteMarkdown("Forces", {
+      generatedBy: "offline-extractive",
+      generationProvider: "local-no-api",
+      generationModel: "deterministic-source-extraction-v1",
+      verificationStatus: "not_independently_verified",
+    });
+    expect(markdown).toContain("Free offline source-extraction draft.");
+    expect(markdown).toContain("does not generate explanations or solve questions");
+    expect(markdown).toContain("- Provider: local-no-api");
+    expect(markdown).toContain("- Model: deterministic-source-extraction-v1");
+    expect(markdown).toContain("- Verification status: not_independently_verified");
+    expect(markdown).not.toContain("Owner-authored study note.");
+  });
+
   it("marks manually authored notes distinctly", () => {
     expect(buildChapterNoteMarkdown("My note", {})).toContain("Owner-authored study note.");
     expect(buildChapterNoteMarkdown("My note", {})).not.toContain("AI-generated draft.");
