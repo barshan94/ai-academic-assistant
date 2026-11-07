@@ -54,4 +54,33 @@ describe("cross-subject golden-set deterministic anchors", () => {
     expect(result.calculatedResult).toBe(15);
   });
 
+
+  it("rejects incorrect claims across arithmetic, physics units and chemical balance", () => {
+    const linear = checkCalculations([
+      { expression: "12 / 2", claimedResult: 5, unit: "" },
+    ])[0];
+    const force = checkCalculations([
+      { expression: "2.0 * 3.0", claimedResult: 5.0, unit: "N" },
+    ])[0];
+    const wrongUnit = checkPhysicsUnits([
+      { formulaUnit: "kg*m/s^2", claimedUnit: "kg" },
+    ])[0];
+    const unbalanced = checkChemicalEquations([
+      { equation: "Mg + O2 -> MgO", claimedBalanced: false },
+    ])[0];
+    const falseBalanceClaim = checkChemicalEquations([
+      { equation: "Mg + O2 -> MgO", claimedBalanced: true },
+    ])[0];
+    const wrongPercentage = checkCalculations([
+      { expression: "(92 - 80) / 92 * 100", claimedResult: 15, unit: "%" },
+    ])[0];
+
+    expect(linear.status).toBe("mismatch");
+    expect(force.status).toBe("mismatch");
+    expect(wrongUnit.status).toBe("dimension_mismatch");
+    expect(unbalanced.status).toBe("unbalanced");
+    expect(falseBalanceClaim.status).toBe("claim_mismatch");
+    expect(wrongPercentage.status).toBe("mismatch");
+  });
+
 });
