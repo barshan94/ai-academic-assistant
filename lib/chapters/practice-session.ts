@@ -75,3 +75,24 @@ export function buildPracticeAnswerFilename(chapterTitle: string): string {
     .replace(/-+$/g, "");
   return `${safeName || "chapter"}-practice-answers.txt`;
 }
+
+
+/** Convert teacher-approved note prompts into local active-recall items. */
+export function buildNoteRevisionQuestions(
+  noteId: string | null,
+  prompts: readonly string[],
+  maxPrompts = 30,
+): PracticeQuestion[] {
+  if (!noteId || !/^[0-9a-f-]{36}$/i.test(noteId) ||
+      !Number.isInteger(maxPrompts) || maxPrompts < 1 || maxPrompts > 30) return [];
+  return prompts
+    .filter((prompt): prompt is string => typeof prompt === "string")
+    .map((prompt) => prompt.trim())
+    .filter((prompt) => prompt.length > 0)
+    .slice(0, maxPrompts)
+    .map((prompt, index) => ({
+      id: `note-${noteId}-${index + 1}`,
+      questionNumber: `Approved note prompt ${index + 1}`,
+      questionText: prompt.slice(0, 2000),
+    }));
+}
