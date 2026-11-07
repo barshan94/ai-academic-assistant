@@ -30,6 +30,14 @@ export default async function PracticeDetailPage({ params, searchParams }: Props
       .eq("practice_set_id", id).eq("owner_id", user.id).order("position", { ascending: true }),
   ]);
   if (!set && !setError) notFound();
+
+  // Resolve original source links with an owner-scoped query. The saved snapshot remains
+  // readable even if its original question was later removed or unapproved.
+  const sourceIds = Array.from(new Set((items ?? []).flatMap((item) => item.question_id ? [item.question_id] : [])));
+  const { data: sourceQuestions, error: sourceQuestionError } = sourceIds.length
+    ? await supabase.from("questions").select("id").eq("owner_id", user.id).in("id", sourceIds)
+    : { data: [], error: null };
+  const availableSourceIds = new Set((sourceQuestions ?? []).map((question) => question.id));
   const message = query.revision === "scheduled" ? "Added to your revision queue using the confidence rating you selected."
     : query.revision === "failed" ? "Could not schedule revision. The original question may have been deleted or is no longer approved."
     : query.revision === "invalid" ? "The revision scheduling form was invalid."
@@ -60,6 +68,7 @@ export default async function PracticeDetailPage({ params, searchParams }: Props
       </section>
       {message ? <p className={query.save === "updated" || query.revision === "scheduled" ? "notice notice-info" : "notice notice-error"} role="status">{message}</p> : null}
       {setError || itemsError ? <p className="notice notice-error">Could not load this practice session.</p> : null}
+      {sourceQuestionError ? <p className="notice notice-error">Original source links could not be checked. Your saved question snapshots are still available.</p> : null}
       <section className="section">
         <div className="module-grid revision-stats">
           <article className="module-card"><span className="module-number">{correct}</span><h3>Correct</h3><p>Self-marked correct answers.</p></article>
@@ -76,6 +85,9 @@ export default async function PracticeDetailPage({ params, searchParams }: Props
               <div className="question-card-heading"><span className="document-status">Question {item.position} · {item.outcome ? outcomeLabels[item.outcome] : "Awaiting result"}</span><span className="question-subject">{item.subject ?? "Subject not set"}</span></div>
               <p className="question-card-text">{item.question_number ? item.question_number + ". " : ""}{item.question_text}</p>
               <p className="question-card-meta">{[item.chapter,item.topic].filter(Boolean).join(" · ") || "No chapter/topic mapping"}</p>
+              {item.question_id && availableSourceIds.has(item.question_id)
+                ? <p className="question-card-meta"><Link className="document-open" href={"/dashboard/questions/" + item.question_id}>Open original approved question ↗</Link></p>
+                : <p className="question-card-meta">Original question is no longer available; this saved practice snapshot is retained.</p>}
               {item.outcome ? <p className="question-card-meta">Last recorded: {outcomeLabels[item.outcome]}{item.response_notes ? " · " + item.response_notes : ""} · {item.answered_at ? new Date(item.answered_at).toLocaleString() : ""}</p> : null}
               <form action={recordPracticeAnswer} className="revision-rating-form">
                 <input type="hidden" name="itemId" value={item.id} />
