@@ -22,7 +22,7 @@ Use HTTPS endpoints. Plain HTTP is allowed only for localhost development. Do no
 
 ## Optional task-aware provider pool
 
-To configure up to eight compatible providers, set `AI_PROVIDER_POOL` to a JSON array. Each entry requires `name`, `baseUrl`, `apiKey`, `model` and a non-empty `tasks` array containing `answer`, `chapter-note`, or both. `priority` is an optional integer from 0 to 1000; lower numbers are tried first. `enabled` defaults to true.
+To configure up to eight compatible providers, set `AI_PROVIDER_POOL` to a JSON array. Each entry requires `name`, `baseUrl`, `apiKey`, `model` and a non-empty `tasks` array containing one or more of `answer`, `chapter-note`, and `quiz`. `priority` is an optional integer from 0 to 1000; lower numbers are tried first. `enabled` defaults to true.
 
 Example shape (replace the placeholders only in the server environment):
 
@@ -48,13 +48,13 @@ Example shape (replace the placeholders only in the server environment):
 ]
 ```
 
-The router filters providers by task and orders them by owner-defined priority. It records the actual provider/model used with each saved answer or chapter note.
+The router filters providers by task (`answer`, `chapter-note`, or `quiz`) and orders them by owner-defined priority. It records the actual provider/model used with each saved answer or chapter note.
 
 ## Fallback and cost safety
 
 Fallback is disabled by default. Set `AI_ALLOW_PROVIDER_FALLBACKS=true` only when every configured endpoint is explicitly approved for the possible additional usage charges. When enabled, another provider is attempted only after network/timeout unavailability, malformed/empty provider responses, or HTTP 408, 425, 429 and 5xx responses. Permanent 4xx failures (including invalid requests, authentication/authorization failures, missing models and payload-size rejection) stop immediately rather than being retried against another provider. Invalid local input is never retried. This avoids spending on fallback calls that cannot repair a permanent configuration or request error.
 
-The router does not yet estimate per-model token cost or dynamically score quality, latency or historical availability. Priority is a manual owner-controlled choice, not an automatic price optimizer. AI answer and chapter-note request quotas still apply.
+The router does not yet estimate per-model token cost or dynamically score quality, latency or historical availability. Priority is a manual owner-controlled choice, not an automatic price optimizer. Account-level generation quotas are enforced atomically in separate 15-minute buckets: up to 5 answer generations, 3 chapter-note generations, and 3 quiz generations per account per window. Quiz generation checks that a quiz-capable provider is configured before consuming quota. If the quota service is unavailable, generation fails closed rather than calling a provider.
 
 Do not enable a paid endpoint or fallback without explicit budget approval. Review each provider's data-processing and retention terms before sending question text or opt-in source context.
 ## No-billing option: Google AI Studio free tier
