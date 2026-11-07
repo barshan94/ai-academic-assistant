@@ -64,9 +64,9 @@ select lives_ok(
 select throws_ok(
   $$update public.syllabus_catalogs set subject = 'Changed Mathematics'
     where subject = 'Mathematics' and version = '2026'$$,
-  '23514',
-  'A retired syllabus catalogue is immutable',
-  'retired catalogue metadata cannot be changed'
+  '42501',
+  'permission denied for table syllabus_catalogs',
+  'retired catalogue metadata cannot be changed because authenticated users have no metadata-update grant'
 );
 
 select * from finish();
