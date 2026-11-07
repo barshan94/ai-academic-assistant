@@ -589,3 +589,18 @@ This is dependency-advisory triage, not a code or lockfile change. Re-run the fu
 - [ ] Live/human gates remain: real Google Drive upload/retrieval/resume/OCR acceptance, live AI provider generation and two-reviewer golden-set grading, NVDA/TalkBack/contrast/real-device accessibility checks, privacy/legal/academic/operations sign-off and release approval.
 
 This checkpoint records isolated CI evidence only. It does not authorize merge, deployment, hosted database/configuration mutation or production release.
+
+
+
+## Current feature-branch verification — 2026-11-07 (code commit 5c98627)
+
+- [x] Closed an account-level quota gap in quiz generation: quiz provider calls now use their own atomic `ai-quiz` quota bucket, allowing at most 3 generations per account per 15-minute window. Answer and chapter-note buckets remain independently limited to 5 and 3 respectively.
+- [x] Quiz generation checks that AI is explicitly enabled and a quiz-capable provider is configured before consuming quota.
+- [x] Quota admission fails closed on RPC errors, invalid responses or transport exceptions; the UI distinguishes a reached quota from an unavailable quota service.
+- [x] Added database regression coverage for the quiz quota limit, independent bucket behavior and account isolation.
+- [x] Database authorization workflow `42393473206`: isolated local migration replay and pgTAP tests passed.
+- [x] Foundation workflow `42393473251`: lint, application type-check, unit tests, production build and Chromium browser smoke tests all passed.
+- [x] Updated `docs/AI_PROVIDER_SETUP.md` to document quiz task routing and the three account-level generation quotas.
+- [ ] Remaining external acceptance gates are unchanged: live AI-provider generation and two-reviewer grading, live Google Drive upload/retrieval/resume/OCR validation, hosted migration review/reconciliation within the owner's restrictions, approved recovery proof, manual accessibility checks, official syllabus validation, privacy/legal review, named operational ownership and release approval.
+
+This checkpoint confirms repository-level implementation and isolated CI only. It does not establish live provider quality, external integration acceptance or production readiness. PR #1 remains draft and unmerged; no production deployment or hosted database/configuration mutation is authorized.
