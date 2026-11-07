@@ -576,3 +576,16 @@ Remaining release gates are unchanged: live AI-provider generation and independe
 - [ ] ERR-124 is **not fully closed**: this triages the minimatch 3.1.5 version concern against the cited upstream advisories, but the previously reported full development dependency audit findings still need their exact advisory IDs and affected package paths reviewed. Do not force a major-version override or claim the full audit is clean.
 
 This is dependency-advisory triage, not a code or lockfile change. Re-run the full dependency audit when its complete machine-readable report is available.
+
+
+
+## Current feature-branch verification — 2026-11-07 (commit 8d3ee55)
+
+- [x] Database authorization workflow [42392914537](https://github.com/barshan94/ai-academic-assistant/actions/runs/42392914537): isolated local migration replay and all pgTAP tests passed, including four new teacher-review RPC validation cases and the existing invitation/review/revocation lifecycle cases.
+- [x] Foundation verification job [128464077945](https://github.com/barshan94/ai-academic-assistant/actions/runs/42392914534): production environment contract, production dependency audit, full dependency-tree audit, ESLint, application and Playwright TypeScript checks, unit tests and production build passed.
+- [ ] Chromium browser job [42392914534](https://github.com/barshan94/ai-academic-assistant/actions/runs/42392914534) was still running when this checkpoint was written; do not treat the full Foundation workflow as complete until its browser job finishes.
+- [x] Corrected the SQL dollar-quote delimiters in the teacher-review authorization test after CI exposed malformed test SQL; all 64 assertions in that test file and all 17 pgTAP files passed on the corrected commit.
+- [x] The current locked dependency tree passes both `npm audit --omit=dev` and full `npm audit`; ERR-124's previously reported moderate findings are no longer present in this lockfile audit.
+- [ ] Live/human gates remain: real Google Drive upload/retrieval/resume/OCR acceptance, live AI provider generation and two-reviewer golden-set grading, NVDA/TalkBack/contrast/real-device accessibility checks, privacy/legal/academic/operations sign-off and release approval.
+
+This checkpoint records isolated CI evidence only. It does not authorize merge, deployment, hosted database/configuration mutation or production release.
