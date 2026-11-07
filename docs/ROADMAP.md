@@ -567,3 +567,12 @@ This checkpoint confirms isolated CI only. It does not establish production read
 These checks establish isolated CI only. They do not validate live AI output, provider availability/cost, Google Drive/OCR round trips, hosted database parity, accessibility, or production deployment.
 
 Remaining release gates are unchanged: live AI-provider generation and independent human grading; live Google Drive upload/retrieval/interruption-resume/OCR acceptance; hosted migration/schema review within the owner's no-hosted-mutation restriction; Free-plan security limitations and accepted mitigation; recovery proof within the owner's approved scope; manual accessibility/device checks; privacy/legal and academic review; named operational ownership; and explicit release approval. Keep PR #1 draft and unmerged; do not deploy Production or mutate hosted data/configuration.
+
+
+## Dependency advisory triage — 2026-11-07
+
+- [x] Rechecked the locked `minimatch` versions before attempting any override. The direct legacy ESLint graph resolves `minimatch@3.1.5`; `@typescript-eslint/typescript-estree` resolves its separately nested `minimatch@11.0.3`.
+- [x] The upstream GHSA for CVE-2026-118764 lists only `minimatch@10.2.6` as affected and `11.0.1` as patched; it does not list the repository's 3.1.5 or 11.0.3 versions. The February 2026 upstream ReDoS advisories fixed the 3.x line in 3.1.3/3.1.4, so 3.1.5 is beyond those affected ranges. References: https://github.com/isaacs/minimatch/security/advisories/GHSA-g3hv-75wg-m249 and https://github.com/isaacs/minimatch/security/advisories.
+- [ ] ERR-124 is **not fully closed**: this triages the minimatch 3.1.5 version concern against the cited upstream advisories, but the previously reported full development dependency audit findings still need their exact advisory IDs and affected package paths reviewed. Do not force a major-version override or claim the full audit is clean.
+
+This is dependency-advisory triage, not a code or lockfile change. Re-run the full dependency audit when its complete machine-readable report is available.
