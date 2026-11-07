@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(31);
+select plan(32);
 
 insert into auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
 values
@@ -98,6 +98,29 @@ select is(
   2,
   'atomic replacement updates the document page count'
 );
+
+-- A pooled server connection may retain an end-user JWT claim even after the
+-- database role is switched to service_role. The trusted role must take
+-- precedence so a worker can replace pages for the job owner.
+reset role;
+set local role service_role;
+set local request.jwt.claim.sub = '11000000-0000-4000-8000-000000000002';
+set local request.jwt.claims = '{"sub":"11000000-0000-4000-8000-000000000002","role":"authenticated","email":"intake-other@example.test"}';
+
+select is(
+  public.replace_document_pages(
+    '21000000-0000-4000-8000-000000000002',
+    '11000000-0000-4000-8000-000000000001',
+    '["trusted worker replacement"]'::jsonb
+  ),
+  1,
+  'trusted service role can replace owner pages despite a stale unrelated authenticated JWT claim'
+);
+
+reset role;
+set local role authenticated;
+set local request.jwt.claim.sub = '11000000-0000-4000-8000-000000000001';
+set local request.jwt.claims = '{"sub":"11000000-0000-4000-8000-000000000001","role":"authenticated","email":"intake-owner@example.test"}';
 
 select throws_ok(
   $sql$select public.replace_document_pages(
