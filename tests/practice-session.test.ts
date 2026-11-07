@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildPracticeAnswerFilename, buildPracticeAnswerSheet, getPracticeProgress, shufflePracticeQuestions, type PracticeQuestion } from "@/lib/chapters/practice-session";
+import { buildNoteRevisionQuestions, buildPracticeAnswerFilename, buildPracticeAnswerSheet, getPracticeProgress, shufflePracticeQuestions, type PracticeQuestion } from "@/lib/chapters/practice-session";
 
 const questions: PracticeQuestion[] = [
   { id: "q1", questionNumber: "1", questionText: "First question" },
@@ -70,5 +70,23 @@ describe("free local practice session helpers", () => {
     expect(getPracticeProgress(0, new Set(), [])).toEqual({
       total: 0, attempted: 0, remaining: 0, confident: 0, needsReview: 0, percent: 0,
     });
+  });
+});
+
+
+describe("approved chapter-note revision prompts", () => {
+  it("creates bounded local active-recall items from non-empty prompts", () => {
+    const result = buildNoteRevisionQuestions("123e4567-e89b-12d3-a456-426614174000", [" Explain inertia ", "", "Define resultant force"]);
+    expect(result).toEqual([
+      { id: "note-123e4567-e89b-12d3-a456-426614174000-1", questionNumber: "Approved note prompt 1", questionText: "Explain inertia" },
+      { id: "note-123e4567-e89b-12d3-a456-426614174000-2", questionNumber: "Approved note prompt 2", questionText: "Define resultant force" },
+    ]);
+  });
+
+  it("rejects missing or malformed note identity and enforces the prompt cap", () => {
+    expect(buildNoteRevisionQuestions(null, ["Explain inertia"])).toEqual([]);
+    expect(buildNoteRevisionQuestions("not-a-uuid", ["Explain inertia"])).toEqual([]);
+    expect(buildNoteRevisionQuestions("123e4567-e89b-12d3-a456-426614174000", ["A".repeat(2100)]))[0].questionText).toHaveLength(2000);
+    expect(buildNoteRevisionQuestions("123e4567-e89b-12d3-a456-426614174000", Array.from({ length: 35 }, (_, i) => "Prompt " + i))).toHaveLength(30);
   });
 });
