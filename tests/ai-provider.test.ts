@@ -18,6 +18,10 @@ const validAnswer = {
   bengaliExplanation: "ঘড়ির কাঁটার দিকে ও বিপরীত দিকের মোট মুহূর্ত সমান।",
   englishExplanation: "The turning effects balance.",
   keyConcepts: ["Principle of moments"],
+  tips: [],
+  shortcuts: [],
+  alternativeMethods: [],
+  commonMistakes: [],
   assumptions: [],
   limitations: [],
 };
