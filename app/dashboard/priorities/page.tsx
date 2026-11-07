@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { signOut } from "../actions";
+import { rankStudyPriorityChapters } from "@/lib/study/priorities";
 
 type PriorityQuestion = {
   id: string;
@@ -75,19 +76,12 @@ export default async function PrioritiesPage() {
     }
   }
 
-  const priorityChapters = [...(chapters ?? [])].sort((a, b) => {
-    const aTopicIds = topicsByChapter.get(a.id) ?? [];
-    const bTopicIds = topicsByChapter.get(b.id) ?? [];
-    const aUncovered = aTopicIds.filter((topic) => !(questionsByTopic.get(topic.id)?.length)).length;
-    const bUncovered = bTopicIds.filter((topic) => !(questionsByTopic.get(topic.id)?.length)).length;
-    const aQuestions = questionsByChapter.get(a.id)?.length ?? 0;
-    const bQuestions = questionsByChapter.get(b.id)?.length ?? 0;
-    // Surface chapters with no approved questions first, then the largest
-    // number of uncovered syllabus topics, without implying exam likelihood.
-    return Number(aQuestions > 0) - Number(bQuestions > 0)
-      || bUncovered - aUncovered
-      || (a.sort_order ?? 0) - (b.sort_order ?? 0);
-  });
+  const priorityChapters = rankStudyPriorityChapters(
+    chapters ?? [],
+    topicsByChapter,
+    questionsByTopic,
+    questionsByChapter,
+  );
 
   const totalTopics = topics?.length ?? 0;
   const mappedTopics = (topics ?? []).filter((topic) => (questionsByTopic.get(topic.id)?.length ?? 0) > 0).length;
