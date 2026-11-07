@@ -86,7 +86,8 @@ describe("approved chapter-note revision prompts", () => {
   it("rejects missing or malformed note identity and enforces the prompt cap", () => {
     expect(buildNoteRevisionQuestions(null, ["Explain inertia"])).toEqual([]);
     expect(buildNoteRevisionQuestions("not-a-uuid", ["Explain inertia"])).toEqual([]);
-    expect(buildNoteRevisionQuestions("123e4567-e89b-12d3-a456-426614174000", ["A".repeat(2100)]))[0].questionText).toHaveLength(2000);
+    const longPrompt = buildNoteRevisionQuestions("123e4567-e89b-12d3-a456-426614174000", ["A".repeat(2100)]);
+    expect(longPrompt[0]?.questionText).toHaveLength(2000);
     expect(buildNoteRevisionQuestions("123e4567-e89b-12d3-a456-426614174000", Array.from({ length: 35 }, (_, i) => "Prompt " + i))).toHaveLength(30);
   });
 });
