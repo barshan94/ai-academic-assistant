@@ -142,7 +142,7 @@ export default async function QuizzesPage({ searchParams }: QuizPageProps) {
                             <input type="hidden" name="questionIndex" value={index} />
                             <label>Question prompt<textarea name="prompt" required maxLength={2000} rows={3} defaultValue={question.prompt} /></label>
                             {question.type === "mcq" ? (
-                              <label>Answer options (one per line; exactly four distinct options)<textarea name="options" required maxLength={2200} rows={5} defaultValue={question.options.join("\\n")} /></label>
+                              <label>Answer options (one per line; exactly four distinct options)<textarea name="options" required maxLength={2200} rows={5} defaultValue={question.options.join("\n")} /></label>
                             ) : <input type="hidden" name="options" value="" />}
                             <label>{question.type === "mcq" ? "Correct answer (must exactly match one option)" : "Model answer"}<input name="correctAnswer" required maxLength={1000} defaultValue={question.correctAnswer} /></label>
                             <label>Explanation<textarea name="explanation" required maxLength={2000} rows={3} defaultValue={question.explanation} /></label>
