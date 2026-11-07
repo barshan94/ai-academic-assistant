@@ -530,3 +530,15 @@ The current feature-branch head is `908cf5bcbc195847c9977467639dbdf1aa79e575`. T
 Remaining operational/release gates include running the manual non-production migration workflow in its default `reconcile-and-dry-run` mode, live Google Drive round-trip and image-to-PDF/OCR accuracy acceptance, live AI-provider evaluation with explicit cost approval, backup/restore proof, accessibility and release sign-off. Do not choose migration apply mode unless a reviewed dry-run identifies pending DDL and the owner explicitly approves it.
 
 Dependency security: production dependency audit is clean. The full development dependency audit still reports 13 moderate findings associated with the legacy ESLint minimatch dependency graph; see ERR-124. Do not use a broad major-version override or `npm audit fix --force`.
+
+
+## Current feature-branch verification — 2026-11-07 (commit d9d76ff)
+
+- [x] Foundation workflow `42357370846`: ESLint, application and browser-test TypeScript checks, unit tests, production build, dependency audits and Chromium browser smoke tests passed.
+- [x] Database authorization workflow `42357370895`: isolated local Supabase migration replay and pgTAP authorization tests passed.
+- [x] Fixed a malformed assertion in the approved-note revision-prompt truncation test; the test now explicitly checks the first returned prompt's bounded text length.
+- [x] Practice sessions now include revision prompts only from the latest approved chapter-note version; draft and archived note prompts are excluded. Prompt conversion validates note identity, filters blanks, caps the count at 30 and truncates each prompt to 2,000 characters.
+- [x] Practice snapshots link back to the original approved question when it remains accessible; the saved snapshot remains readable if the original is unavailable.
+- [ ] Remaining operational gates are unchanged: live AI provider configuration and human grading, Google Drive/OCR live acceptance, hosted migration reconciliation, backup/restore proof, accessibility and privacy/academic/operations sign-off.
+
+This checkpoint records isolated CI success only. It does not authorize merge, deployment or production release.
