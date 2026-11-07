@@ -64,6 +64,7 @@ function hasAIProvidersForRequiredTasks() {
   try {
     getAIProviderConfigs("answer");
     getAIProviderConfigs("chapter-note");
+    getAIProviderConfigs("quiz");
     return true;
   } catch {
     return false;
