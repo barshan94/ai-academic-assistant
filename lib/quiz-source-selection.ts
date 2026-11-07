@@ -36,3 +36,18 @@ export function getPreselectedQuizSourceIds(
     .slice(0, 20)
     .map((question) => question.id);
 }
+
+export function getQuizSourceScopeError(
+  questions: QuizSourceQuestion[],
+  subject: string,
+  chapter?: string | null,
+): "subject" | "chapter" | null {
+  if (!questions.length || !subject.trim() || questions.some((question) => question.subject !== subject)) {
+    return "subject";
+  }
+  const requestedChapter = chapter?.trim();
+  if (requestedChapter && questions.some((question) => question.chapter !== requestedChapter)) {
+    return "chapter";
+  }
+  return null;
+}
