@@ -247,16 +247,17 @@ export async function downloadOriginalPdfFromDrive(input: {
 export async function extractTextFromDrivePdf(input: {
   accessToken: string;
   driveFileId: string;
+  expectedSizeBytes: number;
+  expectedSha256: string;
 }) {
-  const sourceResponse = await fetch(
-    "https://www.googleapis.com/drive/v3/files/" + encodeURIComponent(input.driveFileId) + "?alt=media",
-    { headers: { Authorization: "Bearer " + input.accessToken }, cache: "no-store", signal: AbortSignal.timeout(30_000), redirect: "error" },
-  );
-  if (!sourceResponse.ok) {
-    await sourceResponse.body?.cancel().catch(() => {});
-    throw new Error("Could not download the archived PDF from Google Drive.");
-  }
-  const sourceBytes = await readResponseBytesBounded(sourceResponse, MAX_DRIVE_PDF_BYTES, "Archived PDF");
+  // OCR must process the exact archived original, not merely whatever bytes
+  // currently happen to be returned for this Drive file ID.
+  const sourceBytes = await downloadOriginalPdfFromDrive({
+    accessToken: input.accessToken,
+    driveFileId: input.driveFileId,
+    expectedSizeBytes: input.expectedSizeBytes,
+    expectedSha256: input.expectedSha256,
+  });
 
   const boundary = "academic_ocr_" + crypto.randomUUID().replaceAll("-", "");
   const metadata = JSON.stringify({
