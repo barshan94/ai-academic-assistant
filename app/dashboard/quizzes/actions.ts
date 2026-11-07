@@ -10,6 +10,8 @@ import type { Json } from "@/types/database";
 import type { DatabaseWithQuiz } from "@/types/quiz-database";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getQuizSourceScopeError } from "@/lib/quiz-source-selection";
+import { consumeAIGenerationQuota } from "@/lib/security/ai-generation-quota";
+import { logSafeOperationalEvent } from "@/lib/observability/safe-log";
 
 const generateSchema = z.object({
   title: z.string().trim().min(1).max(160),
@@ -76,6 +78,15 @@ export async function generateQuizDraft(formData: FormData) {
     chapter: question.chapter,
     topic: question.topic,
   }));
+
+  const quota = await consumeAIGenerationQuota(supabase, "ai-quiz");
+  if (quota !== "allowed") {
+    logSafeOperationalEvent(quota === "limited" ? "ai_quiz_generation_quota_exhausted" : "ai_quiz_generation_quota_unavailable", {
+      route: "/dashboard/quizzes",
+      errorCode: quota === "limited" ? "AI_QUIZ_QUOTA_REACHED" : "AI_QUIZ_QUOTA_RPC_FAILED",
+    });
+    redirect("/dashboard/quizzes?generate=" + (quota === "limited" ? "rate_limited" : "rate_limit_unavailable"));
+  }
 
   let generated;
   try {
