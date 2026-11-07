@@ -31,6 +31,7 @@ export default async function QuizzesPage({ searchParams }: QuizPageProps) {
       .limit(30),
   ]);
 
+  const subjects = Array.from(new Set((questions ?? []).map((item) => item.subject).filter((value): value is string => Boolean(value)))).sort();
   const approvedQuestionIds = (questions ?? []).map((question) => question.id);
   const { data: importanceMarks, error: importanceError } = approvedQuestionIds.length
     ? await supabase.from("question_importance")
@@ -61,7 +62,6 @@ export default async function QuizzesPage({ searchParams }: QuizPageProps) {
     : { data: [], error: null };
   const sourceQuestionMap = new Map((sourceQuestions ?? []).map((question) => [question.id, question]));
 
-  const subjects = Array.from(new Set((questions ?? []).map((item) => item.subject).filter((value): value is string => Boolean(value)))).sort();
   const notice = params.edit === "saved" ? "Draft question updated. Review the full quiz again before approving it."
     : params.edit === "blocked" ? "The edit was blocked. Only your own quiz drafts can be edited before approval."
     : params.edit === "invalid" ? "The edited question fields were invalid."
