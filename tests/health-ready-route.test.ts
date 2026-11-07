@@ -92,6 +92,7 @@ describe("GET /api/health/ready", () => {
     });
     expect(getAIProviderConfigsMock).toHaveBeenCalledWith("answer");
     expect(getAIProviderConfigsMock).toHaveBeenCalledWith("chapter-note");
+    expect(getAIProviderConfigsMock).toHaveBeenCalledWith("quiz");
     expect(createClientMock).toHaveBeenCalledOnce();
     const client = createClientMock.mock.results[0].value;
     expect(client.from).toHaveBeenCalledTimes(REQUIRED_READINESS_TABLES.length + 1);
@@ -137,9 +138,11 @@ describe("GET /api/health/ready", () => {
     expect(serialized).not.toContain(requiredEnvironment.DRIVE_TOKEN_ENCRYPTION_KEY);
   });
 
-  it("fails closed when a required AI task has no configured provider", async () => {
+  it.each(["answer", "chapter-note", "quiz"])(
+    "fails closed when the %s AI task has no configured provider",
+    async (missingTask) => {
     getAIProviderConfigsMock.mockImplementation((task: string) => {
-      if (task === "chapter-note") throw new Error("provider unavailable");
+      if (task === missingTask) throw new Error("provider unavailable");
       return [{ name: "test-provider" }];
     });
 
@@ -148,7 +151,8 @@ describe("GET /api/health/ready", () => {
     expect(response.status).toBe(503);
     expect((await response.json()).status).toBe("not_ready");
     expect(createClientMock).not.toHaveBeenCalled();
-  });
+    },
+  );
 
   it("fails closed when the attempt-fenced worker RPC migrations are missing", async () => {
     createClientMock.mockReturnValue({
