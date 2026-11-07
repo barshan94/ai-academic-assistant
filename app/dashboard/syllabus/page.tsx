@@ -24,15 +24,15 @@ type PageProps = {
 
 const statusMessages: Record<string, string> = {
   created: "Saved successfully.",
-  verified: "This syllabus version is now marked verified.",
+  verified: "You marked this syllabus version as reviewed. The app has not independently verified the source or syllabus contents.",
   retired: "This syllabus version is retired. Existing question references are preserved.",
   duplicate: "This entry already exists in your catalogue.",
   invalid: "Some fields are invalid. Check the values and try again.",
   save_failed: "Could not save this entry. Please check the values and try again.",
   not_found: "The selected parent entry was not found in your account.",
   catalog_locked: "This syllabus version is no longer a draft. Its chapter, topic and evidence structure cannot be changed.",
-  source_required: "Add an HTTPS source URL and source title before marking a syllabus version verified. The database records the verification time.",
-  verify_failed: "Verification was rejected. Check that the source URL and title are present and that the version contains at least one chapter.",
+  source_required: "Add an HTTPS source URL and source title before marking your review. The database records when you made this owner attestation; it does not validate the source.",
+  verify_failed: "The review attestation was rejected. Check that the source URL and title are present and that the version contains at least one chapter.",
   imported: "The syllabus was imported atomically as a draft. Review its source and contents before marking it verified.",
   import_duplicate: "A matching syllabus version or chapter/topic already exists. Nothing from this import was saved.",
   import_invalid: "The JSON document is invalid or exceeds the import limits. Check its format and try again.",
@@ -141,7 +141,7 @@ export default async function SyllabusPage({ searchParams }: PageProps) {
           <span className="section-count">{catalogs?.length ?? 0} versions · {chapterCount} chapters · {topicCount} topics</span>
         </div>
         <div className="syllabus-create-panel">
-          <p className="question-card-meta">A separate record is kept for each syllabus version. Use the exact board and qualification names. A version remains a draft until you add a source and explicitly mark it verified.</p>
+          <p className="question-card-meta">A separate record is kept for each syllabus version. Use the exact board and qualification names. A version remains a draft until you add a source and explicitly attest that you reviewed it. This records your review; the app does not independently validate official status or syllabus accuracy.</p>
           <form action={createSyllabusCatalog} className="review-form">
             <div className="question-fields">
               <label>Exam board<input name="board" required maxLength={100} placeholder="e.g. Pearson Edexcel" /></label>
@@ -181,10 +181,10 @@ export default async function SyllabusPage({ searchParams }: PageProps) {
                     <div className="syllabus-inline-actions">
                       <form action={verifySyllabusCatalog}>
                         <input type="hidden" name="catalogId" value={catalog.id} />
-                        <button className="document-action" type="submit" disabled={!catalog.source_url || !catalog.source_title?.trim() || catalogChapters.length === 0}>Mark verified</button>
+                        <button className="document-action" type="submit" disabled={!catalog.source_url || !catalog.source_title?.trim() || catalogChapters.length === 0}>Mark owner-reviewed</button>
                       </form>
                       {!catalog.source_url || !catalog.source_title?.trim() || catalogChapters.length === 0 ? (
-                        <p className="question-card-meta">Verification requires an HTTPS source URL, source title and at least one chapter.</p>
+                        <p className="question-card-meta">Owner review requires an HTTPS source URL, source title and at least one chapter. Confirm the source and contents yourself; the app does not independently certify them.</p>
                       ) : null}
                       <form action={retireSyllabusCatalog}><input type="hidden" name="catalogId" value={catalog.id} /><button className="document-action document-action-muted" type="submit">Retire version</button></form>
                     </div>
