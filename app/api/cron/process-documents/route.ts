@@ -119,6 +119,9 @@ export async function POST(request: Request) {
         supabase.from("drive_connections").select("encrypted_refresh_token").eq("owner_id", ownerId).maybeSingle(),
       ]);
       if (documentError || !document?.drive_file_id) throw new Error("The source document or its Drive file is unavailable.");
+      if (!Number.isSafeInteger(document.file_size_bytes) || document.file_size_bytes < 1 || typeof document.sha256 !== "string" || !/^[a-f0-9]{64}$/.test(document.sha256)) {
+        throw new Error("The source document is missing valid original-file integrity metadata.");
+      }
       if (connectionError || !connection?.encrypted_refresh_token) throw new Error("The owner must reconnect Google Drive.");
 
       const { data: existingPages, error: pagesError } = await supabase
