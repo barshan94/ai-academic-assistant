@@ -75,6 +75,20 @@ export default async function PrioritiesPage() {
     }
   }
 
+  const priorityChapters = [...(chapters ?? [])].sort((a, b) => {
+    const aTopicIds = topicsByChapter.get(a.id) ?? [];
+    const bTopicIds = topicsByChapter.get(b.id) ?? [];
+    const aUncovered = aTopicIds.filter((topic) => !(questionsByTopic.get(topic.id)?.length)).length;
+    const bUncovered = bTopicIds.filter((topic) => !(questionsByTopic.get(topic.id)?.length)).length;
+    const aQuestions = questionsByChapter.get(a.id)?.length ?? 0;
+    const bQuestions = questionsByChapter.get(b.id)?.length ?? 0;
+    // Surface chapters with no approved questions first, then the largest
+    // number of uncovered syllabus topics, without implying exam likelihood.
+    return Number(aQuestions > 0) - Number(bQuestions > 0)
+      || bUncovered - aUncovered
+      || (a.sort_order ?? 0) - (b.sort_order ?? 0);
+  });
+
   const totalTopics = topics?.length ?? 0;
   const mappedTopics = (topics ?? []).filter((topic) => (questionsByTopic.get(topic.id)?.length ?? 0) > 0).length;
   const uncoveredTopics = totalTopics - mappedTopics;
@@ -119,14 +133,14 @@ export default async function PrioritiesPage() {
       </section>
 
       <section className="section">
-        <div className="section-heading"><div><p className="eyebrow">CHAPTER-BY-CHAPTER</p><h2>Recommended practice order</h2></div></div>
+        <div className="section-heading"><div><p className="eyebrow">CHAPTER-BY-CHAPTER</p><h2>Recommended practice order</h2><p className="question-card-meta">Sorted by missing approved-question coverage, not predicted exam frequency.</p></div></div>
         {!catalogs?.length ? (
           <div className="empty-state"><h3>No verified syllabus versions</h3><p>Add a syllabus, attach its official source, and verify it before coverage recommendations are calculated. Draft catalogues are intentionally excluded.</p><Link className="primary-action" href="/dashboard/syllabus">Open syllabus catalogue →</Link></div>
         ) : !chapters?.length ? (
           <div className="empty-state"><h3>No chapters in the verified syllabus</h3><p>Add chapter structure to your verified syllabus before reviewing coverage.</p><Link className="primary-action" href="/dashboard/syllabus">Manage chapters →</Link></div>
         ) : (
           <div className="chapter-workspace-list">
-            {(chapters ?? []).map((chapter) => {
+            {priorityChapters.map((chapter) => {
               const catalog = catalogMap.get(chapter.catalog_id);
               const chapterQuestions = questionsByChapter.get(chapter.id) ?? [];
               const chapterTopics = topicsByChapter.get(chapter.id) ?? [];
