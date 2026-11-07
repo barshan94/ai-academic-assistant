@@ -219,6 +219,21 @@ describe("document worker route access and queue preflight", () => {
     });
   });
 
+  it("returns a generic response when the queue transport promise rejects", async () => {
+    rpcMock.mockRejectedValueOnce(
+      new Error("private queue transport failure and connection string"),
+    );
+
+    const response = await POST(request("Bearer test-cron-secret-with-sufficient-entropy"));
+
+    expect(response.status).toBe(500);
+    const body = await response.json();
+    expect(body).toEqual({ error: "Could not read the processing queue." });
+    expect(JSON.stringify(body)).not.toContain("private");
+    expect(JSON.stringify(body)).not.toContain("connection string");
+    expect(JSON.stringify(body)).not.toContain("transport failure");
+  });
+
   it("does not expose database queue errors to the caller", async () => {
     rpcMock.mockResolvedValue({ data: null, error: { message: "private database connection details" } });
 
