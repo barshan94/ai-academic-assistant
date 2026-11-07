@@ -78,8 +78,8 @@ describe("approved chapter-note revision prompts", () => {
   it("creates bounded local active-recall items from non-empty prompts", () => {
     const result = buildNoteRevisionQuestions("123e4567-e89b-12d3-a456-426614174000", [" Explain inertia ", "", "Define resultant force"]);
     expect(result).toEqual([
-      { id: "note-123e4567-e89b-12d3-a456-426614174000-1", questionNumber: "Approved note prompt 1", questionText: "Explain inertia" },
-      { id: "note-123e4567-e89b-12d3-a456-426614174000-2", questionNumber: "Approved note prompt 2", questionText: "Define resultant force" },
+      { id: "note-123e4567-e89b-12d3-a456-426614174000-1", questionNumber: "Prompt 1", questionText: "Explain inertia", sourceLabel: "Approved note revision prompt" },
+      { id: "note-123e4567-e89b-12d3-a456-426614174000-2", questionNumber: "Prompt 2", questionText: "Define resultant force", sourceLabel: "Approved note revision prompt" },
     ]);
   });
 
