@@ -129,6 +129,7 @@ const editQuestionSchema = z.object({
   quizId: z.string().uuid(),
   questionIndex: z.coerce.number().int().min(0).max(29),
   prompt: z.string().trim().min(1).max(2000),
+  options: z.string().max(2200),
   correctAnswer: z.string().trim().min(1).max(1000),
   explanation: z.string().trim().min(1).max(2000),
 });
@@ -138,6 +139,7 @@ export async function updateQuizDraftQuestion(formData: FormData) {
     quizId: formData.get("quizId") ?? "",
     questionIndex: formData.get("questionIndex") ?? "",
     prompt: formData.get("prompt") ?? "",
+    options: formData.get("options") ?? "",
     correctAnswer: formData.get("correctAnswer") ?? "",
     explanation: formData.get("explanation") ?? "",
   });
@@ -147,11 +149,18 @@ export async function updateQuizDraftQuestion(formData: FormData) {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) redirect("/login");
 
+  const options = parsed.data.options === "" ? [] : parsed.data.options.split("\\n").map((value) => value.trim());
+  if (options.some((value) => !value) || new Set(options).size !== options.length ||
+      (options.length !== 0 && options.length !== 4)) {
+    redirect("/dashboard/quizzes?edit=invalid");
+  }
+
   const db = supabase as unknown as SupabaseClient<DatabaseWithQuiz>;
   const { data, error } = await db.rpc("update_generated_quiz_question", {
     p_quiz_id: parsed.data.quizId,
     p_question_index: parsed.data.questionIndex,
     p_prompt: parsed.data.prompt,
+    p_options: options,
     p_correct_answer: parsed.data.correctAnswer,
     p_explanation: parsed.data.explanation,
   });
