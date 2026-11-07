@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { signOut } from "../actions";
-import { generateQuizDraft, updateQuizDraftStatus } from "./actions";
+import { generateQuizDraft, updateQuizDraftStatus, updateQuizDraftQuestion } from "./actions";
 import type { DatabaseWithQuiz, GeneratedQuizRow } from "@/types/quiz-database";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
@@ -32,7 +32,10 @@ export default async function QuizzesPage({ searchParams }: QuizPageProps) {
   ]);
 
   const subjects = Array.from(new Set((questions ?? []).map((item) => item.subject).filter((value): value is string => Boolean(value)))).sort();
-  const notice = params.generate === "saved" ? "Quiz draft saved. Review every answer and explanation before approving it."
+  const notice = params.edit === "saved" ? "Draft question updated. Review the full quiz again before approving it."
+    : params.edit === "blocked" ? "The edit was blocked. Only your own quiz drafts can be edited before approval."
+    : params.edit === "invalid" ? "The edited question fields were invalid."
+    : params.generate === "saved" ? "Quiz draft saved. Review every answer and explanation before approving it."
     : params.generate === "not_configured" ? "AI is disabled or no quiz-capable provider is configured. No provider request was made."
     : params.generate === "sources" ? "One or more selected questions are unavailable or are no longer approved."
     : params.generate === "mixed_subject" ? "Select approved questions from one subject only, and choose that same subject."
@@ -112,6 +115,19 @@ export default async function QuizzesPage({ searchParams }: QuizPageProps) {
                       {question.options?.length ? <ol>{question.options.map((option) => <li key={option}>{option}</li>)}</ol> : null}
                       <p><strong>Answer:</strong> {question.correctAnswer}</p>
                       <p><strong>Explanation:</strong> {question.explanation}</p>
+                      {quiz.status === "draft" ? (
+                        <details className="syllabus-evidence-form">
+                          <summary>Edit this draft question</summary>
+                          <form action={updateQuizDraftQuestion} className="review-form">
+                            <input type="hidden" name="quizId" value={quiz.id} />
+                            <input type="hidden" name="questionIndex" value={index} />
+                            <label>Question prompt<textarea name="prompt" required maxLength={2000} rows={3} defaultValue={question.prompt} /></label>
+                            <label>{question.type === "mcq" ? "Correct answer (must exactly match one option)" : "Model answer"}<input name="correctAnswer" required maxLength={1000} defaultValue={question.correctAnswer} /></label>
+                            <label>Explanation<textarea name="explanation" required maxLength={2000} rows={3} defaultValue={question.explanation} /></label>
+                            <button className="document-action" type="submit">Save question edits</button>
+                          </form>
+                        </details>
+                      ) : null}
                     </div>
                   ))}
                   {quiz.status === "draft" ? <div className="question-review-actions">
