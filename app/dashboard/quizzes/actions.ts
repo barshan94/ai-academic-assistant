@@ -9,6 +9,7 @@ import { AIConfigurationError } from "@/lib/ai/provider";
 import type { Json } from "@/types/database";
 import type { DatabaseWithQuiz } from "@/types/quiz-database";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { getQuizSourceScopeError } from "@/lib/quiz-source-selection";
 
 const generateSchema = z.object({
   title: z.string().trim().min(1).max(160),
@@ -46,11 +47,20 @@ export async function generateQuizDraft(formData: FormData) {
     redirect("/dashboard/quizzes?generate=sources");
   }
 
-  const sourceSubject = questions.find((question) => question.subject)?.subject;
-  if (!sourceSubject || sourceSubject !== parsed.data.subject ||
-      questions.some((question) => question.subject !== sourceSubject)) {
-    redirect("/dashboard/quizzes?generate=mixed_subject");
-  }
+  const sourceScopeError = getQuizSourceScopeError(
+    questions.map((question) => ({
+      id: question.id,
+      question_number: null,
+      question_text: question.question_text,
+      subject: question.subject,
+      chapter: question.chapter,
+    })),
+    parsed.data.subject,
+    parsed.data.chapter || null,
+  );
+  if (sourceScopeError === "subject") redirect("/dashboard/quizzes?generate=mixed_subject");
+  if (sourceScopeError === "chapter") redirect("/dashboard/quizzes?generate=mixed_chapter");
+  const sourceSubject = parsed.data.subject;
 
   const questionsById = new Map(questions.map((question) => [question.id, question]));
   // Keep source reference numbering aligned with the exact ordered IDs saved in the draft.
