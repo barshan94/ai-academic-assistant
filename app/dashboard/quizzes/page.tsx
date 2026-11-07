@@ -56,6 +56,8 @@ export default async function QuizzesPage({ searchParams }: QuizPageProps) {
     : params.edit === "invalid" ? "The edited question fields were invalid."
     : params.generate === "saved" ? "Quiz draft saved. Review every answer and explanation before approving it."
     : params.generate === "not_configured" ? "AI is disabled or no quiz-capable provider is configured. No provider request was made."
+    : params.generate === "rate_limited" ? "You have reached the quiz-generation limit of 3 requests per 15 minutes. Wait for the limit window to reset before trying again."
+    : params.generate === "rate_limit_unavailable" ? "The quiz usage limit could not be checked, so generation was blocked to prevent unbounded provider usage. Try again later."
     : params.generate === "sources" ? "One or more selected questions are unavailable or are no longer approved."
     : params.generate === "mixed_subject" ? "Select approved questions from one subject only, and choose that same subject."
     : params.generate === "mixed_chapter" ? "The selected chapter must exactly match the chapter recorded on every selected source question. Clear the chapter field or select matching sources."
