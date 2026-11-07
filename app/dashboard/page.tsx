@@ -36,6 +36,7 @@ export default async function DashboardPage() {
           <Link className="sign-in-link" href="/dashboard/study-plan">Weekly study calendar</Link>
           <Link className="sign-in-link" href="/dashboard/practice">Practice sets</Link>
           <Link className="sign-in-link" href="/dashboard/practice/insights">Cross-session practice insights</Link>
+          <Link className="sign-in-link" href="/dashboard/quizzes">Quiz builder and review</Link>
           <Link className="sign-in-link" href="/dashboard/syllabus/review">Classification review queue</Link>
           <Link className="sign-in-link" href="/dashboard/syllabus/references">Shared syllabus library</Link>
         </div>
@@ -55,6 +56,7 @@ export default async function DashboardPage() {
           <article className="module-card"><span className="module-number">07</span><h3>Topic gap insights</h3><p>Compare self-reported confidence across mapped syllabus topics and identify what needs another look.</p><Link className="document-open" href="/dashboard/revision/insights">View topic insights ↗</Link></article>
           <article className="module-card"><span className="module-number">08</span><h3>Custom practice sets</h3><p>Build focused sessions from approved questions and keep a history of your self-marked results.</p><Link className="document-open" href="/dashboard/practice">Create practice set ↗</Link></article>
           <article className="module-card"><span className="module-number">09</span><h3>Practice performance</h3><p>Review cross-session outcomes by subject, chapter and topic using your own recorded results.</p><Link className="document-open" href="/dashboard/practice/insights">View practice insights ↗</Link></article>
+          <article className="module-card"><span className="module-number">10</span><h3>Quiz builder</h3><p>Generate source-linked MCQ and short-answer drafts, review explanations and approve teacher content.</p><Link className="document-open" href="/dashboard/quizzes">Open quiz workspace ↗</Link></article>
         </div>
       </section>
     </main>
