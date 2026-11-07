@@ -16,6 +16,9 @@ type NoteContent = {
   workedExamples?: string[];
   revisionPrompts?: string[];
   generatedBy?: string;
+  generationProvider?: string;
+  generationModel?: string;
+  verificationStatus?: string;
   sourceReferences?: Array<{ ref: string; questionId: string; pageId: string | null; pageNumber: number | null; extractionMethod: string | null }>;
 };
 
