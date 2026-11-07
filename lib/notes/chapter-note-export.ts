@@ -43,12 +43,12 @@ export function buildChapterNoteMarkdown(title: string, content: ChapterNoteExpo
     content.generationProvider ? "- Provider: " + content.generationProvider : "",
     content.generationModel ? "- Model: " + content.generationModel : "",
     content.verificationStatus ? "- Verification status: " + content.verificationStatus : "",
-  ].filter(Boolean).join("\\n");
+  ].filter(Boolean).join("\n");
   return [
     "# " + title,
     "",
     provenance,
-    generationDetails ? "\\n" + generationDetails + "\\n" : "",
+    generationDetails ? "\n" + generationDetails + "\n" : "",
     "",
     content.summary ? "## Summary\n\n" + content.summary + "\n" : "",
     section("Key concepts", content.concepts),
