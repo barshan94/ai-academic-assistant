@@ -150,6 +150,8 @@ export function canFallbackAfterProviderError(error: unknown): error is AIProvid
     "AI_PROVIDER_INVALID_RESPONSE",
     "AI_PROVIDER_EMPTY_RESPONSE",
     "AI_PROVIDER_INVALID_STRUCTURED_ANSWER",
+    "AI_PROVIDER_INVALID_QUIZ",
+    "QUIZ_QUESTION_COUNT_MISMATCH",
   ].includes(error.message)) return true;
 
   const status = /^AI_PROVIDER_HTTP_(\d{3})$/.exec(error.message)?.[1];
