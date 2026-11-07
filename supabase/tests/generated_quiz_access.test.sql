@@ -1,7 +1,7 @@
 begin;
 
 create extension if not exists pgtap with schema extensions;
-select plan(12);
+select plan(16);
 
 insert into auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
 values
@@ -65,6 +65,46 @@ select is(
   (select question_count from public.generated_quizzes where title = 'Motion quiz'),
   1,
   'question count is derived from the stored quiz JSON'
+);
+
+select throws_ok(
+  $sql$select public.save_generated_quiz_draft(
+    'Missing reference', 'Physics', null,
+    '{"title":"Missing reference","instructions":"Choose one","questions":[{"type":"short_answer","prompt":"Q","options":[],"correctAnswer":"A","explanation":"E","difficulty":"easy"}]}'::jsonb,
+    array['54000000-0000-4000-8000-000000000001']::uuid[]
+  )$sql$,
+  'P0001', 'Invalid quiz question structure',
+  'database rejects a generated question with no source reference'
+);
+
+select throws_ok(
+  $sql$select public.save_generated_quiz_draft(
+    'Wrong MCQ answer', 'Physics', null,
+    '{"title":"Wrong MCQ answer","instructions":"Choose one","questions":[{"type":"mcq","prompt":"Q","options":["A","B","C","D"],"correctAnswer":"E","explanation":"E","difficulty":"easy","sourceRefs":["S1"]}]}'::jsonb,
+    array['54000000-0000-4000-8000-000000000001']::uuid[]
+  )$sql$,
+  'P0001', 'MCQ answer must match one of its options',
+  'database rejects MCQ answers outside the option list'
+);
+
+select throws_ok(
+  $sql$select public.save_generated_quiz_draft(
+    'Unknown source', 'Physics', null,
+    '{"title":"Unknown source","instructions":"Choose one","questions":[{"type":"short_answer","prompt":"Q","options":[],"correctAnswer":"A","explanation":"E","difficulty":"easy","sourceRefs":["S2"]}]}'::jsonb,
+    array['54000000-0000-4000-8000-000000000001']::uuid[]
+  )$sql$,
+  'P0001', 'Quiz references an unavailable source',
+  'database rejects a source reference outside the saved source list'
+);
+
+select throws_ok(
+  $sql$select public.save_generated_quiz_draft(
+    'Duplicate options', 'Physics', null,
+    '{"title":"Duplicate options","instructions":"Choose one","questions":[{"type":"mcq","prompt":"Q","options":["A","A","C","D"],"correctAnswer":"A","explanation":"E","difficulty":"easy","sourceRefs":["S1"]}]}'::jsonb,
+    array['54000000-0000-4000-8000-000000000001']::uuid[]
+  )$sql$,
+  'P0001', 'MCQ options must be distinct',
+  'database rejects duplicated MCQ options'
 );
 
 select is(
