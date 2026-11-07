@@ -22,6 +22,10 @@ export const examAnswerSchema = z.object({
   bengaliExplanation: z.string().trim().min(1).max(12000),
   englishExplanation: z.string().trim().min(1).max(12000),
   keyConcepts: z.array(z.string().trim().min(1).max(300)).max(20),
+  tips: z.array(z.string().trim().min(1).max(500)).max(12).default([]),
+  shortcuts: z.array(z.string().trim().min(1).max(500)).max(12).default([]),
+  alternativeMethods: z.array(z.string().trim().min(1).max(1000)).max(8).default([]),
+  commonMistakes: z.array(z.string().trim().min(1).max(500)).max(12).default([]),
   assumptions: z.array(z.string().trim().min(1).max(500)).max(20),
   limitations: z.array(z.string().trim().min(1).max(500)).max(20),
 });
