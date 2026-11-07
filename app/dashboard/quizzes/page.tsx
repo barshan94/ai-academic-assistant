@@ -108,6 +108,7 @@ export default async function QuizzesPage({ searchParams }: QuizPageProps) {
 
       <section className="section">
         <div className="section-heading"><div><p className="eyebrow">SAVED QUIZZES</p><h2>Review and approval</h2></div><span className="section-count">{quizzes?.length ?? 0} recent drafts</span></div>
+        <p className="question-card-meta">Important: “Approved” means teacher-reviewed and locked in this private workspace. It does not publish or share the quiz with students. Student accounts and controlled quiz access are not implemented yet.</p>
         {!quizzes?.length ? <div className="empty-state"><h3>No saved quizzes yet</h3><p>Generated drafts will appear here with their source-question references.</p></div> : (
           <div className="question-list">
             {(quizzes as GeneratedQuizRow[]).map((quiz) => {
