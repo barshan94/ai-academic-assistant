@@ -69,7 +69,7 @@ beforeEach(() => {
   createServiceClient.mockReturnValue({
     rpc,
     from: (table: string) => {
-      if (table === "documents") return query({ data: { id: "doc-1", drive_file_id: "drive-1", status: "processing" }, error: null });
+      if (table === "documents") return query({ data: { id: "doc-1", drive_file_id: "drive-1", status: "processing", file_size_bytes: 32, sha256: "a".repeat(64) }, error: null });
       if (table === "drive_connections") return query({ data: { encrypted_refresh_token: "encrypted-refresh-token" }, error: null });
       if (table === "document_pages" || table === "questions" || table === "chapter_note_sources") {
         return query({ data: [], error: null });
@@ -126,6 +126,8 @@ describe("document worker successful processing path", () => {
     expect(extractPdf).toHaveBeenCalledWith({
       accessToken: "test-access-token",
       driveFileId: "drive-1",
+      expectedSizeBytes: 32,
+      expectedSha256: "a".repeat(64),
     });
     expect(rpc).toHaveBeenNthCalledWith(3, "complete_document_processing", {
       p_document_id: "doc-1",
@@ -138,7 +140,7 @@ describe("document worker successful processing path", () => {
 
   it("does not complete a job when saved questions reference the existing extracted pages", async () => {
     const from = (table: string) => {
-      if (table === "documents") return query({ data: { id: "doc-1", drive_file_id: "drive-1", status: "processing" }, error: null });
+      if (table === "documents") return query({ data: { id: "doc-1", drive_file_id: "drive-1", status: "processing", file_size_bytes: 32, sha256: "a".repeat(64) }, error: null });
       if (table === "drive_connections") return query({ data: { encrypted_refresh_token: "encrypted-refresh-token" }, error: null });
       if (table === "document_pages") return query({ data: [{ id: "page-1" }], error: null });
       if (table === "questions") return query({ data: [{ id: "question-1" }], error: null });
