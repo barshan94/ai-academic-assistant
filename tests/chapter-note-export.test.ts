@@ -45,7 +45,7 @@ describe("chapter note Markdown export", () => {
   });
 
   it("marks manually authored notes distinctly", () => {
-    expect(buildChapterNoteMarkdown("My note", {})).toContain("Owner-authored study note.");
+    expect(buildChapterNoteMarkdown("My note", { generatedBy: "owner-authored" })).toContain("Owner-authored study note.");
     expect(buildChapterNoteMarkdown("My note", {})).not.toContain("AI-generated draft.");
   });
 
