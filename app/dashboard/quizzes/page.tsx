@@ -31,6 +31,15 @@ export default async function QuizzesPage({ searchParams }: QuizPageProps) {
       .limit(30),
   ]);
 
+  const sourceQuestionIds = Array.from(new Set((quizzes ?? []).flatMap((quiz) => quiz.source_question_ids)));
+  const { data: sourceQuestions, error: sourceQuestionError } = sourceQuestionIds.length
+    ? await db.from("questions")
+      .select("id,question_text,subject,chapter,question_number")
+      .eq("owner_id", user.id)
+      .in("id", sourceQuestionIds)
+    : { data: [], error: null };
+  const sourceQuestionMap = new Map((sourceQuestions ?? []).map((question) => [question.id, question]));
+
   const subjects = Array.from(new Set((questions ?? []).map((item) => item.subject).filter((value): value is string => Boolean(value)))).sort();
   const notice = params.edit === "saved" ? "Draft question updated. Review the full quiz again before approving it."
     : params.edit === "blocked" ? "The edit was blocked. Only your own quiz drafts can be edited before approval."
@@ -68,7 +77,7 @@ export default async function QuizzesPage({ searchParams }: QuizPageProps) {
       </section>
 
       {notice ? <p className="notice notice-info" role="status">{notice}</p> : null}
-      {questionError || quizError ? <p className="notice notice-error">Some quiz workspace data could not be loaded. Refresh or check the database connection.</p> : null}
+      {questionError || quizError || sourceQuestionError ? <p className="notice notice-error">Some quiz workspace data could not be loaded. Refresh or check the database connection.</p> : null}
 
       <section className="section">
         <div className="section-heading"><div><p className="eyebrow">NEW QUIZ DRAFT</p><h2>Choose source material</h2></div><span className="section-count">{questions?.length ?? 0} approved questions loaded</span></div>
@@ -108,6 +117,15 @@ export default async function QuizzesPage({ searchParams }: QuizPageProps) {
                   <div className="question-card-heading"><span className="document-status">{quiz.status}</span><span className="question-subject">{quiz.question_count} questions · {quiz.subject}{quiz.chapter ? " · " + quiz.chapter : ""}</span></div>
                   <h3>{quiz.title}</h3>
                   <p className="question-card-meta">{payload.instructions ?? "Review the generated questions, answer keys and explanations."} · {quiz.source_question_ids.length} source questions · {new Date(quiz.created_at).toLocaleString()}</p>
+                  <details className="syllabus-evidence-form">
+                    <summary>View verified source questions ({quiz.source_question_ids.length})</summary>
+                    <ul>
+                      {quiz.source_question_ids.map((sourceId) => {
+                        const source = sourceQuestionMap.get(sourceId);
+                        return <li key={sourceId}>{source ? <Link className="document-open" href={"/dashboard/questions/" + source.id}>{source.subject ?? "Subject not set"}{source.chapter ? " · " + source.chapter : ""}{source.question_number ? " · Q" + source.question_number : ""}: {source.question_text.slice(0, 260)} ↗</Link> : <span>Source question is no longer available in your account.</span>}</li>;
+                      })}
+                    </ul>
+                  </details>
                   {(payload.questions ?? []).map((question, index) => (
                     <div className="chapter-note-version" key={index}>
                       <div className="question-card-heading"><strong>Question {index + 1} · {question.type.replace("_", " ")} · {question.difficulty}</strong><span className="document-status">{question.sourceRefs.join(", ")}</span></div>
