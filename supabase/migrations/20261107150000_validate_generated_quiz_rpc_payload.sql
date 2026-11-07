@@ -32,16 +32,6 @@ begin
   if p_chapter is not null and char_length(p_chapter) > 160 then
     raise exception 'Invalid quiz chapter';
   end if;
-  if p_quiz_json is null or jsonb_typeof(p_quiz_json) <> 'object'
-     or octet_length(p_quiz_json::text) > 250000
-     or jsonb_typeof(p_quiz_json->'title') is distinct from 'string'
-     or char_length(trim(p_quiz_json->>'title')) not between 1 and 160
-     or jsonb_typeof(p_quiz_json->'instructions') is distinct from 'string'
-     or char_length(trim(p_quiz_json->>'instructions')) not between 1 and 1000
-     or jsonb_typeof(p_quiz_json->'questions') is distinct from 'array'
-     or jsonb_array_length(p_quiz_json->'questions') not between 1 and 30 then
-    raise exception 'Invalid quiz content';
-  end if;
   if p_source_question_ids is null or cardinality(p_source_question_ids) not between 1 and 20 then
     raise exception 'Choose between 1 and 20 source questions';
   end if;
@@ -57,6 +47,17 @@ begin
     and q.review_status = 'approved';
   if v_count <> cardinality(p_source_question_ids) then
     raise exception 'Every source must be your approved question';
+  end if;
+
+  if p_quiz_json is null or jsonb_typeof(p_quiz_json) <> 'object'
+     or octet_length(p_quiz_json::text) > 250000
+     or jsonb_typeof(p_quiz_json->'title') is distinct from 'string'
+     or char_length(trim(p_quiz_json->>'title')) not between 1 and 160
+     or jsonb_typeof(p_quiz_json->'instructions') is distinct from 'string'
+     or char_length(trim(p_quiz_json->>'instructions')) not between 1 and 1000
+     or jsonb_typeof(p_quiz_json->'questions') is distinct from 'array'
+     or jsonb_array_length(p_quiz_json->'questions') not between 1 and 30 then
+    raise exception 'Invalid quiz content';
   end if;
 
   for v_question in
