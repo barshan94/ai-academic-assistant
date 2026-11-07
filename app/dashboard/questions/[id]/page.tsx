@@ -405,6 +405,10 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
             <h3>Bengali explanation</h3><div className="solution-prose" lang="bn">{answer.bengaliExplanation}</div>
             <h3>English explanation</h3><div className="solution-prose">{answer.englishExplanation}</div>
             {answer.keyConcepts.length ? <><h3>Key concepts</h3><ul>{answer.keyConcepts.map((item, index) => <li key={index}>{item}</li>)}</ul></> : null}
+            {answer.tips.length ? <><h3>Study tips</h3><ul>{answer.tips.map((item, index) => <li key={index}>{item}</li>)}</ul></> : null}
+            {answer.shortcuts.length ? <><h3>Shortcuts and exam techniques</h3><ul>{answer.shortcuts.map((item, index) => <li key={index}>{item}</li>)}</ul></> : null}
+            {answer.alternativeMethods.length ? <><h3>Alternative methods</h3><ul>{answer.alternativeMethods.map((item, index) => <li key={index}>{item}</li>)}</ul></> : null}
+            {answer.commonMistakes.length ? <><h3>Common mistakes to avoid</h3><ul>{answer.commonMistakes.map((item, index) => <li key={index}>{item}</li>)}</ul></> : null}
             {answer.assumptions.length ? <><h3>Assumptions</h3><ul>{answer.assumptions.map((item, index) => <li key={index}>{item}</li>)}</ul></> : null}
             {answer.limitations.length ? <><h3>Limitations</h3><ul>{answer.limitations.map((item, index) => <li key={index}>{item}</li>)}</ul></> : null}
             <p className="question-card-meta">Provider: {selectedSolution?.provider} · Model: {selectedSolution?.model} · Prompt: {selectedSolution?.prompt_version}</p>
