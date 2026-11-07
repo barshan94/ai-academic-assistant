@@ -5,7 +5,7 @@ export type AIGenerationQuotaResult = "allowed" | "limited" | "unavailable";
 
 export async function consumeAIGenerationQuota(
   supabase: SupabaseClient,
-  bucket: "ai-solution" | "ai-chapter-note",
+  bucket: "ai-solution" | "ai-chapter-note" | "ai-quiz",
 ): Promise<AIGenerationQuotaResult> {
   const { data, error } = await supabase.rpc("consume_ai_generation_quota", {
     p_bucket: bucket,
