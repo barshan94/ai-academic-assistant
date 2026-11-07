@@ -1,12 +1,12 @@
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(13);
+select plan(12);
 
 insert into auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
 values
- ('a1000000-0000-4000-8000-000000000001','authenticated','authenticated','importance-owner@example.test','','{}'::jsonb,'{}'::jsonb,now(),now()),
- ('a1000000-0000-4000-8000-000000000002','authenticated','authenticated','importance-teacher@example.test','','{}'::jsonb,'{}'::jsonb,now(),now()),
- ('a1000000-0000-4000-8000-000000000003','authenticated','authenticated','importance-outsider@example.test','','{}'::jsonb,'{}'::jsonb,now(),now());
+ ('a1000000-0000-4000-8000-000000000001','authenticated','authenticated','importance-owner@example.test','',now(),'{}'::jsonb,'{}'::jsonb,now(),now()),
+ ('a1000000-0000-4000-8000-000000000002','authenticated','authenticated','importance-teacher@example.test','',now(),'{}'::jsonb,'{}'::jsonb,now(),now()),
+ ('a1000000-0000-4000-8000-000000000003','authenticated','authenticated','importance-outsider@example.test','',now(),'{}'::jsonb,'{}'::jsonb,now(),now());
 
 insert into public.documents (id, owner_id, file_name, mime_type, file_size_bytes)
 values ('a2000000-0000-4000-8000-000000000001','a1000000-0000-4000-8000-000000000001','importance.pdf','application/pdf',100);
