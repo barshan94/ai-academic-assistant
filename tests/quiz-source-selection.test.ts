@@ -7,10 +7,10 @@ import {
 } from "@/lib/quiz-source-selection";
 
 const questions: QuizSourceQuestion[] = [
-  { id: "p1", question_number: 1, question_text: "Physics core", subject: "Physics", chapter: "Motion" },
-  { id: "c1", question_number: 2, question_text: "Chemistry core", subject: "Chemistry", chapter: "Atoms" },
-  { id: "p2", question_number: 3, question_text: "Physics medium", subject: "Physics", chapter: "Forces" },
-  { id: "p3", question_number: 4, question_text: "Physics high", subject: "Physics", chapter: "Energy" },
+  { id: "p1", question_number: "1", question_text: "Physics core", subject: "Physics", chapter: "Motion" },
+  { id: "c1", question_number: "2", question_text: "Chemistry core", subject: "Chemistry", chapter: "Atoms" },
+  { id: "p2", question_number: "3", question_text: "Physics medium", subject: "Physics", chapter: "Forces" },
+  { id: "p3", question_number: "4", question_text: "Physics high", subject: "Physics", chapter: "Energy" },
 ];
 
 const importance: QuizSourceImportance[] = [
@@ -41,7 +41,7 @@ describe("quiz source subject selection", () => {
   it("limits automatic preselection to twenty questions", () => {
     const manyQuestions = Array.from({ length: 25 }, (_, index) => ({
       id: `q${index}`,
-      question_number: index + 1,
+      question_number: String(index + 1),
       question_text: "Question",
       subject: "Physics",
       chapter: null,
