@@ -30,6 +30,14 @@ export const examAnswerSchema = z.object({
   limitations: z.array(z.string().trim().min(1).max(500)).max(20),
 });
 
+// New provider output must include visible reasoning. Keep the persisted-answer schema permissive so older saved drafts remain readable.
+export const generatedExamAnswerSchema = examAnswerSchema.extend({
+  workingSteps: z.array(z.object({
+    step: z.string().trim().min(1).max(300),
+    explanation: z.string().trim().min(1).max(3000),
+  })).min(1).max(30),
+});
+
 export type ExamAnswer = z.infer<typeof examAnswerSchema>;
 
 export function parseExamAnswer(raw: string): ExamAnswer {
@@ -38,5 +46,5 @@ export function parseExamAnswer(raw: string): ExamAnswer {
     cleaned = cleaned.replace(/^\x60{3}(?:json)?\s*/i, "").replace(/\s*\x60{3}$/, "");
   }
   const parsed: unknown = JSON.parse(cleaned);
-  return examAnswerSchema.parse(parsed);
+  return generatedExamAnswerSchema.parse(parsed);
 }
