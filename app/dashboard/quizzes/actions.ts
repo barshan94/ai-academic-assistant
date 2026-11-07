@@ -90,7 +90,7 @@ export async function generateQuizDraft(formData: FormData) {
 
   const quota = await consumeAIGenerationQuota(supabase, "ai-quiz");
   if (quota !== "allowed") {
-    logSafeOperationalEvent(quota === "limited" ? "ai_quiz_generation_quota_exhausted" : "ai_quiz_generation_quota_unavailable", {
+    logSafeOperationalEvent(quota === "limited" ? "ai_generation_quota_exhausted" : "ai_generation_quota_unavailable", {
       route: "/dashboard/quizzes",
       errorCode: quota === "limited" ? "AI_QUIZ_QUOTA_REACHED" : "AI_QUIZ_QUOTA_RPC_FAILED",
     });
