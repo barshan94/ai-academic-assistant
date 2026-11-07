@@ -118,7 +118,33 @@ describe("resumable upload status query", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("surfaces safe server errors for expired or invalid sessions", async () => {
+  it("rejects malformed JSON, non-object payloads and oversized status responses", async () => {
+    const malformed = vi.fn<typeof fetch>().mockResolvedValueOnce(new Response("{"));
+    await expect(queryResumableUploadStatus("opaque-session-token", 1234, malformed))
+      .rejects.toThrow("invalid or too large");
+
+    const nonObject = vi.fn<typeof fetch>().mockResolvedValueOnce(new Response("[]"));
+    await expect(queryResumableUploadStatus("opaque-session-token", 1234, nonObject))
+      .rejects.toThrow("response was invalid");
+
+    const oversized = vi.fn<typeof fetch>().mockResolvedValueOnce(
+      new Response(JSON.stringify({ error: "x".repeat(17 * 1024) }), {
+        headers: { "Content-Length": String(17 * 1024) },
+      }),
+    );
+    await expect(queryResumableUploadStatus("opaque-session-token", 1234, oversized))
+      .rejects.toThrow("invalid or too large");
+  });
+
+  it("limits error messages from non-success responses", async () => {
+    const malformedError = vi.fn<typeof fetch>().mockResolvedValueOnce(
+      new Response(JSON.stringify({ error: "x".repeat(301) }), { status: 503 }),
+    );
+    await expect(queryResumableUploadStatus("opaque-session-token", 1234, malformedError))
+      .rejects.toThrow("Could not check the upload position.");
+  });
+
+  it("surfaces safe server errors for expired or invalid sessions", async () =>
     const fetchMock = vi.fn<typeof fetch>().mockResolvedValueOnce(
       new Response(JSON.stringify({ error: "Google Drive upload session expired. Start again." }), {
         status: 410,
