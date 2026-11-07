@@ -542,3 +542,15 @@ Dependency security: production dependency audit is clean. The full development 
 - [ ] Remaining operational gates are unchanged: live AI provider configuration and human grading, Google Drive/OCR live acceptance, hosted migration reconciliation, backup/restore proof, accessibility and privacy/academic/operations sign-off.
 
 This checkpoint records isolated CI success only. It does not authorize merge, deployment or production release.
+
+
+## Current feature-branch verification — 2026-11-07 (commit cb531ad)
+
+- [x] Foundation workflow `42357740237`: ESLint, application and browser-test TypeScript checks, unit tests, production build, dependency audits and Chromium browser smoke tests passed.
+- [x] Database authorization workflow `42357740233`: isolated local Supabase migration replay and pgTAP authorization tests passed.
+- [x] Practice sessions now display the provenance label for each item, distinguishing approved source questions from prompts derived from approved chapter-note revisions.
+- [x] Practice answer-sheet exports retain the same source label, and the session count uses the accurate term "practice items" rather than implying every item is an approved question.
+- [x] Earlier practice-session additions remain covered: approved note prompts only, original-question links where available, and durable question snapshots when an original is unavailable.
+- [ ] Remaining release gates are unchanged: live AI-provider generation and human grading, live Google Drive/OCR acceptance, hosted migration reconciliation, actual backup/restore proof, accessibility, privacy/academic/operations sign-off and release approval.
+
+This checkpoint confirms isolated CI only. It does not establish production readiness or authorize merge, deployment or production database changes.
