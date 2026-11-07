@@ -5,6 +5,9 @@ export type ChapterNoteExportContent = {
   workedExamples?: string[];
   revisionPrompts?: string[];
   generatedBy?: string;
+  generationProvider?: string;
+  generationModel?: string;
+  verificationStatus?: string;
   sourceReferences?: Array<{
     ref: string;
     questionId: string;
@@ -29,12 +32,23 @@ export function buildChapterNoteMarkdown(title: string, content: ChapterNoteExpo
         (source.extractionMethod ? " · Extraction: " + source.extractionMethod : "")
       ).join("\n") + "\n"
     : "";
+  const provenance = content.generatedBy === "ai"
+    ? "> AI-generated draft. Not independently verified. Review every claim against the original sources."
+    : content.generatedBy === "offline-extractive"
+      ? "> Free offline source-extraction draft. It preserves source wording and candidate expressions; it does not generate explanations or solve questions. Verify extracted text against the original documents."
+      : content.generatedBy === "owner-authored"
+        ? "> Owner-authored study note. Check against the original sources."
+        : "> Study note. Verify its content against the original sources before relying on it.";
+  const generationDetails = [
+    content.generationProvider ? "- Provider: " + content.generationProvider : "",
+    content.generationModel ? "- Model: " + content.generationModel : "",
+    content.verificationStatus ? "- Verification status: " + content.verificationStatus : "",
+  ].filter(Boolean).join("\\n");
   return [
     "# " + title,
     "",
-    content.generatedBy === "ai"
-      ? "> AI-generated draft. Not independently verified. Review against original sources before relying on it."
-      : "> Owner-authored study note. Check against the original sources.",
+    provenance,
+    generationDetails ? "\\n" + generationDetails + "\\n" : "",
     "",
     content.summary ? "## Summary\n\n" + content.summary + "\n" : "",
     section("Key concepts", content.concepts),
