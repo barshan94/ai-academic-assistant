@@ -5,6 +5,7 @@ import { signOut } from "../actions";
 import { generateQuizDraft, updateQuizDraftStatus, updateQuizDraftQuestion } from "./actions";
 import type { DatabaseWithQuiz, GeneratedQuizRow } from "@/types/quiz-database";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { QuizSourcePicker } from "./quiz-source-picker";
 
 type QuizPageProps = {
   searchParams: Promise<{ generate?: string; status?: string; edit?: string }>;
@@ -39,19 +40,7 @@ export default async function QuizzesPage({ searchParams }: QuizPageProps) {
       .eq("owner_id", user.id)
       .in("question_id", approvedQuestionIds)
     : { data: [], error: null };
-  const importanceByQuestion = new Map((importanceMarks ?? []).map((mark) => [mark.question_id, mark]));
-  const importanceRank: Record<string, number> = { core: 3, high: 2, medium: 1 };
-  const rankedQuestions = [...(questions ?? [])].sort((a, b) =>
-    (importanceRank[importanceByQuestion.get(b.id)?.importance_level ?? ""] ?? 0) -
-    (importanceRank[importanceByQuestion.get(a.id)?.importance_level ?? ""] ?? 0)
-  );
-  const defaultSubject = subjects[0];
-  const preselectedImportantIds = new Set(
-    rankedQuestions
-      .filter((question) => question.subject === defaultSubject && importanceByQuestion.has(question.id))
-      .slice(0, 20)
-      .map((question) => question.id)
-  );
+
 
   const sourceQuestionIds = Array.from(new Set((quizzes ?? []).flatMap((quiz) => quiz.source_question_ids)));
   const { data: sourceQuestions, error: sourceQuestionError } = sourceQuestionIds.length
@@ -108,26 +97,24 @@ export default async function QuizzesPage({ searchParams }: QuizPageProps) {
           <form action={generateQuizDraft} className="review-form">
             <div className="question-fields">
               <label>Quiz title<input name="title" required maxLength={160} defaultValue="Chapter practice quiz" /></label>
-              <label>Subject<select name="subject" required defaultValue={subjects[0]}>{subjects.map((subject) => <option key={subject} value={subject}>{subject}</option>)}</select></label>
               <label>Chapter (optional)<input name="chapter" maxLength={160} placeholder="e.g. Motion and forces" /></label>
               <label>Number of generated questions<select name="count" defaultValue="10">{[5,10,15,20,25,30].map((count) => <option key={count} value={count}>{count}</option>)}</select></label>
             </div>
-            <div className="chapter-source-picker">
-              <strong>Select 1–20 approved source questions from the selected subject</strong>
-              <p className="question-card-meta">Your Core, High and Medium questions for the default subject are preselected first (up to 20). You can change the selection. Priority is a teacher&apos;s revision choice, not an exam prediction.</p>
-              {rankedQuestions.map((question) => {
-                const priority = importanceByQuestion.get(question.id);
-                return (
-                  <label className="chapter-source-option" key={question.id}>
-                    <input type="checkbox" name="questionIds" value={question.id} defaultChecked={preselectedImportantIds.has(question.id)} />
-                    <span><strong>{question.subject ?? "Unspecified subject"}</strong>{question.chapter ? " · " + question.chapter : ""}{question.question_number ? " · Q" + question.question_number : ""}
-                      {priority ? <span className="document-status"> · {priority.importance_level.toUpperCase()} PRIORITY</span> : null}
-                      <br />{question.question_text.slice(0, 360)}
-                    </span>
-                  </label>
-                );
-              })}
-            </div>
+            <QuizSourcePicker
+              subjects={subjects}
+              questions={(questions ?? []).map((question) => ({
+                id: question.id,
+                question_number: question.question_number,
+                question_text: question.question_text,
+                subject: question.subject,
+                chapter: question.chapter,
+              }))}
+              importanceMarks={(importanceMarks ?? []).map((mark) => ({
+                question_id: mark.question_id,
+                importance_level: mark.importance_level,
+              }))}
+              defaultSubject={subjects[0] ?? ""}
+            />
             <p className="question-card-meta">The server rechecks ownership, approval status, duplicate IDs and subject consistency before sending source text to the configured provider. AI generation is opt-in and requires AI_ENABLED=true plus a quiz-capable provider.</p>
             <button className="primary-action" type="submit">Generate source-linked quiz draft →</button>
           </form>
