@@ -168,14 +168,22 @@ export async function POST(request: Request) {
       // HTTP responses. Detailed diagnostics belong in a separately reviewed,
       // redacted observability channel, not owner-visible job metadata.
       logSafeOperationalEvent("document_worker_failed", { route: "/api/cron/process-documents", errorCode: "BACKGROUND_PROCESSING_FAILED", jobId });
-      const { data: failurePersisted, error: failureError } = await supabase.rpc("fail_document_processing", {
-        p_document_id: documentId,
-        p_owner_id: ownerId,
-        p_job_id: jobId,
-        p_expected_attempt_count: candidate.attempt_count + 1,
-        p_error_code: "BACKGROUND_PROCESSING_FAILED",
-      });
-      if (failureError || failurePersisted !== true) {
+      let failurePersisted = false;
+      try {
+        const { data, error } = await supabase.rpc("fail_document_processing", {
+          p_document_id: documentId,
+          p_owner_id: ownerId,
+          p_job_id: jobId,
+          p_expected_attempt_count: candidate.attempt_count + 1,
+          p_error_code: "BACKGROUND_PROCESSING_FAILED",
+        });
+        failurePersisted = !error && data === true;
+      } catch {
+        // A transport-level rejection is equivalent to a failed persistence
+        // attempt. Keep the response generic and let the lease expire safely.
+        failurePersisted = false;
+      }
+      if (!failurePersisted) {
         // Leave the lease in place if failure state cannot be persisted. The
         // stale-job policy can safely reclaim it after the lease expires.
         return Response.json({
