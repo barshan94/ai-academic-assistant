@@ -28,6 +28,12 @@ describe("document worker HTTP method", () => {
     expect(workflow).not.toContain('cat "$response_file"');
   });
 
+  it("restricts credentialed dispatch to the feature branch and this project's Preview origin", () => {
+    expect(workflow).toContain("if: github.ref == 'refs/heads/feature/m3-ai-solver'");
+    expect(workflow).toContain("ai-academic-assistant-[a-z0-9-]+-barshan-s-team\\.vercel\\.app");
+    expect(workflow).toContain("APP_BASE_URL must be this project's Vercel Preview origin");
+  });
+
   it("keeps queue processing opt-in with no recurring or automatic trigger", () => {
     expect(workflow).toMatch(/^on:\s*\n  workflow_dispatch:\s*$/m);
     expect(workflow).not.toMatch(/^\s{2}(?:schedule|push|pull_request|repository_dispatch):/m);
