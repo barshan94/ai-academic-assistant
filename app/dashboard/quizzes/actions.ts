@@ -52,7 +52,14 @@ export async function generateQuizDraft(formData: FormData) {
     redirect("/dashboard/quizzes?generate=mixed_subject");
   }
 
-  const sources = questions.map((question, index) => ({
+  const questionsById = new Map(questions.map((question) => [question.id, question]));
+  // Keep source reference numbering aligned with the exact ordered IDs saved in the draft.
+  const orderedQuestions = uniqueIds.map((id) => questionsById.get(id)).filter(
+    (question): question is NonNullable<typeof questions[number]> => Boolean(question),
+  );
+  if (orderedQuestions.length !== uniqueIds.length) redirect("/dashboard/quizzes?generate=sources");
+
+  const sources = orderedQuestions.map((question, index) => ({
     ref: "S" + (index + 1),
     questionText: question.question_text,
     subject: question.subject,
