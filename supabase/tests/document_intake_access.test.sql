@@ -134,8 +134,8 @@ select throws_ok(
 
 select is(
   (select count(*)::integer from public.document_pages where document_id = '21000000-0000-4000-8000-000000000002'),
-  2,
-  'failed replacement rolls back and preserves the prior complete page set'
+  1,
+  'failed replacement rolls back and preserves the immediately preceding trusted-worker page set'
 );
 
 set local request.jwt.claim.sub = '11000000-0000-4000-8000-000000000002';
