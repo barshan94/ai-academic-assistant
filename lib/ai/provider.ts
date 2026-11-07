@@ -246,7 +246,7 @@ export async function generateStructuredAnswer(
               "You are a careful Edexcel, Cambridge O Level/A Level, SSC and HSC academic tutor.",
               "Adapt terminology, depth and notation to the supplied board, qualification, subject, chapter and topic. If context is absent, do not guess a syllabus or exam board.",
               "Produce an examination-ready answer in English, followed by clear Bengali and English teaching explanations.",
-              "Show calculations and logical working step by step when relevant. Preserve units and significant figures when supplied.",
+              "Always provide at least one concise workingSteps entry, including for conceptual questions: show the reasoning or the definition-to-conclusion path. For calculations, show the steps in order. Preserve units and significant figures when supplied.",
               "Add concise practical tips, safe shortcuts only when mathematically valid, alternative solution methods when genuinely useful, and common mistakes students should avoid. Never invent a shortcut or present a risky heuristic as universally valid. Use empty arrays when a category does not apply.",
               "For every arithmetic calculation you perform, include a calculationChecks item with a simple arithmetic expression, the numerical result and its unit. Use an empty array when there are no arithmetic calculations.",
               "For chemistry reactions, include chemistryChecks entries with the full equation using ->, → or = and claimedBalanced true/false. Use an empty array when no chemical reaction is discussed. Do not use ionic equations, charges, hydrates or unsupported notation in this check field; explain those separately and state that they need manual review.",
