@@ -32,7 +32,7 @@ export class AIProviderError extends Error {
   }
 }
 
-export type AIProviderTask = "answer" | "chapter-note";
+export type AIProviderTask = "answer" | "chapter-note" | "quiz";
 
 type ConfiguredProvider = AIProviderConfig & {
   tasks: AIProviderTask[];
@@ -49,7 +49,7 @@ function parseProviderConfig(value: unknown, env: Record<string, string | undefi
     typeof candidate.apiKey !== "string" || !candidate.apiKey.trim() || candidate.apiKey.length > 1000 ||
     typeof candidate.model !== "string" || !candidate.model.trim() || candidate.model.length > 160 ||
     !Array.isArray(candidate.tasks) || candidate.tasks.length < 1 ||
-    candidate.tasks.some((task) => task !== "answer" && task !== "chapter-note") ||
+    candidate.tasks.some((task) => task !== "answer" && task !== "chapter-note" && task !== "quiz") ||
     (candidate.priority !== undefined && (!Number.isInteger(candidate.priority) || (candidate.priority as number) < 0 || (candidate.priority as number) > 1000)) ||
     (candidate.enabled !== undefined && typeof candidate.enabled !== "boolean")
   ) return null;
