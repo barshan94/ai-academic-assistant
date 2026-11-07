@@ -29,6 +29,7 @@ export default async function DashboardPage() {
         <div className="hero-actions">
           <Link className="primary-action" href="/dashboard/documents">Open document library <span aria-hidden="true">→</span></Link>
           <Link className="sign-in-link" href="/dashboard/questions">Open question library</Link>
+          <Link className="sign-in-link" href="/dashboard/important-questions">Important questions</Link>
           <Link className="sign-in-link" href="/dashboard/syllabus">Manage syllabus references</Link>
           <Link className="sign-in-link" href="/dashboard/chapters">Open chapter workspace</Link>
           <Link className="sign-in-link" href="/dashboard/revision">Open revision tracker</Link>
@@ -59,6 +60,7 @@ export default async function DashboardPage() {
           <article className="module-card"><span className="module-number">09</span><h3>Practice performance</h3><p>Review cross-session outcomes by subject, chapter and topic using your own recorded results.</p><Link className="document-open" href="/dashboard/practice/insights">View practice insights ↗</Link></article>
           <article className="module-card"><span className="module-number">10</span><h3>Quiz builder</h3><p>Generate source-linked MCQ and short-answer drafts, review explanations and approve teacher content.</p><Link className="document-open" href="/dashboard/quizzes">Open quiz workspace ↗</Link></article>
           <article className="module-card"><span className="module-number">11</span><h3>Syllabus practice priorities</h3><p>Spot verified syllabus topics that still need approved question-bank coverage. No unsupported exam predictions.</p><Link className="document-open" href="/dashboard/priorities">Review study priorities ↗</Link></article>
+          <article className="module-card"><span className="module-number">12</span><h3>Important questions</h3><p>Curate core, high and medium-priority questions with teacher-written reasons—not unsupported exam predictions.</p><Link className="document-open" href="/dashboard/important-questions">Curate important questions ↗</Link></article>
         </div>
       </section>
     </main>
