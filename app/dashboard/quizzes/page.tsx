@@ -58,6 +58,7 @@ export default async function QuizzesPage({ searchParams }: QuizPageProps) {
     : params.generate === "not_configured" ? "AI is disabled or no quiz-capable provider is configured. No provider request was made."
     : params.generate === "sources" ? "One or more selected questions are unavailable or are no longer approved."
     : params.generate === "mixed_subject" ? "Select approved questions from one subject only, and choose that same subject."
+    : params.generate === "mixed_chapter" ? "The selected chapter must exactly match the chapter recorded on every selected source question. Clear the chapter field or select matching sources."
     : params.generate === "save_failed" ? "The generated quiz could not be saved. No draft was created."
     : params.generate === "failed" ? "Quiz generation failed or returned invalid content. Check provider configuration and try again."
     : params.generate === "invalid" ? "Check the quiz details and select 1–20 distinct approved source questions."
@@ -115,7 +116,7 @@ export default async function QuizzesPage({ searchParams }: QuizPageProps) {
               }))}
               defaultSubject={subjects[0] ?? ""}
             />
-            <p className="question-card-meta">The server rechecks ownership, approval status, duplicate IDs and subject consistency before sending source text to the configured provider. AI generation is opt-in and requires AI_ENABLED=true plus a quiz-capable provider.</p>
+            <p className="question-card-meta">The server rechecks ownership, approval status, duplicate IDs, subject consistency and (when specified) exact chapter consistency before sending source text to the configured provider. AI generation is opt-in and requires AI_ENABLED=true plus a quiz-capable provider.</p>
             <button className="primary-action" type="submit">Generate source-linked quiz draft →</button>
           </form>
         )}
