@@ -48,7 +48,7 @@ describe("OCR source integrity", () => {
   });
 
   it("does not submit altered Drive bytes to OCR conversion", async () => {
-    const altered = new TextEncoder().encode("%PDF-1.7\nmodified source\n%%EOF");
+    const altered = new TextEncoder().encode("%PDF-1.7\nsourcx\n%%EOF");
     const fetchMock = vi.fn<typeof fetch>()
       .mockResolvedValueOnce(new Response(JSON.stringify({
         id: input.driveFileId,
