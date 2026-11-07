@@ -2,11 +2,12 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(8);
+select plan(9);
 
 insert into auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
 values
-  ('72000000-0000-4000-8000-000000000001', 'authenticated', 'authenticated', 'syllabus-lifecycle-owner@example.test', '', now(), '{}'::jsonb, '{}'::jsonb, now(), now());
+  ('72000000-0000-4000-8000-000000000001', 'authenticated', 'authenticated', 'syllabus-lifecycle-owner@example.test', '', now(), '{}'::jsonb, '{}'::jsonb, now(), now()),
+  ('72000000-0000-4000-8000-000000000002', 'authenticated', 'authenticated', 'syllabus-lifecycle-other@example.test', '', now(), '{}'::jsonb, '{}'::jsonb, now(), now());
 
 set local role authenticated;
 set local request.jwt.claim.sub = '72000000-0000-4000-8000-000000000001';
@@ -67,6 +68,15 @@ select throws_ok(
   '42501',
   'permission denied for table syllabus_catalogs',
   'retired catalogue metadata cannot be changed because authenticated users have no metadata-update grant'
+);
+
+set local request.jwt.claim.sub = '72000000-0000-4000-8000-000000000002';
+set local request.jwt.claims = '{"sub":"72000000-0000-4000-8000-000000000002","role":"authenticated","email":"syllabus-lifecycle-other@example.test"}';
+
+select is(
+  (select count(*)::integer from public.syllabus_catalogs),
+  0,
+  'another authenticated owner cannot read the private catalogue'
 );
 
 select * from finish();
