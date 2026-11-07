@@ -159,7 +159,7 @@ export default async function ChapterWorkspacePage({ searchParams }: PageProps) 
                   <p className="question-card-meta">{chapterQuestions.length} linked questions · {chapterNotes.length} note versions · {noteRevisionQuestions.length} prompts from the latest approved note</p>
 
                   <PracticeSession chapterTitle={chapter.title} questions={[
-                    ...chapterQuestions.map((question) => ({ id: question.id, questionNumber: question.question_number, questionText: question.question_text })),
+                    ...chapterQuestions.map((question) => ({ id: question.id, questionNumber: question.question_number, questionText: question.question_text, sourceLabel: "Approved question" })),
                     ...noteRevisionQuestions,
                   ]} />
 
