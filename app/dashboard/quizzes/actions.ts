@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { generateQuizWithRouting } from "@/lib/ai/quiz";
-import { AIConfigurationError } from "@/lib/ai/provider";
+import { AIConfigurationError, getAIProviderConfigs } from "@/lib/ai/provider";
 import type { Json } from "@/types/database";
 import type { DatabaseWithQuiz } from "@/types/quiz-database";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -78,6 +78,15 @@ export async function generateQuizDraft(formData: FormData) {
     chapter: question.chapter,
     topic: question.topic,
   }));
+
+  try {
+    getAIProviderConfigs("quiz");
+  } catch (error) {
+    if (error instanceof AIConfigurationError) {
+      redirect("/dashboard/quizzes?generate=not_configured");
+    }
+    throw error;
+  }
 
   const quota = await consumeAIGenerationQuota(supabase, "ai-quiz");
   if (quota !== "allowed") {
