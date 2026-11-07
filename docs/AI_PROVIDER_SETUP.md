@@ -2,7 +2,7 @@
 
 ## Supported protocol
 
-The current adapter pool supports OpenAI-compatible Chat Completions endpoints. This includes compatible gateways and vendors only when they implement the same endpoint and JSON response format. Native Anthropic, Gemini or other non-compatible APIs need a dedicated adapter before they can be added.
+The current adapter pool supports OpenAI-compatible Chat Completions endpoints. This includes compatible gateways and vendors only when they implement the same endpoint and JSON response format. Gemini is supported through Google's documented OpenAI-compatibility endpoint; native Anthropic and other non-compatible APIs need a dedicated adapter.
 
 AI is disabled until at least one valid server-side provider configuration exists. No provider is contacted by merely opening the app.
 
@@ -63,14 +63,14 @@ The existing OpenAI-compatible adapter can call Gemini without a new SDK or code
 
 `https://generativelanguage.googleapis.com/v1beta/openai`
 
-For a no-billing trial, create a Gemini API key in [Google AI Studio](https://aistudio.google.com/api-keys), keep the project on Google's **Free** tier, and configure these server-side variables:
+For a no-billing trial using the currently documented free-tier `gemini-2.5-flash` model, create a Gemini API key in [Google AI Studio](https://aistudio.google.com/api-keys), keep the project on Google's **Free** tier, and configure these server-side variables:
 
 ```dotenv
 AI_ENABLED=true
 AI_PROVIDER_NAME=gemini-ai-studio
 AI_API_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai
 AI_API_KEY=YOUR_GEMINI_API_KEY
-AI_MODEL=gemini-3.6-flash
+AI_MODEL=gemini-2.5-flash
 AI_ALLOW_PROVIDER_FALLBACKS=false
 ```
 
