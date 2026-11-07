@@ -114,7 +114,7 @@ export default async function QuizzesPage({ searchParams }: QuizPageProps) {
             </div>
             <div className="chapter-source-picker">
               <strong>Select 1–20 approved source questions from the selected subject</strong>
-              <p className="question-card-meta">Your Core, High and Medium questions for the default subject are preselected first (up to 20). You can change the selection. Priority is a teacher's revision choice, not an exam prediction.</p>
+              <p className="question-card-meta">Your Core, High and Medium questions for the default subject are preselected first (up to 20). You can change the selection. Priority is a teacher&apos;s revision choice, not an exam prediction.</p>
               {rankedQuestions.map((question) => {
                 const priority = importanceByQuestion.get(question.id);
                 return (
