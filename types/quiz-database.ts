@@ -56,6 +56,7 @@ export type DatabaseWithQuiz = Omit<DatabaseWithPractice, "public"> & {
           p_quiz_id: string;
           p_question_index: number;
           p_prompt: string;
+          p_options: string[];
           p_correct_answer: string;
           p_explanation: string;
         };
