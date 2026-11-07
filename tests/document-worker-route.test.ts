@@ -314,7 +314,7 @@ describe("document worker failure redaction", () => {
 
     const fromMock = vi.fn((table: string) => {
       if (table === "documents") {
-        return queryFor({ data: { id: "document-1", drive_file_id: "drive-file-1", status: "processing" }, error: null });
+        return queryFor({ data: { id: "document-1", drive_file_id: "drive-file-1", status: "processing", file_size_bytes: 32, sha256: "a".repeat(64) }, error: null });
       }
       if (table === "drive_connections") {
         return queryFor({ data: { encrypted_refresh_token: "encrypted-test-token" }, error: null });
@@ -388,7 +388,7 @@ describe("document worker failure redaction", () => {
     };
     const fromMock = vi.fn((table: string) => {
       if (table === "documents") {
-        return queryFor({ data: { id: "document-1", drive_file_id: "drive-file-1", status: "processing" }, error: null });
+        return queryFor({ data: { id: "document-1", drive_file_id: "drive-file-1", status: "processing", file_size_bytes: 32, sha256: "a".repeat(64) }, error: null });
       }
       if (table === "drive_connections") {
         return queryFor({ data: { encrypted_refresh_token: "encrypted-test-token" }, error: null });
