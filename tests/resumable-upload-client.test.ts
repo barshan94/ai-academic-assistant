@@ -144,7 +144,7 @@ describe("resumable upload status query", () => {
       .rejects.toThrow("Could not check the upload position.");
   });
 
-  it("surfaces safe server errors for expired or invalid sessions", async () =>
+  it("surfaces safe server errors for expired or invalid sessions", async () => {
     const fetchMock = vi.fn<typeof fetch>().mockResolvedValueOnce(
       new Response(JSON.stringify({ error: "Google Drive upload session expired. Start again." }), {
         status: 410,
