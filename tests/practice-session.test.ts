@@ -53,6 +53,16 @@ describe("free local practice session helpers", () => {
     expect(output).not.toContain("Correct answer");
   });
 
+  it("preserves the source provenance of approved questions and note prompts in exports", () => {
+    const items: PracticeQuestion[] = [
+      { id: "approved-1", questionNumber: "4", questionText: "Define momentum", sourceLabel: "Approved question" },
+      { id: "note-1", questionNumber: "Prompt 1", questionText: "State the law of conservation of momentum", sourceLabel: "Approved note revision prompt" },
+    ];
+    const output = buildPracticeAnswerSheet("Momentum", items, {}, new Set(), new Set());
+    expect(output).toContain("Source: Approved question");
+    expect(output).toContain("Source: Approved note revision prompt");
+  });
+
   it("exports a safe default title and empty-work placeholders", () => {
     const output = buildPracticeAnswerSheet(" ", [questions[0]], {}, new Set(), new Set());
     expect(output.startsWith("Chapter practice\n")).toBe(true);
