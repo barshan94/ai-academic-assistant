@@ -2,6 +2,7 @@ export type PracticeQuestion = {
   id: string;
   questionNumber: string | null;
   questionText: string;
+  sourceLabel?: string;
 };
 
 export function shufflePracticeQuestions<T>(items: readonly T[], random: () => number = Math.random): T[] {
@@ -53,6 +54,7 @@ export function buildPracticeAnswerSheet(
       : attempted.has(question.id) ? "Needs more practice" : "Not marked attempted";
     lines.push(
       `Question ${index + 1}${question.questionNumber ? ` (${question.questionNumber})` : ""}`,
+      question.sourceLabel ? `Source: ${question.sourceLabel}` : "Source: Approved question",
       question.questionText,
       `Self-assessment: ${status}`,
       "Your working:",
@@ -92,7 +94,8 @@ export function buildNoteRevisionQuestions(
     .slice(0, maxPrompts)
     .map((prompt, index) => ({
       id: `note-${noteId}-${index + 1}`,
-      questionNumber: `Approved note prompt ${index + 1}`,
+      questionNumber: `Prompt ${index + 1}`,
       questionText: prompt.slice(0, 2000),
+      sourceLabel: "Approved note revision prompt",
     }));
 }
