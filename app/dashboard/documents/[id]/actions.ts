@@ -23,12 +23,20 @@ export async function savePageCorrection(formData: FormData) {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) redirect("/login");
 
-  const { data: correctionSaved, error: correctionError } = await supabase.rpc("save_document_page_correction", {
-    p_document_id: documentId,
-    p_owner_id: user.id,
-    p_page_id: pageId,
-    p_extracted_text: extractedText,
-  });
+  let correctionSaved: boolean | null = null;
+  let correctionError: unknown = null;
+  try {
+    const result = await supabase.rpc("save_document_page_correction", {
+      p_document_id: documentId,
+      p_owner_id: user.id,
+      p_page_id: pageId,
+      p_extracted_text: extractedText,
+    });
+    correctionSaved = result.data;
+    correctionError = result.error;
+  } catch {
+    correctionError = new Error("Page correction request failed");
+  }
 
   redirect("/dashboard/documents/" + encodeURIComponent(documentId) +
     (correctionError || correctionSaved !== true ? "?review=save_failed" : "?review=saved"));
@@ -47,10 +55,16 @@ export async function approveDocument(formData: FormData) {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) redirect("/login");
 
-  const { error: approvalError } = await supabase.rpc("approve_document_review", {
-    p_document_id: documentId.data,
-    p_owner_id: user.id,
-  });
+  let approvalError: unknown = null;
+  try {
+    const result = await supabase.rpc("approve_document_review", {
+      p_document_id: documentId.data,
+      p_owner_id: user.id,
+    });
+    approvalError = result.error;
+  } catch {
+    approvalError = new Error("Document approval request failed");
+  }
 
   redirect("/dashboard/documents/" + encodeURIComponent(documentId.data) +
     (approvalError ? "?review=approve_failed" : "?review=approved"));
@@ -81,20 +95,26 @@ export async function createQuestionFromPage(formData: FormData) {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) redirect("/login");
 
-  const { error } = await supabase.rpc("create_question_from_reviewed_page", {
-    p_document_id: parsed.data.documentId,
-    p_document_page_id: parsed.data.documentPageId,
-    p_owner_id: user.id,
-    p_question_text: parsed.data.questionText,
-    p_question_number: parsed.data.questionNumber,
-    p_board: parsed.data.board,
-    p_qualification: parsed.data.qualification,
-    p_subject: parsed.data.subject,
-    p_chapter: parsed.data.chapter,
-    p_topic: parsed.data.topic,
-  });
+  let saveError: unknown = null;
+  try {
+    const result = await supabase.rpc("create_question_from_reviewed_page", {
+      p_document_id: parsed.data.documentId,
+      p_document_page_id: parsed.data.documentPageId,
+      p_owner_id: user.id,
+      p_question_text: parsed.data.questionText,
+      p_question_number: parsed.data.questionNumber,
+      p_board: parsed.data.board,
+      p_qualification: parsed.data.qualification,
+      p_subject: parsed.data.subject,
+      p_chapter: parsed.data.chapter,
+      p_topic: parsed.data.topic,
+    });
+    saveError = result.error;
+  } catch {
+    saveError = new Error("Question creation request failed");
+  }
 
-  redirect(error
+  redirect(saveError
     ? "/dashboard/documents/" + encodeURIComponent(documentId) + "?question=save_failed"
     : "/dashboard/questions?created=1");
 }
