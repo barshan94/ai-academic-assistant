@@ -80,13 +80,26 @@ async function processDocument(request: NextRequest, context: RouteContext) {
     // A crashed final attempt must not leave the parent document stuck in
     // processing. Recover the exact stale lease and fail both rows atomically.
     if (staleRunningJob) {
-      const { data: recovered, error: recoveryError } = await supabase.rpc("recover_stale_document_processing_job", {
-        p_document_id: id,
-        p_owner_id: user.id,
-        p_job_id: job.id,
-        p_expected_started_at: job.started_at,
-      });
-      if (recoveryError || recovered !== true) return redirectToDocument(request, id, "recovery_failed");
+      let recoveryResult: { data: unknown; error: unknown };
+      try {
+        recoveryResult = await supabase.rpc("recover_stale_document_processing_job", {
+          p_document_id: id,
+          p_owner_id: user.id,
+          p_job_id: job.id,
+          p_expected_started_at: job.started_at,
+        });
+      } catch {
+        // The recovery transaction may have committed before its response was
+        // lost. Do not repeat a terminal state transition automatically.
+        logSafeOperationalEvent("manual_document_recovery_state_uncertain", {
+          route: "/api/documents/[id]/process",
+          errorCode: "DOCUMENT_PROCESSING_RECOVERY_UNCERTAIN",
+        });
+        return redirectToDocument(request, id, "recovery_state_uncertain");
+      }
+      if (recoveryResult.error || recoveryResult.data !== true) {
+        return redirectToDocument(request, id, "recovery_failed");
+      }
     }
     return redirectToDocument(request, id, "retry_limit");
   }
