@@ -91,13 +91,16 @@ export async function POST(request: Request) {
     if (!isBackgroundJobClaimable({ status: candidate.status, startedAt: candidate.started_at })) continue;
     if (!isBackgroundJobRetryEligible(candidate.attempt_count, candidate.max_attempts)) {
       if (candidate.status === "running") {
-        const { error: terminalizationError } = await supabase.rpc("terminalize_exhausted_stale_document_job", {
-          p_document_id: candidate.document_id,
-          p_owner_id: candidate.owner_id,
-          p_job_id: candidate.id,
-          p_expected_started_at: candidate.started_at,
-        });
-        if (terminalizationError) {
+        try {
+          const { error: terminalizationError } = await supabase.rpc("terminalize_exhausted_stale_document_job", {
+            p_document_id: candidate.document_id,
+            p_owner_id: candidate.owner_id,
+            p_job_id: candidate.id,
+            p_expected_started_at: candidate.started_at,
+          });
+          if (terminalizationError) throw terminalizationError;
+        } catch {
+          // A rejected database transport must not abort the whole worker run.
           logSafeOperationalEvent("exhausted_document_job_terminalization_failed", {
             route: "/api/cron/process-documents",
             errorCode: "EXHAUSTED_JOB_TERMINALIZATION_FAILED",
@@ -107,24 +110,27 @@ export async function POST(request: Request) {
       }
       continue;
     }
-    const { data: claimed, error: claimError } = await supabase.rpc("claim_document_processing_job", {
-      p_document_id: candidate.document_id,
-      p_owner_id: candidate.owner_id,
-      p_job_id: candidate.id,
-      p_expected_status: candidate.status,
-      p_expected_attempt_count: candidate.attempt_count,
-      p_expected_started_at: candidate.started_at,
-    });
-    if (claimError || claimed !== true) {
-      if (claimError) {
-        logSafeOperationalEvent("document_job_claim_failed", {
-          route: "/api/cron/process-documents",
-          errorCode: "DOCUMENT_JOB_CLAIM_FAILED",
-          jobId: candidate.id,
-        });
-      }
+    let claimed = false;
+    try {
+      const result = await supabase.rpc("claim_document_processing_job", {
+        p_document_id: candidate.document_id,
+        p_owner_id: candidate.owner_id,
+        p_job_id: candidate.id,
+        p_expected_status: candidate.status,
+        p_expected_attempt_count: candidate.attempt_count,
+        p_expected_started_at: candidate.started_at,
+      });
+      if (result.error) throw result.error;
+      claimed = result.data === true;
+    } catch {
+      logSafeOperationalEvent("document_job_claim_failed", {
+        route: "/api/cron/process-documents",
+        errorCode: "DOCUMENT_JOB_CLAIM_FAILED",
+        jobId: candidate.id,
+      });
       continue;
     }
+    if (!claimed) continue;
 
     const jobId = candidate.id;
     const ownerId = candidate.owner_id;
