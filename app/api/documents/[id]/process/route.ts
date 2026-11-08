@@ -17,7 +17,7 @@ function redirectToDocument(request: NextRequest, id: string, status: string) {
   return NextResponse.redirect(url, 303);
 }
 
-export async function POST(request: NextRequest, context: RouteContext) {
+async function processDocument(request: NextRequest, context: RouteContext) {
   const origin = request.headers.get("origin");
   if (origin !== request.nextUrl.origin) return new NextResponse("Forbidden", { status: 403 });
 
@@ -145,5 +145,19 @@ export async function POST(request: NextRequest, context: RouteContext) {
       return redirectToDocument(request, id, "failure_state_unpersisted");
     }
     return redirectToDocument(request, id, "processing_failed");
+  }
+}
+
+
+export async function POST(request: NextRequest, context: RouteContext) {
+  try {
+    return await processDocument(request, context);
+  } catch {
+    logSafeOperationalEvent("document_processing_route_unhandled", {
+      route: "/api/documents/[id]/process",
+      errorCode: "DOCUMENT_PROCESSING_ROUTE_FAILED",
+    });
+    const { id } = await context.params;
+    return redirectToDocument(request, id, "processing_unavailable");
   }
 }
