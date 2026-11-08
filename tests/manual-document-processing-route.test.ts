@@ -1,9 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 
-const { createSupabaseServerClientMock, rpcMock, getDriveAccessTokenMock, extractTextFromDrivePdfMock } = vi.hoisted(() => ({
+const { createSupabaseServerClientMock, getDriveAccessTokenMock, extractTextFromDrivePdfMock } = vi.hoisted(() => ({
   createSupabaseServerClientMock: vi.fn(),
-  rpcMock: vi.fn(),
   getDriveAccessTokenMock: vi.fn(),
   extractTextFromDrivePdfMock: vi.fn(),
 }));
@@ -64,7 +63,7 @@ function makeSupabase(claim: () => Promise<{ data: unknown; error: unknown }>) {
   return {
     auth: { getUser: vi.fn(async () => ({ data: { user: { id: "owner-1" } }, error: null })) },
     from,
-    rpc: vi.fn((name: string, args: unknown) => {
+    rpc: vi.fn((name: string) => {
       if (name === "claim_document_processing_job") return claim();
       throw new Error("Unexpected RPC: " + name);
     }),
@@ -81,7 +80,6 @@ function request() {
 const context = { params: Promise.resolve({ id: "document-1" }) };
 
 beforeEach(() => {
-  rpcMock.mockReset();
   createSupabaseServerClientMock.mockReset();
   getDriveAccessTokenMock.mockReset();
   extractTextFromDrivePdfMock.mockReset();
