@@ -55,26 +55,17 @@ describe("chapter note server-action persistence failures", () => {
   });
 
   it("does not report a note status update as successful when the update request rejects", async () => {
-    const maybeSingle = vi.fn();
-    const select = vi.fn(() => ({ maybeSingle }));
-    const eqOwner = vi.fn(() => ({ select }));
-    const eqId = vi.fn(() => ({ eq: eqOwner }));
-    const update = vi.fn(() => ({ eq: eqId }));
-    supabase.from.mockReturnValue({ update });
-    eqId.mockReturnValue({ eq: vi.fn(() => ({ select })) });
-    // The first eq() scopes the note id; the second scopes ownership.
-    eqId.mockImplementation(() => ({ eq: vi.fn().mockRejectedValue(new Error("private transport detail")) }));
-    supabase.from.mockImplementation(() => ({
-      update: vi.fn(() => ({
-        eq: vi.fn(() => ({
-          eq: vi.fn(() => ({
-            select: vi.fn(() => ({
+    supabase.from.mockReturnValue({
+      update: () => ({
+        eq: () => ({
+          eq: () => ({
+            select: () => ({
               maybeSingle: vi.fn().mockRejectedValue(new Error("private transport detail")),
-            })),
-          })),
-        })),
-      })),
-    }));
+            }),
+          }),
+        }),
+      }),
+    });
 
     const form = new FormData();
     form.set("noteId", noteId);
