@@ -137,14 +137,25 @@ async function processDocument(request: NextRequest, context: RouteContext) {
     if (!pages.length) throw new Error("No readable text was detected. The file needs manual review.");
     if (pages.length > 100) throw new Error("The document exceeded the 100-page processing limit.");
 
-    const { data: completedPageCount, error: completionError } = await supabase.rpc("complete_document_processing", {
-      p_document_id: id,
-      p_owner_id: user.id,
-      p_job_id: job.id,
-      p_expected_attempt_count: job.attempt_count + 1,
-      p_pages: pages,
-    });
-    if (completionError || completedPageCount !== pages.length) {
+    let completionResult: { data: unknown; error: unknown };
+    try {
+      completionResult = await supabase.rpc("complete_document_processing", {
+        p_document_id: id,
+        p_owner_id: user.id,
+        p_job_id: job.id,
+        p_expected_attempt_count: job.attempt_count + 1,
+        p_pages: pages,
+      });
+    } catch {
+      // Completion may have committed before the response was lost. Never run
+      // the failure transition against an outcome that is now uncertain.
+      logSafeOperationalEvent("manual_document_completion_state_uncertain", {
+        route: "/api/documents/[id]/process",
+        errorCode: "DOCUMENT_PROCESSING_COMPLETION_UNCERTAIN",
+      });
+      return redirectToDocument(request, id, "completion_state_uncertain");
+    }
+    if (completionResult.error || completionResult.data !== pages.length) {
       throw new Error("Could not atomically complete document page replacement and the processing job.");
     }
 
