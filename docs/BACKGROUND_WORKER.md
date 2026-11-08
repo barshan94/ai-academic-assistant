@@ -8,12 +8,12 @@ Configure these values in the dedicated non-production Vercel project:
 
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY` — server-only; never expose with a `NEXT_PUBLIC_` prefix.
-- `CRON_SECRET` — long random secret used by the worker route to authenticate scheduled invocations.
+- `CRON_SECRET` — long random secret used by the worker route to authenticate operator-triggered invocations.
 - `DRIVE_TOKEN_ENCRYPTION_KEY` — the same base64-encoded 32-byte key used to encrypt existing Drive refresh tokens. Rotating it without re-encrypting stored tokens will break Drive connections.
 - `GOOGLE_CLIENT_ID`
 - `GOOGLE_CLIENT_SECRET`
 
-The scheduler is GitHub Actions, defined in `.github/workflows/document-worker.yml`, and currently supports manual dispatch only. Configure these repository Actions secrets:
+The GitHub Actions workflow is defined in `.github/workflows/document-worker.yml` and currently supports manual dispatch only. Configure these repository Actions secrets:
 
 - `APP_BASE_URL` — the HTTPS base URL of the deployed application, for example `https://your-app.example.com` (no path suffix).
 - `CRON_SECRET` — the same random secret configured in the Vercel environment.
@@ -32,7 +32,7 @@ The current workflow is an operator-triggered worker invocation, not a scheduler
 - Retry attempts stop at the row's configured `max_attempts`.
 - The worker refuses to replace extracted pages referenced by saved questions or chapter-note sources.
 - A job failure is persisted as a bounded error message and can be retried while its retry budget remains.
-- The worker processes one job per invocation; backlog throughput therefore depends on the scheduler frequency. The GitHub Actions scheduler discards response bodies, logs only HTTP status, and does not automatically retry POST requests; the next scheduled invocation is the retry opportunity.
+- The worker processes one job per invocation. Because the workflow is manual-only, queued work remains pending until an operator starts another invocation. GitHub Actions does not automatically retry this POST request; after a persisted failure, an operator must start a later invocation to use the remaining retry budget.
 
 ## Before production use
 
