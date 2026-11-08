@@ -419,8 +419,16 @@ export async function searchQuestionWebSources(formData: FormData) {
   }
 
   const typedSupabase = supabase as unknown as SupabaseClient<DatabaseWithAISolutions>;
-  const { data: allowed, error: quotaError } = await typedSupabase.rpc("consume_question_web_research_quota");
-  if (quotaError) {
+  let allowed = false;
+  let quotaUnavailable = false;
+  try {
+    const result = await typedSupabase.rpc("consume_question_web_research_quota");
+    allowed = !result.error && Boolean(result.data);
+    quotaUnavailable = Boolean(result.error);
+  } catch {
+    quotaUnavailable = true;
+  }
+  if (quotaUnavailable) {
     logSafeOperationalEvent("web_research_quota_unavailable", { route: "/dashboard/questions/[id]", errorCode: "WEB_RESEARCH_QUOTA_RPC_FAILED" });
     redirect("/dashboard/questions/" + question.id + "?research=quota_unavailable");
   }
@@ -442,21 +450,26 @@ export async function searchQuestionWebSources(formData: FormData) {
 
   if (!sources.length) redirect("/dashboard/questions/" + question.id + "?research=no_results");
 
-  const { error: saveError } = await typedSupabase.from("question_web_research_sources").insert(
-    sources.map((source) => ({
-      owner_id: user.id,
-      question_id: question.id,
-      query: parsed.data.query,
-      provider: "brave-search",
-      title: source.title,
-      source_url: source.url,
-      snippet: source.snippet,
-      result_rank: source.rank,
-      published_at: source.publishedAt,
-      retrieved_at: new Date().toISOString(),
-    })),
-  );
-  if (saveError) redirect("/dashboard/questions/" + question.id + "?research=save_failed");
+  let sourcesSaved = false;
+  try {
+    const { error: saveError } = await typedSupabase.from("question_web_research_sources").insert(
+      sources.map((source) => ({
+        owner_id: user.id,
+        question_id: question.id,
+        query: parsed.data.query,
+        provider: "brave-search",
+        title: source.title,
+        source_url: source.url,
+        snippet: source.snippet,
+        result_rank: source.rank,
+        published_at: new Date().toISOString(),
+      })),
+    );
+    sourcesSaved = !saveError;
+  } catch {
+    sourcesSaved = false;
+  }
+  if (!sourcesSaved) redirect("/dashboard/questions/" + question.id + "?research=save_failed");
 
   revalidatePath("/dashboard/questions/" + question.id);
   redirect("/dashboard/questions/" + question.id + "?research=saved");
