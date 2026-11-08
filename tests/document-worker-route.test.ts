@@ -443,6 +443,7 @@ describe("document worker failure redaction", () => {
   it("returns a distinct generic response when failure persistence itself fails", async () => {
     process.env.GOOGLE_CLIENT_ID = "test-google-client";
     process.env.GOOGLE_CLIENT_SECRET = "test-google-secret";
+    const logSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
 
     type QueryResult = { data: unknown; error: null };
     type QueryBuilder = Promise<QueryResult> & {
@@ -496,12 +497,17 @@ describe("document worker failure redaction", () => {
     const response = await POST(request("Bearer test-cron-secret-with-sufficient-entropy"));
     const body = await response.json();
 
-    expect(response.status).toBe(500);
+    expect(response.status).toBe(503);
     expect(body).toEqual({
       processed: false,
       job_id: "job-1",
-      error: "Processing failed and its failure state could not be persisted.",
+      error: "Processing failure state is uncertain. Check the document status before retrying.",
     });
+    expect(logSpy).toHaveBeenCalledTimes(2);
+    const logs = logSpy.mock.calls.map((call) => String(call[0])).join("\\n");
+    expect(logs).toContain("DOCUMENT_PROCESSING_FAILURE_UNCERTAIN");
+    expect(logs).not.toContain("private database transport failure");
+    expect(logs).not.toContain("private OCR provider response");
     expect(JSON.stringify(body)).not.toContain("private");
     expect(JSON.stringify(body)).not.toContain("connection string");
     expect(JSON.stringify(body)).not.toContain("transport failure");
