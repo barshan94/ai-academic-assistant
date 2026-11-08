@@ -82,15 +82,29 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Only normalized PDF documents can be archived." }, { status: 400 });
     }
 
-    const { data: duplicate, error: duplicateError } = await supabase
-      .from("documents").select("id").eq("owner_id", user.id).eq("sha256", sha256).maybeSingle();
-    if (duplicateError) return NextResponse.json({ error: "Could not check for duplicate documents." }, { status: 500 });
+    let duplicate: { id: string } | null = null;
+    try {
+      const result = await supabase
+        .from("documents").select("id").eq("owner_id", user.id).eq("sha256", sha256).maybeSingle();
+      if (result.error) {
+        logSafeOperationalEvent("document_upload_duplicate_check_failed", { route: "/api/documents/upload/resumable/start", errorCode: "UPLOAD_DUPLICATE_CHECK_FAILED" });
+        return NextResponse.json({ error: "Could not check for duplicate documents." }, { status: 503 });
+      }
+      duplicate = result.data;
+    } catch {
+      logSafeOperationalEvent("document_upload_duplicate_check_failed", { route: "/api/documents/upload/resumable/start", errorCode: "UPLOAD_DUPLICATE_CHECK_FAILED" });
+      return NextResponse.json({ error: "Could not check for duplicate documents. Try again shortly." }, { status: 503 });
+    }
     if (duplicate) return NextResponse.json({ duplicate: true }, { status: 409 });
 
     const accessToken = await getDriveAccessToken();
 
-    const { data: uploadAllowed, error: quotaError } = await supabase.rpc("consume_document_upload_quota");
-    if (quotaError) {
+    let uploadAllowed: boolean | null = null;
+    try {
+      const quota = await supabase.rpc("consume_document_upload_quota");
+      if (quota.error) throw new Error("quota rpc returned an error");
+      uploadAllowed = quota.data;
+    } catch {
       logSafeOperationalEvent("document_upload_quota_unavailable", { route: "/api/documents/upload/resumable/start", errorCode: "UPLOAD_QUOTA_RPC_FAILED" });
       return NextResponse.json({ error: "Upload protection is temporarily unavailable. Try again shortly." }, { status: 503 });
     }
