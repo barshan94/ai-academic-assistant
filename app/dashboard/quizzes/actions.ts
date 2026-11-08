@@ -154,11 +154,17 @@ export async function updateQuizDraftStatus(formData: FormData) {
   if (authError || !user) redirect("/login");
 
   const db = supabase as unknown as SupabaseClient<DatabaseWithQuiz>;
-  const { data, error } = await db.rpc("update_generated_quiz_status", {
-    p_quiz_id: parsed.data.quizId,
-    p_status: parsed.data.status,
-  });
-  if (error || !data) redirect("/dashboard/quizzes?status=blocked");
+  let updated = false;
+  try {
+    const { data, error } = await db.rpc("update_generated_quiz_status", {
+      p_quiz_id: parsed.data.quizId,
+      p_status: parsed.data.status,
+    });
+    updated = !error && Boolean(data);
+  } catch {
+    updated = false;
+  }
+  if (!updated) redirect("/dashboard/quizzes?status=blocked");
 
   revalidatePath("/dashboard/quizzes");
   redirect("/dashboard/quizzes?status=updated");
@@ -196,15 +202,21 @@ export async function updateQuizDraftQuestion(formData: FormData) {
   }
 
   const db = supabase as unknown as SupabaseClient<DatabaseWithQuiz>;
-  const { data, error } = await db.rpc("update_generated_quiz_question", {
-    p_quiz_id: parsed.data.quizId,
-    p_question_index: parsed.data.questionIndex,
-    p_prompt: parsed.data.prompt,
-    p_options: options,
-    p_correct_answer: parsed.data.correctAnswer,
-    p_explanation: parsed.data.explanation,
-  });
-  if (error || !data) redirect("/dashboard/quizzes?edit=blocked");
+  let updated = false;
+  try {
+    const { data, error } = await db.rpc("update_generated_quiz_question", {
+      p_quiz_id: parsed.data.quizId,
+      p_question_index: parsed.data.questionIndex,
+      p_prompt: parsed.data.prompt,
+      p_options: options,
+      p_correct_answer: parsed.data.correctAnswer,
+      p_explanation: parsed.data.explanation,
+    });
+    updated = !error && Boolean(data);
+  } catch {
+    updated = false;
+  }
+  if (!updated) redirect("/dashboard/quizzes?edit=blocked");
 
   revalidatePath("/dashboard/quizzes");
   redirect("/dashboard/quizzes?edit=saved");
