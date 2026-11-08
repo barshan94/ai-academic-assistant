@@ -35,6 +35,7 @@ function query(result: { data: unknown; error: unknown }) {
 function makeSupabase(
   claim: () => Promise<{ data: unknown; error: unknown }>,
   fail: () => Promise<{ data: unknown; error: unknown }> = async () => ({ data: true, error: null }),
+  complete: () => Promise<{ data: unknown; error: unknown }> = async () => ({ data: 1, error: null }),
 ) {
   const documentQuery = query({
     data: {
@@ -69,6 +70,7 @@ function makeSupabase(
     rpc: vi.fn((name: string) => {
       if (name === "claim_document_processing_job") return claim();
       if (name === "fail_document_processing") return fail();
+      if (name === "complete_document_processing") return complete();
       throw new Error("Unexpected RPC: " + name);
     }),
   };
@@ -88,6 +90,7 @@ beforeEach(() => {
   getDriveAccessTokenMock.mockReset();
   extractTextFromDrivePdfMock.mockReset();
   getDriveAccessTokenMock.mockResolvedValue("test-drive-token");
+  extractTextFromDrivePdfMock.mockResolvedValue("sample extracted text");
 });
 
 afterEach(() => {
@@ -159,5 +162,31 @@ describe("manual document processing claim recovery", () => {
     expect(logs).toContain("DOCUMENT_PROCESSING_FAILURE_UNCERTAIN");
     expect(logs).not.toContain("PRIVATE_FAILURE_STATE_TRANSPORT_DETAILS");
     expect(logs).not.toContain("PRIVATE_OCR_FAILURE_DETAILS");
+  });
+
+  it("does not mark a document failed when the completion RPC response is lost", async () => {
+    const logSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const supabase = makeSupabase(
+      async () => ({ data: true, error: null }),
+      async () => ({ data: true, error: null }),
+      () => Promise.reject(new Error("PRIVATE_COMPLETION_TRANSPORT_DETAILS")),
+    );
+    createSupabaseServerClientMock.mockResolvedValue(supabase);
+
+    const response = await POST(request() as never, context);
+
+    expect(response.status).toBe(303);
+    expect(response.headers.get("location")).toContain("process=completion_state_uncertain");
+    expect(supabase.rpc).toHaveBeenCalledTimes(2);
+    expect(supabase.rpc).toHaveBeenNthCalledWith(2, "complete_document_processing", expect.objectContaining({
+      p_document_id: "document-1",
+      p_owner_id: "owner-1",
+      p_job_id: "job-1",
+      p_expected_attempt_count: 1,
+    }));
+    expect(supabase.rpc).not.toHaveBeenCalledWith("fail_document_processing", expect.anything());
+    expect(logSpy).toHaveBeenCalledOnce();
+    expect(String(logSpy.mock.calls[0][0])).toContain("DOCUMENT_PROCESSING_COMPLETION_UNCERTAIN");
+    expect(String(logSpy.mock.calls[0][0])).not.toContain("PRIVATE_COMPLETION_TRANSPORT_DETAILS");
   });
 });
