@@ -62,4 +62,30 @@ describe("OCR source integrity", () => {
     await expect(extractTextFromDrivePdf(input)).rejects.toThrow("checksum does not match");
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
+  it("returns extracted text when temporary OCR cleanup fails and logs only a safe event", async () => {
+    const logSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const fetchMock = vi.fn<typeof fetch>()
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        id: input.driveFileId,
+        mimeType: "application/pdf",
+        size: String(original.byteLength),
+        trashed: false,
+      }), { status: 200, headers: { "content-type": "application/json" } }))
+      .mockResolvedValueOnce(new Response(new Uint8Array(original), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ id: "temporary-doc" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }))
+      .mockResolvedValueOnce(new Response("Extracted physics text", { status: 200 }))
+      .mockResolvedValueOnce(new Response("private Google Drive delete failure", { status: 500 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(extractTextFromDrivePdf(input)).resolves.toBe("Extracted physics text");
+    expect(logSpy).toHaveBeenCalledOnce();
+    const logged = String(logSpy.mock.calls[0][0]);
+    expect(logged).toContain('"event":"google_drive_ocr_temp_cleanup_failed"');
+    expect(logged).toContain('"errorCode":"GOOGLE_OCR_TEMP_CLEANUP_FAILED"');
+    expect(logged).not.toContain("private Google Drive");
+  });
+
 });
