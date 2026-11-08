@@ -138,12 +138,19 @@ export async function POST(request: Request) {
       if (result.error) throw result.error;
       claimed = result.data === true;
     } catch {
-      logSafeOperationalEvent("document_job_claim_failed", {
+      // The claim may have committed even if its response was lost. Do not
+      // continue as though the job were unclaimed; let a later queue read
+      // reconcile the lease before another worker attempts it.
+      logSafeOperationalEvent("document_worker_claim_state_uncertain", {
         route: "/api/cron/process-documents",
-        errorCode: "DOCUMENT_JOB_CLAIM_FAILED",
+        errorCode: "DOCUMENT_JOB_CLAIM_UNCERTAIN",
         jobId: candidate.id,
       });
-      continue;
+      return Response.json({
+        processed: false,
+        job_id: candidate.id,
+        error: "Document processing claim is being reconciled. Check the document status before retrying.",
+      }, { status: 503 });
     }
     if (!claimed) continue;
 
