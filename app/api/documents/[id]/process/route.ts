@@ -153,14 +153,25 @@ async function processDocument(request: NextRequest, context: RouteContext) {
     // Persist only a stable, owner-safe status message. Provider and database
     // exceptions can contain upstream details or sensitive document metadata.
     logSafeOperationalEvent("document_processing_failed", { route: "/api/documents/[id]/process", errorCode: "DOCUMENT_PROCESSING_FAILED" });
-    const { data: failurePersisted, error: failureError } = await supabase.rpc("fail_document_processing", {
-      p_document_id: id,
-      p_owner_id: user.id,
-      p_job_id: job.id,
-      p_expected_attempt_count: job.attempt_count + 1,
-      p_error_code: "DOCUMENT_PROCESSING_FAILED",
-    });
-    if (failureError || failurePersisted !== true) {
+    let failureResult: { data: unknown; error: unknown };
+    try {
+      failureResult = await supabase.rpc("fail_document_processing", {
+        p_document_id: id,
+        p_owner_id: user.id,
+        p_job_id: job.id,
+        p_expected_attempt_count: job.attempt_count + 1,
+        p_error_code: "DOCUMENT_PROCESSING_FAILED",
+      });
+    } catch {
+      // The failure transition may have committed before its response was lost.
+      // Do not retry it here; a later request must inspect the persisted job state.
+      logSafeOperationalEvent("manual_document_failure_state_uncertain", {
+        route: "/api/documents/[id]/process",
+        errorCode: "DOCUMENT_PROCESSING_FAILURE_UNCERTAIN",
+      });
+      return redirectToDocument(request, id, "failure_state_uncertain");
+    }
+    if (failureResult.error || failureResult.data !== true) {
       return redirectToDocument(request, id, "failure_state_unpersisted");
     }
     return redirectToDocument(request, id, "processing_failed");
