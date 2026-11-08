@@ -514,4 +514,69 @@ describe("document worker failure redaction", () => {
     });
   });
 
+
+  it("does not invoke failure persistence when completion may already have committed", async () => {
+    process.env.GOOGLE_CLIENT_ID = "test-google-client";
+    process.env.GOOGLE_CLIENT_SECRET = "test-google-secret";
+    const logSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+    type QueryResult = { data: unknown; error: null };
+    type QueryBuilder = Promise<QueryResult> & {
+      select: () => QueryBuilder;
+      eq: (column: string, value: string) => QueryBuilder;
+      maybeSingle: () => Promise<QueryResult>;
+    };
+    const queryFor = (result: QueryResult): QueryBuilder => Object.assign(Promise.resolve(result), {
+      select: () => query,
+      eq: () => query,
+      maybeSingle: async () => result,
+    }) as QueryBuilder;
+    const query = queryFor({ data: null, error: null });
+    const fromMock = vi.fn((table: string) => {
+      if (table === "documents") return queryFor({ data: {
+        id: "document-1", drive_file_id: "drive-file-1", status: "processing",
+        file_size_bytes: 32, sha256: "a".repeat(64),
+      }, error: null });
+      if (table === "drive_connections") return queryFor({
+        data: { encrypted_refresh_token: "encrypted-test-token" }, error: null,
+      });
+      if (table === "document_pages") return queryFor({ data: [], error: null });
+      throw new Error("Unexpected table access: " + table);
+    });
+
+    createSupabaseServiceRoleClientMock.mockReturnValue({ rpc: rpcMock, from: fromMock });
+    rpcMock
+      .mockResolvedValueOnce({ data: [{
+        id: "job-1", document_id: "document-1", owner_id: "owner-1",
+        status: "queued", started_at: null, attempt_count: 0, max_attempts: 3,
+      }], error: null })
+      .mockResolvedValueOnce({ data: true, error: null })
+      .mockRejectedValueOnce(new Error("PRIVATE_COMPLETION_TRANSPORT_DETAILS"));
+    extractTextFromDrivePdfMock.mockResolvedValueOnce("Extracted document text");
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(
+      JSON.stringify({ access_token: "test-access-token" }),
+      { status: 200, headers: { "Content-Type": "application/json" } },
+    )));
+
+    const response = await POST(request("Bearer test-cron-secret-with-sufficient-entropy"));
+    const body = await response.json();
+
+    expect(response.status).toBe(503);
+    expect(body).toEqual({
+      processed: false,
+      job_id: "job-1",
+      error: "Processing completion is being reconciled. Check the document status before retrying.",
+    });
+    expect(rpcMock).toHaveBeenCalledTimes(3);
+    expect(rpcMock).toHaveBeenNthCalledWith(3, "complete_document_processing", expect.objectContaining({
+      p_document_id: "document-1",
+      p_owner_id: "owner-1",
+      p_job_id: "job-1",
+      p_expected_attempt_count: 1,
+    }));
+    expect(rpcMock).not.toHaveBeenCalledWith("fail_document_processing", expect.anything());
+    expect(logSpy).toHaveBeenOnce();
+    expect(String(logSpy.mock.calls[0][0])).toContain("DOCUMENT_PROCESSING_COMPLETION_UNCERTAIN");
+    expect(String(logSpy.mock.calls[0][0])).not.toContain("PRIVATE_COMPLETION_TRANSPORT_DETAILS");
+  });
 });
