@@ -184,14 +184,20 @@ export async function updateChapterNoteStatus(formData: FormData) {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) redirect("/login");
 
-  const { data, error } = await supabase.from("chapter_note_versions")
-    .update({ status: parsed.data.status })
-    .eq("id", parsed.data.noteId)
-    .eq("owner_id", user.id)
-    .select("id")
-    .maybeSingle();
+  let updated = false;
+  try {
+    const { data, error } = await supabase.from("chapter_note_versions")
+      .update({ status: parsed.data.status })
+      .eq("id", parsed.data.noteId)
+      .eq("owner_id", user.id)
+      .select("id")
+      .maybeSingle();
+    updated = !error && Boolean(data);
+  } catch {
+    updated = false;
+  }
 
-  if (error || !data) {
+  if (!updated) {
     redirect("/dashboard/chapters?status=blocked");
   }
 
