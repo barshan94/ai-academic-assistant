@@ -114,14 +114,24 @@ export async function generateQuizDraft(formData: FormData) {
   }
 
   const db = supabase as unknown as SupabaseClient<DatabaseWithQuiz>;
-  const { data: quizId, error: saveError } = await db.rpc("save_generated_quiz_draft", {
-    p_title: parsed.data.title,
-    p_subject: sourceSubject,
-    p_chapter: parsed.data.chapter || null,
-    p_quiz_json: generated as unknown as Json,
-    p_source_question_ids: uniqueIds,
-  });
-  if (saveError || !quizId) redirect("/dashboard/quizzes?generate=save_failed");
+  let quizId: string | null = null;
+  let saveFailed = false;
+  try {
+    const { data, error: saveError } = await db.rpc("save_generated_quiz_draft", {
+      p_title: parsed.data.title,
+      p_subject: sourceSubject,
+      p_chapter: parsed.data.chapter || null,
+      p_quiz_json: generated as unknown as Json,
+      p_source_question_ids: uniqueIds,
+    });
+    quizId = typeof data === "string" ? data : null;
+    saveFailed = Boolean(saveError);
+  } catch {
+    // RPC transport failures may reject rather than return an error object.
+    // The database function is atomic; do not retry it here and risk ambiguity.
+    saveFailed = true;
+  }
+  if (saveFailed || !quizId) redirect("/dashboard/quizzes?generate=save_failed");
 
   revalidatePath("/dashboard/quizzes");
   redirect("/dashboard/quizzes?generate=saved");
