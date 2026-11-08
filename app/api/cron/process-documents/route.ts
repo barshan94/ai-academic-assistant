@@ -109,12 +109,18 @@ export async function POST(request: Request) {
           });
           if (terminalizationError) throw terminalizationError;
         } catch {
-          // A rejected database transport must not abort the whole worker run.
-          logSafeOperationalEvent("exhausted_document_job_terminalization_failed", {
+          // The recovery transaction may have committed even if its response
+          // was lost. Stop this invocation and reconcile from the next queue read.
+          logSafeOperationalEvent("document_worker_stale_recovery_state_uncertain", {
             route: "/api/cron/process-documents",
-            errorCode: "EXHAUSTED_JOB_TERMINALIZATION_FAILED",
+            errorCode: "DOCUMENT_STALE_RECOVERY_UNCERTAIN",
             jobId: candidate.id,
           });
+          return Response.json({
+            processed: false,
+            job_id: candidate.id,
+            error: "Stale document recovery is being reconciled. Check the document status before retrying.",
+          }, { status: 503 });
         }
       }
       continue;
