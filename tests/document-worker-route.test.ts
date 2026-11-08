@@ -189,6 +189,21 @@ describe("document worker route access and queue preflight", () => {
     });
   });
 
+  it("contains a rejected stale-job terminalization request and continues safely", async () => {
+    const staleStartedAt = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+    rpcMock
+      .mockResolvedValueOnce({ data: [{
+        id: "job-exhausted", document_id: "document-2", owner_id: "owner-2",
+        status: "running", started_at: staleStartedAt, attempt_count: 3, max_attempts: 3,
+      }], error: null })
+      .mockRejectedValueOnce(new Error("private terminalization transport details"));
+
+    const response = await POST(request("Bearer test-cron-secret-with-sufficient-entropy"));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ processed: false, reason: "no_claimable_job" });
+    expect(rpcMock).toHaveBeenCalledTimes(2);
+  });
+
   it("terminalizes an exhausted stale job without attempting another claim", async () => {
     const staleStartedAt = new Date(Date.now() - 30 * 60 * 1000).toISOString();
     rpcMock
@@ -251,6 +266,20 @@ describe("document worker route access and queue preflight", () => {
     const body = await response.json();
     expect(body).toEqual({ error: "Could not read the processing queue." });
     expect(JSON.stringify(body)).not.toContain("private database connection details");
+  });
+
+  it("contains a rejected atomic claim request without exposing transport details", async () => {
+    rpcMock
+      .mockResolvedValueOnce({ data: [{
+        id: "job-claim-reject", document_id: "document-claim-reject", owner_id: "owner-claim-reject",
+        status: "queued", started_at: null, attempt_count: 0, max_attempts: 3,
+      }], error: null })
+      .mockRejectedValueOnce(new Error("private claim transport details"));
+
+    const response = await POST(request("Bearer test-cron-secret-with-sufficient-entropy"));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ processed: false, reason: "no_claimable_job" });
+    expect(rpcMock).toHaveBeenCalledTimes(2);
   });
 
   it("does not process a candidate when the atomic claim RPC returns an error", async () => {
