@@ -69,12 +69,18 @@ export async function importSyllabusCatalog(formData: FormData) {
   if (!parsed.success) redirect("/dashboard/syllabus?import=import_invalid");
 
   const { supabase } = await requireOwner();
-  const { error } = await supabase.rpc("import_syllabus_catalog", {
-    payload: parsed.data as Json,
-  });
+  let importError: { code?: string } | null = null;
+  try {
+    const result = await supabase.rpc("import_syllabus_catalog", {
+      payload: parsed.data as Json,
+    });
+    importError = result.error;
+  } catch {
+    importError = {};
+  }
 
-  if (error) {
-    redirect("/dashboard/syllabus?import=" + (error.code === "23505" ? "import_duplicate" : "save_failed"));
+  if (importError) {
+    redirect("/dashboard/syllabus?import=" + (importError.code === "23505" ? "import_duplicate" : "save_failed"));
   }
 
   revalidatePath("/dashboard/syllabus");
