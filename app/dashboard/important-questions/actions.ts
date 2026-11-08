@@ -27,15 +27,22 @@ export async function saveQuestionImportance(formData: FormData) {
     .eq("review_status", "approved").maybeSingle();
   if (questionError || !question) redirect("/dashboard/important-questions?status=failed");
 
-  const { error } = await supabase.from("question_importance").upsert({
-    owner_id: user.id,
-    question_id: question.id,
-    importance_level: parsed.data.importanceLevel,
-    rationale: parsed.data.rationale,
-    marked_by: user.id,
-    updated_at: new Date().toISOString(),
-  }, { onConflict: "question_id,owner_id" });
-  redirect("/dashboard/important-questions?status=" + (error ? "failed" : "saved"));
+  let saved = false;
+  try {
+    const { error } = await supabase.from("question_importance").upsert({
+      owner_id: user.id,
+      question_id: question.id,
+      importance_level: parsed.data.importanceLevel,
+      rationale: parsed.data.rationale,
+      marked_by: user.id,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: "question_id,owner_id" });
+    saved = !error;
+  } catch {
+    // A rejected transport must never be reported as a successful save.
+    saved = false;
+  }
+  redirect("/dashboard/important-questions?status=" + (saved ? "saved" : "failed"));
 }
 
 export async function removeQuestionImportance(formData: FormData) {
@@ -44,7 +51,13 @@ export async function removeQuestionImportance(formData: FormData) {
   const supabase = await createSupabaseServerClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) redirect("/login");
-  const { error } = await supabase.from("question_importance").delete()
-    .eq("question_id", parsed.data).eq("owner_id", user.id);
-  redirect("/dashboard/important-questions?status=" + (error ? "failed" : "removed"));
+  let removed = false;
+  try {
+    const { error } = await supabase.from("question_importance").delete()
+      .eq("question_id", parsed.data).eq("owner_id", user.id);
+    removed = !error;
+  } catch {
+    removed = false;
+  }
+  redirect("/dashboard/important-questions?status=" + (removed ? "removed" : "failed"));
 }
