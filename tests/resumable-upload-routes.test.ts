@@ -668,4 +668,57 @@ describe("resumable upload route security boundaries", () => {
   });
 
 
+
+
+  it("returns a retryable response when upload-start Supabase client creation rejects", async () => {
+    createSupabaseServerClientMock.mockRejectedValueOnce(new Error("private Supabase transport detail"));
+    const response = await startUpload(makeRequest(
+      "/api/documents/upload/resumable/start",
+      { body: JSON.stringify({ fileName: "Physics.pdf", fileSizeBytes: 1234, sha256: "a".repeat(64) }) },
+    ));
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({ error: "Sign-in verification is temporarily unavailable. Try again shortly." });
+    expect(getDriveAccessTokenMock).not.toHaveBeenCalled();
+    expect(initiateResumablePdfUploadMock).not.toHaveBeenCalled();
+  });
+
+  it("returns a retryable response when upload-start auth verification rejects", async () => {
+    createSupabaseServerClientMock.mockResolvedValueOnce({
+      auth: { getUser: vi.fn().mockRejectedValue(new Error("private auth transport detail")) },
+    });
+    const response = await startUpload(makeRequest(
+      "/api/documents/upload/resumable/start",
+      { body: JSON.stringify({ fileName: "Physics.pdf", fileSizeBytes: 1234, sha256: "a".repeat(64) }) },
+    ));
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({ error: "Sign-in verification is temporarily unavailable. Try again shortly." });
+    expect(getDriveAccessTokenMock).not.toHaveBeenCalled();
+  });
+
+  it("returns a retryable response when chunk-upload Supabase client creation rejects", async () => {
+    createSupabaseServerClientMock.mockRejectedValueOnce(new Error("private Supabase transport detail"));
+    const response = await uploadChunk(makeRequest(
+      "/api/documents/upload/resumable/chunk",
+      { headers: { "x-upload-session": "opaque-encrypted-session", "content-range": "bytes 0-1233/1234" }, body: "%PDF-" + "x".repeat(1229) },
+    ));
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({ error: "Sign-in verification is temporarily unavailable. Resume this upload shortly." });
+    expect(decryptDriveUploadSessionMock).not.toHaveBeenCalled();
+    expect(getDriveAccessTokenMock).not.toHaveBeenCalled();
+  });
+
+  it("returns a retryable response when chunk-upload auth verification rejects", async () => {
+    createSupabaseServerClientMock.mockResolvedValueOnce({
+      auth: { getUser: vi.fn().mockRejectedValue(new Error("private auth transport detail")) },
+    });
+    const response = await uploadChunk(makeRequest(
+      "/api/documents/upload/resumable/chunk",
+      { headers: { "x-upload-session": "opaque-encrypted-session", "content-range": "bytes 0-1233/1234" }, body: "%PDF-" + "x".repeat(1229) },
+    ));
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({ error: "Sign-in verification is temporarily unavailable. Resume this upload shortly." });
+    expect(decryptDriveUploadSessionMock).not.toHaveBeenCalled();
+    expect(getDriveAccessTokenMock).not.toHaveBeenCalled();
+  });
+
 });
