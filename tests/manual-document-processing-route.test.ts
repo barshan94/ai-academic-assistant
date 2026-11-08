@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { NextRequest } from "next/server";
 
 const { createSupabaseServerClientMock, rpcMock, getDriveAccessTokenMock, extractTextFromDrivePdfMock } = vi.hoisted(() => ({
   createSupabaseServerClientMock: vi.fn(),
@@ -71,7 +72,7 @@ function makeSupabase(claim: () => Promise<{ data: unknown; error: unknown }>) {
 }
 
 function request() {
-  return new Request("https://academic.example/api/documents/document-1/process", {
+  return new NextRequest("https://academic.example/api/documents/document-1/process", {
     method: "POST",
     headers: { origin: "https://academic.example" },
   });
@@ -81,6 +82,7 @@ const context = { params: Promise.resolve({ id: "document-1" }) };
 
 beforeEach(() => {
   rpcMock.mockReset();
+  createSupabaseServerClientMock.mockReset();
   getDriveAccessTokenMock.mockReset();
   extractTextFromDrivePdfMock.mockReset();
   getDriveAccessTokenMock.mockResolvedValue("test-drive-token");
