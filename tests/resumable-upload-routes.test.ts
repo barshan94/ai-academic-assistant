@@ -721,4 +721,58 @@ describe("resumable upload route security boundaries", () => {
     expect(getDriveAccessTokenMock).not.toHaveBeenCalled();
   });
 
+
+
+  it("preserves a completed Drive object when document-registration RPC rejects at transport level", async () => {
+    getDriveAccessTokenMock.mockResolvedValue("drive-access-token");
+    sendResumablePdfChunkMock.mockResolvedValue({
+      status: 201,
+      range: null,
+      file: { id: "drive-file-rpc-rejected", mimeType: "application/pdf", size: "1234" },
+    });
+    const registerRpcMock = vi.fn().mockRejectedValue(new Error("private registration transport failure"));
+    createSupabaseServiceRoleClientMock.mockReturnValue({ rpc: registerRpcMock });
+
+    const response = await uploadChunk(makeRequest(
+      "/api/documents/upload/resumable/chunk",
+      {
+        headers: { "x-upload-session": "opaque-encrypted-session", "content-range": "bytes 0-1233/1234" },
+        body: "%PDF-" + "x".repeat(1229),
+      },
+    ));
+
+    expect(response.status).toBe(502);
+    expect(await response.json()).toEqual({
+      error: "The upload could not be completed. Resume the same file to check the last confirmed byte.",
+    });
+    expect(registerRpcMock).toHaveBeenCalledOnce();
+    expect(deleteDriveFileMock).not.toHaveBeenCalled();
+  });
+
+  it("preserves a completed Drive object when service-role client creation rejects", async () => {
+    getDriveAccessTokenMock.mockResolvedValue("drive-access-token");
+    sendResumablePdfChunkMock.mockResolvedValue({
+      status: 201,
+      range: null,
+      file: { id: "drive-file-client-rejected", mimeType: "application/pdf", size: "1234" },
+    });
+    createSupabaseServiceRoleClientMock.mockImplementation(() => {
+      throw new Error("private service-role initialization failure");
+    });
+
+    const response = await uploadChunk(makeRequest(
+      "/api/documents/upload/resumable/chunk",
+      {
+        headers: { "x-upload-session": "opaque-encrypted-session", "content-range": "bytes 0-1233/1234" },
+        body: "%PDF-" + "x".repeat(1229),
+      },
+    ));
+
+    expect(response.status).toBe(502);
+    expect(await response.json()).toEqual({
+      error: "The upload could not be completed. Resume the same file to check the last confirmed byte.",
+    });
+    expect(deleteDriveFileMock).not.toHaveBeenCalled();
+  });
+
 });
