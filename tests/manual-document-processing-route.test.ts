@@ -131,8 +131,8 @@ describe("manual document processing claim recovery", () => {
     expect(logSpy).toHaveBeenCalledOnce();
     expect(String(logSpy.mock.calls[0][0])).toContain("DOCUMENT_PROCESSING_CLAIM_REJECTED");
     expect(String(logSpy.mock.calls[0][0])).not.toContain("PRIVATE_DATABASE_CLAIM_DETAILS");
+  });
 
-  
   it("does not retry when the failure-state RPC response is lost", async () => {
     const logSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
     const supabase = makeSupabase(
@@ -159,6 +159,5 @@ describe("manual document processing claim recovery", () => {
     expect(logs).toContain("DOCUMENT_PROCESSING_FAILURE_UNCERTAIN");
     expect(logs).not.toContain("PRIVATE_FAILURE_STATE_TRANSPORT_DETAILS");
     expect(logs).not.toContain("PRIVATE_OCR_FAILURE_DETAILS");
-  });
   });
 });
