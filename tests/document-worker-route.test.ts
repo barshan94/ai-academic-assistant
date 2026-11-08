@@ -209,8 +209,9 @@ describe("document worker route access and queue preflight", () => {
     });
   });
 
-  it("contains a rejected stale-job terminalization request and continues safely", async () => {
+  it("returns a safe retryable response when stale-job terminalization outcome is uncertain", async () => {
     const staleStartedAt = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+    const logSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
     rpcMock
       .mockResolvedValueOnce({ data: [{
         id: "job-exhausted", document_id: "document-2", owner_id: "owner-2",
@@ -219,9 +220,17 @@ describe("document worker route access and queue preflight", () => {
       .mockRejectedValueOnce(new Error("private terminalization transport details"));
 
     const response = await POST(request("Bearer test-cron-secret-with-sufficient-entropy"));
-    expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ processed: false, reason: "no_claimable_job" });
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({
+      processed: false,
+      job_id: "job-exhausted",
+      error: "Stale document recovery is being reconciled. Check the document status before retrying.",
+    });
     expect(rpcMock).toHaveBeenCalledTimes(2);
+    expect(logSpy).toHaveBeenCalledOnce();
+    const loggedPayload = String(logSpy.mock.calls[0][0]);
+    expect(loggedPayload).toContain("DOCUMENT_STALE_RECOVERY_UNCERTAIN");
+    expect(loggedPayload).not.toContain("private terminalization transport details");
   });
 
   it("terminalizes an exhausted stale job without attempting another claim", async () => {
