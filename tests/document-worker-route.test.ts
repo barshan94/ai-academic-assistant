@@ -219,7 +219,8 @@ describe("document worker route access and queue preflight", () => {
     });
   });
 
-  it("returns a generic response when the queue transport promise rejects", async () => {
+  it("returns a generic response and logs only allow-listed metadata when the queue transport promise rejects", async () => {
+    const logSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
     rpcMock.mockRejectedValueOnce(
       new Error("private queue transport failure and connection string"),
     );
@@ -232,6 +233,13 @@ describe("document worker route access and queue preflight", () => {
     expect(JSON.stringify(body)).not.toContain("private");
     expect(JSON.stringify(body)).not.toContain("connection string");
     expect(JSON.stringify(body)).not.toContain("transport failure");
+    expect(logSpy).toHaveBeenCalledOnce();
+    const loggedPayload = String(logSpy.mock.calls[0][0]);
+    expect(loggedPayload).toContain('"event":"document_queue_read_failed"');
+    expect(loggedPayload).toContain('"errorCode":"DOCUMENT_QUEUE_READ_FAILED"');
+    expect(loggedPayload).not.toContain("private");
+    expect(loggedPayload).not.toContain("connection string");
+    expect(loggedPayload).not.toContain("transport failure");
   });
 
   it("does not expose database queue errors to the caller", async () => {
