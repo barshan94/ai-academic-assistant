@@ -88,7 +88,7 @@
 - [ ] Configure `APP_BASE_URL` and `CRON_SECRET` GitHub Actions secrets plus deployed Supabase/Google environment variables; manually invoke against a non-production deployment.
 - [ ] Verify wrong-secret rejection, single-job processing, concurrent claim safety, retry exhaustion and stale recovery against a live non-production database.
 - [ ] Inject a non-production OCR/provider failure; verify the job failure is persisted, the worker returns HTTP 500 so GitHub Actions reports a failed invocation, and a later invocation retries only within the configured attempt budget (ERR-155).
-- [ ] Durable background processing worker and automatic retries proven in live integration tests (scheduler is best-effort; queue persistence and subsequent invocations must recover delayed runs).
+- [ ] Automatic background invocation is not enabled: prove durable queue recovery and retry behavior through repeated operator-triggered non-production invocations before considering any scheduler.
 - [x] Background worker and user-triggered processing route check document-processing and job-completion state transitions before reporting success (Foundation CI run `41221378201`; 116 unit tests passed, build/type-check passed; route's authenticated transitions still need live E2E).
 - [x] Worker failure handlers verify that failed document/job states persist; if persistence fails, they expose a distinct error and retain stale-lease recoverability (Foundation CI `41222194720`: 118 unit tests, build/type-check and 7 Chromium smoke tests passed; DB CI `41222194715` passed all pgTAP files. Injected DB-failure and live stale-lease acceptance remain outstanding).
 - [x] Automated unit coverage for Google token-revocation outcomes and worker stale-lease/retry policy passes in feature-branch CI (run `41221378201`; 116 tests across 22 files passed).
@@ -253,7 +253,7 @@
 ## Document worker queue fairness
 
 - [x] Isolated pgTAP regression proves ten older exhausted failed jobs cannot occupy the worker's candidate limit or starve queued/retryable jobs; stale running jobs remain eligible and fresh running jobs remain excluded (ERR-156; CI run `41314360274`, commit `d0c9ab16bbb0f1f4767448ebc1fd76d039c8589d`).
-- [ ] Live non-production scheduler acceptance proves a full page of exhausted jobs does not prevent a later queued job from being processed.
+- [ ] Live non-production worker-invocation acceptance proves a full page of exhausted jobs does not prevent a later queued job from being processed.
 
 ## Middleware response-policy preservation (ERR-121)
 - [x] Add isolated unit regression tests for copying cache, CSP and crawler policy headers without copying unrelated headers (`lib/http/response-policy-headers.test.ts`).
