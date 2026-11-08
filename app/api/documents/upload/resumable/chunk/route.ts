@@ -130,8 +130,14 @@ export async function POST(request: NextRequest) {
   try {
     bytes = await readDriveUploadChunk(request.body);
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Could not read this upload chunk.";
-    return NextResponse.json({ error: message }, { status: 413 });
+    if (error instanceof Error && error.message === "Upload chunk exceeds the 1 MB server limit.") {
+      return NextResponse.json({ error: error.message }, { status: 413 });
+    }
+    logSafeOperationalEvent("upload_chunk_body_read_failed", {
+      route: "/api/documents/upload/resumable/chunk",
+      errorCode: "UPLOAD_CHUNK_BODY_READ_FAILED",
+    });
+    return NextResponse.json({ error: "Could not read this upload chunk. Resume the upload and retry." }, { status: 503 });
   }
 
   const query = contentRange === "bytes */" + session.fileSizeBytes && bytes.byteLength === 0;
