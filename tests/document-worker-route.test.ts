@@ -526,12 +526,15 @@ describe("document worker failure redaction", () => {
       eq: (column: string, value: string) => QueryBuilder;
       maybeSingle: () => Promise<QueryResult>;
     };
-    const queryFor = (result: QueryResult): QueryBuilder => Object.assign(Promise.resolve(result), {
-      select: () => query,
-      eq: () => query,
-      maybeSingle: async () => result,
-    }) as QueryBuilder;
-    const query = queryFor({ data: null, error: null });
+    const queryFor = (result: QueryResult): QueryBuilder => {
+      let builder: QueryBuilder;
+      builder = Object.assign(Promise.resolve(result), {
+        select: () => builder,
+        eq: () => builder,
+        maybeSingle: async () => result,
+      }) as QueryBuilder;
+      return builder;
+    };
     const fromMock = vi.fn((table: string) => {
       if (table === "documents") return queryFor({ data: {
         id: "document-1", drive_file_id: "drive-file-1", status: "processing",
@@ -575,7 +578,7 @@ describe("document worker failure redaction", () => {
       p_expected_attempt_count: 1,
     }));
     expect(rpcMock).not.toHaveBeenCalledWith("fail_document_processing", expect.anything());
-    expect(logSpy).toHaveBeenOnce();
+    expect(logSpy).toHaveBeenCalledOnce();
     expect(String(logSpy.mock.calls[0][0])).toContain("DOCUMENT_PROCESSING_COMPLETION_UNCERTAIN");
     expect(String(logSpy.mock.calls[0][0])).not.toContain("PRIVATE_COMPLETION_TRANSPORT_DETAILS");
   });
