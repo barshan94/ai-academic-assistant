@@ -205,20 +205,26 @@ export async function saveQuestionSolutionMarkScheme(formData: FormData) {
   if (solutionError || !solution) redirect("/dashboard/questions?mark_scheme=not_found");
 
   const scheme = parsedScheme.data;
-  const { error: insertError } = await typedSupabase.from("question_solution_mark_schemes").insert({
-    solution_id: solution.id,
-    owner_id: user.id,
-    title: scheme.title,
-    awarding_body: scheme.awardingBody,
-    qualification: scheme.qualification,
-    subject: scheme.subject,
-    paper_reference: scheme.paperReference ?? null,
-    source_url: scheme.sourceUrl,
-    source_locator: scheme.sourceLocator,
-    source_document_version: scheme.sourceDocumentVersion ?? null,
-    points: scheme.points as unknown as Json,
-  });
-  if (insertError) redirect("/dashboard/questions/" + solution.question_id + "?mark_scheme=save_failed");
+  let markSchemeSaved = false;
+  try {
+    const { error: insertError } = await typedSupabase.from("question_solution_mark_schemes").insert({
+      solution_id: solution.id,
+      owner_id: user.id,
+      title: scheme.title,
+      awarding_body: scheme.awardingBody,
+      qualification: scheme.qualification,
+      subject: scheme.subject,
+      paper_reference: scheme.paperReference ?? null,
+      source_url: scheme.sourceUrl,
+      source_locator: scheme.sourceLocator,
+      source_document_version: scheme.sourceDocumentVersion ?? null,
+      points: scheme.points as unknown as Json,
+    });
+    markSchemeSaved = !insertError;
+  } catch {
+    markSchemeSaved = false;
+  }
+  if (!markSchemeSaved) redirect("/dashboard/questions/" + solution.question_id + "?mark_scheme=save_failed");
 
   revalidatePath("/dashboard/questions/" + solution.question_id);
   redirect("/dashboard/questions/" + solution.question_id + "?solution=" + solution.id + "&mark_scheme=saved");
@@ -258,26 +264,40 @@ export async function reviewQuestionSolution(formData: FormData) {
   if (solution.owner_id !== user.id) {
     // Teacher reviews go through a SECURITY DEFINER RPC that revalidates the
     // active invitation and alone may promote/demote the verification label.
-    const { error: teacherReviewError } = await typedSupabase.rpc("record_teacher_solution_review", {
-      p_solution_id: solution.id,
-      p_decision: parsed.data.decision,
-      p_correction_notes: parsed.data.correctionNotes || null,
-    });
-    if (teacherReviewError) {
-      const result = teacherReviewError.code === "42501" ? "not_authorized" : "save_failed";
+    let teacherReviewFailed = false;
+    let teacherReviewCode: string | undefined;
+    try {
+      const { error: teacherReviewError } = await typedSupabase.rpc("record_teacher_solution_review", {
+        p_solution_id: solution.id,
+        p_decision: parsed.data.decision,
+        p_correction_notes: parsed.data.correctionNotes || null,
+      });
+      teacherReviewFailed = Boolean(teacherReviewError);
+      teacherReviewCode = teacherReviewError?.code;
+    } catch {
+      teacherReviewFailed = true;
+    }
+    if (teacherReviewFailed) {
+      const result = teacherReviewCode === "42501" ? "not_authorized" : "save_failed";
       redirect("/dashboard/questions/" + solution.question_id + "?review=" + result);
     }
   } else {
-    const { error: ownerReviewError } = await typedSupabase
-      .from("question_solution_reviews")
-      .insert({
-        solution_id: solution.id,
-        owner_id: solution.owner_id,
-        reviewer_id: user.id,
-        decision: parsed.data.decision,
-        correction_notes: parsed.data.correctionNotes || null,
-      });
-    if (ownerReviewError) redirect("/dashboard/questions/" + solution.question_id + "?review=save_failed");
+    let ownerReviewSaved = false;
+    try {
+      const { error: ownerReviewError } = await typedSupabase
+        .from("question_solution_reviews")
+        .insert({
+          solution_id: solution.id,
+          owner_id: solution.owner_id,
+          reviewer_id: user.id,
+          decision: parsed.data.decision,
+          correction_notes: parsed.data.correctionNotes || null,
+        });
+      ownerReviewSaved = !ownerReviewError;
+    } catch {
+      ownerReviewSaved = false;
+    }
+    if (!ownerReviewSaved) redirect("/dashboard/questions/" + solution.question_id + "?review=save_failed");
   }
 
   revalidatePath("/dashboard/questions/" + solution.question_id);
