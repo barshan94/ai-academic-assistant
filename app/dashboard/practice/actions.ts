@@ -30,13 +30,21 @@ export async function createPracticeSet(formData: FormData) {
   if (authError || !user) redirect("/login");
 
   const db = supabase as unknown as SupabaseClient<DatabaseWithPractice>;
-  const { data: setId, error: createError } = await db.rpc("create_practice_set_from_filters", {
-    p_title: parsed.data.title,
-    p_count: parsed.data.count,
-    p_subject: parsed.data.subject || null,
-    p_chapter: parsed.data.chapter || null,
-    p_topic: parsed.data.topic || null,
-  });
+  let setId: string | null = null;
+  let createError: { message: string } | null = null;
+  try {
+    const result = await db.rpc("create_practice_set_from_filters", {
+      p_title: parsed.data.title,
+      p_count: parsed.data.count,
+      p_subject: parsed.data.subject || null,
+      p_chapter: parsed.data.chapter || null,
+      p_topic: parsed.data.topic || null,
+    });
+    setId = result.data;
+    createError = result.error;
+  } catch {
+    redirect("/dashboard/practice?create=failed");
+  }
 
   if (createError || !setId) {
     const reason = createError?.message ?? "";
@@ -74,21 +82,35 @@ export async function recordPracticeAnswer(formData: FormData) {
   if (authError || !user) redirect("/login");
 
   const db = supabase as unknown as SupabaseClient<DatabaseWithPractice>;
-  const { data: item, error: itemError } = await db.from("practice_set_items")
-    .select("practice_set_id")
-    .eq("id", parsed.data.itemId)
-    .eq("practice_set_id", parsed.data.setId)
-    .eq("owner_id", user.id)
-    .maybeSingle();
+  let item: { practice_set_id: string } | null = null;
+  let itemError: { message: string } | null = null;
+  try {
+    const result = await db.from("practice_set_items")
+      .select("practice_set_id")
+      .eq("id", parsed.data.itemId)
+      .eq("practice_set_id", parsed.data.setId)
+      .eq("owner_id", user.id)
+      .maybeSingle();
+    item = result.data;
+    itemError = result.error;
+  } catch {
+    redirect("/dashboard/practice?answer=not_found");
+  }
   if (itemError || !item) redirect("/dashboard/practice?answer=not_found");
 
   const setId = item.practice_set_id;
-  const { error } = await db.rpc("record_practice_answer", {
-    p_item_id: parsed.data.itemId,
-    p_outcome: parsed.data.outcome,
-    p_response_notes: parsed.data.notes || null,
-  });
-  if (error) redirect("/dashboard/practice/" + setId + "?save=failed");
+  let answerSaved = false;
+  try {
+    const { error } = await db.rpc("record_practice_answer", {
+      p_item_id: parsed.data.itemId,
+      p_outcome: parsed.data.outcome,
+      p_response_notes: parsed.data.notes || null,
+    });
+    answerSaved = !error;
+  } catch {
+    answerSaved = false;
+  }
+  if (!answerSaved) redirect("/dashboard/practice/" + setId + "?save=failed");
   revalidatePath("/dashboard/practice/" + setId);
   revalidatePath("/dashboard/practice");
   redirect("/dashboard/practice/" + setId + "?save=updated");
@@ -115,23 +137,37 @@ export async function schedulePracticeQuestionRevision(formData: FormData) {
 
   const db = supabase as unknown as SupabaseClient<DatabaseWithPractice>;
   // Resolve the question from the owner-scoped saved item, never from a client-supplied question ID.
-  const { data: item, error: itemError } = await db.from("practice_set_items")
-    .select("question_id,outcome")
-    .eq("id", parsed.data.itemId)
-    .eq("practice_set_id", parsed.data.setId)
-    .eq("owner_id", user.id)
-    .maybeSingle();
+  let item: { question_id: string | null; outcome: string | null } | null = null;
+  let itemError: { message: string } | null = null;
+  try {
+    const result = await db.from("practice_set_items")
+      .select("question_id,outcome")
+      .eq("id", parsed.data.itemId)
+      .eq("practice_set_id", parsed.data.setId)
+      .eq("owner_id", user.id)
+      .maybeSingle();
+    item = result.data;
+    itemError = result.error;
+  } catch {
+    redirect("/dashboard/practice/" + parsed.data.setId + "?revision=failed");
+  }
 
   if (itemError || !item?.question_id || !item.outcome) {
     redirect("/dashboard/practice/" + parsed.data.setId + "?revision=failed");
   }
 
   // This is an explicit learner choice. Practice outcomes never set confidence automatically.
-  const { error } = await db.rpc("record_question_revision", {
-    p_question_id: item.question_id,
-    p_confidence: parsed.data.confidence,
-  });
-  if (error) redirect("/dashboard/practice/" + parsed.data.setId + "?revision=failed");
+  let revisionSaved = false;
+  try {
+    const { error } = await db.rpc("record_question_revision", {
+      p_question_id: item.question_id,
+      p_confidence: parsed.data.confidence,
+    });
+    revisionSaved = !error;
+  } catch {
+    revisionSaved = false;
+  }
+  if (!revisionSaved) redirect("/dashboard/practice/" + parsed.data.setId + "?revision=failed");
 
   revalidatePath("/dashboard/revision");
   revalidatePath("/dashboard/revision/insights");
