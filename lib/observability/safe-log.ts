@@ -24,7 +24,8 @@ type SafeOperationalEvent =
   | "manual_document_recovery_state_uncertain"
   | "document_worker_completion_state_uncertain"
   | "document_worker_failure_state_uncertain"
-  | "document_worker_stale_recovery_state_uncertain";
+  | "document_worker_stale_recovery_state_uncertain"
+  | "document_worker_claim_state_uncertain";
 
 type SafeOperationalFields = {
   route?: string;
