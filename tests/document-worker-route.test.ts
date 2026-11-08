@@ -154,8 +154,12 @@ describe("document worker route access and queue preflight", () => {
 
     const response = await POST(request("Bearer test-cron-secret-with-sufficient-entropy"));
 
-    expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ processed: false, reason: "no_claimable_job" });
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({
+      processed: false,
+      job_id: "document-claim-error",
+      error: "Document processing claim is being reconciled. Check the document status before retrying.",
+    });
     expect(rpcMock).toHaveBeenCalledTimes(2);
     expect(rpcMock).toHaveBeenNthCalledWith(2, "claim_document_processing_job", {
       p_document_id: "document-1",
@@ -297,7 +301,8 @@ describe("document worker route access and queue preflight", () => {
     expect(JSON.stringify(body)).not.toContain("private database connection details");
   });
 
-  it("contains a rejected atomic claim request without exposing transport details", async () => {
+  it("returns a safe retryable response when atomic claim outcome is uncertain", async () => {
+    const logSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
     rpcMock
       .mockResolvedValueOnce({ data: [{
         id: "job-claim-reject", document_id: "document-claim-reject", owner_id: "owner-claim-reject",
@@ -306,9 +311,16 @@ describe("document worker route access and queue preflight", () => {
       .mockRejectedValueOnce(new Error("private claim transport details"));
 
     const response = await POST(request("Bearer test-cron-secret-with-sufficient-entropy"));
-    expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ processed: false, reason: "no_claimable_job" });
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({
+      processed: false,
+      job_id: "job-claim-reject",
+      error: "Document processing claim is being reconciled. Check the document status before retrying.",
+    });
     expect(rpcMock).toHaveBeenCalledTimes(2);
+    expect(logSpy).toHaveBeenCalledOnce();
+    expect(String(logSpy.mock.calls[0][0])).toContain("DOCUMENT_JOB_CLAIM_UNCERTAIN");
+    expect(String(logSpy.mock.calls[0][0])).not.toContain("private claim transport details");
   });
 
   it("does not process a candidate when the atomic claim RPC returns an error", async () => {
