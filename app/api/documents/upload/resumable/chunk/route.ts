@@ -101,9 +101,19 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const supabase = await createSupabaseServerClient();
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) return NextResponse.json({ error: "Sign in to continue this upload." }, { status: 401 });
+  let authenticatedUserId: string;
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) return NextResponse.json({ error: "Sign in to continue this upload." }, { status: 401 });
+    authenticatedUserId = user.id;
+  } catch {
+    logSafeOperationalEvent("upload_chunk_auth_unavailable", {
+      route: "/api/documents/upload/resumable/chunk",
+      errorCode: "UPLOAD_AUTH_UNAVAILABLE",
+    });
+    return NextResponse.json({ error: "Sign-in verification is temporarily unavailable. Resume this upload shortly." }, { status: 503 });
+  }
 
   const encryptedSession = request.headers.get("x-upload-session");
   if (!encryptedSession) return NextResponse.json({ error: "Upload session is missing." }, { status: 400 });
@@ -117,7 +127,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Upload session is invalid or expired." }, { status: 400 });
   }
 
-  if (session.ownerId !== user.id) return NextResponse.json({ error: "This upload belongs to another account." }, { status: 403 });
+  if (session.ownerId !== authenticatedUserId) return NextResponse.json({ error: "This upload belongs to another account." }, { status: 403 });
   if (!Number.isSafeInteger(session.fileSizeBytes) || session.fileSizeBytes < 1 ||
       session.fileSizeBytes > MAX_UPLOAD_BYTES || session.expiresAt < Date.now()) {
     return NextResponse.json({ error: "Upload session has expired. Start the upload again." }, { status: 410 });
