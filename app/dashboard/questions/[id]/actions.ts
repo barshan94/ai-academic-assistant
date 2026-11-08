@@ -462,7 +462,8 @@ export async function searchQuestionWebSources(formData: FormData) {
         source_url: source.url,
         snippet: source.snippet,
         result_rank: source.rank,
-        published_at: new Date().toISOString(),
+        published_at: source.publishedAt,
+        retrieved_at: new Date().toISOString(),
       })),
     );
     sourcesSaved = !saveError;
