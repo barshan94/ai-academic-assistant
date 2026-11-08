@@ -58,9 +58,17 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const supabase = await createSupabaseServerClient();
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) return NextResponse.json({ error: "Sign in to upload documents." }, { status: 401 });
+  let supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>;
+  let authenticatedUserId: string;
+  try {
+    supabase = await createSupabaseServerClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) return NextResponse.json({ error: "Sign in to upload documents." }, { status: 401 });
+    authenticatedUserId = authenticatedUserId;
+  } catch {
+    logSafeOperationalEvent("document_upload_auth_unavailable", { route: "/api/documents/upload/resumable/start", errorCode: "UPLOAD_AUTH_UNAVAILABLE" });
+    return NextResponse.json({ error: "Sign-in verification is temporarily unavailable. Try again shortly." }, { status: 503 });
+  }
 
   try {
     const body = await readStartRequestBody(request);
@@ -85,7 +93,7 @@ export async function POST(request: NextRequest) {
     let duplicate: { id: string } | null = null;
     try {
       const result = await supabase
-        .from("documents").select("id").eq("owner_id", user.id).eq("sha256", sha256).maybeSingle();
+        .from("documents").select("id").eq("owner_id", authenticatedUserId).eq("sha256", sha256).maybeSingle();
       if (result.error) {
         logSafeOperationalEvent("document_upload_duplicate_check_failed", { route: "/api/documents/upload/resumable/start", errorCode: "UPLOAD_DUPLICATE_CHECK_FAILED" });
         return NextResponse.json({ error: "Could not check for duplicate documents." }, { status: 503 });
@@ -115,7 +123,7 @@ export async function POST(request: NextRequest) {
 
     const sessionUri = await initiateResumablePdfUpload({ accessToken, fileName, fileSizeBytes });
     const sessionToken = encryptDriveUploadSession(JSON.stringify({
-      ownerId: user.id,
+      ownerId: authenticatedUserId,
       sessionUri,
       fileName,
       fileSizeBytes,
