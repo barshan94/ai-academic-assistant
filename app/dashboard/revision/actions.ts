@@ -24,12 +24,18 @@ export async function recordRevision(formData: FormData) {
   if (authError || !user) redirect("/login");
 
   const typedSupabase = supabase as unknown as SupabaseClient<DatabaseWithRevision>;
-  const { error } = await typedSupabase.rpc("record_question_revision", {
-    p_question_id: parsed.data.questionId,
-    p_confidence: parsed.data.confidence,
-  });
+  let saved = false;
+  try {
+    const { error } = await typedSupabase.rpc("record_question_revision", {
+      p_question_id: parsed.data.questionId,
+      p_confidence: parsed.data.confidence,
+    });
+    saved = !error;
+  } catch {
+    saved = false;
+  }
 
-  if (error) redirect("/dashboard/revision?save=failed");
+  if (!saved) redirect("/dashboard/revision?save=failed");
   revalidatePath("/dashboard/revision");
   redirect("/dashboard/revision?save=updated");
 }
