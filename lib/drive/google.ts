@@ -2,6 +2,7 @@ import "server-only";
 import { createHash } from "node:crypto";
 import { decryptRefreshToken } from "./crypto";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { logSafeOperationalEvent } from "@/lib/observability/safe-log";
 
 const DRIVE_FILE_SCOPE = "https://www.googleapis.com/auth/drive.file";
 
@@ -306,7 +307,15 @@ export async function extractTextFromDrivePdf(input: {
     const extractedBytes = await readResponseBytesBounded(exportResponse, MAX_OCR_TEXT_BYTES, "Extracted OCR text");
     return new TextDecoder("utf-8", { fatal: true }).decode(extractedBytes);
   } finally {
-    await deleteDriveFile(input.accessToken, converted.id);
+    // Do not discard successful OCR output because temporary-file cleanup failed.
+    try {
+      await deleteDriveFile(input.accessToken, converted.id);
+    } catch {
+      logSafeOperationalEvent("google_drive_ocr_temp_cleanup_failed", {
+        route: "/lib/drive/google",
+        errorCode: "GOOGLE_OCR_TEMP_CLEANUP_FAILED",
+      });
+    }
   }
 }
 
