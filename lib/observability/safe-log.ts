@@ -16,7 +16,9 @@ type SafeOperationalEvent =
   | "document_job_claim_failed"
   | "document_queue_read_failed"
   | "google_drive_ocr_temp_cleanup_failed"
-  | "upload_chunk_body_read_failed";
+  | "upload_chunk_body_read_failed"
+  | "manual_document_claim_transport_failed"
+  | "manual_document_claim_rejected";
 
 type SafeOperationalFields = {
   route?: string;
