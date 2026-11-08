@@ -67,7 +67,7 @@ const validSession = {
 function makeRequest(path: string, options: {
   origin?: string;
   headers?: Record<string, string>;
-  body?: string;
+  body?: BodyInit;
 } = {}) {
   const headers = new Headers(options.headers);
   if (options.origin !== undefined) headers.set("origin", options.origin);
@@ -593,5 +593,34 @@ describe("resumable upload route security boundaries", () => {
     });
     expect(deleteDriveFileMock).toHaveBeenCalledWith("drive-access-token", "drive-file-duplicate-copy");
   });
+  it("returns a retryable response when the incoming chunk stream fails", async () => {
+    const logSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const failedBody = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.error(new Error("private client stream failure"));
+      },
+    });
+    const response = await uploadChunk(makeRequest(
+      "/api/documents/upload/resumable/chunk",
+      {
+        headers: {
+          "x-upload-session": "opaque-encrypted-session",
+          "content-range": "bytes 0-999/1234",
+        },
+        body: failedBody,
+      },
+    ));
+
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({
+      error: "Could not read this upload chunk. Resume the upload and retry.",
+    });
+    expect(getDriveAccessTokenMock).not.toHaveBeenCalled();
+    expect(logSpy).toHaveBeenCalledOnce();
+    const logged = String(logSpy.mock.calls[0][0]);
+    expect(logged).toContain('"event":"upload_chunk_body_read_failed"');
+    expect(logged).not.toContain("private client stream failure");
+  });
+
 
 });
