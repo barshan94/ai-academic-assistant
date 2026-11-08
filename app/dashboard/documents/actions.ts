@@ -10,18 +10,26 @@ export async function disconnectDrive() {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) redirect("/login");
 
-  const { data: connection, error: readError } = await supabase
-    .from("drive_connections")
-    .select("encrypted_refresh_token")
-    .eq("owner_id", user.id)
-    .maybeSingle();
+  let encryptedRefreshToken: string | null = null;
+  let readFailed = false;
+  try {
+    const result = await supabase
+      .from("drive_connections")
+      .select("encrypted_refresh_token")
+      .eq("owner_id", user.id)
+      .maybeSingle();
+    readFailed = Boolean(result.error);
+    encryptedRefreshToken = result.data?.encrypted_refresh_token ?? null;
+  } catch {
+    readFailed = true;
+  }
 
-  if (readError) redirect("/dashboard/documents?drive=disconnect_failed");
+  if (readFailed) redirect("/dashboard/documents?drive=disconnect_failed");
 
   let revoked = true;
-  if (connection?.encrypted_refresh_token) {
+  if (encryptedRefreshToken) {
     try {
-      const refreshToken = decryptRefreshToken(connection.encrypted_refresh_token);
+      const refreshToken = decryptRefreshToken(encryptedRefreshToken);
       revoked = await revokeDriveRefreshToken(refreshToken);
     } catch {
       revoked = false;
@@ -32,11 +40,17 @@ export async function disconnectDrive() {
   // the only stored copy would make a transient failure impossible to retry.
   if (!revoked) redirect("/dashboard/documents?drive=revocation_failed");
 
-  const { error: deleteError } = await supabase
-    .from("drive_connections")
-    .delete()
-    .eq("owner_id", user.id);
+  let deleteFailed = false;
+  try {
+    const result = await supabase
+      .from("drive_connections")
+      .delete()
+      .eq("owner_id", user.id);
+    deleteFailed = Boolean(result.error);
+  } catch {
+    deleteFailed = true;
+  }
 
-  if (deleteError) redirect("/dashboard/documents?drive=disconnect_failed");
+  if (deleteFailed) redirect("/dashboard/documents?drive=disconnect_failed");
   redirect("/dashboard/documents?drive=disconnected");
 }
