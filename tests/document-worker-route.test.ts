@@ -101,6 +101,26 @@ describe("document worker route access and queue preflight", () => {
     expect(createSupabaseServiceRoleClientMock).not.toHaveBeenCalled();
   });
 
+  it("returns a safe retryable response when service-role client initialization throws", async () => {
+    const logSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    createSupabaseServiceRoleClientMock.mockImplementationOnce(() => {
+      throw new Error("private service-role initialization details");
+    });
+
+    const response = await POST(request("Bearer test-cron-secret-with-sufficient-entropy"));
+
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({
+      error: "The document worker database is temporarily unavailable.",
+    });
+    expect(rpcMock).not.toHaveBeenCalled();
+    expect(logSpy).toHaveBeenCalledOnce();
+    const loggedPayload = String(logSpy.mock.calls[0][0]);
+    expect(loggedPayload).toContain('"event":"document_worker_client_init_failed"');
+    expect(loggedPayload).toContain('"errorCode":"DOCUMENT_WORKER_DATABASE_UNAVAILABLE"');
+    expect(loggedPayload).not.toContain("private service-role initialization details");
+  });
+
   it("uses the claimable-job RPC with a bounded batch and reports an empty queue", async () => {
     rpcMock.mockResolvedValue({ data: [], error: null });
 
