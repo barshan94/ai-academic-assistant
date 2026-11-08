@@ -95,15 +95,34 @@ async function processDocument(request: NextRequest, context: RouteContext) {
   // stale-lease validation, increments the attempt and moves the document back
   // to processing in one transaction. Avoid a recover-then-claim gap.
   const expectedStatus = job.status;
-  const { data: claimed, error: claimError } = await supabase.rpc("claim_document_processing_job", {
-    p_document_id: id,
-    p_owner_id: user.id,
-    p_job_id: job.id,
-    p_expected_status: expectedStatus,
-    p_expected_attempt_count: job.attempt_count,
-    p_expected_started_at: job.started_at,
-  });
-  if (claimError || claimed !== true) return redirectToDocument(request, id, "already_processing");
+  let claimResult: { data: unknown; error: unknown };
+  try {
+    claimResult = await supabase.rpc("claim_document_processing_job", {
+      p_document_id: id,
+      p_owner_id: user.id,
+      p_job_id: job.id,
+      p_expected_status: expectedStatus,
+      p_expected_attempt_count: job.attempt_count,
+      p_expected_started_at: job.started_at,
+    });
+  } catch {
+    // The RPC may have committed before its response was lost. Do not retry
+    // automatically: the next request must re-read the persisted lease first.
+    logSafeOperationalEvent("manual_document_claim_transport_failed", {
+      route: "/api/documents/[id]/process",
+      errorCode: "DOCUMENT_PROCESSING_CLAIM_UNCERTAIN",
+    });
+    return redirectToDocument(request, id, "claim_unavailable");
+  }
+  if (claimResult.error || claimResult.data !== true) {
+    if (claimResult.error) {
+      logSafeOperationalEvent("manual_document_claim_rejected", {
+        route: "/api/documents/[id]/process",
+        errorCode: "DOCUMENT_PROCESSING_CLAIM_REJECTED",
+      });
+    }
+    return redirectToDocument(request, id, "already_processing");
+  }
 
   try {
     const accessToken = await getDriveAccessToken();
