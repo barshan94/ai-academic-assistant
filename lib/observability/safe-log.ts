@@ -14,7 +14,8 @@ type SafeOperationalEvent =
   | "google_drive_oauth_failed"
   | "exhausted_document_job_terminalization_failed"
   | "document_job_claim_failed"
-  | "document_queue_read_failed";
+  | "document_queue_read_failed"
+  | "google_drive_ocr_temp_cleanup_failed";
 
 type SafeOperationalFields = {
   route?: string;
