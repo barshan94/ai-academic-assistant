@@ -57,7 +57,16 @@ export async function POST(request: Request) {
     return Response.json({ error: "Worker database credentials are not configured." }, { status: 503 });
   }
 
-  const supabase = createSupabaseServiceRoleClient();
+  let supabase: ReturnType<typeof createSupabaseServiceRoleClient>;
+  try {
+    supabase = createSupabaseServiceRoleClient();
+  } catch {
+    logSafeOperationalEvent("document_worker_client_init_failed", {
+      route: "/api/cron/process-documents",
+      errorCode: "DOCUMENT_WORKER_DATABASE_UNAVAILABLE",
+    });
+    return Response.json({ error: "The document worker database is temporarily unavailable." }, { status: 503 });
+  }
 
   // One job per invocation keeps runtime bounded. The conditional UPDATE is
   // the claim operation: concurrent cron invocations cannot both own a job.
