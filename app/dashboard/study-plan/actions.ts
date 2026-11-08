@@ -42,13 +42,19 @@ export async function createStudySession(formData: FormData) {
   }
 
   const db = supabase as unknown as SupabaseClient<DatabaseWithStudyPlan>;
-  const { error } = await db.rpc("create_weekly_study_session", {
-    p_session_date: parsed.data.sessionDate,
-    p_title: parsed.data.title,
-    p_planned_minutes: parsed.data.plannedMinutes,
-    p_notes: parsed.data.notes || null,
-  });
-  if (error) redirect("/dashboard/study-plan?calendar=failed" + weekQuery);
+  let saved = false;
+  try {
+    const { error } = await db.rpc("create_weekly_study_session", {
+      p_session_date: parsed.data.sessionDate,
+      p_title: parsed.data.title,
+      p_planned_minutes: parsed.data.plannedMinutes,
+      p_notes: parsed.data.notes || null,
+    });
+    saved = !error;
+  } catch {
+    saved = false;
+  }
+  if (!saved) redirect("/dashboard/study-plan?calendar=failed" + weekQuery);
 
   revalidatePath("/dashboard/study-plan");
   redirect("/dashboard/study-plan?calendar=created" + weekQuery);
@@ -81,14 +87,20 @@ export async function updatePlannedStudySession(formData: FormData) {
   }
 
   const db = supabase as unknown as SupabaseClient<DatabaseWithStudyPlan>;
-  const { error } = await db.rpc("update_planned_weekly_study_session", {
-    p_session_id: parsed.data.sessionId,
-    p_session_date: parsed.data.sessionDate,
-    p_title: parsed.data.title,
-    p_planned_minutes: parsed.data.plannedMinutes,
-    p_notes: parsed.data.notes || null,
-  });
-  if (error) redirect("/dashboard/study-plan?calendar=failed" + weekQuery);
+  let saved = false;
+  try {
+    const { error } = await db.rpc("update_planned_weekly_study_session", {
+      p_session_id: parsed.data.sessionId,
+      p_session_date: parsed.data.sessionDate,
+      p_title: parsed.data.title,
+      p_planned_minutes: parsed.data.plannedMinutes,
+      p_notes: parsed.data.notes || null,
+    });
+    saved = !error;
+  } catch {
+    saved = false;
+  }
+  if (!saved) redirect("/dashboard/study-plan?calendar=failed" + weekQuery);
 
   revalidatePath("/dashboard/study-plan");
   redirect("/dashboard/study-plan?calendar=updated" + weekQuery);
@@ -110,8 +122,14 @@ export async function deletePlannedStudySession(formData: FormData) {
   if (authError || !user) redirect("/login");
 
   const db = supabase as unknown as SupabaseClient<DatabaseWithStudyPlan>;
-  const { error } = await db.rpc("delete_planned_weekly_study_session", { p_session_id: parsed.data.sessionId });
-  if (error) redirect("/dashboard/study-plan?calendar=failed" + weekQuery);
+  let deleted = false;
+  try {
+    const { error } = await db.rpc("delete_planned_weekly_study_session", { p_session_id: parsed.data.sessionId });
+    deleted = !error;
+  } catch {
+    deleted = false;
+  }
+  if (!deleted) redirect("/dashboard/study-plan?calendar=failed" + weekQuery);
 
   revalidatePath("/dashboard/study-plan");
   redirect("/dashboard/study-plan?calendar=deleted" + weekQuery);
@@ -129,8 +147,14 @@ export async function completeStudySession(formData: FormData) {
   if (authError || !user) redirect("/login");
 
   const db = supabase as unknown as SupabaseClient<DatabaseWithStudyPlan>;
-  const { error } = await db.rpc("complete_weekly_study_session", { p_session_id: parsed.data.sessionId });
-  if (error) redirect("/dashboard/study-plan?calendar=failed" + weekQuery);
+  let completed = false;
+  try {
+    const { error } = await db.rpc("complete_weekly_study_session", { p_session_id: parsed.data.sessionId });
+    completed = !error;
+  } catch {
+    completed = false;
+  }
+  if (!completed) redirect("/dashboard/study-plan?calendar=failed" + weekQuery);
 
   revalidatePath("/dashboard/study-plan");
   redirect("/dashboard/study-plan?calendar=completed" + weekQuery);
