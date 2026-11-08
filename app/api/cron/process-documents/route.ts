@@ -184,14 +184,30 @@ export async function POST(request: Request) {
       if (!pages.length) throw new Error("No readable text was detected. The file needs manual review.");
       if (pages.length > 100) throw new Error("The document exceeded the 100-page processing limit.");
 
-      const { data: completedPageCount, error: completionError } = await supabase.rpc("complete_document_processing", {
-        p_document_id: documentId,
-        p_owner_id: ownerId,
-        p_job_id: jobId,
-        p_expected_attempt_count: candidate.attempt_count + 1,
-        p_pages: pages,
-      });
-      if (completionError || completedPageCount !== pages.length) {
+      let completionResult: { data: unknown; error: unknown };
+      try {
+        completionResult = await supabase.rpc("complete_document_processing", {
+          p_document_id: documentId,
+          p_owner_id: ownerId,
+          p_job_id: jobId,
+          p_expected_attempt_count: candidate.attempt_count + 1,
+          p_pages: pages,
+        });
+      } catch {
+        // The transaction may have committed even though its response was lost.
+        // Do not call the failure RPC against an uncertain completed job.
+        logSafeOperationalEvent("document_worker_completion_state_uncertain", {
+          route: "/api/cron/process-documents",
+          errorCode: "DOCUMENT_PROCESSING_COMPLETION_UNCERTAIN",
+          jobId,
+        });
+        return Response.json({
+          processed: false,
+          job_id: jobId,
+          error: "Processing completion is being reconciled. Check the document status before retrying.",
+        }, { status: 503 });
+      }
+      if (completionResult.error || completionResult.data !== pages.length) {
         throw new Error("Could not atomically complete document page replacement and the processing job.");
       }
       return Response.json({ processed: true, job_id: jobId, page_count: pages.length });
@@ -211,9 +227,18 @@ export async function POST(request: Request) {
         });
         failurePersisted = !error && data === true;
       } catch {
-        // A transport-level rejection is equivalent to a failed persistence
-        // attempt. Keep the response generic and let the lease expire safely.
-        failurePersisted = false;
+        // The failure transition may have committed before the response was
+        // lost. Do not repeat it; let the next queue read reconcile the state.
+        logSafeOperationalEvent("document_worker_failure_state_uncertain", {
+          route: "/api/cron/process-documents",
+          errorCode: "DOCUMENT_PROCESSING_FAILURE_UNCERTAIN",
+          jobId,
+        });
+        return Response.json({
+          processed: false,
+          job_id: jobId,
+          error: "Processing failure state is uncertain. Check the document status before retrying.",
+        }, { status: 503 });
       }
       if (!failurePersisted) {
         // Leave the lease in place if failure state cannot be persisted. The
