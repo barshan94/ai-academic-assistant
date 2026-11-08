@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
     supabase = await createSupabaseServerClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) return NextResponse.json({ error: "Sign in to upload documents." }, { status: 401 });
-    authenticatedUserId = authenticatedUserId;
+    authenticatedUserId = user.id;
   } catch {
     logSafeOperationalEvent("document_upload_auth_unavailable", { route: "/api/documents/upload/resumable/start", errorCode: "UPLOAD_AUTH_UNAVAILABLE" });
     return NextResponse.json({ error: "Sign-in verification is temporarily unavailable. Try again shortly." }, { status: 503 });
