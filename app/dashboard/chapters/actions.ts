@@ -85,27 +85,38 @@ export async function generateChapterNoteDraft(formData: FormData) {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) redirect("/login");
 
-  const loaded = await Promise.all([
-    supabase.from("syllabus_catalogs").select("id,board,qualification,subject").eq("id", parsed.data.catalogId).eq("owner_id", user.id).maybeSingle(),
-    supabase.from("syllabus_chapters").select("id,catalog_id,title").eq("id", parsed.data.chapterId).eq("catalog_id", parsed.data.catalogId).eq("owner_id", user.id).maybeSingle(),
-    supabase.from("questions").select("id,question_number,question_text,document_page_id")
-      .eq("owner_id", user.id).eq("syllabus_chapter_id", parsed.data.chapterId)
-      .eq("review_status", "approved").order("created_at", { ascending: false }).limit(12),
-  ]).catch(() => null);
-  if (!loaded) redirect("/dashboard/chapters?ai=source_error");
+  let loaded;
+  try {
+    loaded = await Promise.all([
+      supabase.from("syllabus_catalogs").select("id,board,qualification,subject").eq("id", parsed.data.catalogId).eq("owner_id", user.id).maybeSingle(),
+      supabase.from("syllabus_chapters").select("id,catalog_id,title").eq("id", parsed.data.chapterId).eq("catalog_id", parsed.data.catalogId).eq("owner_id", user.id).maybeSingle(),
+      supabase.from("questions").select("id,question_number,question_text,document_page_id")
+        .eq("owner_id", user.id).eq("syllabus_chapter_id", parsed.data.chapterId)
+        .eq("review_status", "approved").order("created_at", { ascending: false }).limit(12),
+    ]);
+  } catch {
+    redirect("/dashboard/chapters?ai=source_error");
+  }
   const [{ data: catalog }, { data: chapter }, { data: questions, error: questionError }] = loaded;
   if (!catalog || !chapter || questionError || !questions?.length) {
     redirect("/dashboard/chapters?ai=no_sources");
   }
 
   const pageIds = Array.from(new Set(questions.map((question) => question.document_page_id).filter((id): id is string => Boolean(id))));
-  const pageResult = await (pageIds.length
-    ? supabase.from("document_pages").select("id,page_number,extracted_text,extraction_method")
-      .eq("owner_id", user.id).in("id", pageIds)
-    : Promise.resolve({ data: [], error: null })).catch(() => null);
-  if (!pageResult) redirect("/dashboard/chapters?ai=source_error");
-  const { data: pages, error: pageError } = pageResult;
+  let pages: { id: string; page_number: number; extracted_text: string | null; extraction_method: string | null }[] | null = [];
+  let pageError: { message: string } | null = null;
+  if (pageIds.length) {
+    try {
+      const pageResult = await supabase.from("document_pages").select("id,page_number,extracted_text,extraction_method")
+        .eq("owner_id", user.id).in("id", pageIds);
+      pages = pageResult.data;
+      pageError = pageResult.error;
+    } catch {
+      redirect("/dashboard/chapters?ai=source_error");
+    }
+  }
   if (pageError) redirect("/dashboard/chapters?ai=source_error");
+
   const pageMap = new Map((pages ?? []).map((page) => [page.id, page]));
 
   const sources = questions.map((question, index) => {
