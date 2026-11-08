@@ -132,18 +132,26 @@ export async function generateQuestionSolution(formData: FormData) {
   if (!selectedProvider) redirect("/dashboard/questions/" + question.id + "?solve=provider_not_selected");
 
   const typedSupabase = supabase as unknown as SupabaseClient<DatabaseWithAISolutions>;
-  const { error: saveError } = await typedSupabase.from("question_solutions").insert({
-    owner_id: user.id,
-    question_id: question.id,
-    provider: selectedProvider.provider,
-    model: selectedProvider.model,
-    prompt_version: relatedKnowledge?.length ? (sourceContext ? "academic-answer-v4-source-and-knowledge" : "academic-answer-v4-knowledge") : (sourceContext ? "academic-answer-v3-source-context" : "academic-answer-v2-math-checks"),
-    answer_json: answer,
-    source_context: sourceProvenance,
-    knowledge_sources: knowledgeProvenance,
-  });
+  let saveFailed = false;
+  try {
+    const { error: saveError } = await typedSupabase.from("question_solutions").insert({
+      owner_id: user.id,
+      question_id: question.id,
+      provider: selectedProvider.provider,
+      model: selectedProvider.model,
+      prompt_version: relatedKnowledge?.length ? (sourceContext ? "academic-answer-v4-source-and-knowledge" : "academic-answer-v4-knowledge") : (sourceContext ? "academic-answer-v3-source-context" : "academic-answer-v2-math-checks"),
+      answer_json: answer,
+      source_context: sourceProvenance,
+      knowledge_sources: knowledgeProvenance,
+    });
+    saveFailed = Boolean(saveError);
+  } catch {
+    // Supabase transport failures can reject instead of returning { error }.
+    // Treat both failure modes identically and never expose provider output.
+    saveFailed = true;
+  }
 
-  if (saveError) {
+  if (saveFailed) {
     logSafeOperationalEvent("ai_generation_failed", { route: "/dashboard/questions/[id]", errorCode: "AI_SOLUTION_SAVE_FAILED" });
     redirect("/dashboard/questions/" + question.id + "?solve=save_failed");
   }
