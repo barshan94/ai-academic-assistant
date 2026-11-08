@@ -323,11 +323,19 @@ export async function createQuestionTeacherInvite(formData: FormData) {
   const { data: question, error: questionError } = await supabase.from("questions").select("id").eq("id", parsed.data.questionId).eq("owner_id", user.id).maybeSingle();
   if (questionError || !question) redirect("/dashboard/questions?invite=not_found");
   const typedSupabase = supabase as unknown as SupabaseClient<DatabaseWithAISolutions>;
-  const { error: inviteError } = await typedSupabase.rpc("create_question_teacher_invite", {
-    p_question_id: question.id,
-    p_invited_email: parsed.data.email,
-  });
-  if (inviteError) redirect("/dashboard/questions/" + question.id + "?invite=" + (inviteError.code === "23505" ? "exists" : inviteError.code === "42501" ? "not_authorized" : "save_failed"));
+  let inviteErrorCode: string | undefined;
+  let inviteCreated = false;
+  try {
+    const { error: inviteError } = await typedSupabase.rpc("create_question_teacher_invite", {
+      p_question_id: question.id,
+      p_invited_email: parsed.data.email,
+    });
+    inviteErrorCode = inviteError?.code;
+    inviteCreated = !inviteError;
+  } catch {
+    inviteCreated = false;
+  }
+  if (!inviteCreated) redirect("/dashboard/questions/" + question.id + "?invite=" + (inviteErrorCode === "23505" ? "exists" : inviteErrorCode === "42501" ? "not_authorized" : "save_failed"));
   revalidatePath("/dashboard/questions/" + question.id);
   revalidatePath("/dashboard/teacher-invites");
   redirect("/dashboard/questions/" + question.id + "?invite=created");
@@ -340,10 +348,16 @@ export async function acceptQuestionTeacherInvite(formData: FormData) {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user?.email) redirect("/login");
   const typedSupabase = supabase as unknown as SupabaseClient<DatabaseWithAISolutions>;
-  const { data: questionId, error } = await typedSupabase.rpc("accept_question_teacher_invite", {
-    p_invite_id: inviteId.data,
-  });
-  if (error || !questionId) redirect("/dashboard/teacher-invites?invite=not_available");
+  let questionId: string | null = null;
+  try {
+    const { data, error } = await typedSupabase.rpc("accept_question_teacher_invite", {
+      p_invite_id: inviteId.data,
+    });
+    questionId = !error && typeof data === "string" ? data : null;
+  } catch {
+    questionId = null;
+  }
+  if (!questionId) redirect("/dashboard/teacher-invites?invite=not_available");
   revalidatePath("/dashboard/teacher-invites");
   revalidatePath("/dashboard/questions/" + questionId);
   redirect("/dashboard/questions/" + questionId + "?invite=accepted");
@@ -357,10 +371,16 @@ export async function revokeQuestionTeacherInvite(formData: FormData) {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) redirect("/login");
   const typedSupabase = supabase as unknown as SupabaseClient<DatabaseWithAISolutions>;
-  const { data: revokedQuestionId, error } = await typedSupabase.rpc("revoke_question_teacher_invite", {
-    p_invite_id: inviteId.data,
-  });
-  if (error || !revokedQuestionId || revokedQuestionId !== questionId.data) {
+  let revokedQuestionId: string | null = null;
+  try {
+    const { data, error } = await typedSupabase.rpc("revoke_question_teacher_invite", {
+      p_invite_id: inviteId.data,
+    });
+    revokedQuestionId = !error && typeof data === "string" ? data : null;
+  } catch {
+    revokedQuestionId = null;
+  }
+  if (!revokedQuestionId || revokedQuestionId !== questionId.data) {
     redirect("/dashboard/questions/" + questionId.data + "?invite=revoke_failed");
   }
   revalidatePath("/dashboard/questions/" + questionId.data);
