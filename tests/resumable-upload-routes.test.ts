@@ -622,5 +622,50 @@ describe("resumable upload route security boundaries", () => {
     expect(logged).not.toContain("private client stream failure");
   });
 
+  it("fails closed with a retryable response when the duplicate lookup transport rejects", async () => {
+    const maybeSingle = vi.fn().mockRejectedValue(new Error("private database transport detail"));
+    const eq = vi.fn();
+    eq.mockReturnValue({ eq, maybeSingle });
+    const from = vi.fn().mockReturnValue({ select: vi.fn().mockReturnValue({ eq, maybeSingle }) });
+    createSupabaseServerClientMock.mockResolvedValueOnce({
+      auth: { getUser: vi.fn().mockResolvedValue({ data: { user: { id: "owner-A" } }, error: null }) },
+      from,
+    });
+
+    const response = await startUpload(makeRequest(
+      "/api/documents/upload/resumable/start",
+      { body: JSON.stringify({ fileName: "Physics.pdf", fileSizeBytes: 1234, sha256: "a".repeat(64) }) },
+    ));
+
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({ error: "Could not check for duplicate documents. Try again shortly." });
+    expect(getDriveAccessTokenMock).not.toHaveBeenCalled();
+    expect(initiateResumablePdfUploadMock).not.toHaveBeenCalled();
+  });
+
+  it("fails closed when upload quota transport rejects instead of bypassing quota protection", async () => {
+    const maybeSingle = vi.fn().mockResolvedValue({ data: null, error: null });
+    const eq = vi.fn();
+    eq.mockReturnValue({ eq, maybeSingle });
+    const from = vi.fn().mockReturnValue({ select: vi.fn().mockReturnValue({ eq, maybeSingle }) });
+    const rpc = vi.fn().mockRejectedValue(new Error("private quota transport detail"));
+    createSupabaseServerClientMock.mockResolvedValueOnce({
+      auth: { getUser: vi.fn().mockResolvedValue({ data: { user: { id: "owner-A" } }, error: null }) },
+      from,
+      rpc,
+    });
+    getDriveAccessTokenMock.mockResolvedValue("drive-access-token");
+
+    const response = await startUpload(makeRequest(
+      "/api/documents/upload/resumable/start",
+      { body: JSON.stringify({ fileName: "Physics.pdf", fileSizeBytes: 1234, sha256: "a".repeat(64) }) },
+    ));
+
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({ error: "Upload protection is temporarily unavailable. Try again shortly." });
+    expect(rpc).toHaveBeenCalledWith("consume_document_upload_quota");
+    expect(initiateResumablePdfUploadMock).not.toHaveBeenCalled();
+  });
+
 
 });
