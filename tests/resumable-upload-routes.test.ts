@@ -10,6 +10,7 @@ const {
   decryptDriveUploadSessionMock,
   deleteDriveFileMock,
   downloadOriginalPdfFromDriveMock,
+  logSafeOperationalEventMock,
 } = vi.hoisted(() => ({
   createSupabaseServerClientMock: vi.fn(),
   createSupabaseServiceRoleClientMock: vi.fn(),
@@ -19,6 +20,7 @@ const {
   decryptDriveUploadSessionMock: vi.fn(),
   deleteDriveFileMock: vi.fn(),
   downloadOriginalPdfFromDriveMock: vi.fn(),
+  logSafeOperationalEventMock: vi.fn(),
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
@@ -48,7 +50,7 @@ vi.mock("@/lib/drive/google", () => ({
   },
 }));
 vi.mock("@/lib/observability/safe-log", () => ({
-  logSafeOperationalEvent: vi.fn(),
+  logSafeOperationalEvent: logSafeOperationalEventMock,
 }));
 
 import { POST as startUpload } from "@/app/api/documents/upload/resumable/start/route";
@@ -88,6 +90,7 @@ beforeEach(() => {
   decryptDriveUploadSessionMock.mockReset();
   deleteDriveFileMock.mockReset();
   downloadOriginalPdfFromDriveMock.mockReset();
+  logSafeOperationalEventMock.mockReset();
   downloadOriginalPdfFromDriveMock.mockResolvedValue(Buffer.alloc(1234));
   createSupabaseServerClientMock.mockResolvedValue({
     auth: {
@@ -594,7 +597,7 @@ describe("resumable upload route security boundaries", () => {
     expect(deleteDriveFileMock).toHaveBeenCalledWith("drive-access-token", "drive-file-duplicate-copy");
   });
   it("returns a retryable response when the incoming chunk stream fails", async () => {
-    const logSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    logSafeOperationalEventMock.mockClear();
     const failedBody = new ReadableStream<Uint8Array>({
       start(controller) {
         controller.error(new Error("private client stream failure"));
@@ -616,10 +619,12 @@ describe("resumable upload route security boundaries", () => {
       error: "Could not read this upload chunk. Resume the upload and retry.",
     });
     expect(getDriveAccessTokenMock).not.toHaveBeenCalled();
-    expect(logSpy).toHaveBeenCalledOnce();
-    const logged = String(logSpy.mock.calls[0][0]);
-    expect(logged).toContain('"event":"upload_chunk_body_read_failed"');
-    expect(logged).not.toContain("private client stream failure");
+    expect(logSafeOperationalEventMock).toHaveBeenCalledOnce();
+    expect(logSafeOperationalEventMock).toHaveBeenCalledWith("upload_chunk_body_read_failed", {
+      route: "/api/documents/upload/resumable/chunk",
+      errorCode: "UPLOAD_CHUNK_BODY_READ_FAILED",
+    });
+    expect(JSON.stringify(logSafeOperationalEventMock.mock.calls)).not.toContain("private client stream failure");
   });
 
   it("fails closed with a retryable response when the duplicate lookup transport rejects", async () => {
