@@ -939,3 +939,17 @@ PR #1 remains open, draft, and unmerged. GitHub still reports the branch diverge
 - [ ] AI generation remains intentionally disabled (`AI_ENABLED=false`) under strict zero-cost mode. The AI solver is not available for live generation in this configuration. The separate backup/restore rehearsal remains excluded by owner instruction.
 
 No hosted migration, migration-ledger repair, worker dispatch, Production environment mutation, Production deployment, paid activation, PR merge, or data reset was performed during this read-only inventory. A green CI result is not Production approval.
+
+
+## Superseding migration-object parity check — 2026-11-09 (read-only)
+
+A read-only catalog query against the existing non-production Supabase project `academic-assistant` confirms:
+
+- [x] The reviewed-source question creation RPC `public.create_question_from_reviewed_page(...)` exists.
+- [x] The document-page replacement RPC `public.replace_document_pages(uuid, uuid, jsonb)` exists.
+- [x] The AI quota RPC `public.consume_ai_generation_quota(text)` exists.
+- [x] The stale-job recovery RPC `public.recover_stale_document_processing_job(uuid, uuid, uuid, timestamptz)` exists.
+- [ ] The quiz feature is not deployed to this database: tables `public.generated_quizzes` and `public.question_importance` are absent; RPCs `save_generated_quiz_draft(...)` and the current six-argument `update_generated_quiz_question(...)` are also absent.
+- [ ] Therefore, quiz-draft and teacher-curated question-importance functionality in the feature branch must not be represented as live/available against the current hosted schema. The related migrations must be reviewed and deliberately reconciled before enabling those routes/features.
+
+This confirms at least one substantive schema gap rather than merely a migration filename/version mismatch. No migration was applied, no ledger entry was changed, and no existing rows were modified. Do not run these migrations until branch integration and the full forward-only SQL/privilege review are complete and separately authorized.
