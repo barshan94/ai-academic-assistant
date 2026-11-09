@@ -1859,3 +1859,8 @@ The upstream maintainer advisory describes the specific implementation defect in
 - Verification: Workflow YAML changes are committed on `feature/m3-ai-solver` at `3ef1a9ecb0610c2e20570fcb1205cd8533288460`. The GitHub Actions integration did not expose a dispatch action in this session, and no new run for this commit was returned by the Actions API at the time of inspection. A fresh serialized authenticated run is therefore still required; do not mark this error fixed yet.
 - Status: Workflow-level mitigation implemented; verification pending. The previous teacher-review acceptance failure remains an open release blocker until a serialized run passes.
 
+
+
+## Superseding status — ERR-005 resolved for configured non-production accounts (2026-11-09)
+
+The previous statement that the authenticated two-account workflow was blocked by a missing enablement variable is obsolete. The undocumented variable gate and the feature-push condition were removed/fixed in the authenticated E2E workflow. On exact feature head `f39a165fd1a200ddd5f8c5dc932c16a50990c119`, GitHub Actions run [42635575501](https://github.com/barshan94/ai-academic-assistant/actions/runs/42635575501) completed the actual owner/teacher two-account acceptance step successfully. This resolves the CI skip and verifies the configured non-production test accounts for the tested lifecycle. It does not establish Production auth configuration, live Google Drive/OCR acceptance, or hosted migration parity. Do not carry this pass to a later commit unless that exact head's workflow succeeds.
