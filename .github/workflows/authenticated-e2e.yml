@@ -2,6 +2,8 @@ name: Authenticated browser acceptance
 
 on:
   workflow_dispatch:
+  push:
+    branches: [feature/m3-ai-solver]
   pull_request:
     branches: [main]
 
