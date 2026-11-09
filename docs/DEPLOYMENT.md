@@ -4,7 +4,7 @@
 
 This guide describes a controlled deployment of the Next.js application. It does not authorize a production release, production database migration, paid infrastructure, or a merge to `main`.
 
-Use a dedicated non-production Supabase project and Google OAuth client for the first deployment and acceptance. Never point a preview deployment at production credentials. The application is a private, single-owner workspace with optional question-scoped teacher access; public sign-up is intentionally disabled.
+Use only the already approved existing `academic-assistant` Supabase project and existing Google Drive account. Do not create another database/project. Keep Preview and Production credentials separate; never point Preview at Production credentials. The application is a private, single-owner workspace with optional question-scoped teacher access; public sign-up is intentionally disabled. The current owner scope prohibits hosted migration-ledger changes, hosted DDL, Production deployment/configuration changes, worker dispatch and PR merge.
 
 ## Runtime requirements
 
@@ -13,7 +13,7 @@ Use a dedicated non-production Supabase project and Google OAuth client for the 
 - HTTPS on every non-local deployment.
 - Supabase PostgreSQL/Auth project in the selected region.
 - Google Drive API OAuth web client with the exact callback URI.
-- GitHub Actions access for the scheduled document worker and readiness monitor.
+- GitHub Actions access for manually dispatched, owner-approved non-production worker/monitor checks only. The checked-in worker and health-monitor workflows are not active schedules.
 - AI provider credentials only after provider terms, data handling and expected charges have been explicitly approved.
 
 Do not assume that a static export or edge-only runtime is supported. PDF processing, cryptography and bounded streaming routes use the Node.js runtime.
@@ -50,18 +50,13 @@ npm run check:production-env
 
 The preflight script reads the current process environment; it does not parse `.env.local`. It checks required variable presence, HTTPS callback/project URLs, canonical Drive-key encoding and cron-secret length. AI provider configuration is required only when `AI_ENABLED=true`; leave it disabled for strict zero-cost mode. It prints variable names and validation failures only, never secret values. A passing preflight is not a connectivity test.
 
-## Supabase preparation
+## Supabase preparation — current owner scope
 
-1. Create a separate non-production project. Keep the configured Mumbai region (`ap-south-1`) unless the owner explicitly changes the architecture decision.
-2. Confirm the target is disposable and no real student or owner data is present.
-3. Inspect the migration history and reconcile the known remote migration-history drift (ERR-007) using `docs/MIGRATION_RECONCILIATION.md`. The latest read-only comparison found 95 repository migration files versus 53 remote ledger entries, 51 exact matches, two timestamp/name mismatches and 44 repository files absent from the remote ledger (42 local-only versions plus two renamed counterparts). Do not run `supabase db push` or migration repair blindly.
-4. Review every pending migration, especially grants, RLS, SECURITY DEFINER/INVOKER functions, trigger order and the server-only document registration RPC.
-5. Apply migrations only to the isolated target using the current pinned Supabase CLI procedure. Review the CLI `--help` output and current Supabase docs before selecting commands.
-6. Inspect the resulting schema, effective grants, policies and function execute privileges. The source migration files are not evidence that the hosted target has been updated.
-7. Provision the initial owner identity privately in Supabase Auth. Keep public sign-ups disabled.
-8. Provision any platform curator membership out of band; users must never be able to self-promote.
+The existing `academic-assistant` project is the only approved project for this work. Do not create a second project/database, reset data, repair the hosted migration ledger, dispatch migration reconciliation, or apply hosted migrations. These actions are not authorized by this runbook.
 
-There are 50+ forward-only migrations. Do not manually cherry-pick only the latest migration. Resolve migration-history drift first and apply the complete intended chain to a clean isolated project.
+The repository's migration chain must be reviewed against the actual hosted schema before any future authorized change. Existing migration-history snapshots in `docs/MIGRATION_RECONCILIATION.md` are historical evidence and contain superseded counts; do not execute their preserved procedures. The current release gate is schema/function/privilege parity review without mutation. Local isolated migration replay and pgTAP CI are not proof that the hosted project has the same schema.
+
+Do not use Production as a test environment. Any future non-production schema mutation requires a separate explicit owner decision, a reviewed forward-only migration, a verified target and a recorded post-change schema/privilege check.
 
 ## Google OAuth and Drive
 
@@ -91,7 +86,7 @@ Set repository Actions secrets only after the non-production app is deployed:
 
 Enable the authenticated E2E workflow only after the test project and fixtures exist. Do not reuse production accounts or credentials.
 
-The document worker runs every five minutes through GitHub Actions and handles at most one job per invocation. The readiness monitor runs every fifteen minutes through GitHub Actions. No Vercel Cron Job is configured in the repository; Vercel Hobby's daily-only Cron restriction does not apply to these GitHub workflows. GitHub scheduled workflows run from the repository's default branch; a workflow committed only to a feature branch is not an active schedule. The workflows also support manual dispatch, but must first be reviewed to ensure they target the intended non-production host.
+The document-worker and health-monitor workflows are manual-dispatch only in the current operating scope. Do not add a schedule or dispatch either workflow until the branch/route integration, exact Preview target, credentials, authentication, migration compatibility and idempotency are independently verified and the owner explicitly approves the invocation. GitHub scheduled workflows run from the repository's default branch; feature-branch workflow files do not create an active schedule. The authenticated two-account E2E workflow uses the six configured non-production secrets and does not require `ENABLE_AUTHENTICATED_E2E`, `E2E_QUESTION_ID` or `E2E_SOLUTION_ID`.
 
 ## Build and release sequence
 
