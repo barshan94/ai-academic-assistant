@@ -52,6 +52,27 @@ describe("safe operational logging", () => {
     expect(serialized).not.toContain("connection string");
   });
 
+  it("accepts every document and upload route event in the safe allow-list", () => {
+    const error = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const events = [
+      "document_processing_route_unhandled",
+      "document_upload_auth_unavailable",
+      "document_upload_duplicate_check_failed",
+      "upload_chunk_auth_unavailable",
+    ] as const;
+
+    for (const event of events) {
+      logSafeOperationalEvent(event, {
+        route: "/api/documents",
+        errorCode: "SAFE_TEST_EVENT",
+      });
+    }
+
+    expect(error).toHaveBeenCalledTimes(events.length);
+    const loggedEvents = error.mock.calls.map(([value]) => JSON.parse(String(value)).event);
+    expect(loggedEvents).toEqual(events);
+  });
+
   it("keeps exhausted quota events as warnings rather than server errors", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
     const error = vi.spyOn(console, "error").mockImplementation(() => undefined);
