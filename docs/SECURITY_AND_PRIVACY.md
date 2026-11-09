@@ -29,6 +29,21 @@ Use .env.local for local secrets and keep it ignored by Git. Commit only placeho
 - The completed-upload registration RPC is server-only: authenticated clients cannot execute it directly. The resumable upload route verifies the session owner and Google completion metadata before using the server-only service-role client. See `docs/SECURITY_BOUNDARY_AUDIT.md`; its ACL migration is committed but not yet applied to a hosted database.
 - Route-level and root-level error boundaries show generic messages only; they do not render exception messages, stacks, provider response bodies or submitted academic content. They warn that a failed action may not have been saved.
 
+## Supabase Free authentication limitation and compensating controls
+
+The last recorded Supabase security-advisor review (2026-11-05) reported leaked-password protection as disabled. The project is on the Supabase Free plan, where the built-in leaked-password screening control is unavailable. Do not describe this control as enabled, and do not treat a successful sign-in or a clean database advisor result as proof that a password has not appeared in a breach.
+
+Free-compatible controls for this private workspace:
+
+- Keep public account registration disabled. The application exposes sign-in only; the owner provisions accounts manually in Supabase Auth.
+- Give every person a separate account. Never share the owner account or reuse one password across people or services.
+- When creating or resetting an account, use a unique random password of at least 16 characters generated and stored by a password manager. This is an owner procedure, not an application-enforced breached-password check.
+- Keep access invitation-based and revoke a person's access when it is no longer needed. Do not create accounts for unverified recipients.
+- Review available Supabase Auth logs for unusual repeated sign-in failures during operational checks. This is manual monitoring, not automated breached-password detection.
+- The current sign-in UI has no verified MFA challenge flow. Do not assume MFA is protecting accounts or enable an Auth MFA requirement without first implementing and testing the full enrollment, challenge, recovery and sign-in flow.
+
+These controls reduce exposure without adding paid services, but they do not provide breached-password screening. Record the limitation as an accepted release risk until a free-compatible control is independently verified; do not silently mark the gate complete.
+
 ## Browser response protections
 - Disable framework fingerprinting and set HSTS, frame denial, MIME-sniffing protection, a strict referrer policy and a restrictive Permissions-Policy. These headers are covered by a Chromium smoke test.
 - GitHub Actions dependencies are pinned to immutable commit SHAs rather than movable major-version tags; the Supabase CLI binary is version-pinned, and checkout credentials are not persisted by read-only workflows. The one-time migration-generation workflow that required repository write permission was removed after its migration task was completed.
