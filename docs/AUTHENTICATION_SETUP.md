@@ -24,6 +24,19 @@ In the Supabase dashboard for the `academic-assistant` project:
 
 The app intentionally provides sign-in only. Account creation and recovery are managed by the owner in Supabase.
 
+## Free-plan password screening limitation
+
+The last recorded Supabase security-advisor review (2026-11-05) reported leaked-password protection as disabled. The current Supabase Free plan does not provide the built-in leaked-password screening control. The application does not call a separate breached-password service, so never claim that a password is checked against known breach lists.
+
+For every owner or teacher account:
+
+- Keep public sign-ups disabled and create the account privately in Supabase Auth.
+- Use a separate account for each person; do not share the owner account.
+- Set a unique random password of at least 16 characters using a password manager. Do not reuse it on another service.
+- Revoke access when the person no longer needs the workspace.
+
+The current sign-in page does not implement a verified MFA enrollment/challenge/recovery flow. Do not assume MFA is active or enable an MFA requirement until that complete flow is implemented and tested. These steps are free-compatible risk reductions, not an equivalent replacement for leaked-password screening.
+
 ## 3. Configure authentication URLs
 
 In Authentication → URL Configuration, set the local Site URL to `http://localhost:3000` during local development. Add the exact production application URL to the allowed redirect URLs when a deployment exists. Do not add broad wildcard production redirects.
