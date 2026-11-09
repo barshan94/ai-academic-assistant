@@ -1,5 +1,6 @@
 type SafeOperationalEvent =
   | "document_worker_failed"
+  | "document_worker_client_init_failed"
   | "document_processing_failed"
   | "upload_session_start_failed"
   | "upload_chunk_failed"
