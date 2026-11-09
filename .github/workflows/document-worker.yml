@@ -25,10 +25,11 @@ jobs:
           test -n "$APP_BASE_URL" || { echo "::error::APP_BASE_URL secret is missing"; exit 1; }
           test -n "$CRON_SECRET" || { echo "::error::CRON_SECRET secret is missing"; exit 1; }
           [ "${#CRON_SECRET}" -ge 32 ] || { echo "::error::CRON_SECRET must contain at least 32 characters"; exit 1; }
-          # This job sends CRON_SECRET to APP_BASE_URL. Restrict it to this
-          # repository's Vercel Preview hostname and an origin-only URL.
-          if [[ ! "$APP_BASE_URL" =~ ^https://ai-academic-assistant-[a-z0-9-]+-barshan-s-team\.vercel\.app$ ]]; then
-            echo "::error::APP_BASE_URL must be this project's Vercel Preview origin"
+          # This job sends CRON_SECRET to APP_BASE_URL. Pin it to the
+          # verified stable alias for this feature branch, not an arbitrary
+          # deployment hostname, Production URL, or unrelated HTTPS origin.
+          if [[ "$APP_BASE_URL" != "https://ai-academic-assistant-git-feature-m3-ai-solver-barshan-s-team.vercel.app" ]]; then
+            echo "::error::APP_BASE_URL must equal the verified feature-branch Preview origin"
             exit 1
           fi
 

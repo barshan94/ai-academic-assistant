@@ -4,8 +4,11 @@ import { describe, expect, it } from "vitest";
 
 const routePath = fileURLToPath(new URL("../app/api/cron/process-documents/route.ts", import.meta.url));
 const workflowPath = fileURLToPath(new URL("../.github/workflows/document-worker.yml", import.meta.url));
+const monitorPath = fileURLToPath(new URL("../.github/workflows/health-monitor.yml", import.meta.url));
 const route = readFileSync(routePath, "utf8");
 const workflow = readFileSync(workflowPath, "utf8");
+const monitor = readFileSync(monitorPath, "utf8");
+const approvedPreviewOrigin = "https://ai-academic-assistant-git-feature-m3-ai-solver-barshan-s-team.vercel.app";
 
 describe("document worker HTTP method", () => {
   it("exposes queue processing only as POST because it mutates processing state", () => {
@@ -30,8 +33,18 @@ describe("document worker HTTP method", () => {
 
   it("restricts credentialed dispatch to the feature branch and this project's Preview origin", () => {
     expect(workflow).toContain("if: github.ref == 'refs/heads/feature/m3-ai-solver'");
-    expect(workflow).toContain("ai-academic-assistant-[a-z0-9-]+-barshan-s-team\\.vercel\\.app");
-    expect(workflow).toContain("APP_BASE_URL must be this project's Vercel Preview origin");
+    expect(workflow).toContain(`if [[ "$APP_BASE_URL" != "${approvedPreviewOrigin}" ]]`);
+    expect(workflow).not.toContain("ai-academic-assistant-[a-z0-9-]+-barshan-s-team");
+    expect(workflow).toContain("APP_BASE_URL must equal the verified feature-branch Preview origin");
+  });
+
+  it("pins readiness-monitor credentials to the same verified feature Preview origin", () => {
+    expect(monitor).toContain(`const approvedPreviewOrigin = "${approvedPreviewOrigin}"`);
+    expect(monitor).toContain("raw !== approvedPreviewOrigin");
+    expect(monitor).toContain("url.origin !== approvedPreviewOrigin");
+    expect(monitor).toContain('redirect: "error"');
+    expect(monitor).toContain('Authorization: `Bearer ${process.env.CRON_SECRET}`');
+    expect(monitor).not.toContain('url.protocol !== "https:" || !url.hostname');
   });
 
   it("keeps queue processing opt-in with no recurring or automatic trigger", () => {

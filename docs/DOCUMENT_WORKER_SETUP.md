@@ -4,7 +4,7 @@ The application includes a server-side worker at `POST /api/cron/process-documen
 
 ## GitHub Actions invocation
 
-**Current verified behavior:** `.github/workflows/document-worker.yml` defines `workflow_dispatch` only. It does not contain a `schedule` trigger, so it does not poll the queue automatically. A repository operator must manually dispatch it from the Actions tab. The credentialed job is additionally restricted to `feature/m3-ai-solver`, and it refuses an `APP_BASE_URL` that is not an origin-only Vercel Preview hostname for this project (`ai-academic-assistant-…-barshan-s-team.vercel.app`). This limits accidental secret disclosure to an unrelated HTTPS host; it does not prove that the target deployment or secrets are correct. Do not describe this workflow as scheduled until a recurring trigger is committed and verified.
+**Current verified behavior:** `.github/workflows/document-worker.yml` defines `workflow_dispatch` only. It does not contain a `schedule` trigger, so it does not poll the queue automatically. A repository operator must manually dispatch it from the Actions tab. The credentialed job is additionally restricted to `feature/m3-ai-solver`, and it refuses an `APP_BASE_URL` that is not an exact stable feature-branch Preview origin (`https://ai-academic-assistant-git-feature-m3-ai-solver-barshan-s-team.vercel.app`). It rejects deployment-specific hostnames, Production URLs, unrelated HTTPS origins, credentials, paths and trailing slashes. This destination allowlist does not prove that the secret matches the deployed Preview. Do not describe this workflow as scheduled until a recurring trigger is committed and verified.
 
 If a recurring GitHub schedule is added later, GitHub runs it from the repository's default branch, not an unmerged feature branch. Integrate the worker route, application code, database migrations and scheduler together; a workflow-only merge could call a route that `main` does not contain. No Vercel Cron Job is configured. The current deployment uses Vercel Hobby, so do not assume Vercel provides a five-minute scheduler.
 
@@ -12,7 +12,7 @@ Configure these repository Actions secrets before enabling real processing:
 
 | Secret | Value |
 | --- | --- |
-| `APP_BASE_URL` | Origin-only HTTPS Vercel Preview URL for this project (`https://ai-academic-assistant-…-barshan-s-team.vercel.app`), without a path or trailing slash |
+| `APP_BASE_URL` | Exact value `https://ai-academic-assistant-git-feature-m3-ai-solver-barshan-s-team.vercel.app` (stable feature-branch Preview alias only) |
 | `CRON_SECRET` | A long random secret of at least 32 characters, shared with the deployed application's `CRON_SECRET` environment variable; both the route and workflow reject shorter values |
 
 The deployed application must also have the existing production environment variables required by the worker and Drive integration:

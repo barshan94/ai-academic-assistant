@@ -27,12 +27,13 @@ jobs:
           set -Eeuo pipefail
           node --input-type=module <<'NODE'
           const raw = process.env.APP_BASE_URL;
+          const approvedPreviewOrigin = "https://ai-academic-assistant-git-feature-m3-ai-solver-barshan-s-team.vercel.app";
           let url;
           try { url = new URL(raw ?? ""); } catch { url = null; }
-          if (!url || url.protocol !== "https:" || !url.hostname ||
+          if (!url || raw !== approvedPreviewOrigin || url.origin !== approvedPreviewOrigin ||
               url.username || url.password || url.pathname !== "/" ||
               url.search || url.hash) {
-            console.error("::error::APP_BASE_URL must be a clean HTTPS origin without credentials, path, query or fragment.");
+            console.error("::error::APP_BASE_URL must equal the verified feature-branch Preview origin.");
             process.exit(1);
           }
           if ((process.env.CRON_SECRET?.length ?? 0) < 32) {

@@ -261,3 +261,10 @@ Configure repository Actions secrets from the deployment dashboard; never commit
 - Worker code uses an atomic database claim, bounded processing, retry policy and atomic completion/failure RPCs. Existing completed jobs demonstrate prior execution, but not an independently exercised fresh interruption/resume flow.
 - **Scheduler status:** `.github/workflows/document-worker.yml` contains `workflow_dispatch` only. It does not contain a recurring schedule. The worker therefore requires a manual Actions dispatch until a scheduler is intentionally added and safely integrated on the default branch.
 - Current non-production database snapshot: 1 Drive connection, 3 documents (1 ready, 2 review_required), 2 completed jobs, 3 pages, 0 queued/running/failed jobs. Two documents contain Drive ID, SHA-256 and positive file-size metadata.
+
+
+## Superseding credential destination hardening — 2026-11-09
+
+The Vercel deployment for feature-branch head `dbc23a634210d11e3a4caf0b8b89d2ac7dc30cbd` is READY and advertises the stable branch alias `https://ai-academic-assistant-git-feature-m3-ai-solver-barshan-s-team.vercel.app`. The feature-branch document-worker workflow and readiness monitor now require an exact match to this origin before sending `CRON_SECRET`; arbitrary HTTPS hosts, generated deployment hostnames, Production URLs and URL variants are rejected. The worker remains manual-dispatch only. The readiness monitor is not a document-worker scheduler.
+
+The GitHub Actions secret value is not readable through the connected integration and was not retrieved. Before any manual worker dispatch, the owner must ensure the repository secret `APP_BASE_URL` is set to the exact alias above and that `CRON_SECRET` matches the non-production Preview value. Never paste or display either secret. No worker dispatch, hosted database write, migration, Production change or merge was performed for this hardening.
