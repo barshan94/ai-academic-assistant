@@ -44,6 +44,9 @@ describe("document worker HTTP method", () => {
     expect(monitor).toContain("url.origin !== approvedPreviewOrigin");
     expect(monitor).toContain('redirect: "error"');
     expect(monitor).toContain('Authorization: `Bearer ${process.env.CRON_SECRET}`');
+    expect(monitor).toContain('new URL("/api/health/ready", process.env.APP_BASE_URL)');
+    expect(monitor).not.toContain("/api/cron/process-documents");
+    expect(monitor).not.toContain("--request POST");
     expect(monitor).not.toContain('url.protocol !== "https:" || !url.hostname');
   });
 
