@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   authenticated-browser:
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.pull_request.head.ref == 'feature/m3-ai-solver' }}
+    if: ${{ github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/feature/m3-ai-solver' || github.event.pull_request.head.ref == 'feature/m3-ai-solver' }}
     name: Two-account Supabase acceptance
     runs-on: ubuntu-24.04
     timeout-minutes: 20
