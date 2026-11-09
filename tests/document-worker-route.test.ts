@@ -558,8 +558,7 @@ describe("document worker failure redaction", () => {
       maybeSingle: () => Promise<QueryResult>;
     };
     const queryFor = (result: QueryResult): QueryBuilder => {
-      let builder: QueryBuilder;
-      builder = Object.assign(Promise.resolve(result), {
+      const builder = Object.assign(Promise.resolve(result), {
         select: () => builder,
         eq: () => builder,
         maybeSingle: async () => result,
