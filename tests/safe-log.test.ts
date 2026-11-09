@@ -33,6 +33,25 @@ describe("safe operational logging", () => {
     expect(serialized).not.toContain("secret");
   });
 
+  it("allows the worker client initialization failure event with sanitized metadata", () => {
+    const error = vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+    logSafeOperationalEvent("document_worker_client_init_failed", {
+      route: "/api/cron/process-documents",
+      errorCode: "DOCUMENT_WORKER_DATABASE_UNAVAILABLE",
+    });
+
+    expect(error).toHaveBeenCalledOnce();
+    const serialized = String(error.mock.calls[0][0]);
+    expect(JSON.parse(serialized)).toMatchObject({
+      event: "document_worker_client_init_failed",
+      route: "/api/cron/process-documents",
+      errorCode: "DOCUMENT_WORKER_DATABASE_UNAVAILABLE",
+    });
+    expect(serialized).not.toContain("service-role");
+    expect(serialized).not.toContain("connection string");
+  });
+
   it("keeps exhausted quota events as warnings rather than server errors", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
     const error = vi.spyOn(console, "error").mockImplementation(() => undefined);
