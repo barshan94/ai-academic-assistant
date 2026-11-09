@@ -83,22 +83,23 @@ Never commit .env.local, service-role keys, OAuth tokens, student personal data 
 - Database/API security review: `docs/SECURITY_BOUNDARY_AUDIT.md`.
 - Exact repository-versus-connected-project migration ledger comparison: `docs/MIGRATION_RECONCILIATION.md`.
 
-## Current status — 6 November 2026
+## Current status — 9 November 2026
 
-Implementation is substantially complete across the M1–M8 feature scope, but this project is **not approved for Production**. The current branch is `feature/m3-ai-solver`; PR #1 remains open, draft and unmerged.
+Implementation covers the M1–M8 feature scope, but the project is **not approved for Production**. PR #1 remains open, draft and unmerged.
 
 ### Latest verified application checkpoint
 
-- Application code commit `8133a290d094ea2d424656928e1e1321fad3f45e` passed all four required GitHub Actions workflows: Foundation (lint, type checks, dependency audits, unit tests, production build and Chromium smoke), isolated database authorization/migration tests, authenticated two-account browser acceptance, and full-history secret scanning.
-- Vercel Preview for that application commit is READY: https://ai-academic-assistant-1iwj0uytx-barshan-s-team.vercel.app. Preview readiness is not proof of live OAuth, Drive, worker, academic quality or Production readiness.
-- Subsequent commits update release and zero-cost documentation only. They do not change application code; the four passing workflow results above are tied to `8133a290`, not claimed as new runs on the documentation-only head.
-- The latest documentation changes clarify that `AI_ENABLED=false` is a supported no-provider profile. AI generation and provider-based web research remain intentionally unavailable in strict zero-cost mode.
+- Application/workflow commit `f39a165fd1a200ddd5f8c5dc932c16a50990c119` passed all four required GitHub Actions workflows: [Foundation checks](https://github.com/barshan94/ai-academic-assistant/actions/runs/42635575400) (lint, type checks, unit tests, production build and Chromium smoke), [local Supabase migration/pgTAP authorization](https://github.com/barshan94/ai-academic-assistant/actions/runs/42635575467), [authenticated owner/teacher two-account acceptance](https://github.com/barshan94/ai-academic-assistant/actions/runs/42635575501), and [full-history secret scanning](https://github.com/barshan94/ai-academic-assistant/actions/runs/42635575319).
+- The authenticated workflow's undocumented enablement-variable gate and broken feature-push condition were fixed. The two-account acceptance step completed successfully against the approved non-production test project.
+- Documentation-only follow-ups now correct the authenticated E2E setup instructions and align the deployment runbook with the current owner restrictions. Each new documentation commit triggers fresh CI; do not transfer the `f39a165` pass to a later head until its own workflows finish.
+- PR comparison remains diverged from `main`: 80 commits behind and 2,535 ahead, with 300 changed files at the latest comparison. This is branch history divergence, not a count of unfinished features. GitHub reports the PR is not mergeable; do not blindly merge, rebase or force-push.
+- No Production deployment, hosted migration, worker dispatch, merge, paid service activation or second database was performed.
 
 ### Current operating constraints
 
-- Keep the existing Supabase Free project and existing Google Drive account; do not create another database or pay for AI/search/hosting upgrades.
-- Keep `AI_ENABLED=false`, AI fallbacks off and provider/search credentials unset unless the owner explicitly changes the zero-cost decision.
-- Keep the document worker manual-dispatch only. Do not dispatch it or add a schedule until live non-production route, credentials, migration and fault/retry acceptance are complete.
+- Keep the existing Supabase Free project and Google Drive account; do not create another database or pay for AI/search/hosting upgrades.
+- Keep `AI_ENABLED=false`, AI fallbacks off and provider/search credentials unset unless the owner explicitly changes the zero-cost decision. AI-generated answers and provider-based research are unavailable in this mode.
+- Keep the document worker manual-dispatch only. Do not dispatch it or add a schedule until live non-production Drive, worker fault/retry, route, credentials and migration compatibility acceptance are completed and approved.
 - Keep PR #1 open, draft and unmerged. Do not deploy Production, change Production environment settings, apply or repair hosted migrations, or alter existing `academic-assistant` and `durga-map` data.
 - The separate-database backup/restore rehearsal was skipped by owner instruction. Do not describe it as completed or create a second database.
 
@@ -109,10 +110,11 @@ Implementation is substantially complete across the M1–M8 feature scope, but t
 - Worker concurrency, retry, stale-lease and failure-recovery acceptance against a safe non-production target.
 - Hosted migration-history/schema parity review; no hosted ledger or schema mutation is authorized.
 - A Free-compatible mitigation for the Supabase leaked-password-protection limitation.
-- Qualified syllabus verification and independent grading of representative Physics, Mathematics and Computer Science answers. The AI golden-set remains unevaluated against a live model; AI remains disabled.
+- Qualified syllabus verification and independent grading of representative Physics, Mathematics and Computer Science answers. AI remains disabled, so live-model golden-set grading is not available.
 - Manual accessibility/device acceptance, privacy/legal review, published support contact and named primary/backup operators.
+- Public-repository PDF publication confirmation for `PXL_20261103_115517489~2.pdf`; its contents have not been inspected. Do not delete or rewrite public history without owner confirmation.
 - Backup/restore remains unproven; the separate-database rehearsal was skipped by owner instruction.
 
-See `docs/PRODUCTION_READINESS.md`, `docs/PRODUCTION_LAUNCH_RUNBOOK.md` and `docs/OWNER_ACTIONS.md` for the detailed release gate and current authorization boundaries.
+See `docs/PRODUCTION_READINESS.md`, `docs/PRODUCTION_LAUNCH_RUNBOOK.md` and `docs/OWNER_ACTIONS.md` for detailed release gates and authorization boundaries.
 
-**Release decision: NOT APPROVED FOR PRODUCTION.** Passing CI and a READY Preview are necessary engineering evidence, not a substitute for the remaining owner-controlled and human acceptance steps.
+**Release decision: NOT APPROVED FOR PRODUCTION.** Passing CI and non-production browser acceptance do not substitute for the remaining owner-controlled and human acceptance steps.
