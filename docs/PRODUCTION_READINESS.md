@@ -905,3 +905,23 @@ This checkpoint supersedes older live-status statements where they conflict.
 - Readiness tests now cover the explicit AI-disabled state and verify that missing-integration diagnostics do not expose service-role, OAuth, cron or encryption secrets.
 - The AI provider setup now documents Google's OpenAI-compatible Gemini endpoint as an optional no-billing route; a unit test covers the adapter configuration. AI remains disabled until the owner supplies a key and explicitly enables it. Free-tier content-use terms are disclosed.
 - These are code/documentation changes only. The latest changes have no recorded GitHub Actions run yet; do not reuse earlier green checks as validation of this exact head.
+
+
+# Superseding exact-head verification — 2026-11-09 (commit f39a165fd1a200ddd5f8c5dc932c16a50990c119)
+
+All four required GitHub Actions workflows completed successfully on this exact feature-branch head:
+
+- [x] Foundation checks — [run 42635575400](https://github.com/barshan94/ai-academic-assistant/actions/runs/42635575400): locked dependency install, production and full dependency audits, ESLint, application and Playwright type checks, unit tests, production build, and Chromium browser smoke tests.
+- [x] Database authorization tests — [run 42635575467](https://github.com/barshan94/ai-academic-assistant/actions/runs/42635575467): isolated local Supabase migration replay and pgTAP authorization suite.
+- [x] Authenticated owner/teacher browser acceptance — [run 42635575501](https://github.com/barshan94/ai-academic-assistant/actions/runs/42635575501): non-production configuration validation, build, and the two-account acceptance step all completed successfully.
+- [x] Full-history secret scanning — [run 42635575319](https://github.com/barshan94/ai-academic-assistant/actions/runs/42635575319).
+
+The authenticated workflow's undocumented enablement-variable gate and incorrect feature-push condition were removed/fixed. It now runs on feature-branch pushes, pull requests, and manual dispatch. This closes the CI skip/false-green problem for the configured non-production test accounts.
+
+## Still NOT APPROVED FOR PRODUCTION
+
+These results are automated CI and non-production acceptance only. They do not verify the hosted Supabase migration ledger/schema parity, live Google Drive OAuth and resumable interruption/recovery, original-PDF round-trip retrieval, OCR accuracy, production environment credentials, Supabase Free leaked-password mitigation, human accessibility/device acceptance, independent academic grading/official syllabus validation, privacy/legal review, or named operational ownership.
+
+The document worker workflow remains manual-dispatch only and pinned to the feature Preview alias. Do not add a recurring schedule or dispatch it until the live non-production Drive/worker fault-and-retry acceptance is explicitly approved and completed. Strict zero-cost mode remains AI_ENABLED=false; AI solving/provider inference is therefore intentionally unavailable. The owner-directed backup/restore rehearsal remains excluded.
+
+PR #1 remains open, draft, and unmerged. GitHub still reports the branch diverged from main (80 commits behind and 2,533 ahead; 300 changed files) and not mergeable. This is a branch-integration blocker, not a count of unfinished features. Do not blindly merge, rebase, force-push, rewrite public history, apply hosted migrations, mutate Production, or deploy Production. No such operation was performed in this checkpoint.
