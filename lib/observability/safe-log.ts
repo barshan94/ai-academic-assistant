@@ -1,4 +1,8 @@
 type SafeOperationalEvent =
+  | "document_processing_route_unhandled"
+  | "document_upload_auth_unavailable"
+  | "document_upload_duplicate_check_failed"
+  | "upload_chunk_auth_unavailable"
   | "document_worker_failed"
   | "document_worker_client_init_failed"
   | "document_processing_failed"
