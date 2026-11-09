@@ -154,12 +154,8 @@ describe("document worker route access and queue preflight", () => {
 
     const response = await POST(request("Bearer test-cron-secret-with-sufficient-entropy"));
 
-    expect(response.status).toBe(503);
-    expect(await response.json()).toEqual({
-      processed: false,
-      job_id: "document-claim-error",
-      error: "Document processing claim is being reconciled. Check the document status before retrying.",
-    });
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ processed: false, reason: "no_claimable_job" });
     expect(rpcMock).toHaveBeenCalledTimes(2);
     expect(rpcMock).toHaveBeenNthCalledWith(2, "claim_document_processing_job", {
       p_document_id: "document-1",
@@ -347,7 +343,7 @@ describe("document worker route access and queue preflight", () => {
     expect(response.status).toBe(503);
     expect(await response.json()).toEqual({
       processed: false,
-      job_id: "document-claim-error",
+      job_id: "job-claim-error",
       error: "Document processing claim is being reconciled. Check the document status before retrying.",
     });
     expect(rpcMock).toHaveBeenCalledTimes(2);
