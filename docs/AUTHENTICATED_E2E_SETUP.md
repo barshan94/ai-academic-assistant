@@ -16,7 +16,7 @@ This workflow exercises real Supabase Auth and Row Level Security using two sepa
 
 In **Settings → Secrets and variables → Actions**, set this repository variable:
 
-- `ENABLE_AUTHENTICATED_E2E=true`
+The workflow no longer uses an enablement variable. Do not add or rely on `ENABLE_AUTHENTICATED_E2E`; the job validates the six secrets and hard-locks the URL to the approved non-production project.
 
 Add these six repository Actions secrets:
 
@@ -35,7 +35,7 @@ No question ID or solution ID variables are needed. The Playwright test creates 
 
 ## Run
 
-The workflow runs automatically for pull requests targeting `main` from `feature/m3-ai-solver`, provided the opt-in repository variable is `true`. It can also be manually dispatched from **Actions → Authenticated browser acceptance → Run workflow**.
+The workflow runs on pushes to `feature/m3-ai-solver`, pull requests targeting `main` from that feature branch, and manual dispatch from **Actions → Authenticated browser acceptance → Run workflow**. No enablement variable is required. The workflow's job condition explicitly rejects other push/PR branches; manual dispatch must be run with `feature/m3-ai-solver` selected.
 
 The workflow validates all six secrets and the exact project URL, installs Chromium, builds the app, and runs `playwright.auth.config.ts`.
 
@@ -54,3 +54,8 @@ The two-account test verifies:
 ## Limits
 
 This test does not verify live AI inference, Google OAuth/Drive, upload processing, OCR quality, or official answer correctness. Those require separate acceptance work. A passing run proves only the tested two-account lifecycle against this test project's current schema and policies.
+
+
+## Verified workflow behavior — 2026-11-09
+
+The undocumented `ENABLE_AUTHENTICATED_E2E` gate and the previous feature-push condition were removed/fixed. On commit `f39a165fd1a200ddd5f8c5dc932c16a50990c119`, the actual two-account acceptance step passed in [GitHub Actions run 42635575501](https://github.com/barshan94/ai-academic-assistant/actions/runs/42635575501). A passing result proves only the tested non-production owner/teacher lifecycle and must not be treated as Production acceptance.
