@@ -1,6 +1,6 @@
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(12);
+select plan(14);
 
 insert into auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
 values
@@ -11,7 +11,9 @@ values
 insert into public.documents (id, owner_id, file_name, mime_type, file_size_bytes)
 values ('a2000000-0000-4000-8000-000000000001','a1000000-0000-4000-8000-000000000001','importance.pdf','application/pdf',100);
 insert into public.questions (id, owner_id, document_id, question_text, review_status)
-values ('a3000000-0000-4000-8000-000000000001','a1000000-0000-4000-8000-000000000001','a2000000-0000-4000-8000-000000000001','Important fixture question','approved');
+values
+ ('a3000000-0000-4000-8000-000000000001','a1000000-0000-4000-8000-000000000001','a2000000-0000-4000-8000-000000000001','Important fixture question','approved'),
+ ('a3000000-0000-4000-8000-000000000002','a1000000-0000-4000-8000-000000000001','a2000000-0000-4000-8000-000000000001','Unapproved fixture question','pending');
 insert into public.question_teacher_invites (id, question_id, owner_id, invited_email, accepted_by, accepted_at)
 values ('a4000000-0000-4000-8000-000000000001','a3000000-0000-4000-8000-000000000001','a1000000-0000-4000-8000-000000000001','importance-teacher@example.test','a1000000-0000-4000-8000-000000000002',now());
 
@@ -20,7 +22,9 @@ set local request.jwt.claim.sub = 'a1000000-0000-4000-8000-000000000001';
 set local request.jwt.claims = '{"sub":"a1000000-0000-4000-8000-000000000001","role":"authenticated","email":"importance-owner@example.test"}';
 select lives_ok($$insert into public.question_importance(owner_id,question_id,importance_level,rationale,marked_by) values ('a1000000-0000-4000-8000-000000000001','a3000000-0000-4000-8000-000000000001','core','Teacher-selected core topic','a1000000-0000-4000-8000-000000000001')$$,'owner can curate an approved question');
 select is((select count(*)::int from public.question_importance),1,'owner can read own priority');
-select throws_ok($$update public.question_importance set marked_by='a1000000-0000-4000-8000-000000000002'$$,'42501',null,'owner cannot forge another curator identity');
+select throws_ok($insert into public.question_importance(owner_id,question_id,importance_level,marked_by) values ('a1000000-0000-4000-8000-000000000001','a3000000-0000-4000-8000-000000000002','high','a1000000-0000-4000-8000-000000000001')$,'42501',null,'owner cannot mark an unapproved question as important through the database API');
+select throws_ok($update public.question_importance set question_id='a3000000-0000-4000-8000-000000000002'$,'42501',null,'owner cannot retarget a priority to an unapproved question');
+select throws_ok($update public.question_importance set marked_by='a1000000-0000-4000-8000-000000000002'$,'42501',null,'owner cannot forge another curator identity');
 reset role;
 
 set local role authenticated;
