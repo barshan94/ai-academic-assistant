@@ -42,7 +42,7 @@ Free-compatible controls for this private workspace:
 - Review available Supabase Auth logs for unusual repeated sign-in failures during operational checks. This is manual monitoring, not automated breached-password detection.
 - The current sign-in UI has no verified MFA challenge flow. Do not assume MFA is protecting accounts or enable an Auth MFA requirement without first implementing and testing the full enrollment, challenge, recovery and sign-in flow.
 
-These controls reduce exposure without adding paid services, but they do not provide breached-password screening. Record the limitation as an accepted release risk until a free-compatible control is independently verified; do not silently mark the gate complete.
+These controls reduce exposure without adding paid services, but they do not provide breached-password screening. The residual risk remains unresolved; it is not accepted or closed merely by documenting compensating controls. Before any production release, a responsible human must explicitly accept the remaining risk within the Free-only constraint or a free-compatible alternative must be independently implemented, tested and reviewed. If neither is acceptable, do not release.
 
 ## Browser response protections
 - Disable framework fingerprinting and set HSTS, frame denial, MIME-sniffing protection, a strict referrer policy and a restrictive Permissions-Policy. These headers are covered by a Chromium smoke test.
