@@ -6,7 +6,7 @@ The owner confirmed on 2026-11-09 that this exact PDF was intentionally publishe
 
 ## Superseding Supabase Free authentication decision — 2026-11-10
 
-The built-in Supabase Auth leaked-password screening control is unavailable on this project's Free plan. Do not ask the owner to enable that unavailable setting, do not imply it is enabled, and do not recommend a paid upgrade under the Free-only constraint.
+The built-in Supabase Auth leaked-password screening control is unavailable on this project's Free plan. Do not ask the owner to enable that unavailable setting, do not imply it is enabled, and do not recommend a paid upgrade under the Free-only constraint. This supersedes older checklist items later in this file that say to enable built-in leaked-password protection; those entries are historical and must not be followed.
 
 The application has no independently verified breached-password corpus check and no verified MFA challenge/recovery flow. The free-compatible compensating controls are documented in [SECURITY_AND_PRIVACY.md](./SECURITY_AND_PRIVACY.md): public registration remains disabled, accounts are provisioned manually, each person has a separate account, passwords are unique random values of at least 16 characters stored in a password manager, access is invitation-based and revoked when no longer needed, and Auth logs are reviewed manually for suspicious sign-in failures.
 
