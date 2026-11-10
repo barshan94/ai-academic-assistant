@@ -30,7 +30,8 @@ type SafeOperationalEvent =
   | "document_worker_completion_state_uncertain"
   | "document_worker_failure_state_uncertain"
   | "document_worker_stale_recovery_state_uncertain"
-  | "document_worker_claim_state_uncertain";
+  | "document_worker_claim_state_uncertain"
+  | "quiz_workspace_unavailable";
 
 type SafeOperationalFields = {
   route?: string;
