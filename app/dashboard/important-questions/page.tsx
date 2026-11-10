@@ -21,9 +21,9 @@ export default async function ImportantQuestionsPage({ searchParams }: Importanc
   if (subject) questionQuery = questionQuery.ilike("subject", "%" + subject + "%");
   const { data: questions, error } = await questionQuery.order("created_at", { ascending: false }).limit(100);
   const ids = (questions ?? []).map((q) => q.id);
-  const { data: marks } = ids.length
+  const { data: marks, error: marksError } = ids.length
     ? await supabase.from("question_importance").select("question_id,importance_level,rationale").eq("owner_id", user.id).in("question_id", ids)
-    : { data: [] as { question_id: string; importance_level: string; rationale: string }[] };
+    : { data: [] as { question_id: string; importance_level: string; rationale: string }[], error: null };
   const marked = new Map((marks ?? []).map((mark) => [mark.question_id, mark]));
   const { data: docs } = (questions ?? []).length
     ? await supabase.from("documents").select("id,file_name").eq("owner_id", user.id).in("id", Array.from(new Set((questions ?? []).map((q) => q.document_id))))
@@ -46,6 +46,7 @@ export default async function ImportantQuestionsPage({ searchParams }: Importanc
       <div className="hero-actions"><Link className="sign-in-link" href="/dashboard/questions">Back to question bank</Link><span className="section-count">{marks?.length ?? 0} marked · {questions?.length ?? 0} approved questions</span></div>
     </section>
     {notice ? <p className={params.status === "failed" || params.status === "invalid" ? "notice notice-error" : "notice notice-info"} role="status">{notice}</p> : null}
+    {marksError ? <p className="notice notice-error" role="alert">Teacher priority data could not be loaded. Questions remain visible, but priority editing is disabled so missing database data is not mistaken for an unmarked question.</p> : null}
     <section className="section">
       <form className="question-search" method="get">
         <label htmlFor="important-subject">Subject</label><input id="important-subject" name="subject" defaultValue={subject} placeholder="Filter by subject" />
@@ -57,17 +58,17 @@ export default async function ImportantQuestionsPage({ searchParams }: Importanc
         <div className="question-list">{questions.filter((q) => !level || marked.get(q.id)?.importance_level === level).map((q) => {
           const mark = marked.get(q.id);
           return <article className="question-card" key={q.id}>
-            <div className="question-card-heading"><span className="document-status">{mark ? (mark.importance_level === "core" ? "Core priority" : mark.importance_level + " priority") : "Not marked"}</span><span className="question-subject">{q.subject ?? "Subject not set"}</span></div>
+            <div className="question-card-heading"><span className="document-status">{mark ? (mark.importance_level === "core" ? "Core priority" : mark.importance_level + " priority") : marksError ? "Priority unavailable" : "Not marked"}</span><span className="question-subject">{q.subject ?? "Subject not set"}</span></div>
             <p className="question-card-text">{q.question_number ? q.question_number + ". " : ""}{q.question_text}</p>
             <p className="question-card-meta">{[q.board, q.qualification, q.chapter, q.topic].filter(Boolean).join(" · ") || "Syllabus details not set"}</p>
-            <form className="question-search" action={saveQuestionImportance}>
+            {!marksError ? <form className="question-search" action={saveQuestionImportance}>
               <input type="hidden" name="questionId" value={q.id} />
               <label htmlFor={"priority-"+q.id}>Priority</label><select id={"priority-"+q.id} name="importanceLevel" defaultValue={mark?.importance_level ?? "high"}><option value="core">Core — must teach/revise</option><option value="high">High — important</option><option value="medium">Medium — useful practice</option></select>
               <label htmlFor={"reason-"+q.id}>Reason (optional)</label><input id={"reason-"+q.id} name="rationale" maxLength={500} defaultValue={mark?.rationale ?? ""} placeholder="e.g. essential concept or teacher emphasis" />
               <button className="document-action" type="submit">{mark ? "Update priority" : "Mark important"}</button>
-            </form>
+            </form> : null}
             <div className="question-card-footer"><Link className="document-open" href={"/dashboard/questions/"+q.id}>Open solution ↗</Link><Link className="document-open" href={"/dashboard/documents/"+q.document_id}>Source: {docNames.get(q.document_id) ?? "Open document"} ↗</Link>
-              {mark ? <form action={removeQuestionImportance}><input type="hidden" name="questionId" value={q.id}/><button className="document-action document-action-muted" type="submit">Remove priority</button></form> : null}
+              {mark && !marksError ? <form action={removeQuestionImportance}><input type="hidden" name="questionId" value={q.id}/><button className="document-action document-action-muted" type="submit">Remove priority</button></form> : null}
             </div>
           </article>;
         })}</div>}
