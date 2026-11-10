@@ -24,12 +24,30 @@ create policy "question_importance_owner_select"
 
 create policy "question_importance_owner_insert"
   on public.question_importance for insert to authenticated
-  with check ((select auth.uid()) = owner_id and (select auth.uid()) = marked_by);
+  with check (
+    (select auth.uid()) = owner_id
+    and (select auth.uid()) = marked_by
+    and exists (
+      select 1 from public.questions q
+      where q.id = question_importance.question_id
+        and q.owner_id = question_importance.owner_id
+        and q.review_status = 'approved'
+    )
+  );
 
 create policy "question_importance_owner_update"
   on public.question_importance for update to authenticated
   using ((select auth.uid()) = owner_id)
-  with check ((select auth.uid()) = owner_id and (select auth.uid()) = marked_by);
+  with check (
+    (select auth.uid()) = owner_id
+    and (select auth.uid()) = marked_by
+    and exists (
+      select 1 from public.questions q
+      where q.id = question_importance.question_id
+        and q.owner_id = question_importance.owner_id
+        and q.review_status = 'approved'
+    )
+  );
 
 create policy "question_importance_owner_delete"
   on public.question_importance for delete to authenticated
