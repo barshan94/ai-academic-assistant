@@ -1,10 +1,20 @@
-## Public-repository content exposure requiring owner confirmation — 2026-11-06
+## Public-repository PDF — owner confirmation recorded 2026-11-09
 
-The default branch `main` currently contains a binary PDF named `PXL_20261103_115517489~2.pdf` (439,083 bytes), introduced by commit [e175b802](https://github.com/barshan94/ai-academic-assistant/commit/e175b80209e7f045b4d079c05b4092f688e8df65). The repository is public. The file is therefore publicly retrievable. Its contents have not been inspected, and no claim is made that it contains personal or student information.
+The default branch `main` contains the binary PDF `PXL_20261103_115517489~2.pdf` (439,083 bytes), introduced by commit [e175b802](https://github.com/barshan94/ai-academic-assistant/commit/e175b80209e7f045b4d079c05b4092f688e8df65). The repository is public, so the file is publicly retrievable.
 
-**Owner action:** confirm whether this exact PDF was intentionally published and is safe for public distribution. If it was not intended to be public, remove it from the default branch and assess Git-history removal plus any necessary credential/privacy response. A normal file deletion does not remove historical copies. Do not rewrite public Git history or delete the file on the owner's behalf without explicit confirmation.
+The owner confirmed on 2026-11-09 that this exact PDF was intentionally published. Treat publication as intentional: do not delete the file or rewrite public Git history. Its contents have not been independently inspected during this run; confirmation of publication intent is not an independent privacy/content review. Do not add other private source documents to this public repository.
 
-This is a repository-exposure review item, not evidence that the PDF contains sensitive information. Until confirmed, do not upload additional private source documents to this public repository.
+## Superseding Supabase Free authentication decision — 2026-11-10
+
+The built-in Supabase Auth leaked-password screening control is unavailable on this project's Free plan. Do not ask the owner to enable that unavailable setting, do not imply it is enabled, and do not recommend a paid upgrade under the Free-only constraint.
+
+The application has no independently verified breached-password corpus check and no verified MFA challenge/recovery flow. The free-compatible compensating controls are documented in [SECURITY_AND_PRIVACY.md](./SECURITY_AND_PRIVACY.md): public registration remains disabled, accounts are provisioned manually, each person has a separate account, passwords are unique random values of at least 16 characters stored in a password manager, access is invitation-based and revoked when no longer needed, and Auth logs are reviewed manually for suspicious sign-in failures.
+
+These controls reduce risk but are **not equivalent** to breached-password screening. Keep the residual risk unresolved; it is not accepted or closed merely because the controls are documented. Before any production release, a responsible human must review and explicitly decide whether this residual risk is acceptable within the Free-only constraint. If it is not acceptable, do not release. No account password, MFA setting, session or hosted Auth configuration was changed in this work.
+
+## Hosted feature-schema gap — read-only finding recorded 2026-11-09
+
+The existing hosted non-production database does not contain `public.generated_quizzes`, `public.question_importance`, or the corresponding quiz-draft RPCs. The feature branch contains migrations for these features, but no migration was applied during this work. Until the schema is safely and separately reconciled, the quiz builder and teacher-priority controls must remain unavailable against this database. The application now checks the required tables before any quiz-provider request and renders unavailable priority data as unavailable rather than as “not marked.” This protects the existing question bank and avoids provider usage when the required storage is absent.
 
 ## Current authorization and scope — 2026-11-06
 
