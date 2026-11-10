@@ -34,13 +34,13 @@ export default async function QuizzesPage({ searchParams }: QuizPageProps) {
 
   const subjects = Array.from(new Set((questions ?? []).map((item) => item.subject).filter((value): value is string => Boolean(value)))).sort();
   const approvedQuestionIds = (questions ?? []).map((question) => question.id);
+  const importanceQuery = supabase.from("question_importance")
+    .select("question_id,importance_level,rationale")
+    .eq("owner_id", user.id);
   const { data: importanceMarks, error: importanceError } = approvedQuestionIds.length
-    ? await supabase.from("question_importance")
-      .select("question_id,importance_level,rationale")
-      .eq("owner_id", user.id)
-      .in("question_id", approvedQuestionIds)
-    : { data: [], error: null };
-
+    ? await importanceQuery.in("question_id", approvedQuestionIds).limit(100)
+    : await importanceQuery.limit(0);
+  const quizWorkspaceUnavailable = Boolean(quizError || importanceError);
 
   const sourceQuestionIds = Array.from(new Set((quizzes ?? []).flatMap((quiz) => quiz.source_question_ids)));
   const { data: sourceQuestions, error: sourceQuestionError } = sourceQuestionIds.length
@@ -55,6 +55,7 @@ export default async function QuizzesPage({ searchParams }: QuizPageProps) {
     : params.edit === "blocked" ? "The edit was blocked. Only your own quiz drafts can be edited before approval."
     : params.edit === "invalid" ? "The edited question fields were invalid."
     : params.generate === "saved" ? "Quiz draft saved. Review every answer and explanation before approving it."
+    : params.generate === "unavailable" ? "The quiz workspace database is unavailable. No AI request was made; generation stays disabled until the required tables can be read."
     : params.generate === "not_configured" ? "AI is disabled or no quiz-capable provider is configured. No provider request was made."
     : params.generate === "rate_limited" ? "You have reached the quiz-generation limit of 3 requests per 15 minutes. Wait for the limit window to reset before trying again."
     : params.generate === "rate_limit_unavailable" ? "The quiz usage limit could not be checked, so generation was blocked to prevent unbounded provider usage. Try again later."
@@ -90,11 +91,16 @@ export default async function QuizzesPage({ searchParams }: QuizPageProps) {
       </section>
 
       {notice ? <p className="notice notice-info" role="status">{notice}</p> : null}
-      {questionError || quizError || sourceQuestionError || importanceError ? <p className="notice notice-error">Some quiz workspace data could not be loaded. Refresh or check the database connection.</p> : null}
+      {quizWorkspaceUnavailable ? <p className="notice notice-error" role="alert">Quiz generation is disabled because saved-draft or priority data could not be read. This prevents source questions being sent to an AI provider when the required workspace is unavailable.</p> : null}
+      {questionError || sourceQuestionError ? <p className="notice notice-error" role="alert">Some question or source-reference data could not be loaded. Refresh after the database connection is restored.</p> : null}
 
       <section className="section">
         <div className="section-heading"><div><p className="eyebrow">NEW QUIZ DRAFT</p><h2>Choose source material</h2></div><span className="section-count">{questions?.length ?? 0} approved questions loaded</span></div>
-        {!subjects.length ? (
+        {quizWorkspaceUnavailable ? (
+          <div className="empty-state"><h3>Quiz workspace unavailable</h3><p>The connected database could not read the saved-quiz and teacher-priority tables. Generation is disabled before any AI provider request. Your existing question bank is unchanged.</p><Link className="primary-action" href="/dashboard/questions">Open question bank →</Link></div>
+        ) : questionError ? (
+          <div className="empty-state"><h3>Approved questions unavailable</h3><p>The question bank could not be read. Refresh after the database connection is restored; no generation request was made.</p></div>
+        ) : !subjects.length ? (
           <div className="empty-state"><h3>No approved source questions</h3><p>Approve and classify questions in your question bank before generating a quiz. Unreviewed material is never sent to the AI quiz generator.</p><Link className="primary-action" href="/dashboard/questions">Open question bank →</Link></div>
         ) : (
           <form action={generateQuizDraft} className="review-form">
@@ -127,7 +133,7 @@ export default async function QuizzesPage({ searchParams }: QuizPageProps) {
       <section className="section">
         <div className="section-heading"><div><p className="eyebrow">SAVED QUIZZES</p><h2>Review and approval</h2></div><span className="section-count">{quizzes?.length ?? 0} recent drafts</span></div>
         <p className="question-card-meta">Important: “Approved” means teacher-reviewed and locked in this private workspace. It does not publish or share the quiz with students. Student accounts and controlled quiz access are not implemented yet.</p>
-        {!quizzes?.length ? <div className="empty-state"><h3>No saved quizzes yet</h3><p>Generated drafts will appear here with their source-question references.</p></div> : (
+        {quizError ? <div className="empty-state"><h3>Saved quiz storage unavailable</h3><p>Existing drafts are not shown because the connected database could not read their table. No existing records were changed.</p></div> : !quizzes?.length ? <div className="empty-state"><h3>No saved quizzes yet</h3><p>Generated drafts will appear here with their source-question references.</p></div> : (
           <div className="question-list">
             {(quizzes as GeneratedQuizRow[]).map((quiz) => {
               const payload = quiz.quiz_json as unknown as { title?: string; instructions?: string; questions?: Array<{ type: string; prompt: string; options: string[]; correctAnswer: string; explanation: string; difficulty: string; sourceRefs: string[] }> };
