@@ -73,6 +73,24 @@ describe("safe operational logging", () => {
     expect(loggedEvents).toEqual(events);
   });
 
+  it("allows the quiz workspace unavailable event with sanitized metadata", () => {
+    const error = vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+    logSafeOperationalEvent("quiz_workspace_unavailable", {
+      route: "/dashboard/quizzes",
+      errorCode: "QUIZ_WORKSPACE_SCHEMA_UNAVAILABLE",
+    });
+
+    expect(error).toHaveBeenCalledOnce();
+    const event = JSON.parse(String(error.mock.calls[0][0])) as Record<string, unknown>;
+    expect(event).toMatchObject({
+      event: "quiz_workspace_unavailable",
+      route: "/dashboard/quizzes",
+      errorCode: "QUIZ_WORKSPACE_SCHEMA_UNAVAILABLE",
+    });
+    expect(JSON.stringify(event)).not.toContain("owner-1");
+  });
+
   it("keeps exhausted quota events as warnings rather than server errors", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
     const error = vi.spyOn(console, "error").mockImplementation(() => undefined);
