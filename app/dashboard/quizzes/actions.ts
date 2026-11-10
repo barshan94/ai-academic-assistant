@@ -12,6 +12,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { getQuizSourceScopeError } from "@/lib/quiz-source-selection";
 import { consumeAIGenerationQuota } from "@/lib/security/ai-generation-quota";
 import { logSafeOperationalEvent } from "@/lib/observability/safe-log";
+import { isQuizWorkspaceAvailable } from "@/lib/quiz-workspace";
 
 const generateSchema = z.object({
   title: z.string().trim().min(1).max(160),
@@ -34,6 +35,16 @@ export async function generateQuizDraft(formData: FormData) {
   const supabase = await createSupabaseServerClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) redirect("/login");
+
+  const db = supabase as unknown as SupabaseClient<DatabaseWithQuiz>;
+  const workspaceAvailable = await isQuizWorkspaceAvailable(db, user.id);
+  if (!workspaceAvailable) {
+    logSafeOperationalEvent("quiz_workspace_unavailable", {
+      route: "/dashboard/quizzes",
+      errorCode: "QUIZ_WORKSPACE_SCHEMA_UNAVAILABLE",
+    });
+    redirect("/dashboard/quizzes?generate=unavailable");
+  }
 
   const uniqueIds = Array.from(new Set(parsed.data.questionIds));
   if (uniqueIds.length !== parsed.data.questionIds.length) {
@@ -113,7 +124,6 @@ export async function generateQuizDraft(formData: FormData) {
     redirect("/dashboard/quizzes?generate=failed");
   }
 
-  const db = supabase as unknown as SupabaseClient<DatabaseWithQuiz>;
   let quizId: string | null = null;
   let saveFailed = false;
   try {
