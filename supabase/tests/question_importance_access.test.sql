@@ -1,6 +1,6 @@
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(14);
+select plan(22);
 
 insert into auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
 values
@@ -22,6 +22,21 @@ set local request.jwt.claim.sub = 'a1000000-0000-4000-8000-000000000001';
 set local request.jwt.claims = '{"sub":"a1000000-0000-4000-8000-000000000001","role":"authenticated","email":"importance-owner@example.test"}';
 select lives_ok($$insert into public.question_importance(owner_id,question_id,importance_level,rationale,marked_by) values ('a1000000-0000-4000-8000-000000000001','a3000000-0000-4000-8000-000000000001','core','Teacher-selected core topic','a1000000-0000-4000-8000-000000000001')$$,'owner can curate an approved question');
 select is((select count(*)::int from public.question_importance),1,'owner can read own priority');
+select is(
+  (with updated as (
+    update public.question_importance
+    set rationale = 'Owner-updated rationale'
+    where question_id = 'a3000000-0000-4000-8000-000000000001'
+    returning id
+  ) select count(*)::int from updated),
+  1,
+  'owner can update their own priority'
+);
+select is(
+  (select rationale from public.question_importance where question_id = 'a3000000-0000-4000-8000-000000000001'),
+  'Owner-updated rationale',
+  'owner priority update is persisted'
+);
 select throws_ok($$insert into public.question_importance(owner_id,question_id,importance_level,marked_by) values ('a1000000-0000-4000-8000-000000000001','a3000000-0000-4000-8000-000000000002','high','a1000000-0000-4000-8000-000000000001')$$,'42501',null,'owner cannot mark an unapproved question as important through the database API');
 select throws_ok($$update public.question_importance set question_id='a3000000-0000-4000-8000-000000000002'$$,'42501',null,'owner cannot retarget a priority to an unapproved question');
 select throws_ok($$update public.question_importance set marked_by='a1000000-0000-4000-8000-000000000002'$$,'42501',null,'owner cannot forge another curator identity');
@@ -31,6 +46,35 @@ set local role authenticated;
 set local request.jwt.claim.sub = 'a1000000-0000-4000-8000-000000000002';
 set local request.jwt.claims = '{"sub":"a1000000-0000-4000-8000-000000000002","role":"authenticated","email":"importance-teacher@example.test"}';
 select is((select count(*)::int from public.question_importance),1,'accepted question teacher can read the priority');
+select is(
+  (with updated as (
+    update public.question_importance
+    set rationale = 'Teacher-forged rationale'
+    where question_id = 'a3000000-0000-4000-8000-000000000001'
+    returning id
+  ) select count(*)::int from updated),
+  0,
+  'accepted teacher cannot update owner-curated importance'
+);
+select is(
+  (select rationale from public.question_importance where question_id = 'a3000000-0000-4000-8000-000000000001'),
+  'Owner-updated rationale',
+  'teacher update leaves owner priority unchanged'
+);
+select is(
+  (with deleted as (
+    delete from public.question_importance
+    where question_id = 'a3000000-0000-4000-8000-000000000001'
+    returning id
+  ) select count(*)::int from deleted),
+  0,
+  'accepted teacher cannot delete owner-curated importance'
+);
+select is(
+  (select count(*)::int from public.question_importance),
+  1,
+  'owner priority remains after teacher mutation attempts'
+);
 select throws_ok($$insert into public.question_importance(owner_id,question_id,importance_level,marked_by) values ('a1000000-0000-4000-8000-000000000001','a3000000-0000-4000-8000-000000000001','high','a1000000-0000-4000-8000-000000000002')$$,'42501',null,'shared teacher cannot alter owner-curated importance');
 reset role;
 
@@ -46,5 +90,21 @@ select ok(not has_table_privilege('anon','public.question_importance','insert'),
 select ok(has_table_privilege('authenticated','public.question_importance','select'),'authenticated role has select grant');
 select ok(has_table_privilege('authenticated','public.question_importance','insert'),'authenticated role has insert grant');
 select ok(has_table_privilege('authenticated','public.question_importance','delete'),'authenticated role has delete grant');
+
+set local role authenticated;
+set local request.jwt.claim.sub = 'a1000000-0000-4000-8000-000000000001';
+set local request.jwt.claims = '{"sub":"a1000000-0000-4000-8000-000000000001","role":"authenticated","email":"importance-owner@example.test"}';
+select is(
+  (with deleted as (
+    delete from public.question_importance
+    where question_id = 'a3000000-0000-4000-8000-000000000001'
+    returning id
+  ) select count(*)::int from deleted),
+  1,
+  'owner can delete their own priority'
+);
+select is((select count(*)::int from public.question_importance),0,'owner deletion removes only the owned priority');
+reset role;
+
 select * from finish();
 rollback;
