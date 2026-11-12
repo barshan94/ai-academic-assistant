@@ -1,6 +1,6 @@
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(22);
+select plan(25);
 
 insert into auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
 values
@@ -82,7 +82,31 @@ set local role authenticated;
 set local request.jwt.claim.sub = 'a1000000-0000-4000-8000-000000000003';
 set local request.jwt.claims = '{"sub":"a1000000-0000-4000-8000-000000000003","role":"authenticated","email":"importance-outsider@example.test"}';
 select is((select count(*)::int from public.question_importance),0,'unrelated account cannot read another owner priority');
-select throws_ok($$insert into public.question_importance(owner_id,question_id,importance_level,marked_by) values ('a1000000-0000-4000-8000-000000000001','a3000000-0000-4000-8000-000000000001','high','a1000000-0000-4000-8000-000000000003')$$,'42501',null,'unrelated account cannot create priority on another owner question');
+select throws_ok($insert into public.question_importance(owner_id,question_id,importance_level,marked_by) values ('a1000000-0000-4000-8000-000000000001','a3000000-0000-4000-8000-000000000001','high','a1000000-0000-4000-8000-000000000003')$,'42501',null,'unrelated account cannot create priority on another owner question');
+select is(
+  (with updated as (
+    update public.question_importance
+    set rationale = 'Outsider-forged rationale'
+    where question_id = 'a3000000-0000-4000-8000-000000000001'
+    returning id
+  ) select count(*)::int from updated),
+  0,
+  'unrelated account cannot update another owner priority'
+);
+select is(
+  (with deleted as (
+    delete from public.question_importance
+    where question_id = 'a3000000-0000-4000-8000-000000000001'
+    returning id
+  ) select count(*)::int from deleted),
+  0,
+  'unrelated account cannot delete another owner priority'
+);
+select is(
+  (select rationale from public.question_importance where question_id = 'a3000000-0000-4000-8000-000000000001'),
+  'Owner-updated rationale',
+  'owner priority remains unchanged after outsider mutation attempts'
+);
 reset role;
 
 select ok(not has_table_privilege('anon','public.question_importance','select'),'anonymous role cannot read priorities');
