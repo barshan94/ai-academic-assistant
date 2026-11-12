@@ -22,16 +22,7 @@ set local request.jwt.claim.sub = 'a1000000-0000-4000-8000-000000000001';
 set local request.jwt.claims = '{"sub":"a1000000-0000-4000-8000-000000000001","role":"authenticated","email":"importance-owner@example.test"}';
 select lives_ok($$insert into public.question_importance(owner_id,question_id,importance_level,rationale,marked_by) values ('a1000000-0000-4000-8000-000000000001','a3000000-0000-4000-8000-000000000001','core','Teacher-selected core topic','a1000000-0000-4000-8000-000000000001')$$,'owner can curate an approved question');
 select is((select count(*)::int from public.question_importance),1,'owner can read own priority');
-select is(
-  (with updated as (
-    update public.question_importance
-    set rationale = 'Owner-updated rationale'
-    where question_id = 'a3000000-0000-4000-8000-000000000001'
-    returning id
-  ) select count(*)::int from updated),
-  1,
-  'owner can update their own priority'
-);
+select lives_ok($$update public.question_importance set rationale = 'Owner-updated rationale' where question_id = 'a3000000-0000-4000-8000-000000000001'$$,'owner can update their own priority');
 select is(
   (select rationale from public.question_importance where question_id = 'a3000000-0000-4000-8000-000000000001'),
   'Owner-updated rationale',
@@ -46,30 +37,13 @@ set local role authenticated;
 set local request.jwt.claim.sub = 'a1000000-0000-4000-8000-000000000002';
 set local request.jwt.claims = '{"sub":"a1000000-0000-4000-8000-000000000002","role":"authenticated","email":"importance-teacher@example.test"}';
 select is((select count(*)::int from public.question_importance),1,'accepted question teacher can read the priority');
-select is(
-  (with updated as (
-    update public.question_importance
-    set rationale = 'Teacher-forged rationale'
-    where question_id = 'a3000000-0000-4000-8000-000000000001'
-    returning id
-  ) select count(*)::int from updated),
-  0,
-  'accepted teacher cannot update owner-curated importance'
-);
+select lives_ok($$update public.question_importance set rationale = 'Teacher-forged rationale' where question_id = 'a3000000-0000-4000-8000-000000000001'$$,'accepted teacher update is filtered by row-level security');
 select is(
   (select rationale from public.question_importance where question_id = 'a3000000-0000-4000-8000-000000000001'),
   'Owner-updated rationale',
   'teacher update leaves owner priority unchanged'
 );
-select is(
-  (with deleted as (
-    delete from public.question_importance
-    where question_id = 'a3000000-0000-4000-8000-000000000001'
-    returning id
-  ) select count(*)::int from deleted),
-  0,
-  'accepted teacher cannot delete owner-curated importance'
-);
+select lives_ok($$delete from public.question_importance where question_id = 'a3000000-0000-4000-8000-000000000001'$$,'accepted teacher delete is filtered by row-level security');
 select is(
   (select count(*)::int from public.question_importance),
   1,
@@ -83,25 +57,8 @@ set local request.jwt.claim.sub = 'a1000000-0000-4000-8000-000000000003';
 set local request.jwt.claims = '{"sub":"a1000000-0000-4000-8000-000000000003","role":"authenticated","email":"importance-outsider@example.test"}';
 select is((select count(*)::int from public.question_importance),0,'unrelated account cannot read another owner priority');
 select throws_ok($$insert into public.question_importance(owner_id,question_id,importance_level,marked_by) values ('a1000000-0000-4000-8000-000000000001','a3000000-0000-4000-8000-000000000001','high','a1000000-0000-4000-8000-000000000003')$$,'42501',null,'unrelated account cannot create priority on another owner question');
-select is(
-  (with updated as (
-    update public.question_importance
-    set rationale = 'Outsider-forged rationale'
-    where question_id = 'a3000000-0000-4000-8000-000000000001'
-    returning id
-  ) select count(*)::int from updated),
-  0,
-  'unrelated account cannot update another owner priority'
-);
-select is(
-  (with deleted as (
-    delete from public.question_importance
-    where question_id = 'a3000000-0000-4000-8000-000000000001'
-    returning id
-  ) select count(*)::int from deleted),
-  0,
-  'unrelated account cannot delete another owner priority'
-);
+select lives_ok($$update public.question_importance set rationale = 'Outsider-forged rationale' where question_id = 'a3000000-0000-4000-8000-000000000001'$$,'unrelated account update is filtered by row-level security');
+select lives_ok($$delete from public.question_importance where question_id = 'a3000000-0000-4000-8000-000000000001'$$,'unrelated account delete is filtered by row-level security');
 select is(
   (select rationale from public.question_importance where question_id = 'a3000000-0000-4000-8000-000000000001'),
   'Owner-updated rationale',
@@ -118,15 +75,7 @@ select ok(has_table_privilege('authenticated','public.question_importance','dele
 set local role authenticated;
 set local request.jwt.claim.sub = 'a1000000-0000-4000-8000-000000000001';
 set local request.jwt.claims = '{"sub":"a1000000-0000-4000-8000-000000000001","role":"authenticated","email":"importance-owner@example.test"}';
-select is(
-  (with deleted as (
-    delete from public.question_importance
-    where question_id = 'a3000000-0000-4000-8000-000000000001'
-    returning id
-  ) select count(*)::int from deleted),
-  1,
-  'owner can delete their own priority'
-);
+select lives_ok($$delete from public.question_importance where question_id = 'a3000000-0000-4000-8000-000000000001'$$,'owner can delete their own priority');
 select is((select count(*)::int from public.question_importance),0,'owner deletion removes only the owned priority');
 reset role;
 
