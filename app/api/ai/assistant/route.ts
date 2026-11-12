@@ -138,35 +138,35 @@ export async function POST(request: Request) {
   }
   let providerPayload: unknown;
   try { providerPayload = await response.json(); }
-  catch { return NextResponse.json({ error: "AI provider returned invalid JSON." }, { status: 502 }); }
-  const rawOutput = extractText(providerPayload);
-  let parsed;
-  try { parsed = parseAssistantOutput(rawOutput); }
-  catch { return NextResponse.json({ error: "AI provider response did not match the required answer format." }, { status: 502 }); }
+  catch { return NextResponse.json({ error: "AI provider returned an invalid response." }, { status: 502 }); }
+  const raw = extractText(providerPayload);
+  if (!raw.trim()) return NextResponse.json({ error: "AI provider returned an empty response." }, { status: 502 });
+  if (raw.length > 30000) return NextResponse.json({ error: "AI provider response exceeded the allowed output size." }, { status: 502 });
 
-  const arithmetic = body.task === "solve" ? checkExplicitArithmetic(parsed.answer) : [];
-  const verification = getVerificationLabel(arithmetic);
+  const parsed = parseAssistantOutput(raw);
+  const arithmeticChecks = checkExplicitArithmetic(parsed.answer);
+  const verification = getVerificationLabel(arithmeticChecks);
   const { data: saved, error: saveError } = await supabase.from("ai_assistant_outputs").insert({
     owner_id: user.id,
+    question_id: body.task === "solve" || body.task === "classify" ? body.questionId ?? null : null,
     task_type: body.task,
-    prompt_text: taskInput,
+    prompt_text: taskInput.slice(0, 12000),
     output_text: parsed.answer,
-    verification_status: verification,
-    arithmetic_checks: arithmetic,
+    provider_model: model,
     review_status: "needs_review",
+    verification_status: verification,
+    verification_details: arithmeticChecks,
   }).select("id").single();
-  if (saveError || !saved) return NextResponse.json({ error: "The answer was generated but could not be saved for review." }, { status: 500 });
-
+  if (saveError || !saved) {
+    return NextResponse.json({ error: "The answer was generated but could not be saved to your private review history." }, { status: 500 });
+  }
   return NextResponse.json({
+    ...parsed,
     solutionId: saved.id,
-    answer: parsed.answer,
-    subject: parsed.subject,
-    qualification: parsed.qualification,
-    chapter: parsed.chapter,
-    topic: parsed.topic,
-    confidence: parsed.confidence,
+    task: body.task,
     verification,
-    arithmeticChecks: arithmetic,
-    reviewNotice: "This is an unverified AI draft. Check it against the original question and official syllabus before using it.",
+    arithmeticChecks,
+    reviewNotice: "AI-generated content is not fully verified. The optional arithmetic scan checks only explicit one-step numeric equalities; it does not verify algebra, units, diagrams, reasoning, syllabus alignment or marking-scheme accuracy.",
+    sourceCount: sourceQuestions.length,
   });
 }
