@@ -61,6 +61,12 @@ export async function POST(request: Request) {
       .select("question_text,subject,qualification,chapter,topic,review_status")
       .eq("id", body.questionId).eq("owner_id", user.id).maybeSingle();
     if (error || !question) return NextResponse.json({ error: "Question not found in your library." }, { status: 404 });
+    if (question.review_status !== "approved") {
+      return NextResponse.json({
+        error: "This saved question must be teacher-approved before it can be sent to the AI provider.",
+        code: "QUESTION_NOT_APPROVED",
+      }, { status: 422 });
+    }
     questionText = question.question_text;
     context = [question.subject, question.qualification, question.chapter, question.topic].filter(Boolean).join(" · ");
   }
@@ -132,35 +138,35 @@ export async function POST(request: Request) {
   }
   let providerPayload: unknown;
   try { providerPayload = await response.json(); }
-  catch { return NextResponse.json({ error: "AI provider returned an invalid response." }, { status: 502 }); }
-  const raw = extractText(providerPayload);
-  if (!raw.trim()) return NextResponse.json({ error: "AI provider returned an empty response." }, { status: 502 });
-  if (raw.length > 30000) return NextResponse.json({ error: "AI provider response exceeded the allowed output size." }, { status: 502 });
+  catch { return NextResponse.json({ error: "AI provider returned invalid JSON." }, { status: 502 }); }
+  const rawOutput = extractText(providerPayload);
+  let parsed;
+  try { parsed = parseAssistantOutput(rawOutput); }
+  catch { return NextResponse.json({ error: "AI provider response did not match the required answer format." }, { status: 502 }); }
 
-  const parsed = parseAssistantOutput(raw);
-  const arithmeticChecks = checkExplicitArithmetic(parsed.answer);
-  const verification = getVerificationLabel(arithmeticChecks);
+  const arithmetic = body.task === "solve" ? checkExplicitArithmetic(parsed.answer) : [];
+  const verification = getVerificationLabel(arithmetic);
   const { data: saved, error: saveError } = await supabase.from("ai_assistant_outputs").insert({
     owner_id: user.id,
-    question_id: body.task === "solve" || body.task === "classify" ? body.questionId ?? null : null,
     task_type: body.task,
-    prompt_text: taskInput.slice(0, 12000),
+    prompt_text: taskInput,
     output_text: parsed.answer,
-    provider_model: model,
-    review_status: "needs_review",
     verification_status: verification,
-    verification_details: arithmeticChecks,
+    arithmetic_checks: arithmetic,
+    review_status: "needs_review",
   }).select("id").single();
-  if (saveError || !saved) {
-    return NextResponse.json({ error: "The answer was generated but could not be saved to your private review history." }, { status: 500 });
-  }
+  if (saveError || !saved) return NextResponse.json({ error: "The answer was generated but could not be saved for review." }, { status: 500 });
+
   return NextResponse.json({
-    ...parsed,
     solutionId: saved.id,
-    task: body.task,
+    answer: parsed.answer,
+    subject: parsed.subject,
+    qualification: parsed.qualification,
+    chapter: parsed.chapter,
+    topic: parsed.topic,
+    confidence: parsed.confidence,
     verification,
-    arithmeticChecks,
-    reviewNotice: "AI-generated content is not fully verified. The optional arithmetic scan checks only explicit one-step numeric equalities; it does not verify algebra, units, diagrams, reasoning, syllabus alignment or marking-scheme accuracy.",
-    sourceCount: sourceQuestions.length,
+    arithmeticChecks: arithmetic,
+    reviewNotice: "This is an unverified AI draft. Check it against the original question and official syllabus before using it.",
   });
 }
