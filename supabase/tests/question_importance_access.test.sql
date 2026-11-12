@@ -82,7 +82,7 @@ set local role authenticated;
 set local request.jwt.claim.sub = 'a1000000-0000-4000-8000-000000000003';
 set local request.jwt.claims = '{"sub":"a1000000-0000-4000-8000-000000000003","role":"authenticated","email":"importance-outsider@example.test"}';
 select is((select count(*)::int from public.question_importance),0,'unrelated account cannot read another owner priority');
-select throws_ok($insert into public.question_importance(owner_id,question_id,importance_level,marked_by) values ('a1000000-0000-4000-8000-000000000001','a3000000-0000-4000-8000-000000000001','high','a1000000-0000-4000-8000-000000000003')$,'42501',null,'unrelated account cannot create priority on another owner question');
+select throws_ok($$insert into public.question_importance(owner_id,question_id,importance_level,marked_by) values ('a1000000-0000-4000-8000-000000000001','a3000000-0000-4000-8000-000000000001','high','a1000000-0000-4000-8000-000000000003')$$,'42501',null,'unrelated account cannot create priority on another owner question');
 select is(
   (with updated as (
     update public.question_importance
