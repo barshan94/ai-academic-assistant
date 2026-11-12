@@ -61,6 +61,12 @@ export async function POST(request: Request) {
       .select("question_text,subject,qualification,chapter,topic,review_status")
       .eq("id", body.questionId).eq("owner_id", user.id).maybeSingle();
     if (error || !question) return NextResponse.json({ error: "Question not found in your library." }, { status: 404 });
+    if (question.review_status !== "approved") {
+      return NextResponse.json({
+        error: "This saved question must be teacher-approved before it can be sent to the AI provider.",
+        code: "QUESTION_NOT_APPROVED",
+      }, { status: 422 });
+    }
     questionText = question.question_text;
     context = [question.subject, question.qualification, question.chapter, question.topic].filter(Boolean).join(" · ");
   }
