@@ -3,7 +3,9 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 const workflowPath = fileURLToPath(new URL("../.github/workflows/authenticated-e2e.yml", import.meta.url));
+const specPath = fileURLToPath(new URL("../e2e/authenticated.spec.ts", import.meta.url));
 const workflow = readFileSync(workflowPath, "utf8");
+const spec = readFileSync(specPath, "utf8");
 
 describe("authenticated E2E workflow safety", () => {
   it("does not mutate the hosted test project on push, pull request, or a schedule", () => {
@@ -27,5 +29,14 @@ describe("authenticated E2E workflow safety", () => {
   it("keeps the hosted test target pinned to the approved non-production project", () => {
     expect(workflow).toContain('https://uqpyzicftxxegajaocxi.supabase.co');
     expect(workflow).not.toContain("SUPABASE_SERVICE_ROLE_KEY");
+  });
+
+  it("scopes every fixture cleanup to the exact generated record ID", () => {
+    const cleanupLines = spec.split(/\r?\n/).filter((line) => line.includes(".delete()"));
+    expect(cleanupLines.length).toBeGreaterThan(0);
+    expect(cleanupLines.every((line) =>
+      /\.delete\(\)\.eq\("id",\s*(?:questionId|documentId|fixture\.(?:questionId|documentId))\)/.test(line)
+    )).toBe(true);
+    expect(spec).not.toMatch(/auth\.admin\.deleteUser/);
   });
 });
