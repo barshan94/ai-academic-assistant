@@ -2,21 +2,25 @@ name: Authenticated browser acceptance
 
 on:
   workflow_dispatch:
-  push:
-    branches: [feature/m3-ai-solver]
-  pull_request:
-    branches: [main]
+    inputs:
+      confirm_nonprod_mutation:
+        description: "Confirm that this run will create and delete synthetic records in the approved non-production Supabase project."
+        required: true
+        type: boolean
+        default: false
 
 permissions:
   contents: read
 
 concurrency:
-  group: authenticated-e2e-${{ github.event.pull_request.head.ref || github.ref_name }}
+  group: authenticated-e2e-${{ github.ref_name }}
   cancel-in-progress: false
 
 jobs:
   authenticated-browser:
-    if: ${{ github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/feature/m3-ai-solver' || github.event.pull_request.head.ref == 'feature/m3-ai-solver' }}
+    # This workflow mutates the dedicated non-production Supabase project.
+    # Never run it automatically on push or pull_request.
+    if: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/feature/m3-ai-solver' && inputs.confirm_nonprod_mutation == true }}
     name: Two-account Supabase acceptance
     runs-on: ubuntu-24.04
     timeout-minutes: 20
