@@ -32,7 +32,9 @@ describe("document worker HTTP method", () => {
   });
 
   it("restricts credentialed dispatch to the feature branch and this project's Preview origin", () => {
-    expect(workflow).toContain("if: github.ref == 'refs/heads/feature/m3-ai-solver'");
+    expect(workflow).toContain("github.event_name == 'workflow_dispatch'");
+    expect(workflow).toContain("github.ref == 'refs/heads/feature/m3-ai-solver'");
+    expect(workflow).toContain("inputs.confirm_nonprod_worker_run == true");
     expect(workflow).toContain(`if [[ "$APP_BASE_URL" != "${approvedPreviewOrigin}" ]]`);
     expect(workflow).not.toContain("ai-academic-assistant-[a-z0-9-]+-barshan-s-team");
     expect(workflow).toContain("APP_BASE_URL must equal the verified feature-branch Preview origin");
@@ -51,7 +53,7 @@ describe("document worker HTTP method", () => {
   });
 
   it("keeps queue processing opt-in with no recurring or automatic trigger", () => {
-    expect(workflow).toMatch(/^on:\s*\n  workflow_dispatch:\s*$/m);
+    expect(workflow).toMatch(/^on:\s*\n  workflow_dispatch:\s*\n    inputs:/m);
     expect(workflow).not.toMatch(/^\s{2}(?:schedule|push|pull_request|repository_dispatch):/m);
   });
 });
