@@ -2,6 +2,12 @@ name: Document processing worker
 
 on:
   workflow_dispatch:
+    inputs:
+      confirm_nonprod_worker_run:
+        description: "Confirm one document-processing request against the approved non-production Preview."
+        required: true
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -12,8 +18,10 @@ concurrency:
 
 jobs:
   process-one-document:
+    # Require a deliberate confirmation as well as the exact feature branch.
     # Never let this credentialed job run from an arbitrary dispatch ref.
-    if: github.ref == 'refs/heads/feature/m3-ai-solver'
+    if: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/feature/m3-ai-solver' && inputs.confirm_nonprod_worker_run == true }}
+    name: Process at most one non-production document
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
