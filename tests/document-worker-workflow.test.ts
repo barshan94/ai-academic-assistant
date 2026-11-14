@@ -21,6 +21,7 @@ describe("document worker workflow safety", () => {
 
   it("restricts the credentialed job to the existing feature branch", () => {
     expect(workflow).toContain("github.ref == 'refs/heads/feature/m3-ai-solver'");
+    expect(workflow).toContain("inputs.confirm_nonprod_worker_run == true");
     expect(workflow).toContain("github.event_name == 'workflow_dispatch'");
   });
 
