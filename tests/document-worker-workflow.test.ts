@@ -45,6 +45,6 @@ describe("document worker workflow safety", () => {
     expect(workflow).toContain("Never print the raw response");
     expect(workflow).toContain("inspect the protected job state");
     expect(workflow).not.toMatch(/(?:cat|echo)\s+["']?\$response_file/);
-    expect(workflow).not.toContain("jq . "$response_file"");
+    expect(workflow).not.toContain('jq . "$response_file"');
   });
 });
