@@ -64,12 +64,24 @@ describe("GET /api/health/ready", () => {
     originalEnvironment = {};
   });
 
-  it("rejects missing or incorrect bearer credentials without probing services", async () => {
+  it("rejects missing, incorrect, short, and malformed bearer credentials without probing services", async () => {
     const missing = await GET(new Request("https://app.example.com/api/health/ready"));
     const incorrect = await GET(authorizedRequest("wrong-secret"));
 
-    expect(missing.status).toBe(401);
-    expect(incorrect.status).toBe(401);
+    const configuredSecret = process.env.CRON_SECRET;
+    process.env.CRON_SECRET = "short-secret";
+    const shortConfiguredSecret = await GET(authorizedRequest("short-secret"));
+    process.env.CRON_SECRET = configuredSecret;
+
+    const malformed = await GET(new Request("https://app.example.com/api/health/ready", {
+      headers: { authorization: `Bearer ${requiredEnvironment.CRON_SECRET} extra` },
+    }));
+    const rawToken = await GET(new Request("https://app.example.com/api/health/ready", {
+      headers: { authorization: requiredEnvironment.CRON_SECRET },
+    }));
+
+    expect([missing.status, incorrect.status, shortConfiguredSecret.status, malformed.status, rawToken.status])
+      .toEqual([401, 401, 401, 401, 401]);
     expect(createClientMock).not.toHaveBeenCalled();
   });
 
