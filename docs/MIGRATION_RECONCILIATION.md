@@ -12,6 +12,8 @@ The following reversible repository-only controls are now in place on `feature/m
 
 No workflow was dispatched during this change. No Supabase credentials were read. No hosted migration ledger, schema, or data was inspected or changed in this run. This repository hardening does not resolve the actual hosted migration/schema parity question.
 
+The default branch still contains a legacy copy of the manual workflow with a job-level ref guard that permits only `feature/m3-ai-solver`; the matching helper script is absent from `main`. The feature-branch workflow and helper are now inert/fail-closed. This branch-only hardening does not rewrite the default-branch workflow file. Do not dispatch the legacy workflow from any ref; a future cleanup of the default-branch definition must be reviewed separately.
+
 Re-enabling any migration tooling requires a separately reviewed, genuinely read-only inventory implementation and a new explicit owner decision. Do not add `migration repair`, `db push`, or any other hosted write operation as part of a “dry-run.”
 
 ## Current owner authorization — 2026-11-06
