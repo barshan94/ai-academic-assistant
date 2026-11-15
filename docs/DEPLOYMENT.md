@@ -13,7 +13,7 @@ Use only the already approved existing `academic-assistant` Supabase project and
 - HTTPS on every non-local deployment.
 - Supabase PostgreSQL/Auth project in the selected region.
 - Google Drive API OAuth web client with the exact callback URI.
-- GitHub Actions access for manually dispatched, owner-approved non-production worker/monitor checks only. The checked-in worker and health-monitor workflows are not active schedules.
+- GitHub Actions access for owner-approved non-production checks. The document worker has no schedule; the separate readiness monitor has a 15-minute schedule in this feature branch, but GitHub does not activate it until the workflow exists on the default branch.
 - AI provider credentials only after provider terms, data handling and expected charges have been explicitly approved.
 
 Do not assume that a static export or edge-only runtime is supported. PDF processing, cryptography and bounded streaming routes use the Node.js runtime.
