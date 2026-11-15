@@ -86,7 +86,11 @@ Set repository Actions secrets only after the non-production app is deployed:
 
 Enable the authenticated E2E workflow only after the test project and fixtures exist. Do not reuse production accounts or credentials.
 
-The document-worker and health-monitor workflows are manual-dispatch only in the current operating scope. Do not add a schedule or dispatch either workflow until the branch/route integration, exact Preview target, credentials, authentication, migration compatibility and idempotency are independently verified and the owner explicitly approves the invocation. GitHub scheduled workflows run from the repository's default branch; feature-branch workflow files do not create an active schedule. The authenticated two-account E2E workflow uses the six configured non-production secrets and does not require `ENABLE_AUTHENTICATED_E2E`, `E2E_QUESTION_ID` or `E2E_SOLUTION_ID`.
+The document-worker workflow is manual-dispatch only; it has no `push`, `pull_request` or `schedule` trigger. Do not add a worker schedule or dispatch the worker until branch/route integration, exact Preview target, credentials, authentication, migration compatibility and idempotency are independently verified and the owner explicitly approves the invocation.
+
+The separate `health-monitor.yml` currently contains a 15-minute schedule and a manual-dispatch trigger. GitHub runs scheduled workflows only from the repository's default branch. The health-monitor file is present on this feature branch but was not found on `main` during the 2026-11-15 inspection, so no scheduled monitor is currently active. If later integrated into the default branch, it performs an authenticated `GET /api/health/ready` against the pinned feature Preview and may send an optional failure alert; it does not call the document-worker endpoint, claim jobs or process documents. Do not confuse readiness monitoring with worker scheduling.
+
+The authenticated two-account E2E workflow is manual-only and requires the explicit `confirm_nonprod_mutation=true` input because it creates and deletes synthetic records in the approved non-production Supabase project. Do not dispatch it without a separate owner-approved acceptance run. It uses the six configured non-production secrets and does not require `ENABLE_AUTHENTICATED_E2E`, `E2E_QUESTION_ID` or `E2E_SOLUTION_ID`.
 
 ## Build and release sequence
 
