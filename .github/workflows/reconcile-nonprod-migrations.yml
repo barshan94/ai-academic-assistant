@@ -1,81 +1,25 @@
-name: Non-production Supabase migration reconciliation
+name: Retired non-production Supabase migration reconciliation
+
+# Intentionally retained as a visible, inert workflow for audit continuity.
+# This workflow must not access credentials, link a Supabase project, repair
+# migration history, or apply schema changes. Re-enable only after a separately
+# reviewed, read-only inventory and explicit owner authorization.
 
 on:
   workflow_dispatch:
-    inputs:
-      operation:
-        description: "This operation WRITES migration-history repairs for three previously verified SQL-equivalent pairs, then runs a schema dry-run. It does not apply pending DDL."
-        required: true
-        type: choice
-        options:
-          - repair-history-and-dry-run
-          - repair-history-and-apply
-        default: repair-history-and-dry-run
-      confirmation:
-        description: "For pending DDL apply only, type exactly: APPLY uqpyzicftxxegajaocxi. History repairs happen in either operation."
-        required: false
-        type: string
 
 permissions:
   contents: read
 
-concurrency:
-  group: academic-assistant-nonprod-migration
-  cancel-in-progress: false
-
 jobs:
-  reconcile:
-    if: ${{ github.ref == 'refs/heads/feature/m3-ai-solver' }}
+  retired:
+    name: Refuse retired migration operations
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
-    env:
-      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+    timeout-minutes: 1
     steps:
-      - name: Check out the approved feature branch
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: feature/m3-ai-solver
-          persist-credentials: false
-
-      - name: Install pinned Supabase CLI
-        uses: supabase/setup-cli@a9de0f0e1ffcf6ec895b135e292ddc76592d3c83
-        with:
-          version: 2.122.0
-
-      - name: Validate secrets and explicit apply confirmation
-        shell: bash
-        env:
-          OPERATION: ${{ inputs.operation }}
-          CONFIRMATION: ${{ inputs.confirmation }}
-        run: |
-          set -euo pipefail
-          for name in SUPABASE_ACCESS_TOKEN SUPABASE_DB_PASSWORD; do
-            if [ -z "${!name}" ]; then
-              echo "::error::Missing repository Actions secret: ${name}"
-              exit 1
-            fi
-          done
-          if [ "$OPERATION" = "repair-history-and-apply" ]; then
-            if [ "$CONFIRMATION" != "APPLY uqpyzicftxxegajaocxi" ]; then
-              echo "::error::Apply requires the exact target confirmation phrase."
-              exit 1
-            fi
-            echo "APPLY_PENDING_MIGRATIONS=true" >> "$GITHUB_ENV"
-          elif [ "$OPERATION" = "repair-history-and-dry-run" ]; then
-            echo "APPLY_PENDING_MIGRATIONS=false" >> "$GITHUB_ENV"
-          else
-            echo "::error::Unsupported operation."
-            exit 1
-          fi
-          echo "Secrets are present; values are not displayed."
-
-      - name: Reconcile the approved project and run the reviewed dry-run or explicitly confirmed apply
+      - name: Stop before repository or hosted-resource access
         shell: bash
         run: |
           set -euo pipefail
-          if [ "$APPLY_PENDING_MIGRATIONS" = "true" ]; then
-            printf '%s\n' "APPLY" | bash scripts/reconcile-nonprod-supabase-migrations.sh
-          else
-            printf '%s\n' "NO" | bash scripts/reconcile-nonprod-supabase-migrations.sh
-          fi
+          echo "::error::Migration reconciliation is disabled. No credentials were accessed and no hosted operation was attempted."
+          exit 1
