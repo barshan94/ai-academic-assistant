@@ -18,7 +18,7 @@ describe("retired Supabase migration reconciliation", () => {
     if (process.platform === "win32") return;
     const result = spawnSync("bash", [scriptPath], {
       encoding: "utf8",
-      env: { PATH: process.env.PATH ?? "" },
+      env: { PATH: process.env.PATH ?? "", NODE_ENV: process.env.NODE_ENV ?? "test" },
     });
     expect(result.status).toBe(1);
     expect(result.stderr).toContain("Migration reconciliation is disabled");
