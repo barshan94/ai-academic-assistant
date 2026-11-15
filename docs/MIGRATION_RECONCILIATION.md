@@ -1,5 +1,19 @@
 # Supabase migration-history reconciliation
 
+## Current engineering control — 2026-11-15
+
+**DISABLED IN CODE. DO NOT RE-ENABLE OR EXECUTE.** The previous manual workflow was not a dry-run: it called `supabase migration repair` before the schema dry-run, so its default operation changed the hosted migration ledger. This was a destructive mismatch between the workflow label and actual behavior.
+
+The following reversible repository-only controls are now in place on `feature/m3-ai-solver`:
+
+- `.github/workflows/reconcile-nonprod-migrations.yml` is an inert manual workflow. A dispatch exits with an explicit error before checkout, credential access, Supabase CLI setup, or network access.
+- `scripts/reconcile-nonprod-supabase-migrations.sh` is a fail-closed stub. It exits before reading credentials or invoking any command.
+- `tests/migration-reconciliation-script.test.ts` verifies Bash syntax, the fail-closed runtime behavior, absence of Supabase CLI/mutation commands, and absence of credentials or checkout in the workflow.
+
+No workflow was dispatched during this change. No Supabase credentials were read. No hosted migration ledger, schema, or data was inspected or changed in this run. This repository hardening does not resolve the actual hosted migration/schema parity question.
+
+Re-enabling any migration tooling requires a separately reviewed, genuinely read-only inventory implementation and a new explicit owner decision. Do not add `migration repair`, `db push`, or any other hosted write operation as part of a “dry-run.”
+
 ## Current owner authorization — 2026-11-06
 
 **DO NOT EXECUTE THIS RUNBOOK.** The current owner scope prohibits dispatching migration-reconciliation workflows, modifying the hosted migration ledger, or applying database migrations. Any earlier authorization recorded below is superseded. This document is retained as historical technical evidence only; its procedure and old “ready” decision are not current instructions. Keep the existing hosted schema and migration history unchanged.
@@ -50,9 +64,9 @@ The owner had previously authorized a non-production reconciliation plan. That a
 5. Stop after the dry-run unless the resulting plan is reviewed and the explicit APPLY confirmation is supplied.
 6. Inspect the final migration ledger.
 
-Run scripts/reconcile-nonprod-supabase-migrations.sh through the manual workflow .github/workflows/reconcile-nonprod-migrations.yml. The script pins the target and CLI version, uses repository Actions secrets without printing them, and requires explicit confirmation before any pending DDL is applied.
+The historical execution path used `scripts/reconcile-nonprod-supabase-migrations.sh` and `.github/workflows/reconcile-nonprod-migrations.yml`. Both are now deliberately disabled as documented above; do not use them or restore their former behavior.
 
-**Do not use generic SQL to edit the migration ledger. Do not reset the project, run against production, or selectively apply migrations.** If the dry-run unexpectedly reports pending DDL, stop and investigate rather than applying it.
+**Do not use generic SQL to edit the migration ledger. Do not reset the project, run against production, or selectively apply migrations.** If a future read-only inventory reports unexpected state, stop and investigate rather than applying it.
 
 ## Historical snapshot — 2026-11-01
 
