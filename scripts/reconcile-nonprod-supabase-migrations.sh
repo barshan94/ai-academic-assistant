@@ -2,9 +2,9 @@
 set -euo pipefail
 set +x
 
-# This legacy helper is intentionally disabled. It previously performed
-# supabase migration repair before its dry-run, so even the operation labelled
-# "dry-run" modified the hosted migration ledger. Do not restore executable
+# This legacy helper is intentionally disabled. Its former default path changed
+# hosted migration history before running the schema preview, so the operation
+# labelled "dry-run" was not read-only. Do not restore executable
 # migration commands here. Any future recovery plan must start with a separate,
 # genuinely read-only inventory and receive explicit owner authorization.
 echo "::error::Migration reconciliation is disabled. No Supabase CLI command or hosted operation was attempted." >&2
