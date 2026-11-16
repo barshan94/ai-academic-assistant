@@ -4,9 +4,11 @@ import { describe, expect, it } from "vitest";
 
 const routePath = fileURLToPath(new URL("../app/api/cron/process-documents/route.ts", import.meta.url));
 const workflowPath = fileURLToPath(new URL("../.github/workflows/document-worker.yml", import.meta.url));
+const runnerPath = fileURLToPath(new URL("../scripts/invoke-document-worker.mjs", import.meta.url));
 const monitorPath = fileURLToPath(new URL("../.github/workflows/health-monitor.yml", import.meta.url));
 const route = readFileSync(routePath, "utf8");
 const workflow = readFileSync(workflowPath, "utf8");
+const runner = readFileSync(runnerPath, "utf8");
 const monitor = readFileSync(monitorPath, "utf8");
 const approvedPreviewOrigin = "https://ai-academic-assistant-git-feature-m3-ai-solver-barshan-s-team.vercel.app";
 
@@ -16,19 +18,19 @@ describe("document worker HTTP method", () => {
     expect(route).not.toContain("export async function GET(request: Request)");
   });
 
-  it("invokes the protected worker with POST and validates a sanitized response", () => {
-    expect(workflow).toContain("--request POST");
-    expect(workflow).toContain('--proto "=https" --tlsv1.2 --connect-timeout 10');
-    expect(workflow).toContain('floor == .');
-    expect(workflow).not.toContain("--request GET");
-    expect(workflow).toContain('--header "Authorization: Bearer $CRON_SECRET"');
-    expect(workflow).toContain("CRON_SECRET must contain at least 32 characters");
+  it("invokes the protected worker with POST and validates a bounded sanitized response", () => {
+    expect(workflow).toContain("node scripts/invoke-document-worker.mjs");
+    expect(runner).toContain('method: "POST"');
+    expect(runner).toContain('new URL("/api/cron/process-documents", appBaseUrl)');
+    expect(runner).toContain('Authorization: `Bearer ${cronSecret}`');
+    expect(runner).toContain('redirect: "error"');
+    expect(runner).toContain("MAX_RESPONSE_BYTES = 16 * 1024");
+    expect(runner).toContain("Number.isInteger(payload.page_count)");
+    expect(runner).toContain("response.status");
+    expect(runner).not.toContain("console.log(JSON.stringify");
+    expect(runner).not.toContain("console.error(error)");
     expect(workflow).not.toContain("--retry");
-    expect(workflow).toContain('response_file="$(mktemp)"');
-    expect(workflow).toContain('--output "$response_file"');
-    expect(workflow).toContain("jq -e");
-    expect(workflow).not.toContain("--output /dev/null");
-    expect(workflow).not.toContain('cat "$response_file"');
+    expect(workflow).not.toContain("response_file");
   });
 
   it("restricts credentialed dispatch to the feature branch and this project's Preview origin", () => {
