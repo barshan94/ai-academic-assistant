@@ -4,6 +4,8 @@ import { describe, expect, it } from "vitest";
 
 const workflowPath = fileURLToPath(new URL("../.github/workflows/document-worker.yml", import.meta.url));
 const workflow = readFileSync(workflowPath, "utf8");
+const runnerPath = fileURLToPath(new URL("../scripts/invoke-document-worker.mjs", import.meta.url));
+const runner = readFileSync(runnerPath, "utf8");
 
 describe("document worker workflow safety", () => {
   it("can only be invoked manually, never by a push, PR, or schedule", () => {
@@ -30,22 +32,26 @@ describe("document worker workflow safety", () => {
       'https://ai-academic-assistant-git-feature-m3-ai-solver-barshan-s-team.vercel.app',
     );
     expect(workflow).toContain('[ "${#CRON_SECRET}" -ge 32 ]');
-    expect(workflow).toContain('--proto "=https"');
+    expect(runner).toContain("APPROVED_PREVIEW_ORIGIN");
+    expect(runner).toContain("redirect: \"error\"");
+    expect(runner).toContain("AbortSignal.timeout(timeoutMs)");
     expect(workflow).not.toContain("inputs.app_base_url");
   });
 
   it("sends only a single POST to the document-processing endpoint", () => {
-    expect(workflow).toContain("--request POST");
-    expect(workflow).toContain("/api/cron/process-documents");
-    expect(workflow).toContain("name: Process at most one non-production document");
+    expect(runner).toContain('method: "POST"');
+    expect(runner).toContain('new URL("/api/cron/process-documents", appBaseUrl)');
+    expect(workflow).toContain("node scripts/invoke-document-worker.mjs");
     expect(workflow).not.toContain("while true");
     expect(workflow).not.toContain("sleep ");
   });
 
-  it("never prints the raw worker response or upstream error text", () => {
-    expect(workflow).toContain("Never print the raw response");
-    expect(workflow).toContain("inspect the protected job state");
-    expect(workflow).not.toMatch(/(?:cat|echo)\s+["']?\$response_file/);
-    expect(workflow).not.toContain('jq . "$response_file"');
+  it("bounds the response and never prints raw worker or upstream error text", () => {
+    expect(runner).toContain("MAX_RESPONSE_BYTES = 16 * 1024");
+    expect(runner).toContain("response exceeded");
+    expect(runner).toContain('new TextDecoder("utf-8", { fatal: true })');
+    expect(workflow).not.toContain("response_file");
+    expect(runner).not.toContain("console.log(JSON.stringify");
+    expect(runner).not.toContain("console.error(error)");
   });
 });
