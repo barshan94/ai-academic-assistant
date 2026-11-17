@@ -9,7 +9,11 @@ const runner = readFileSync(runnerPath, "utf8");
 
 describe("document worker workflow safety", () => {
   it("can only be invoked manually, never by a push, PR, or schedule", () => {
-    expect(workflow).toMatch(/^on:\\s*\\n  workflow_dispatch:\\s*\\n    inputs:/m);
+    expect(workflow.split("\n").slice(2, 5)).toEqual([
+      "on:",
+      "  workflow_dispatch:",
+      "    inputs:",
+    ]);
     expect(workflow).not.toMatch(/^  (?:push|pull_request|schedule|repository_dispatch):/m);
   });
 
@@ -38,8 +42,8 @@ describe("document worker workflow safety", () => {
     expect(validationIndex).toBeGreaterThan(nodeSetupIndex);
     expect(invocationIndex).toBeGreaterThan(validationIndex);
     expect(workflow).toContain("persist-credentials: false");
-    expect(workflow).toMatch(/uses: actions\\/checkout@[0-9a-f]{40}\\s+# v/);
-    expect(workflow).toMatch(/uses: actions\\/setup-node@[0-9a-f]{40}\\s+# v/);
+    expect(workflow).toContain("uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1");
+    expect(workflow).toContain("uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0");
     expect(workflow).toContain("node-version: 22");
   });
 
