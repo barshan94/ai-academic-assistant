@@ -9,7 +9,7 @@ const runner = readFileSync(runnerPath, "utf8");
 
 describe("document worker workflow safety", () => {
   it("can only be invoked manually, never by a push, PR, or schedule", () => {
-    expect(workflow).toMatch(/^on:\s*\n  workflow_dispatch:\s*\n    inputs:/m);
+    expect(workflow).toMatch(/^on:\\s*\\n  workflow_dispatch:\\s*\\n    inputs:/m);
     expect(workflow).not.toMatch(/^  (?:push|pull_request|schedule|repository_dispatch):/m);
   });
 
@@ -27,13 +27,29 @@ describe("document worker workflow safety", () => {
     expect(workflow).toContain("github.event_name == 'workflow_dispatch'");
   });
 
+  it("checks out the selected revision and pins Node before invoking the script", () => {
+    const checkoutIndex = workflow.indexOf("uses: actions/checkout@");
+    const nodeSetupIndex = workflow.indexOf("uses: actions/setup-node@");
+    const validationIndex = workflow.indexOf("- name: Validate worker configuration");
+    const invocationIndex = workflow.indexOf("node scripts/invoke-document-worker.mjs");
+
+    expect(checkoutIndex).toBeGreaterThan(-1);
+    expect(nodeSetupIndex).toBeGreaterThan(checkoutIndex);
+    expect(validationIndex).toBeGreaterThan(nodeSetupIndex);
+    expect(invocationIndex).toBeGreaterThan(validationIndex);
+    expect(workflow).toContain("persist-credentials: false");
+    expect(workflow).toMatch(/uses: actions\\/checkout@[0-9a-f]{40}\\s+# v/);
+    expect(workflow).toMatch(/uses: actions\\/setup-node@[0-9a-f]{40}\\s+# v/);
+    expect(workflow).toContain("node-version: 22");
+  });
+
   it("pins the secret destination to the known non-production Preview origin", () => {
     expect(workflow).toContain(
       'https://ai-academic-assistant-git-feature-m3-ai-solver-barshan-s-team.vercel.app',
     );
     expect(workflow).toContain('[ "${#CRON_SECRET}" -ge 32 ]');
     expect(runner).toContain("APPROVED_PREVIEW_ORIGIN");
-    expect(runner).toContain("redirect: \"error\"");
+    expect(runner).toContain('redirect: "error"');
     expect(runner).toContain("AbortSignal.timeout(timeoutMs)");
     expect(workflow).not.toContain("inputs.app_base_url");
   });
