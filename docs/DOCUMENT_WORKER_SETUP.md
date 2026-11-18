@@ -1,49 +1,60 @@
 # Document worker deployment setup
 
-The application includes a server-side worker at `POST /api/cron/process-documents`. It claims and processes at most one eligible job per invocation. The worker route accepts POST only and is protected by a bearer secret and uses the Supabase service-role key only on the server.
+The application includes a server-side worker at `POST /api/cron/process-documents`. It claims and processes at most one eligible job per invocation. The worker route accepts POST only, is protected by a bearer secret, and uses the Supabase service-role key only on the server.
 
 ## GitHub Actions invocation
 
-**Current verified behavior:** `.github/workflows/document-worker.yml` defines `workflow_dispatch` only. It does not contain a `schedule` trigger, so it does not poll the queue automatically. A repository operator must manually dispatch it from the Actions tab. The credentialed job is additionally restricted to `feature/m3-ai-solver`, and it refuses an `APP_BASE_URL` that is not an exact stable feature-branch Preview origin (`https://ai-academic-assistant-git-feature-m3-ai-solver-barshan-s-team.vercel.app`). It rejects deployment-specific hostnames, Production URLs, unrelated HTTPS origins, credentials, paths and trailing slashes. This destination allowlist does not prove that the secret matches the deployed Preview. Do not describe this workflow as scheduled until a recurring trigger is committed and verified.
+**Current activation state:** `.github/workflows/document-worker.yml` exists only on `feature/m3-ai-solver`, not on the repository's default branch. GitHub requires a `workflow_dispatch` workflow file to exist on the default branch before it can be manually dispatched from Actions. Therefore, this workflow is **not currently dispatchable through the repository Actions UI**. Do not merge or copy the workflow alone to make it available.
 
-If a recurring GitHub schedule is added later, GitHub runs it from the repository's default branch, not an unmerged feature branch. Integrate the worker route, application code, database migrations and scheduler together; a workflow-only merge could call a route that `main` does not contain. No Vercel Cron Job is configured. The current deployment uses Vercel Hobby, so do not assume Vercel provides a five-minute scheduler.
+The workflow defines `workflow_dispatch` only; it has no `schedule` trigger and does not poll the queue automatically. When a separately reviewed integration makes it available, the credentialed job is restricted to `feature/m3-ai-solver` and requires the boolean `confirm_nonprod_worker_run` input to be explicitly set to `true`. It also requires the exact stable Preview origin below, a `CRON_SECRET` of at least 32 characters, and a matching Preview-side secret. The script independently validates the destination, rejects redirects, bounds the response and validates the response schema.
 
-Configure these repository Actions secrets before enabling real processing:
+A future scheduler must not be enabled until the worker route, application code, database schema/RPCs, authentication, idempotency, target environment, and secrets have all been verified together. Scheduled GitHub workflows run from the default branch. No Vercel Cron Job is configured. The current deployment uses Vercel Hobby; do not assume Vercel provides a five-minute scheduler.
+
+## Required non-production configuration
+
+Configure these repository Actions secrets only after the non-production target and matching Preview secret have been independently checked:
 
 | Secret | Value |
 | --- | --- |
-| `APP_BASE_URL` | Exact value `https://ai-academic-assistant-git-feature-m3-ai-solver-barshan-s-team.vercel.app` (stable feature-branch Preview alias only) |
-| `CRON_SECRET` | A long random secret of at least 32 characters, shared with the deployed application's `CRON_SECRET` environment variable; both the route and workflow reject shorter values |
+| `APP_BASE_URL` | Exact value `https://ai-academic-assistant-git-feature-m3-ai-solver-barshan-s-team.vercel.app` (stable feature-branch Preview origin only) |
+| `CRON_SECRET` | A long random secret of at least 32 characters, matching the feature-branch Preview application's `CRON_SECRET` |
 
-The deployed application must also have the existing production environment variables required by the worker and Drive integration:
+The workflow rejects any other `APP_BASE_URL`, including deployment-specific hostnames, Production URLs, unrelated HTTPS origins, credentials, paths and trailing slashes. This allowlist does not prove the GitHub secret matches the deployed Preview. Never print either secret or put it in source files, workflow YAML, issue comments or logs.
+
+The deployed non-production application also requires these existing server-side environment variables:
 
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `GOOGLE_CLIENT_ID`
 - `GOOGLE_CLIENT_SECRET`
-- `DRIVE_TOKEN_ENCRYPTION_KEY` (must match the key used to encrypt saved Drive refresh tokens)
+- `DRIVE_TOKEN_ENCRYPTION_KEY` (must match the key used to encrypt saved Drive refresh tokens; do not rotate it without a separately reviewed token re-encryption plan)
 
-Do not put these values in source files, workflow YAML, issue comments, or logs. Do not use production credentials for test workflows.
+Do not use Production credentials for test workflows.
 
 ## Operational behavior
 
-- The current workflow is manual-dispatch only. The queue is durable, but it will not be processed automatically until a recurring scheduler is deliberately enabled.
-- The workflow serializes invocations with a concurrency group and the database worker also uses a conditional claim to prevent duplicate ownership.
-- Each invocation handles at most one job and has a bounded timeout.
-- The worker retries eligible failed/stale jobs up to each job's configured maximum attempts.
-- A failed workflow run means the endpoint was unavailable, rejected the invocation, or persisted a document-processing failure. The worker returns HTTP 500 after successfully recording a failed job so the scheduler visibly reports the failure; the durable job remains eligible for a later retry within its configured attempt budget. Inspect the Actions job without exposing secrets.
-- Use `workflow_dispatch` to trigger a controlled manual run after verifying the target environment, queue, Preview secrets and test account.
-- Live processing acceptance requires a non-production Google Drive connection and an isolated non-production Supabase project. The existing connected project `uqpyzicftxxegajaocxi` is the project's designated non-production database for this workflow; do not create a second Supabase project just for this test. Keep test records clearly identified and do not use real student data. This workflow file alone does not prove that the secrets are configured or that OCR succeeds.
+- The worker accepts POST only and returns HTTP 401 without the exact bearer secret.
+- It returns HTTP 503 when required database credentials are missing.
+- It uses the Supabase service-role key only inside the server route; every row operation is constrained by the job's owner and document IDs.
+- A conditional update on job ID, owner ID, current status, attempt count and prior start time is the atomic claim. Concurrent invocations cannot both claim the same observed job state.
+- Queued and failed jobs are eligible. A running job is eligible only after the 15-minute stale threshold or when its start timestamp is missing.
+- Retry attempts stop at the row's configured `max_attempts`.
+- The worker refuses to replace extracted pages referenced by saved questions or chapter-note sources.
+- A job failure is persisted as a bounded error message and can be retried while its retry budget remains.
+- The worker processes one job per invocation. Because the workflow is not currently dispatchable and has no schedule, queued work remains pending. GitHub Actions does not automatically retry this POST request; a later, separately authorized invocation is required to use the remaining retry budget.
+- A failed workflow run can mean the endpoint was unavailable, rejected the invocation, or persisted a document-processing failure. Inspect the Actions job without exposing secrets.
 
-### Current connected Preview setup (2026-11-04)
+## Existing non-production evidence (historical; not current live acceptance)
 
-- The feature-branch Preview deployment is available at `https://ai-academic-assistant-git-feature-m3-ai-solver-barshan-s-team.vercel.app`.
-- The worker endpoint is deployed on that Preview. A GET request returns `405 Method Not Allowed`, as expected for this POST-only route; this is only a route/method smoke check.
-- The branch-scoped Vercel Preview environment contains a `CRON_SECRET` entry for `feature/m3-ai-solver`. Its value is encrypted and cannot be verified through environment metadata alone. Do not replace it blindly.
-- The connected Supabase database contains the required `processing_jobs` and `document_pages` records. On 2026-11-04, two existing Drive-backed PDFs completed their OCR worker jobs (100% progress, one attempt each, no persisted job error). Their pages contain extracted text (1,298 and 573 characters respectively), but both remain `review_required`. This confirms a successful worker-to-Drive extraction path for those two files; it does not establish OCR accuracy or human approval.
-- The GitHub Actions secret values are not readable through the connected GitHub integration. Confirm that repository secrets `APP_BASE_URL` and `CRON_SECRET` are configured without displaying their values. `APP_BASE_URL` must point to the stable feature Preview URL above, without a trailing slash. The GitHub secret `CRON_SECRET` must match the branch-scoped Preview value.
-- The two completed jobs show that worker invocations reached the Preview endpoint at some point. The checked-in workflow is manual-dispatch only; no recurring schedule is defined or active.
-- Do not enable the five-minute schedule on `main` until the endpoint, supporting application code, and database migrations have been reviewed and integrated together. A workflow-only merge could call a route that `main` does not contain.
+The following observations were recorded on 2026-11-04 and must not be treated as current verification:
+
+- The feature-branch Preview alias was `https://ai-academic-assistant-git-feature-m3-ai-solver-barshan-s-team.vercel.app`.
+- A GET request returned `405 Method Not Allowed`, as expected for the POST-only route. This proved only the route/method response at that time.
+- The branch-scoped Preview environment had a `CRON_SECRET` entry, but its encrypted value could not be compared with the GitHub Actions secret through metadata.
+- Two Drive-backed PDFs completed OCR worker jobs with one attempt each. Their extracted pages remained `review_required`; this did not establish OCR accuracy, original-PDF round-trip integrity, interruption/resume behavior or human approval.
+- The GitHub Actions secret values were not readable through the connected integration. Their presence and equality with Preview values were not verified by that inventory.
+
+Do not use this historical snapshot as evidence that the workflow can currently be dispatched or that live recovery is accepted.
 
 ## Owner-authorized original PDF retrieval
 
@@ -51,11 +62,11 @@ The document review page provides a server-mediated **View verified original PDF
 
 Before returning bytes, the server refreshes the owner's Google Drive access token, checks Drive metadata (file ID, PDF MIME type, non-trashed state and stored size), downloads at most 50 MB, verifies the PDF signature, and compares the exact byte length and SHA-256 digest with the values recorded at upload. Responses are private and `no-store`; Google credentials and Drive file IDs are never sent to browser code. A missing checksum is treated as an integrity failure rather than silently returning an unverified file.
 
-This implementation and its automated tests do not, by themselves, prove a live Google Drive round trip. Complete that acceptance check on the non-production Preview using an owner account and a test PDF: open the document review page, use **View verified original PDF**, and confirm that the PDF opens and is byte-for-byte the uploaded source. Also verify that a different signed-in test account receives 404 for the same document URL. Do not use real student files for this test.
+This implementation and its automated tests do not, by themselves, prove a live Google Drive round trip. Complete that acceptance check on the non-production Preview using an owner account and a synthetic test PDF: open the document review page, use **View verified original PDF**, and confirm that the PDF opens and is byte-for-byte the uploaded source. Also verify that a different signed-in test account receives 404 for the same document URL. Do not use real student files for this test.
 
 ## Manual recovery and state transitions
 
-The document detail action is owner-authenticated. For a fresh running lease it refuses to start a second processor. For a stale running job with retry budget remaining, it calls the same atomic claim RPC as the scheduled worker: the database rechecks the exact observed status, attempt count and `started_at`, enforces the 15-minute threshold, increments the attempt, and moves the parent document to processing in one transaction. It does not first mark the job failed and then issue a second claim.
+The document detail action is owner-authenticated. For a fresh running lease it refuses to start a second processor. For a stale running job with retry budget remaining, it calls the same atomic claim RPC as the worker: the database rechecks the exact observed status, attempt count and `started_at`, enforces the 15-minute threshold, increments the attempt, and moves the parent document to processing in one transaction. It does not first mark the job failed and then issue a second claim.
 
 If the stale job has exhausted its retry budget, the manual action uses `recover_stale_document_processing_job` to mark both the job and document failed in one transaction. No further attempt is started.
 
@@ -63,7 +74,7 @@ Manual OCR corrections use `save_document_page_correction`, which locks the job,
 
 ## Authenticated browser acceptance setup
 
-The Authenticated document and teacher acceptance job runs only when the dedicated owner test credentials are present. It runs against the connected non-production Supabase project from a local Preview-equivalent build; it does not use production data or Google Drive.
+The authenticated document and teacher acceptance job runs only when the dedicated owner test credentials are present. It runs against the connected non-production Supabase project from a local Preview-equivalent build; it does not use Production data or Google Drive.
 
 Configure these GitHub Actions repository secrets:
 
@@ -76,7 +87,7 @@ Configure these GitHub Actions repository secrets:
 | `E2E_TEACHER_EMAIL` | Optional second test account for invitation and sharing tests |
 | `E2E_TEACHER_PASSWORD` | Password for the dedicated test-teacher account |
 
-Create and confirm the test accounts in the designated non-production Supabase Auth project before configuring the credentials. Do not use a personal account, a real student's account, or production credentials. The test creates uniquely named E2E document/page/question fixtures and deletes its own fixtures after the run.
+Create and confirm the test accounts in the designated non-production Supabase Auth project before configuring the credentials. Do not use a personal account, a real student's account, or Production credentials. The test creates uniquely named E2E document/page/question fixtures and deletes only its own fixtures after the run.
 
 The owner-only document review test requires the first four secrets. The two-account teacher invitation/review/revocation test additionally requires both teacher secrets. If owner credentials are missing or incomplete, CI reports the authenticated acceptance job as skipped; a skipped job is not a passing end-to-end test.
 
