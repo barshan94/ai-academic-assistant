@@ -9,22 +9,24 @@ import {
 
 const cronSecret = "s".repeat(32);
 const baseUrl = APPROVED_PREVIEW_ORIGIN;
+const jobId = "00000000-0000-4000-8000-000000000001";
 
-function jsonResponse(payload, status = 200) {
+function jsonResponse(payload, status = 200, contentType = "application/json") {
   return new Response(JSON.stringify(payload), {
     status,
-    headers: { "content-type": "application/json" },
+    headers: { "content-type": contentType },
   });
 }
 
 describe("bounded document worker invocation", () => {
   it("sends one authenticated POST to the exact approved Preview without following redirects", async () => {
     const fetchImpl = vi.fn().mockResolvedValue(
-      jsonResponse({ processed: true, page_count: 7, document_id: "must-not-be-logged" }),
+      jsonResponse({ processed: true, page_count: 7, job_id: jobId }),
     );
 
     await expect(invokeWorker({ appBaseUrl: baseUrl, cronSecret, fetchImpl })).resolves.toEqual({
       processed: true,
+      jobId,
       pageCount: 7,
     });
 
@@ -56,7 +58,7 @@ describe("bounded document worker invocation", () => {
     expect(fetchImpl).not.toHaveBeenCalled();
   });
 
-  it("accepts only the documented empty-queue outcomes", () => {
+  it("accepts only the documented empty-queue outcomes with no extra fields", () => {
     expect(parseWorkerPayload(JSON.stringify({ processed: false, reason: "queue_empty" }))).toEqual({
       processed: false,
     });
@@ -64,17 +66,49 @@ describe("bounded document worker invocation", () => {
       processed: false,
     });
     expect(() =>
+      parseWorkerPayload(JSON.stringify({ processed: false, reason: "queue_empty", error: "unexpected" })),
+    ).toThrow("did not complete");
+    expect(() =>
       parseWorkerPayload(JSON.stringify({ processed: false, reason: "database_error" })),
     ).toThrow("did not complete");
   });
 
+  it("requires a UUID job identifier and an exact completion response shape", () => {
+    expect(parseWorkerPayload(JSON.stringify({
+      processed: true,
+      job_id: jobId,
+      page_count: 7,
+    }))).toEqual({ processed: true, jobId, pageCount: 7 });
+
+    for (const payload of [
+      { processed: true, page_count: 7 },
+      { processed: true, job_id: "not-a-uuid", page_count: 7 },
+      { processed: true, job_id: jobId, page_count: 7, document_id: "unexpected" },
+    ]) {
+      expect(() => parseWorkerPayload(JSON.stringify(payload))).toThrow("invalid completion record");
+    }
+  });
+
   it("rejects malformed JSON and invalid page counts", () => {
     expect(() => parseWorkerPayload("{")).toThrow("invalid JSON");
-    expect(() => parseWorkerPayload(JSON.stringify({ processed: true, page_count: 0 }))).toThrow(
-      "invalid page count",
+    expect(() => parseWorkerPayload(JSON.stringify({
+      processed: true,
+      job_id: jobId,
+      page_count: 0,
+    }))).toThrow("invalid page count");
+    expect(() => parseWorkerPayload(JSON.stringify({
+      processed: true,
+      job_id: jobId,
+      page_count: 101,
+    }))).toThrow("invalid page count");
+  });
+
+  it("rejects successful HTTP responses that are not explicitly JSON", async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(
+      jsonResponse({ processed: false, reason: "queue_empty" }, 200, "text/plain"),
     );
-    expect(() => parseWorkerPayload(JSON.stringify({ processed: true, page_count: 101 }))).toThrow(
-      "invalid page count",
+    await expect(invokeWorker({ appBaseUrl: baseUrl, cronSecret, fetchImpl })).rejects.toThrow(
+      "unexpected content type",
     );
   });
 
