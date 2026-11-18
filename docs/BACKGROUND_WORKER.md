@@ -2,13 +2,13 @@
 
 The feature branch includes a server-side worker endpoint at `POST /api/cron/process-documents`. It claims at most one job per invocation, uses conditional database updates to prevent duplicate claims, processes queued/failed jobs, reclaims stale running jobs after 15 minutes, and respects each job's `max_attempts` value.
 
-## Current activation state
+## Current activation state and default-branch risk
 
-The checked-in `.github/workflows/document-worker.yml` is present only on `feature/m3-ai-solver`; it is not integrated into the repository's default branch. GitHub requires a `workflow_dispatch` workflow file to exist on the default branch before it can be manually dispatched from Actions. Therefore, **the worker workflow is not currently dispatchable through the repository Actions UI**.
+The default branch already contains `.github/workflows/document-worker.yml`, so GitHub exposes the manual **Run workflow** action. However, the `main` version is a legacy implementation: it has no explicit confirmation input, no branch restriction, no exact Preview-origin allowlist, and sends `CRON_SECRET` to whatever HTTPS `APP_BASE_URL` is configured. **Do not dispatch this workflow with the `main` ref.** If that secret is wrong or points to an unintended HTTPS origin, the legacy workflow can disclose the bearer credential to that origin.
 
-Do not copy or merge this workflow alone to make it dispatchable. The worker route, its supporting application code, compatible database schema/RPCs, authentication, idempotency, Preview target and repository secrets must be reviewed as one integration. Do not add a recurring schedule. Scheduled GitHub Actions workflows run from the default branch, and this project has not passed live concurrency/recovery acceptance.
+The `feature/m3-ai-solver` version is more restrictive. When manually dispatched with that ref, its own workflow definition requires `confirm_nonprod_worker_run=true`, checks the exact feature branch, validates the exact stable non-production Preview origin, requires a 32-character minimum secret, checks out the selected revision without persisting checkout credentials, and sends one bounded POST request. The selected ref matters: do not select `main` and assume the feature-branch safeguards will apply.
 
-When a separately reviewed integration makes the workflow available, it remains manual-only and requires the boolean `confirm_nonprod_worker_run` input to be explicitly set to `true`. The job is restricted to `feature/m3-ai-solver`, serializes invocations, checks out the selected revision without persisting checkout credentials, and invokes exactly one POST request. It does not loop or schedule follow-up requests.
+The owner has not authorized worker dispatch. Do not run either workflow until the route/branch integration, target environment, GitHub Actions secrets, authentication, idempotency, live concurrency and recovery behavior are verified and a separate owner authorization is given. Do not add a recurring schedule. Scheduled GitHub Actions workflows run from the default branch, and this project has not passed live concurrency/recovery acceptance.
 
 ## Required non-production deployment environment
 
@@ -21,7 +21,7 @@ Configure these values only in the dedicated non-production Preview environment:
 - `GOOGLE_CLIENT_ID`
 - `GOOGLE_CLIENT_SECRET`
 
-The GitHub Actions workflow accepts only this exact stable feature-branch Preview origin for `APP_BASE_URL`:
+The feature-branch workflow accepts only this exact stable Preview origin for `APP_BASE_URL`:
 
 `https://ai-academic-assistant-git-feature-m3-ai-solver-barshan-s-team.vercel.app`
 
@@ -42,7 +42,7 @@ The invocation script independently enforces the exact Preview origin and a mini
 - Retry attempts stop at the row's configured `max_attempts`.
 - The worker refuses to replace extracted pages referenced by saved questions or chapter-note sources.
 - A job failure is persisted as a bounded error message and can be retried while its retry budget remains.
-- The worker processes one job per invocation. Because the workflow is not currently dispatchable and has no schedule, queued work remains pending. GitHub Actions does not automatically retry this POST request; after a persisted failure, a later, separately authorized invocation is required to use the remaining retry budget.
+- The worker processes one job per invocation. There is no recurring schedule. If it is not manually invoked, queued work remains pending. GitHub Actions does not automatically retry this POST request; a later, separately authorized invocation is required to use the remaining retry budget.
 - The route has a 60-second platform duration limit. The invocation script allows 65 seconds for the HTTP request, while the Actions job has a 3-minute overall timeout. These are bounds, not proof that a live Drive operation completes within them.
 
 ## Before any non-production live acceptance
@@ -50,12 +50,13 @@ The invocation script independently enforces the exact Preview origin and a mini
 1. Confirm that the selected Preview is the approved non-production environment and that the worker route and compatible database RPCs are deployed together.
 2. Confirm the Drive encryption key matches the key used for the test project's encrypted tokens; do not rotate it.
 3. Confirm the repository Actions `APP_BASE_URL` and Preview `CRON_SECRET` match without revealing either value.
-4. Use a dedicated test Google account and a small synthetic PDF, never real student material.
-5. Invoke the route with a deliberately wrong secret and confirm HTTP 401.
-6. With explicit owner authorization, invoke the workflow once and confirm exactly one job completes.
-7. Run a separately approved concurrent-claim test and verify that the same job is processed only once.
-8. Force a controlled transient failure and confirm retries stop at `max_attempts`.
-9. Simulate a stale running job and verify safe recovery and terminalization.
-10. Verify original-PDF retrieval, byte length and SHA-256 against the uploaded source; separately check the OCR text against the original PDF.
+4. Select only the `feature/m3-ai-solver` ref; never dispatch the legacy `main` workflow.
+5. Use a dedicated test Google account and a small synthetic PDF, never real student material.
+6. Invoke the route with a deliberately wrong secret and confirm HTTP 401.
+7. Only after separate owner authorization, invoke the hardened workflow once and confirm exactly one job completes.
+8. Run a separately approved concurrent-claim test and verify that the same job is processed only once.
+9. Force a controlled transient failure and confirm retries stop at `max_attempts`.
+10. Simulate a stale running job and verify safe recovery and terminalization.
+11. Verify original-PDF retrieval, byte length and SHA-256 against the uploaded source; separately check the OCR text against the original PDF.
 
 Automated tests and a READY Preview do not prove live Drive upload/recovery, OCR accuracy, concurrency behavior, or operational alerting. Do not mark those acceptance gates complete without the actual non-production test evidence and human review.
