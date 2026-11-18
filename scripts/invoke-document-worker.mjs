@@ -5,6 +5,13 @@ export const APPROVED_PREVIEW_ORIGIN =
   "https://ai-academic-assistant-git-feature-m3-ai-solver-barshan-s-team.vercel.app";
 export const MAX_RESPONSE_BYTES = 16 * 1024;
 export const REQUEST_TIMEOUT_MS = 65_000;
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function hasExactKeys(value, expectedKeys) {
+  const actualKeys = Object.keys(value);
+  return actualKeys.length === expectedKeys.length &&
+    expectedKeys.every((key) => Object.hasOwn(value, key));
+}
 
 export function validateWorkerConfiguration(appBaseUrl, cronSecret) {
   if (appBaseUrl !== APPROVED_PREVIEW_ORIGIN) {
@@ -67,13 +74,18 @@ export function parseWorkerPayload(raw) {
   }
 
   if (payload.processed) {
+    if (!hasExactKeys(payload, ["processed", "job_id", "page_count"]) ||
+        typeof payload.job_id !== "string" || !UUID_PATTERN.test(payload.job_id)) {
+      throw new Error("Document worker returned an invalid completion record.");
+    }
     if (!Number.isInteger(payload.page_count) || payload.page_count < 1 || payload.page_count > 100) {
       throw new Error("Document worker returned an invalid page count.");
     }
-    return { processed: true, pageCount: payload.page_count };
+    return { processed: true, jobId: payload.job_id, pageCount: payload.page_count };
   }
 
-  if (payload.reason === "queue_empty" || payload.reason === "no_claimable_job") {
+  if (hasExactKeys(payload, ["processed", "reason"]) &&
+      (payload.reason === "queue_empty" || payload.reason === "no_claimable_job")) {
     return { processed: false };
   }
   throw new Error("Document worker did not complete a document.");
@@ -106,6 +118,12 @@ export async function invokeWorker({
   if (!response.ok) {
     await response.body?.cancel().catch(() => undefined);
     throw new Error(`Document worker returned HTTP ${response.status}.`);
+  }
+
+  const contentType = response.headers.get("content-type")?.split(";")[0].trim().toLowerCase();
+  if (contentType !== "application/json") {
+    await response.body?.cancel().catch(() => undefined);
+    throw new Error("Document worker returned an unexpected content type.");
   }
 
   return parseWorkerPayload(await readBoundedBody(response));
