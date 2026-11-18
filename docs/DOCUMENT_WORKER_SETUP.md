@@ -2,13 +2,13 @@
 
 The application includes a server-side worker at `POST /api/cron/process-documents`. It claims and processes at most one eligible job per invocation. The worker route accepts POST only, is protected by a bearer secret, and uses the Supabase service-role key only on the server.
 
-## GitHub Actions invocation
+## GitHub Actions invocation and default-branch risk
 
-**Current activation state:** `.github/workflows/document-worker.yml` exists only on `feature/m3-ai-solver`, not on the repository's default branch. GitHub requires a `workflow_dispatch` workflow file to exist on the default branch before it can be manually dispatched from Actions. Therefore, this workflow is **not currently dispatchable through the repository Actions UI**. Do not merge or copy the workflow alone to make it available.
+The default branch already contains `.github/workflows/document-worker.yml`, so the GitHub Actions **Run workflow** button is available. The default-branch copy is legacy: it has no explicit confirmation input, no branch restriction, and accepts any HTTPS `APP_BASE_URL` before sending `CRON_SECRET`. **Do not dispatch with the `main` ref.** The legacy workflow can send the bearer credential to any HTTPS origin configured in that repository secret.
 
-The workflow defines `workflow_dispatch` only; it has no `schedule` trigger and does not poll the queue automatically. When a separately reviewed integration makes it available, the credentialed job is restricted to `feature/m3-ai-solver` and requires the boolean `confirm_nonprod_worker_run` input to be explicitly set to `true`. It also requires the exact stable Preview origin below, a `CRON_SECRET` of at least 32 characters, and a matching Preview-side secret. The script independently validates the destination, rejects redirects, bounds the response and validates the response schema.
+The feature-branch copy is hardened. If an owner separately authorizes a test, select the exact ref `feature/m3-ai-solver`; that branch's workflow definition requires `confirm_nonprod_worker_run=true`, checks the exact ref, restricts `APP_BASE_URL` to the stable non-production Preview origin below, requires a secret of at least 32 characters, and invokes one bounded POST. Selecting `main` does not inherit those feature-branch safeguards.
 
-A future scheduler must not be enabled until the worker route, application code, database schema/RPCs, authentication, idempotency, target environment, and secrets have all been verified together. Scheduled GitHub workflows run from the default branch. No Vercel Cron Job is configured. The current deployment uses Vercel Hobby; do not assume Vercel provides a five-minute scheduler.
+The worker remains manual-only and has no `schedule` trigger. The owner has not authorized dispatch. Do not run either version until route/branch integration, target environment, GitHub Actions secret scope and equality, authentication, idempotency, concurrency and recovery are verified and a separate owner authorization is given. Do not merge or copy the workflow alone to activate it. A future scheduler must not be enabled until the worker route, application code, database schema/RPCs, authentication, idempotency, target environment, and secrets have all been reviewed together. Scheduled GitHub workflows run from the default branch. No Vercel Cron Job is configured. The current deployment uses Vercel Hobby; do not assume Vercel provides a five-minute scheduler.
 
 ## Required non-production configuration
 
@@ -19,7 +19,7 @@ Configure these repository Actions secrets only after the non-production target 
 | `APP_BASE_URL` | Exact value `https://ai-academic-assistant-git-feature-m3-ai-solver-barshan-s-team.vercel.app` (stable feature-branch Preview origin only) |
 | `CRON_SECRET` | A long random secret of at least 32 characters, matching the feature-branch Preview application's `CRON_SECRET` |
 
-The workflow rejects any other `APP_BASE_URL`, including deployment-specific hostnames, Production URLs, unrelated HTTPS origins, credentials, paths and trailing slashes. This allowlist does not prove the GitHub secret matches the deployed Preview. Never print either secret or put it in source files, workflow YAML, issue comments or logs.
+The feature-branch workflow rejects any other `APP_BASE_URL`, including deployment-specific hostnames, Production URLs, unrelated HTTPS origins, credentials, paths and trailing slashes. This allowlist does not prove the GitHub secret matches the Preview. Never print either secret or put it in source files, workflow YAML, issue comments or logs.
 
 The deployed non-production application also requires these existing server-side environment variables:
 
@@ -41,20 +41,20 @@ Do not use Production credentials for test workflows.
 - Retry attempts stop at the row's configured `max_attempts`.
 - The worker refuses to replace extracted pages referenced by saved questions or chapter-note sources.
 - A job failure is persisted as a bounded error message and can be retried while its retry budget remains.
-- The worker processes one job per invocation. Because the workflow is not currently dispatchable and has no schedule, queued work remains pending. GitHub Actions does not automatically retry this POST request; a later, separately authorized invocation is required to use the remaining retry budget.
+- The worker processes one job per invocation. Because it has no schedule and dispatch is not authorized, queued work remains pending. GitHub Actions does not automatically retry this POST request; a later, separately authorized invocation is required to use the remaining retry budget.
 - A failed workflow run can mean the endpoint was unavailable, rejected the invocation, or persisted a document-processing failure. Inspect the Actions job without exposing secrets.
 
-## Existing non-production evidence (historical; not current live acceptance)
+## Historical non-production observations (not current acceptance)
 
 The following observations were recorded on 2026-11-04 and must not be treated as current verification:
 
 - The feature-branch Preview alias was `https://ai-academic-assistant-git-feature-m3-ai-solver-barshan-s-team.vercel.app`.
 - A GET request returned `405 Method Not Allowed`, as expected for the POST-only route. This proved only the route/method response at that time.
-- The branch-scoped Preview environment had a `CRON_SECRET` entry, but its encrypted value could not be compared with the GitHub Actions secret through metadata.
+- The branch-scoped Vercel Preview environment had a `CRON_SECRET` entry, but its encrypted value could not be compared with the GitHub Actions secret through metadata.
 - Two Drive-backed PDFs completed OCR worker jobs with one attempt each. Their extracted pages remained `review_required`; this did not establish OCR accuracy, original-PDF round-trip integrity, interruption/resume behavior or human approval.
 - The GitHub Actions secret values were not readable through the connected integration. Their presence and equality with Preview values were not verified by that inventory.
 
-Do not use this historical snapshot as evidence that the workflow can currently be dispatched or that live recovery is accepted.
+Do not use this historical snapshot as evidence that the current worker is operational or that live recovery is accepted.
 
 ## Owner-authorized original PDF retrieval
 
