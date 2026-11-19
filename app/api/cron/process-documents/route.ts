@@ -197,18 +197,7 @@ export async function POST(request: Request) {
       if (!pages.length) throw new Error("No readable text was detected. The file needs manual review.");
       if (pages.length > 100) throw new Error("The document exceeded the 100-page processing limit.");
 
-      let completionResult: { data: unknown; error: unknown };
-      try {
-        completionResult = await supabase.rpc("complete_document_processing", {
-          p_document_id: documentId,
-          p_owner_id: ownerId,
-          p_job_id: jobId,
-          p_expected_attempt_count: candidate.attempt_count + 1,
-          p_pages: pages,
-        });
-      } catch {
-        // The transaction may have committed even though its response was lost.
-        // Do not call the failure RPC against an uncertain completed job.
+      const completionUncertainResponse = () => {
         logSafeOperationalEvent("document_worker_completion_state_uncertain", {
           route: "/api/cron/process-documents",
           errorCode: "DOCUMENT_PROCESSING_COMPLETION_UNCERTAIN",
@@ -219,9 +208,26 @@ export async function POST(request: Request) {
           job_id: jobId,
           error: "Processing completion is being reconciled. Check the document status before retrying.",
         }, { status: 503 });
+      };
+      let completionResult: { data: unknown; error: unknown };
+      try {
+        completionResult = await supabase.rpc("complete_document_processing", {
+          p_document_id: documentId,
+          p_owner_id: ownerId,
+          p_job_id: jobId,
+          p_expected_attempt_count: candidate.attempt_count + 1,
+          p_pages: pages,
+        });
+      } catch {
+        // A lost PostgREST response can be surfaced as a rejected promise.
+        // The transaction may have committed, so do not issue a failure RPC.
+        return completionUncertainResponse();
       }
       if (completionResult.error || completionResult.data !== pages.length) {
-        throw new Error("Could not atomically complete document page replacement and the processing job.");
+        // Supabase can also resolve transport failures as { error, status: 0 }.
+        // Any unconfirmed completion leaves the lease for stale-job recovery;
+        // a second state transition could incorrectly overwrite a committed job.
+        return completionUncertainResponse();
       }
       return Response.json({ processed: true, job_id: jobId, page_count: pages.length });
     } catch {
