@@ -235,19 +235,7 @@ export async function POST(request: Request) {
       // HTTP responses. Detailed diagnostics belong in a separately reviewed,
       // redacted observability channel, not owner-visible job metadata.
       logSafeOperationalEvent("document_worker_failed", { route: "/api/cron/process-documents", errorCode: "BACKGROUND_PROCESSING_FAILED", jobId });
-      let failurePersisted = false;
-      try {
-        const { data, error } = await supabase.rpc("fail_document_processing", {
-          p_document_id: documentId,
-          p_owner_id: ownerId,
-          p_job_id: jobId,
-          p_expected_attempt_count: candidate.attempt_count + 1,
-          p_error_code: "BACKGROUND_PROCESSING_FAILED",
-        });
-        failurePersisted = !error && data === true;
-      } catch {
-        // The failure transition may have committed before the response was
-        // lost. Do not repeat it; let the next queue read reconcile the state.
+      const failureUncertainResponse = () => {
         logSafeOperationalEvent("document_worker_failure_state_uncertain", {
           route: "/api/cron/process-documents",
           errorCode: "DOCUMENT_PROCESSING_FAILURE_UNCERTAIN",
@@ -256,17 +244,28 @@ export async function POST(request: Request) {
         return Response.json({
           processed: false,
           job_id: jobId,
-          error: "Processing failure state is uncertain. Check the document status before retrying.",
+          error: "Processing failure state is being reconciled. Check the document status before retrying.",
         }, { status: 503 });
+      };
+      let failurePersisted = false;
+      try {
+        const result = await supabase.rpc("fail_document_processing", {
+          p_document_id: documentId,
+          p_owner_id: ownerId,
+          p_job_id: jobId,
+          p_expected_attempt_count: candidate.attempt_count + 1,
+          p_error_code: "BACKGROUND_PROCESSING_FAILED",
+        });
+        failurePersisted = !result.error && result.data === true;
+      } catch {
+        // The failure transition may have committed even if the response was
+        // lost. A rejected promise must not trigger another state transition.
+        return failureUncertainResponse();
       }
       if (!failurePersisted) {
-        // Leave the lease in place if failure state cannot be persisted. The
-        // stale-job policy can safely reclaim it after the lease expires.
-        return Response.json({
-          processed: false,
-          job_id: jobId,
-          error: "Processing failed and its failure state could not be persisted.",
-        }, { status: 500 });
+        // A resolved PostgREST error or unexpected result is also unconfirmed.
+        // Leave the lease for the next queue read and stale-job recovery.
+        return failureUncertainResponse();
       }
       return createPersistedWorkerFailureResponse(jobId);
     }

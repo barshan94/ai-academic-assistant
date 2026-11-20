@@ -41,7 +41,8 @@ The invocation script independently enforces the exact Preview origin and a mini
 - Queued and failed jobs are eligible. A running job is eligible only after the 15-minute stale threshold or when its start timestamp is missing.
 - Retry attempts stop at the row's configured `max_attempts`.
 - The worker refuses to replace extracted pages referenced by saved questions or chapter-note sources.
-- A job failure is persisted as a bounded error message and can be retried while its retry budget remains.
+- A confirmed job failure is persisted with a bounded error code and can be retried while its retry budget remains.
+- If the failure transition is not confirmed (a rejected request, returned database error, or unexpected result), the route returns HTTP 503, records only safe metadata, and leaves reconciliation to the next queue read or stale-lease recovery. It never issues a second state transition in the same invocation.
 - The worker processes one job per invocation. There is no recurring schedule. If it is not manually invoked, queued work remains pending. GitHub Actions does not automatically retry this POST request; a later, separately authorized invocation is required to use the remaining retry budget.
 - The route has a 60-second platform duration limit. The invocation script allows 65 seconds for the HTTP request, while the Actions job has a 3-minute overall timeout. These are bounds, not proof that a live Drive operation completes within them.
 
