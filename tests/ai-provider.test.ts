@@ -39,6 +39,38 @@ describe("AI provider configuration", () => {
     expect(() => getAIProviderConfig({ AI_ENABLED: "false", AI_API_KEY: "key", AI_MODEL: "model" })).toThrow(AIConfigurationError);
   });
 
+  it("does not contact a configured legacy provider when AI_ENABLED is false", async () => {
+    const fetcher = vi.fn<typeof fetch>();
+
+    await expect(generateStructuredAnswerWithRouting("Question", fetcher, {}, {
+      AI_ENABLED: "false",
+      AI_API_KEY: "configured-but-disabled-key",
+      AI_MODEL: "configured-model",
+      AI_API_BASE_URL: "https://provider.example/v1",
+    })).rejects.toThrow(AIConfigurationError);
+
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
+  it("does not contact a configured provider pool when AI_ENABLED is false", async () => {
+    const fetcher = vi.fn<typeof fetch>();
+
+    await expect(generateStructuredAnswerWithRouting("Question", fetcher, {}, {
+      AI_ENABLED: "false",
+      AI_PROVIDER_POOL: JSON.stringify([
+        {
+          name: "configured-but-disabled",
+          baseUrl: "https://provider.example/v1",
+          apiKey: "configured-but-disabled-key",
+          model: "configured-model",
+          tasks: ["answer"],
+        },
+      ]),
+    })).rejects.toThrow(AIConfigurationError);
+
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
   it("rejects insecure non-local provider URLs", () => {
     expect(() => getAIProviderConfig({
       AI_ENABLED: "true",
