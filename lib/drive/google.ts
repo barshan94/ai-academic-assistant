@@ -57,9 +57,16 @@ export async function readGoogleJsonResponseBounded<T>(response: Response, maxBy
 export function isGoogleDriveUploadSessionUri(value: string) {
   try {
     const uri = new URL(value);
-    return uri.protocol === "https:" && uri.hostname === "www.googleapis.com" &&
-      !uri.username && !uri.password &&
-      /^\/upload\/drive\/v3\/files(?:\/|$)/.test(uri.pathname);
+    // The resumable session URL is used with an OAuth bearer token. Keep the
+    // destination on Google's canonical HTTPS endpoint and exact upload path;
+    // never forward that token to an alternate port, subpath, or fragment URL.
+    return uri.protocol === "https:" &&
+      uri.hostname === "www.googleapis.com" &&
+      uri.port === "" &&
+      !uri.username &&
+      !uri.password &&
+      !uri.hash &&
+      uri.pathname === "/upload/drive/v3/files";
   } catch {
     return false;
   }
