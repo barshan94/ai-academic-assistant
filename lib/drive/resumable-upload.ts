@@ -38,7 +38,8 @@ export function isValidDriveChunk(input: {
     && end - start + 1 === input.byteLength
     && input.byteLength > 0
     && input.byteLength <= DRIVE_UPLOAD_CHUNK_SIZE
-    && start % DRIVE_UPLOAD_GRANULARITY === 0
+    // Drive may acknowledge a partial chunk, so a resumed start offset can be
+    // any byte. Only the size of each non-final request must be 256 KiB-aligned.
     && (end + 1 === total || input.byteLength % DRIVE_UPLOAD_GRANULARITY === 0);
 }
 

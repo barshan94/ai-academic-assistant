@@ -233,6 +233,40 @@ describe("resumable upload route security boundaries", () => {
     expect(createSupabaseServiceRoleClientMock).not.toHaveBeenCalled();
   });
 
+  it("accepts a chunk resumed at a partial byte offset confirmed by Drive", async () => {
+    decryptDriveUploadSessionMock.mockReturnValueOnce(JSON.stringify({
+      ...validSession,
+      fileSizeBytes: 2_097_152,
+    }));
+    getDriveAccessTokenMock.mockResolvedValue("drive-access-token");
+    sendResumablePdfChunkMock.mockResolvedValue({
+      status: 308,
+      range: "bytes=0-1048618",
+      file: null,
+    });
+
+    const response = await uploadChunk(makeRequest(
+      "/api/documents/upload/resumable/chunk",
+      {
+        headers: {
+          "x-upload-session": "opaque-encrypted-session",
+          "content-range": "bytes 43-1048618/2097152",
+        },
+        body: new Uint8Array(1_048_576),
+      },
+    ));
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ nextOffset: 1_048_619, complete: false });
+    const sent = sendResumablePdfChunkMock.mock.calls[0]?.[0];
+    expect(sent).toMatchObject({
+      accessToken: "drive-access-token",
+      sessionUri: validSession.sessionUri,
+      contentRange: "bytes 43-1048618/2097152",
+    });
+    expect(sent.bytes).toHaveLength(1_048_576);
+  });
+
   it("accepts a signed upload session with the supported 100-page maximum", async () => {
     decryptDriveUploadSessionMock.mockReturnValueOnce(JSON.stringify({
       ...validSession,

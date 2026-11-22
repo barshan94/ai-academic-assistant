@@ -8,6 +8,16 @@ describe("resumable Drive upload protocol", () => {
     expect(parseDriveUploadOffset("bytes=0-262143")).toBe(262144);
   });
 
+  it("accepts a resumed chunk after Drive acknowledges a partial number of bytes", () => {
+    const nextOffset = parseDriveUploadOffset("bytes=0-42", 2_097_152);
+    expect(nextOffset).toBe(43);
+    expect(isValidDriveChunk({
+      contentRange: "bytes 43-1048618/2097152",
+      byteLength: 1_048_576,
+      totalBytes: 2_097_152,
+    })).toBe(true);
+  });
+
   it("rejects malformed or non-zero-based server ranges", () => {
     expect(() => parseDriveUploadOffset("bytes=10-100")).toThrow("invalid upload range");
     expect(() => parseDriveUploadOffset("0-100")).toThrow("invalid upload range");
