@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { getConfirmedChunkOffset, queryResumableUploadStatus } from "@/lib/documents/resumable-upload-client";
+import { getConfirmedChunkOffset, queryResumableUploadStatus, readResumableUploadResponse } from "@/lib/documents/resumable-upload-client";
 
 describe("resumable upload chunk acknowledgement", () => {
   it("advances only to a Drive-confirmed offset within the chunk just sent", () => {
@@ -154,5 +154,64 @@ describe("resumable upload status query", () => {
 
     await expect(queryResumableUploadStatus("opaque-session-token", 1234, fetchMock))
       .rejects.toThrow("Google Drive upload session expired");
+  });
+});
+
+
+describe("resumable upload API response parsing", () => {
+  it("parses a small JSON response", async () => {
+    const response = new Response(JSON.stringify({ sessionToken: "opaque", chunkSize: 1_048_576 }), {
+      headers: { "Content-Type": "application/json; charset=utf-8" },
+    });
+    await expect(readResumableUploadResponse(response)).resolves.toEqual({
+      sessionToken: "opaque",
+      chunkSize: 1_048_576,
+    });
+  });
+
+  it("rejects non-JSON responses before parsing them", async () => {
+    const response = new Response("<html>gateway error</html>", {
+      headers: { "Content-Type": "text/html" },
+    });
+    await expect(readResumableUploadResponse(response)).rejects.toThrow("unexpected content type");
+  });
+
+  it("rejects malformed JSON, non-object payloads and oversized responses", async () => {
+    const malformed = new Response("{", {
+      headers: { "Content-Type": "application/json" },
+    });
+    await expect(readResumableUploadResponse(malformed)).rejects.toThrow("invalid or too large");
+
+    const array = new Response("[]", {
+      headers: { "Content-Type": "application/json" },
+    });
+    await expect(readResumableUploadResponse(array)).rejects.toThrow("response was invalid");
+
+    const oversized = new Response(JSON.stringify({ error: "x".repeat(17 * 1024) }), {
+      headers: { "Content-Type": "application/json" },
+    });
+    await expect(readResumableUploadResponse(oversized)).rejects.toThrow("invalid or too large");
+  });
+
+  it("surfaces only bounded server error messages", async () => {
+    const safeError = new Response(JSON.stringify({ error: "Upload session expired." }), {
+      status: 410,
+      headers: { "Content-Type": "application/json" },
+    });
+    await expect(readResumableUploadResponse(safeError)).rejects.toThrow("Upload session expired.");
+
+    const oversizedMessage = new Response(JSON.stringify({ error: "x".repeat(301) }), {
+      status: 503,
+      headers: { "Content-Type": "application/json" },
+    });
+    await expect(readResumableUploadResponse(oversizedMessage)).rejects.toThrow("Upload failed.");
+  });
+
+  it("uses a stable duplicate message when a 409 response has no safe error text", async () => {
+    const response = new Response("{}", {
+      status: 409,
+      headers: { "Content-Type": "application/json" },
+    });
+    await expect(readResumableUploadResponse(response)).rejects.toThrow("already in your library");
   });
 });

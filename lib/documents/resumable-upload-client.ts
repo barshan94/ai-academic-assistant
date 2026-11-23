@@ -6,6 +6,54 @@ export type ResumableUploadStatus = {
   nextOffset: number;
 };
 
+export type ResumableUploadResponseBody = {
+  error?: string;
+  duplicate?: boolean;
+  sessionToken?: string;
+  chunkSize?: number;
+  nextOffset?: number;
+  complete?: boolean;
+  documentId?: string;
+};
+
+/**
+ * Read same-origin upload API responses with a strict byte limit. The upload
+ * route should only return small JSON records; never buffer an unbounded body
+ * into the browser when a proxy or unexpected response is encountered.
+ */
+export async function readResumableUploadResponse(
+  response: Response,
+): Promise<ResumableUploadResponseBody> {
+  const contentType = response.headers.get("content-type")?.split(";")[0].trim().toLowerCase();
+  if (contentType !== "application/json") {
+    await response.body?.cancel().catch(() => undefined);
+    throw new Error("Upload response had an unexpected content type.");
+  }
+
+  let body: unknown;
+  try {
+    body = JSON.parse(await readLimitedResponseText(response, 16 * 1024));
+  } catch {
+    throw new Error("Upload response was invalid or too large.");
+  }
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    throw new Error("Upload response was invalid.");
+  }
+
+  const payload = body as Record<string, unknown>;
+  if (!response.ok) {
+    const message =
+      typeof payload.error === "string" && payload.error.length > 0 && payload.error.length <= 300
+        ? payload.error
+        : response.status === 409
+          ? "This document is already in your library."
+          : "Upload failed.";
+    throw new Error(message);
+  }
+
+  return payload as ResumableUploadResponseBody;
+}
+
 /**
  * Ask the server (and therefore Google Drive) for the authoritative upload
  * position. This is safe to call after a lost response or page reload.

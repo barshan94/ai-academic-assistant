@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { normalizeFilesToPdf } from "@/lib/documents/normalize-to-pdf";
 import { MAX_UPLOAD_BYTES, MAX_IMAGE_COUNT, DRIVE_UPLOAD_CHUNK_BYTES } from "@/lib/documents/upload-limits";
-import { getConfirmedChunkOffset, queryResumableUploadStatus } from "@/lib/documents/resumable-upload-client";
+import { getConfirmedChunkOffset, queryResumableUploadStatus, readResumableUploadResponse } from "@/lib/documents/resumable-upload-client";
 
 const STORAGE_PREFIX = "academic-assistant-upload:";
 
@@ -54,12 +54,6 @@ export function ResumableUploadForm({ disabled }: { disabled: boolean }) {
   const [error, setError] = useState("");
   const activeStorageKey = useRef<string | null>(null);
 
-  async function readJson(response: Response) {
-    const body = await response.json() as { error?: string; duplicate?: boolean; sessionToken?: string; nextOffset?: number; complete?: boolean };
-    if (!response.ok) throw new Error(body.error || (response.status === 409 ? "This document is already in your library." : "Upload failed."));
-    return body;
-  }
-
   async function upload() {
     const files = Array.from(inputRef.current?.files ?? []).filter((file) => file.size > 0);
     if (!files.length) {
@@ -97,8 +91,13 @@ export function ResumableUploadForm({ disabled }: { disabled: boolean }) {
             pageCount: normalized.pageCount,
           }),
         });
-        const started = await readJson(startResponse);
-        if (!started.sessionToken) throw new Error("The server did not create an upload session.");
+        const started = await readResumableUploadResponse(startResponse);
+        if (typeof started.sessionToken !== "string" || started.sessionToken.length === 0 || started.sessionToken.length > 8192) {
+          throw new Error("The server did not create a valid upload session.");
+        }
+        if (started.chunkSize !== DRIVE_UPLOAD_CHUNK_BYTES) {
+          throw new Error("The server returned an unsupported upload chunk size.");
+        }
         stored = {
           sessionToken: started.sessionToken,
           fileName: normalized.fileName,
@@ -139,10 +138,21 @@ export function ResumableUploadForm({ disabled }: { disabled: boolean }) {
             },
             body: chunk,
           });
-          const result = await readJson(response);
+          const result = await readResumableUploadResponse(response);
+          if (typeof result.complete !== "boolean" || !Number.isSafeInteger(result.nextOffset)) {
+            throw new Error("The upload response did not include a valid confirmed position.");
+          }
+          if (result.complete && (
+            typeof result.documentId !== "string" ||
+            result.documentId.length === 0 ||
+            result.documentId.length > 256 ||
+            typeof result.duplicate !== "boolean"
+          )) {
+            throw new Error("The completed upload response was invalid.");
+          }
           const confirmedStatus = {
-            complete: result.complete === true,
-            nextOffset: typeof result.nextOffset === "number" ? result.nextOffset : Number.NaN,
+            complete: result.complete,
+            nextOffset: result.nextOffset,
           };
           offset = getConfirmedChunkOffset({
             currentOffset: offset,
