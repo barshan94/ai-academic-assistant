@@ -139,7 +139,7 @@ export function ResumableUploadForm({ disabled }: { disabled: boolean }) {
             body: chunk,
           });
           const result = await readResumableUploadResponse(response);
-          if (typeof result.complete !== "boolean" || !Number.isSafeInteger(result.nextOffset)) {
+          if (typeof result.complete !== "boolean" || typeof result.nextOffset !== "number" || !Number.isSafeInteger(result.nextOffset)) {
             throw new Error("The upload response did not include a valid confirmed position.");
           }
           if (result.complete && (
