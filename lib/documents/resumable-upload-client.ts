@@ -23,6 +23,7 @@ export type ResumableUploadResponseBody = {
  */
 export async function readResumableUploadResponse(
   response: Response,
+  fallbackError = "Upload failed.",
 ): Promise<ResumableUploadResponseBody> {
   const contentType = response.headers.get("content-type")?.split(";")[0].trim().toLowerCase();
   if (contentType !== "application/json") {
@@ -47,7 +48,7 @@ export async function readResumableUploadResponse(
         ? payload.error
         : response.status === 409
           ? "This document is already in your library."
-          : "Upload failed.";
+          : fallbackError;
     throw new Error(message);
   }
 
@@ -80,30 +81,15 @@ export async function queryResumableUploadStatus(
       "X-Upload-Session": sessionToken,
       "Content-Range": `bytes */${totalBytes}`,
     },
+    cache: "no-store",
+    redirect: "error",
+    signal: AbortSignal.timeout(20_000),
   });
 
-  let body: unknown;
-  try {
-    body = JSON.parse(await readLimitedResponseText(response, 16 * 1024));
-  } catch {
-    throw new Error("The upload status response was invalid or too large.");
-  }
-  if (!body || typeof body !== "object" || Array.isArray(body)) {
-    throw new Error("The upload status response was invalid.");
-  }
-
-  const payload = body as {
-    error?: unknown;
-    complete?: unknown;
-    nextOffset?: unknown;
-  };
-  if (!response.ok) {
-    const message = typeof payload.error === "string" && payload.error.length > 0 && payload.error.length <= 300
-      ? payload.error
-      : "Could not check the upload position.";
-    throw new Error(message);
-  }
-
+  // Reuse the same bounded JSON/content-type/error contract as chunk and
+  // session-start responses. Status reconciliation must never accept a proxy
+  // page or a redirect as an authoritative Drive offset.
+  const payload = await readResumableUploadResponse(response, "Could not check the upload position.");
   const nextOffset = payload.nextOffset;
   if (
     typeof payload.complete !== "boolean" ||

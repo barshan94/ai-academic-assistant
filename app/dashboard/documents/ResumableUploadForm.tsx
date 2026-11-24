@@ -137,6 +137,11 @@ export function ResumableUploadForm({ disabled }: { disabled: boolean }) {
               "Content-Type": "application/octet-stream",
             },
             body: chunk,
+            cache: "no-store",
+            redirect: "error",
+            // The server route has a 60-second ceiling; abort slightly earlier
+            // so the client can query Drive's authoritative offset.
+            signal: AbortSignal.timeout(55_000),
           });
           const result = await readResumableUploadResponse(response);
           if (typeof result.complete !== "boolean" || typeof result.nextOffset !== "number" || !Number.isSafeInteger(result.nextOffset)) {

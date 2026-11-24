@@ -60,6 +60,33 @@ describe("resumable upload status query", () => {
     expect(init.body).toBeUndefined();
   });
 
+  it("rejects status payloads served with a non-JSON content type", async () => {
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValueOnce(
+      new Response(JSON.stringify({ complete: false, nextOffset: 100 }), {
+        status: 200,
+        headers: { "Content-Type": "text/html" },
+      }),
+    );
+
+    await expect(queryResumableUploadStatus("opaque-session-token", 1234, fetchMock))
+      .rejects.toThrow("unexpected content type");
+  });
+
+  it("uses a no-store, non-redirecting request with a bounded timeout", async () => {
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValueOnce(
+      new Response(JSON.stringify({ complete: false, nextOffset: 100 }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+
+    await queryResumableUploadStatus("opaque-session-token", 1234, fetchMock);
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(init.cache).toBe("no-store");
+    expect(init.redirect).toBe("error");
+    expect(init.signal).toBeInstanceOf(AbortSignal);
+  });
+
   it("recognizes a session whose final chunk was accepted before the browser lost its response", async () => {
     const fetchMock = vi.fn<typeof fetch>().mockResolvedValueOnce(
       new Response(JSON.stringify({ complete: true, nextOffset: 1234 }), {
@@ -119,17 +146,17 @@ describe("resumable upload status query", () => {
   });
 
   it("rejects malformed JSON, non-object payloads and oversized status responses", async () => {
-    const malformed = vi.fn<typeof fetch>().mockResolvedValueOnce(new Response("{"));
+    const malformed = vi.fn<typeof fetch>().mockResolvedValueOnce(new Response("{", { headers: { "Content-Type": "application/json" } }));
     await expect(queryResumableUploadStatus("opaque-session-token", 1234, malformed))
       .rejects.toThrow("invalid or too large");
 
-    const nonObject = vi.fn<typeof fetch>().mockResolvedValueOnce(new Response("[]"));
+    const nonObject = vi.fn<typeof fetch>().mockResolvedValueOnce(new Response("[]", { headers: { "Content-Type": "application/json" } }));
     await expect(queryResumableUploadStatus("opaque-session-token", 1234, nonObject))
       .rejects.toThrow("response was invalid");
 
     const oversized = vi.fn<typeof fetch>().mockResolvedValueOnce(
       new Response(JSON.stringify({ error: "x".repeat(17 * 1024) }), {
-        headers: { "Content-Length": String(17 * 1024) },
+        headers: { "Content-Length": String(17 * 1024), "Content-Type": "application/json" },
       }),
     );
     await expect(queryResumableUploadStatus("opaque-session-token", 1234, oversized))
@@ -138,7 +165,10 @@ describe("resumable upload status query", () => {
 
   it("limits error messages from non-success responses", async () => {
     const malformedError = vi.fn<typeof fetch>().mockResolvedValueOnce(
-      new Response(JSON.stringify({ error: "x".repeat(301) }), { status: 503 }),
+      new Response(JSON.stringify({ error: "x".repeat(301) }), {
+        status: 503,
+        headers: { "Content-Type": "application/json" },
+      }),
     );
     await expect(queryResumableUploadStatus("opaque-session-token", 1234, malformedError))
       .rejects.toThrow("Could not check the upload position.");
