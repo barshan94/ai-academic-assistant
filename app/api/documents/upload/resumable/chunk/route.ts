@@ -10,6 +10,13 @@ import { MAX_UPLOAD_BYTES, MAX_DOCUMENT_PAGES, safeFileName } from "@/lib/docume
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
+function jsonNoStore(body: unknown, init?: ResponseInit) {
+  const headers = new Headers(init?.headers);
+  headers.set("Cache-Control", "private, no-store, max-age=0");
+  headers.set("Pragma", "no-cache");
+  return NextResponse.json(body, { ...init, headers });
+}
+
 type UploadSession = {
   ownerId: string;
   sessionUri: string;
@@ -98,25 +105,25 @@ function isValidUploadSession(value: unknown): value is UploadSession {
 
 export async function POST(request: NextRequest) {
   if (request.headers.get("origin") !== request.nextUrl.origin) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return jsonNoStore({ error: "Forbidden" }, { status: 403 });
   }
 
   let authenticatedUserId: string;
   try {
     const supabase = await createSupabaseServerClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) return NextResponse.json({ error: "Sign in to continue this upload." }, { status: 401 });
+    if (authError || !user) return jsonNoStore({ error: "Sign in to continue this upload." }, { status: 401 });
     authenticatedUserId = user.id;
   } catch {
     logSafeOperationalEvent("upload_chunk_auth_unavailable", {
       route: "/api/documents/upload/resumable/chunk",
       errorCode: "UPLOAD_AUTH_UNAVAILABLE",
     });
-    return NextResponse.json({ error: "Sign-in verification is temporarily unavailable. Resume this upload shortly." }, { status: 503 });
+    return jsonNoStore({ error: "Sign-in verification is temporarily unavailable. Resume this upload shortly." }, { status: 503 });
   }
 
   const encryptedSession = request.headers.get("x-upload-session");
-  if (!encryptedSession) return NextResponse.json({ error: "Upload session is missing." }, { status: 400 });
+  if (!encryptedSession) return jsonNoStore({ error: "Upload session is missing." }, { status: 400 });
 
   let session: UploadSession;
   try {
@@ -124,30 +131,30 @@ export async function POST(request: NextRequest) {
     if (!isValidUploadSession(decoded)) throw new Error("Invalid upload session payload.");
     session = decoded;
   } catch {
-    return NextResponse.json({ error: "Upload session is invalid or expired." }, { status: 400 });
+    return jsonNoStore({ error: "Upload session is invalid or expired." }, { status: 400 });
   }
 
-  if (session.ownerId !== authenticatedUserId) return NextResponse.json({ error: "This upload belongs to another account." }, { status: 403 });
+  if (session.ownerId !== authenticatedUserId) return jsonNoStore({ error: "This upload belongs to another account." }, { status: 403 });
   if (!Number.isSafeInteger(session.fileSizeBytes) || session.fileSizeBytes < 1 ||
       session.fileSizeBytes > MAX_UPLOAD_BYTES || session.expiresAt < Date.now()) {
-    return NextResponse.json({ error: "Upload session has expired. Start the upload again." }, { status: 410 });
+    return jsonNoStore({ error: "Upload session has expired. Start the upload again." }, { status: 410 });
   }
 
   const contentRange = request.headers.get("content-range");
-  if (!contentRange) return NextResponse.json({ error: "Content-Range is required." }, { status: 400 });
+  if (!contentRange) return jsonNoStore({ error: "Content-Range is required." }, { status: 400 });
 
   let bytes: Uint8Array;
   try {
     bytes = await readDriveUploadChunk(request.body);
   } catch (error) {
     if (error instanceof Error && error.message === "Upload chunk exceeds the 1 MB server limit.") {
-      return NextResponse.json({ error: error.message }, { status: 413 });
+      return jsonNoStore({ error: error.message }, { status: 413 });
     }
     logSafeOperationalEvent("upload_chunk_body_read_failed", {
       route: "/api/documents/upload/resumable/chunk",
       errorCode: "UPLOAD_CHUNK_BODY_READ_FAILED",
     });
-    return NextResponse.json({ error: "Could not read this upload chunk. Resume the upload and retry." }, { status: 503 });
+    return jsonNoStore({ error: "Could not read this upload chunk. Resume the upload and retry." }, { status: 503 });
   }
 
   const query = contentRange === "bytes */" + session.fileSizeBytes && bytes.byteLength === 0;
@@ -156,11 +163,11 @@ export async function POST(request: NextRequest) {
     byteLength: bytes.byteLength,
     totalBytes: session.fileSizeBytes,
   })) {
-    return NextResponse.json({ error: "Upload chunk size or byte range is invalid." }, { status: 400 });
+    return jsonNoStore({ error: "Upload chunk size or byte range is invalid." }, { status: 400 });
   }
   if (!query && contentRange.startsWith("bytes 0-") &&
       new TextDecoder().decode(bytes.subarray(0, 5)) !== "%PDF-") {
-    return NextResponse.json({ error: "The uploaded content does not have a valid PDF signature." }, { status: 400 });
+    return jsonNoStore({ error: "The uploaded content does not have a valid PDF signature." }, { status: 400 });
   }
 
   try {
@@ -173,21 +180,21 @@ export async function POST(request: NextRequest) {
     });
 
     if (result.status === 308) {
-      return NextResponse.json({ nextOffset: parseDriveUploadOffset(result.range, session.fileSizeBytes), complete: false });
+      return jsonNoStore({ nextOffset: parseDriveUploadOffset(result.range, session.fileSizeBytes), complete: false });
     }
     if (result.status === 404 || result.status === 410) {
-      return NextResponse.json({ error: "Google Drive upload session expired. Start again." }, { status: 410 });
+      return jsonNoStore({ error: "Google Drive upload session expired. Start again." }, { status: 410 });
     }
     if (result.status === 200 || result.status === 201) {
       const saved = await saveCompletedUpload(session, result.file ?? {});
-      return NextResponse.json({ nextOffset: session.fileSizeBytes, complete: true, ...saved });
+      return jsonNoStore({ nextOffset: session.fileSizeBytes, complete: true, ...saved });
     }
     if (result.status === 429 || result.status >= 500) {
-      return NextResponse.json({ error: "Google Drive is temporarily unavailable. Resume this upload shortly." }, { status: 503 });
+      return jsonNoStore({ error: "Google Drive is temporarily unavailable. Resume this upload shortly." }, { status: 503 });
     }
-    return NextResponse.json({ error: "Google Drive rejected this upload chunk." }, { status: 502 });
+    return jsonNoStore({ error: "Google Drive rejected this upload chunk." }, { status: 502 });
   } catch {
     logSafeOperationalEvent("upload_chunk_failed", { route: "/api/documents/upload/resumable/chunk", errorCode: "UPLOAD_CHUNK_FAILED" });
-    return NextResponse.json({ error: "The upload could not be completed. Resume the same file to check the last confirmed byte." }, { status: 502 });
+    return jsonNoStore({ error: "The upload could not be completed. Resume the same file to check the last confirmed byte." }, { status: 502 });
   }
 }
