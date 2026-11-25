@@ -12,7 +12,7 @@ function jsonNoStore(body: unknown, init?: ResponseInit) {
   const headers = new Headers(init?.headers);
   headers.set("Cache-Control", "private, no-store, max-age=0");
   headers.set("Pragma", "no-cache");
-  return jsonNoStore(body, { ...init, headers });
+  return NextResponse.json(body, { ...init, headers });
 }
 
 const MAX_START_BODY_BYTES = 16 * 1024;
