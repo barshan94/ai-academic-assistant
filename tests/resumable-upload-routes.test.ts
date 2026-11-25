@@ -8,6 +8,7 @@ const {
   initiateResumablePdfUploadMock,
   sendResumablePdfChunkMock,
   decryptDriveUploadSessionMock,
+  encryptDriveUploadSessionMock,
   deleteDriveFileMock,
   downloadOriginalPdfFromDriveMock,
   logSafeOperationalEventMock,
@@ -18,6 +19,7 @@ const {
   initiateResumablePdfUploadMock: vi.fn(),
   sendResumablePdfChunkMock: vi.fn(),
   decryptDriveUploadSessionMock: vi.fn(),
+  encryptDriveUploadSessionMock: vi.fn(),
   deleteDriveFileMock: vi.fn(),
   downloadOriginalPdfFromDriveMock: vi.fn(),
   logSafeOperationalEventMock: vi.fn(),
@@ -31,7 +33,7 @@ vi.mock("@/lib/supabase/service-role", () => ({
 }));
 vi.mock("@/lib/drive/crypto", () => ({
   decryptDriveUploadSession: decryptDriveUploadSessionMock,
-  encryptDriveUploadSession: vi.fn(),
+  encryptDriveUploadSession: encryptDriveUploadSessionMock,
 }));
 vi.mock("@/lib/drive/google", () => ({
   getDriveAccessToken: getDriveAccessTokenMock,
@@ -88,6 +90,7 @@ beforeEach(() => {
   initiateResumablePdfUploadMock.mockReset();
   sendResumablePdfChunkMock.mockReset();
   decryptDriveUploadSessionMock.mockReset();
+  encryptDriveUploadSessionMock.mockReset();
   deleteDriveFileMock.mockReset();
   downloadOriginalPdfFromDriveMock.mockReset();
   logSafeOperationalEventMock.mockReset();
@@ -137,6 +140,33 @@ describe("resumable upload route security boundaries", () => {
     expect(response.status).toBe(401);
     expect(getDriveAccessTokenMock).not.toHaveBeenCalled();
     expect(initiateResumablePdfUploadMock).not.toHaveBeenCalled();
+  });
+
+  it("marks upload-session responses private and non-cacheable", async () => {
+    const maybeSingle = vi.fn().mockResolvedValue({ data: null, error: null });
+    const query = { eq: vi.fn(), maybeSingle };
+    query.eq.mockReturnValue(query);
+    const from = vi.fn().mockReturnValue({ select: vi.fn().mockReturnValue(query) });
+    const rpc = vi.fn().mockResolvedValue({ data: true, error: null });
+    createSupabaseServerClientMock.mockResolvedValueOnce({
+      auth: { getUser: vi.fn().mockResolvedValue({ data: { user: { id: "owner-A" } }, error: null }) },
+      from,
+      rpc,
+    });
+    getDriveAccessTokenMock.mockResolvedValue("drive-access-token");
+    initiateResumablePdfUploadMock.mockResolvedValue("https://www.googleapis.com/upload/drive/v3/files?upload_id=opaque");
+    encryptDriveUploadSessionMock.mockReturnValue("opaque-encrypted-session");
+
+    const response = await startUpload(makeRequest(
+      "/api/documents/upload/resumable/start",
+      { body: JSON.stringify({ fileName: "Physics.pdf", fileSizeBytes: 1234, sha256: "a".repeat(64) }) },
+    ));
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("cache-control")).toBe("private, no-store, max-age=0");
+    expect(response.headers.get("pragma")).toBe("no-cache");
+    expect(await response.json()).toEqual({ sessionToken: "opaque-encrypted-session", chunkSize: 1_048_576 });
+    expect(initiateResumablePdfUploadMock).toHaveBeenCalledOnce();
   });
 
   it("rejects a cross-origin chunk before authenticating or decrypting the session", async () => {
@@ -223,6 +253,8 @@ describe("resumable upload route security boundaries", () => {
     ));
 
     expect(response.status).toBe(200);
+    expect(response.headers.get("cache-control")).toBe("private, no-store, max-age=0");
+    expect(response.headers.get("pragma")).toBe("no-cache");
     expect(await response.json()).toEqual({ nextOffset: 1000, complete: false });
     expect(sendResumablePdfChunkMock).toHaveBeenCalledWith({
       accessToken: "drive-access-token",
