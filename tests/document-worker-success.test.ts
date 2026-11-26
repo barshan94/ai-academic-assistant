@@ -125,6 +125,7 @@ describe("document worker successful processing path", () => {
     });
     expect(extractPdf).toHaveBeenCalledWith({
       accessToken: "test-access-token",
+      deadlineAt: expect.any(Number),
       driveFileId: "drive-1",
       expectedSizeBytes: 32,
       expectedSha256: "a".repeat(64),
