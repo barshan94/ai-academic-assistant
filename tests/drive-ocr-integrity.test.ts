@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 
-import { extractTextFromDrivePdf } from "@/lib/drive/google";
+import { downloadOriginalPdfFromDrive, extractTextFromDrivePdf } from "@/lib/drive/google";
 
 const original = new TextEncoder().encode("%PDF-1.7\nsource\n%%EOF");
 const sha256 = createHash("sha256").update(original).digest("hex");
@@ -45,6 +45,44 @@ describe("OCR source integrity", () => {
     const [deleteUrl, deleteInit] = fetchMock.mock.calls[4] as [string, RequestInit];
     expect(deleteUrl).toContain("/files/temporary-doc");
     expect(deleteInit.method).toBe("DELETE");
+  });
+
+  it("caps every sequential OCR request to one shared worker deadline", async () => {
+    const deadlineAt = Date.now() + 5_000;
+    const timeoutSpy = vi.spyOn(AbortSignal, "timeout");
+    const fetchMock = vi.fn<typeof fetch>()
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        id: input.driveFileId,
+        mimeType: "application/pdf",
+        size: String(original.byteLength),
+        trashed: false,
+      }), { status: 200, headers: { "content-type": "application/json" } }))
+      .mockResolvedValueOnce(new Response(new Uint8Array(original), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ id: "temporary-doc" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }))
+      .mockResolvedValueOnce(new Response("Extracted physics text", { status: 200 }))
+      .mockResolvedValueOnce(new Response(null, { status: 204 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(extractTextFromDrivePdf({ ...input, deadlineAt })).resolves.toBe("Extracted physics text");
+
+    const timeoutValues = timeoutSpy.mock.calls.map(([milliseconds]) => milliseconds);
+    expect(timeoutValues).toHaveLength(5);
+    expect(timeoutValues.every((milliseconds) => milliseconds > 0 && milliseconds <= 5_000)).toBe(true);
+  });
+
+  it("does not start an original-file request after the shared deadline expires", async () => {
+    const fetchMock = vi.fn<typeof fetch>();
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(downloadOriginalPdfFromDrive({
+      ...input,
+      deadlineAt: Date.now() - 1,
+    })).rejects.toThrow("REQUEST_DEADLINE_EXCEEDED");
+
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("does not submit altered Drive bytes to OCR conversion", async () => {

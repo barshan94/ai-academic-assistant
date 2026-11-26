@@ -7,9 +7,14 @@ import { isBackgroundJobClaimable, isBackgroundJobRetryEligible } from "@/lib/do
 import { createPersistedWorkerFailureResponse } from "@/lib/documents/worker-response";
 import { logSafeOperationalEvent } from "@/lib/observability/safe-log";
 import { createSupabaseServiceRoleClient } from "@/lib/supabase/service-role";
+import { getRemainingRequestTimeoutMs } from "@/lib/http/request-deadline";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
+
+// Start one wall-clock budget after authentication. Leave 12 seconds of the
+// 60-second platform limit for the final completion/failure transaction.
+const WORKER_INVOCATION_BUDGET_MS = 48_000;
 
 function authorized(request: Request) {
   const expected = process.env.CRON_SECRET;
@@ -21,7 +26,7 @@ function authorized(request: Request) {
   return left.length === right.length && timingSafeEqual(left, right);
 }
 
-async function refreshDriveAccessToken(encryptedToken: string) {
+async function refreshDriveAccessToken(encryptedToken: string, deadlineAt: number) {
   const clientId = process.env.GOOGLE_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
   if (!clientId || !clientSecret) throw new Error("Google Drive OAuth environment is not configured.");
@@ -36,7 +41,7 @@ async function refreshDriveAccessToken(encryptedToken: string) {
       grant_type: "refresh_token",
     }),
     cache: "no-store",
-    signal: AbortSignal.timeout(15_000),
+    signal: AbortSignal.timeout(getRemainingRequestTimeoutMs(15_000, deadlineAt)),
     redirect: "error",
   });
   const payload = await readGoogleJsonResponseBounded<{ access_token?: string; error?: string; error_description?: string }>(response, 64 * 1024, "Google OAuth token response");
@@ -51,6 +56,7 @@ async function refreshDriveAccessToken(encryptedToken: string) {
 export async function POST(request: Request) {
   if (!authorized(request)) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
+  const deadlineAt = Date.now() + WORKER_INVOCATION_BUDGET_MS;
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!supabaseUrl || !serviceRoleKey) {
@@ -186,12 +192,13 @@ export async function POST(request: Request) {
         })) throw new Error("Reprocessing was blocked to protect saved questions or chapter notes.");
       }
 
-      const accessToken = await refreshDriveAccessToken(connection.encrypted_refresh_token);
+      const accessToken = await refreshDriveAccessToken(connection.encrypted_refresh_token, deadlineAt);
       const extractedText = await extractTextFromDrivePdf({
         accessToken,
         driveFileId: document.drive_file_id,
         expectedSizeBytes: document.file_size_bytes,
         expectedSha256: document.sha256,
+        deadlineAt,
       });
       const pages = splitExtractedText(extractedText);
       if (!pages.length) throw new Error("No readable text was detected. The file needs manual review.");

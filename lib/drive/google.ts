@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { decryptRefreshToken } from "./crypto";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { logSafeOperationalEvent } from "@/lib/observability/safe-log";
+import { getRemainingRequestTimeoutMs } from "@/lib/http/request-deadline";
 
 const DRIVE_FILE_SCOPE = "https://www.googleapis.com/auth/drive.file";
 
@@ -165,12 +166,12 @@ export async function uploadPdfToDrive(input: {
   return { id: result.id, webViewLink: result.webViewLink ?? null };
 }
 
-export async function deleteDriveFile(accessToken: string, fileId: string) {
+export async function deleteDriveFile(accessToken: string, fileId: string, deadlineAt?: number) {
   const response = await fetch(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}`, {
     method: "DELETE",
     headers: { Authorization: `Bearer ${accessToken}` },
     cache: "no-store",
-    signal: AbortSignal.timeout(15_000),
+    signal: AbortSignal.timeout(getRemainingRequestTimeoutMs(15_000, deadlineAt)),
     redirect: "error",
   });
   if (!response.ok && response.status !== 404) {
@@ -186,6 +187,7 @@ export async function downloadOriginalPdfFromDrive(input: {
   driveFileId: string;
   expectedSizeBytes: number;
   expectedSha256: string;
+  deadlineAt?: number;
 }) {
   if (
     typeof input.driveFileId !== "string" || !input.driveFileId ||
@@ -202,7 +204,7 @@ export async function downloadOriginalPdfFromDrive(input: {
     {
       headers: { Authorization: "Bearer " + input.accessToken },
       cache: "no-store",
-      signal: AbortSignal.timeout(15_000),
+      signal: AbortSignal.timeout(getRemainingRequestTimeoutMs(15_000, input.deadlineAt)),
       redirect: "error",
     },
   );
@@ -228,7 +230,7 @@ export async function downloadOriginalPdfFromDrive(input: {
     {
       headers: { Authorization: "Bearer " + input.accessToken },
       cache: "no-store",
-      signal: AbortSignal.timeout(30_000),
+      signal: AbortSignal.timeout(getRemainingRequestTimeoutMs(30_000, input.deadlineAt)),
       redirect: "error",
     },
   );
@@ -257,6 +259,7 @@ export async function extractTextFromDrivePdf(input: {
   driveFileId: string;
   expectedSizeBytes: number;
   expectedSha256: string;
+  deadlineAt?: number;
 }) {
   // OCR must process the exact archived original, not merely whatever bytes
   // currently happen to be returned for this Drive file ID.
@@ -265,6 +268,7 @@ export async function extractTextFromDrivePdf(input: {
     driveFileId: input.driveFileId,
     expectedSizeBytes: input.expectedSizeBytes,
     expectedSha256: input.expectedSha256,
+    deadlineAt: input.deadlineAt,
   });
 
   const boundary = "academic_ocr_" + crypto.randomUUID().replaceAll("-", "");
@@ -289,8 +293,8 @@ export async function extractTextFromDrivePdf(input: {
       },
       body,
       cache: "no-store",
-      signal: AbortSignal.timeout(30_000),
-    redirect: "error",
+      signal: AbortSignal.timeout(getRemainingRequestTimeoutMs(30_000, input.deadlineAt)),
+      redirect: "error",
     },
   );
   const converted = await readGoogleJsonResponseBounded<{ id?: string }>(
@@ -305,7 +309,7 @@ export async function extractTextFromDrivePdf(input: {
   try {
     const exportResponse = await fetch(
       "https://www.googleapis.com/drive/v3/files/" + encodeURIComponent(converted.id) + "/export?mimeType=text%2Fplain",
-      { headers: { Authorization: "Bearer " + input.accessToken }, cache: "no-store", signal: AbortSignal.timeout(20_000), redirect: "error" },
+      { headers: { Authorization: "Bearer " + input.accessToken }, cache: "no-store", signal: AbortSignal.timeout(getRemainingRequestTimeoutMs(20_000, input.deadlineAt)), redirect: "error" },
     );
     if (!exportResponse.ok) {
       await exportResponse.body?.cancel().catch(() => {});
@@ -316,7 +320,7 @@ export async function extractTextFromDrivePdf(input: {
   } finally {
     // Do not discard successful OCR output because temporary-file cleanup failed.
     try {
-      await deleteDriveFile(input.accessToken, converted.id);
+      await deleteDriveFile(input.accessToken, converted.id, input.deadlineAt);
     } catch {
       logSafeOperationalEvent("google_drive_ocr_temp_cleanup_failed", {
         route: "/lib/drive/google",

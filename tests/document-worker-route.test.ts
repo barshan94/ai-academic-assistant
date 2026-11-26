@@ -459,6 +459,9 @@ describe("document worker failure redaction", () => {
       p_error_code: "BACKGROUND_PROCESSING_FAILED",
     });
     expect(extractTextFromDrivePdfMock).toHaveBeenCalledOnce();
+    const extractionInput = extractTextFromDrivePdfMock.mock.calls[0]?.[0] as { deadlineAt?: number };
+    expect(Number.isSafeInteger(extractionInput.deadlineAt)).toBe(true);
+    expect(extractionInput.deadlineAt).toBeGreaterThan(Date.now());
   });
 
   it.each(["rejected promise", "resolved error object", "unexpected result"] as const)(
