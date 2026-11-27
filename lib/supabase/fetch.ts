@@ -18,7 +18,10 @@ export function supabaseFetch(
       options.deadlineAt,
     );
     const timeoutSignal = AbortSignal.timeout(timeoutMs);
-    const callerSignal = init?.signal;
+    const requestSignal = typeof Request !== "undefined" && input instanceof Request
+      ? input.signal
+      : undefined;
+    const callerSignal = init?.signal === undefined ? requestSignal : init.signal;
     requestInit.signal = callerSignal
       ? AbortSignal.any([callerSignal, timeoutSignal])
       : timeoutSignal;
