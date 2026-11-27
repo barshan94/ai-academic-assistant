@@ -462,6 +462,15 @@ describe("document worker failure redaction", () => {
     const extractionInput = extractTextFromDrivePdfMock.mock.calls[0]?.[0] as { deadlineAt?: number };
     expect(Number.isSafeInteger(extractionInput.deadlineAt)).toBe(true);
     expect(extractionInput.deadlineAt).toBeGreaterThan(Date.now());
+
+    const clientOptions = createSupabaseServiceRoleClientMock.mock.calls.map(
+      ([options]) => options,
+    ) as Array<{ deadlineAt: number; requestTimeoutMs: number }>;
+    expect(clientOptions).toHaveLength(2);
+    expect(clientOptions[0].deadlineAt).toBe(extractionInput.deadlineAt);
+    expect(clientOptions[0].requestTimeoutMs).toBe(10_000);
+    expect(clientOptions[1].requestTimeoutMs).toBe(10_000);
+    expect(clientOptions[1].deadlineAt - clientOptions[0].deadlineAt).toBe(12_000);
   });
 
   it.each(["rejected promise", "resolved error object", "unexpected result"] as const)(

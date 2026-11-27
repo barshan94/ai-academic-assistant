@@ -3,9 +3,9 @@ import "server-only";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
 import { getPublicSupabaseEnv } from "./env";
-import { supabaseFetch } from "./fetch";
+import { supabaseFetch, type SupabaseFetchOptions } from "./fetch";
 
-export function createSupabaseServiceRoleClient() {
+export function createSupabaseServiceRoleClient(options: SupabaseFetchOptions = {}) {
   const { NEXT_PUBLIC_SUPABASE_URL } = getPublicSupabaseEnv();
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!serviceRoleKey) {
@@ -19,7 +19,7 @@ export function createSupabaseServiceRoleClient() {
       detectSessionInUrl: false,
     },
     global: {
-      fetch: supabaseFetch,
+      fetch: (input, init) => supabaseFetch(input, init, options),
     },
   });
 }

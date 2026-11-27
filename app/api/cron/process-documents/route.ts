@@ -12,9 +12,12 @@ import { getRemainingRequestTimeoutMs } from "@/lib/http/request-deadline";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-// Start one wall-clock budget after authentication. Leave 12 seconds of the
-// 60-second platform limit for the final completion/failure transaction.
-const WORKER_INVOCATION_BUDGET_MS = 48_000;
+// Queue reads, claims, owner-scoped reads and Google requests share the first
+// 48 seconds. Each Supabase HTTP request is also capped at 10 seconds. Keep a
+// separate 12-second window for completion/failure/recovery state transitions.
+const WORKER_PROCESSING_BUDGET_MS = 48_000;
+const WORKER_FINALIZATION_RESERVE_MS = 12_000;
+const WORKER_DATABASE_REQUEST_TIMEOUT_MS = 10_000;
 
 function authorized(request: Request) {
   const expected = process.env.CRON_SECRET;
@@ -56,7 +59,8 @@ async function refreshDriveAccessToken(encryptedToken: string, deadlineAt: numbe
 export async function POST(request: Request) {
   if (!authorized(request)) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
-  const deadlineAt = Date.now() + WORKER_INVOCATION_BUDGET_MS;
+  const processingDeadlineAt = Date.now() + WORKER_PROCESSING_BUDGET_MS;
+  const finalizationDeadlineAt = processingDeadlineAt + WORKER_FINALIZATION_RESERVE_MS;
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!supabaseUrl || !serviceRoleKey) {
@@ -64,8 +68,16 @@ export async function POST(request: Request) {
   }
 
   let supabase: ReturnType<typeof createSupabaseServiceRoleClient>;
+  let finalizer: ReturnType<typeof createSupabaseServiceRoleClient>;
   try {
-    supabase = createSupabaseServiceRoleClient();
+    supabase = createSupabaseServiceRoleClient({
+      deadlineAt: processingDeadlineAt,
+      requestTimeoutMs: WORKER_DATABASE_REQUEST_TIMEOUT_MS,
+    });
+    finalizer = createSupabaseServiceRoleClient({
+      deadlineAt: finalizationDeadlineAt,
+      requestTimeoutMs: WORKER_DATABASE_REQUEST_TIMEOUT_MS,
+    });
   } catch {
     logSafeOperationalEvent("document_worker_client_init_failed", {
       route: "/api/cron/process-documents",
@@ -107,7 +119,7 @@ export async function POST(request: Request) {
     if (!isBackgroundJobRetryEligible(candidate.attempt_count, candidate.max_attempts)) {
       if (candidate.status === "running") {
         try {
-          const { error: terminalizationError } = await supabase.rpc("terminalize_exhausted_stale_document_job", {
+          const { error: terminalizationError } = await finalizer.rpc("terminalize_exhausted_stale_document_job", {
             p_document_id: candidate.document_id,
             p_owner_id: candidate.owner_id,
             p_job_id: candidate.id,
@@ -192,13 +204,13 @@ export async function POST(request: Request) {
         })) throw new Error("Reprocessing was blocked to protect saved questions or chapter notes.");
       }
 
-      const accessToken = await refreshDriveAccessToken(connection.encrypted_refresh_token, deadlineAt);
+      const accessToken = await refreshDriveAccessToken(connection.encrypted_refresh_token, processingDeadlineAt);
       const extractedText = await extractTextFromDrivePdf({
         accessToken,
         driveFileId: document.drive_file_id,
         expectedSizeBytes: document.file_size_bytes,
         expectedSha256: document.sha256,
-        deadlineAt,
+        deadlineAt: processingDeadlineAt,
       });
       const pages = splitExtractedText(extractedText);
       if (!pages.length) throw new Error("No readable text was detected. The file needs manual review.");
@@ -218,7 +230,7 @@ export async function POST(request: Request) {
       };
       let completionResult: { data: unknown; error: unknown };
       try {
-        completionResult = await supabase.rpc("complete_document_processing", {
+        completionResult = await finalizer.rpc("complete_document_processing", {
           p_document_id: documentId,
           p_owner_id: ownerId,
           p_job_id: jobId,
@@ -256,7 +268,7 @@ export async function POST(request: Request) {
       };
       let failurePersisted = false;
       try {
-        const result = await supabase.rpc("fail_document_processing", {
+        const result = await finalizer.rpc("fail_document_processing", {
           p_document_id: documentId,
           p_owner_id: ownerId,
           p_job_id: jobId,

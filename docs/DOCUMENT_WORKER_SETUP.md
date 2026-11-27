@@ -41,7 +41,10 @@ Do not use Production credentials for test workflows.
 - Retry attempts stop at the row's configured `max_attempts`.
 - The worker refuses to replace extracted pages referenced by saved questions or chapter-note sources.
 - A job failure is persisted as a bounded error message and can be retried while its retry budget remains.
-- The worker processes one job per invocation. Because it has no schedule and dispatch is not authorized, queued work remains pending. GitHub Actions does not automatically retry this POST request; a later, separately authorized invocation is required to use the remaining retry budget.
+- The worker processes one job per invocation. Queue reads, claims, owner-scoped reads and Google requests share a 48-second processing deadline; each Supabase HTTP request is capped at 10 seconds and also respects the remaining shared deadline. Completion, failure and exhausted-stale-job terminalization use a separate service-role client with a 12-second finalization window (maximum 10 seconds per HTTP request).
+- Caller cancellation is preserved when a deadline signal is added. If a claim or completion response is uncertain, the worker does not issue a compensating transition; it leaves the lease for later reconciliation.
+- Supabase Free projects can sleep and take time to wake. A bounded request may therefore return a retryable failure; check the document/job state before another attempt and allow the existing stale-lease recovery path to reconcile uncertain claims. This mitigation does not require a paid plan.
+- The worker has no schedule and dispatch is not authorized, so queued work remains pending. GitHub Actions does not automatically retry this POST request; a later, separately authorized invocation is required to use the remaining retry budget.
 - A failed workflow run can mean the endpoint was unavailable, rejected the invocation, or persisted a document-processing failure. Inspect the Actions job without exposing secrets.
 
 ## Historical non-production observations (not current acceptance)
