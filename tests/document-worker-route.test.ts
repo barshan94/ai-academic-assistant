@@ -233,9 +233,9 @@ describe("document worker route access and queue preflight", () => {
     expect(loggedPayload).not.toContain("private terminalization transport details");
   });
 
-  it("terminalizes an exhausted stale job without attempting another claim", async () => {
+  it("keeps exhausted stale-job terminalization inside the shared processing deadline", async () => {
     const staleStartedAt = new Date(Date.now() - 30 * 60 * 1000).toISOString();
-    rpcMock
+    const processingRpc = vi.fn()
       .mockResolvedValueOnce({
         data: [{
           id: "job-exhausted",
@@ -249,18 +249,23 @@ describe("document worker route access and queue preflight", () => {
         error: null,
       })
       .mockResolvedValueOnce({ data: true, error: null });
+    const finalizationRpc = vi.fn();
+    createSupabaseServiceRoleClientMock
+      .mockReturnValueOnce({ rpc: processingRpc })
+      .mockReturnValueOnce({ rpc: finalizationRpc });
 
     const response = await POST(request("Bearer test-cron-secret-with-sufficient-entropy"));
 
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ processed: false, reason: "no_claimable_job" });
-    expect(rpcMock).toHaveBeenCalledTimes(2);
-    expect(rpcMock).toHaveBeenNthCalledWith(2, "terminalize_exhausted_stale_document_job", {
+    expect(processingRpc).toHaveBeenCalledTimes(2);
+    expect(processingRpc).toHaveBeenNthCalledWith(2, "terminalize_exhausted_stale_document_job", {
       p_document_id: "document-2",
       p_owner_id: "owner-2",
       p_job_id: "job-exhausted",
       p_expected_started_at: staleStartedAt,
     });
+    expect(finalizationRpc).not.toHaveBeenCalled();
   });
 
   it("returns a generic response and logs only allow-listed metadata when the queue transport promise rejects", async () => {

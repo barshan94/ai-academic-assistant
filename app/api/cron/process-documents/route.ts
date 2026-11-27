@@ -14,7 +14,7 @@ export const maxDuration = 60;
 
 // Queue reads, claims, owner-scoped reads and Google requests share the first
 // 48 seconds. Each Supabase HTTP request is also capped at 10 seconds. Keep a
-// separate 12-second window for completion/failure/recovery state transitions.
+// separate 12-second window for completion/failure transitions after a claim.
 const WORKER_PROCESSING_BUDGET_MS = 48_000;
 const WORKER_FINALIZATION_RESERVE_MS = 12_000;
 const WORKER_DATABASE_REQUEST_TIMEOUT_MS = 10_000;
@@ -119,7 +119,7 @@ export async function POST(request: Request) {
     if (!isBackgroundJobRetryEligible(candidate.attempt_count, candidate.max_attempts)) {
       if (candidate.status === "running") {
         try {
-          const { error: terminalizationError } = await finalizer.rpc("terminalize_exhausted_stale_document_job", {
+          const { error: terminalizationError } = await supabase.rpc("terminalize_exhausted_stale_document_job", {
             p_document_id: candidate.document_id,
             p_owner_id: candidate.owner_id,
             p_job_id: candidate.id,
