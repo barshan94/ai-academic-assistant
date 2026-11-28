@@ -139,6 +139,58 @@ describe("document worker successful processing path", () => {
     });
   });
 
+
+  it("prioritizes retryable document work over exhausted stale-job cleanup", async () => {
+    const staleStartedAt = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+    rpc
+      .mockResolvedValueOnce({
+        data: [
+          {
+            id: "job-exhausted",
+            document_id: "doc-stale",
+            owner_id: "owner-stale",
+            status: "running",
+            started_at: staleStartedAt,
+            attempt_count: 3,
+            max_attempts: 3,
+          },
+          {
+            id: "job-retryable",
+            document_id: "doc-1",
+            owner_id: "owner-1",
+            status: "queued",
+            started_at: null,
+            attempt_count: 0,
+            max_attempts: 3,
+          },
+        ],
+        error: null,
+      })
+      .mockResolvedValueOnce({ data: true, error: null })
+      .mockResolvedValueOnce({ data: 2, error: null });
+
+    const response = await POST(new Request("https://academic.example/api/cron/process-documents", {
+      method: "POST",
+      headers: { authorization: "Bearer test-cron-secret-with-sufficient-entropy" },
+    }));
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      processed: true,
+      job_id: "job-retryable",
+      page_count: 2,
+    });
+    expect(rpc).toHaveBeenNthCalledWith(2, "claim_document_processing_job", {
+      p_document_id: "doc-1",
+      p_owner_id: "owner-1",
+      p_job_id: "job-retryable",
+      p_expected_status: "queued",
+      p_expected_attempt_count: 0,
+      p_expected_started_at: null,
+    });
+    expect(rpc).not.toHaveBeenCalledWith("terminalize_exhausted_stale_document_job", expect.anything());
+  });
+
   it("does not complete a job when saved questions reference the existing extracted pages", async () => {
     const from = (table: string) => {
       if (table === "documents") return query({ data: { id: "doc-1", drive_file_id: "drive-1", status: "processing", file_size_bytes: 32, sha256: "a".repeat(64) }, error: null });

@@ -257,7 +257,7 @@ describe("document worker route access and queue preflight", () => {
     const response = await POST(request("Bearer test-cron-secret-with-sufficient-entropy"));
 
     expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ processed: false, reason: "no_claimable_job" });
+    expect(await response.json()).toEqual({ processed: false, reason: "stale_job_terminalized" });
     expect(processingRpc).toHaveBeenCalledTimes(2);
     expect(processingRpc).toHaveBeenNthCalledWith(2, "terminalize_exhausted_stale_document_job", {
       p_document_id: "document-2",
@@ -266,6 +266,68 @@ describe("document worker route access and queue preflight", () => {
       p_expected_started_at: staleStartedAt,
     });
     expect(finalizationRpc).not.toHaveBeenCalled();
+  });
+
+
+  it("terminalizes at most one exhausted stale job per invocation", async () => {
+    const staleStartedAt = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+    const candidates = [1, 2, 3].map((index) => ({
+      id: `job-exhausted-${index}`,
+      document_id: `document-${index}`,
+      owner_id: `owner-${index}`,
+      status: "running",
+      started_at: staleStartedAt,
+      attempt_count: 3,
+      max_attempts: 3,
+    }));
+    rpcMock
+      .mockResolvedValueOnce({ data: candidates, error: null })
+      .mockResolvedValueOnce({ data: true, error: null });
+
+    const response = await POST(request("Bearer test-cron-secret-with-sufficient-entropy"));
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      processed: false,
+      reason: "stale_job_terminalized",
+    });
+    expect(rpcMock).toHaveBeenCalledTimes(2);
+    expect(rpcMock).toHaveBeenNthCalledWith(2, "terminalize_exhausted_stale_document_job", {
+      p_document_id: "document-1",
+      p_owner_id: "owner-1",
+      p_job_id: "job-exhausted-1",
+      p_expected_started_at: staleStartedAt,
+    });
+  });
+
+  it("returns a distinct result when an observed stale lease no longer matches", async () => {
+    const staleStartedAt = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+    rpcMock
+      .mockResolvedValueOnce({ data: [{
+        id: "job-rechecked",
+        document_id: "document-rechecked",
+        owner_id: "owner-rechecked",
+        status: "running",
+        started_at: staleStartedAt,
+        attempt_count: 3,
+        max_attempts: 3,
+      }], error: null })
+      .mockResolvedValueOnce({ data: false, error: null });
+
+    const response = await POST(request("Bearer test-cron-secret-with-sufficient-entropy"));
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      processed: false,
+      reason: "stale_job_rechecked",
+    });
+    expect(rpcMock).toHaveBeenCalledTimes(2);
+    expect(rpcMock).toHaveBeenNthCalledWith(2, "terminalize_exhausted_stale_document_job", {
+      p_document_id: "document-rechecked",
+      p_owner_id: "owner-rechecked",
+      p_job_id: "job-rechecked",
+      p_expected_started_at: staleStartedAt,
+    });
   });
 
   it("returns a generic response and logs only allow-listed metadata when the queue transport promise rejects", async () => {

@@ -88,6 +88,10 @@ export function parseWorkerPayload(raw) {
       (payload.reason === "queue_empty" || payload.reason === "no_claimable_job")) {
     return { processed: false };
   }
+  if (hasExactKeys(payload, ["processed", "reason"]) &&
+      (payload.reason === "stale_job_terminalized" || payload.reason === "stale_job_rechecked")) {
+    return { processed: false, maintenance: payload.reason };
+  }
   throw new Error("Document worker did not complete a document.");
 }
 
@@ -137,6 +141,10 @@ async function main() {
 
   if (result.processed) {
     console.log(`Worker completed one document; extracted pages: ${result.pageCount}.`);
+  } else if (result.maintenance === "stale_job_terminalized") {
+    console.log("Worker terminalized one exhausted stale job; no document was processed.");
+  } else if (result.maintenance === "stale_job_rechecked") {
+    console.log("Worker rechecked one stale lease; no document was processed.");
   } else {
     console.log("Worker endpoint healthy; no claimable document was available.");
   }

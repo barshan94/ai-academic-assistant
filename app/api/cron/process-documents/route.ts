@@ -114,18 +114,37 @@ export async function POST(request: Request) {
   }
   if (!candidates?.length) return Response.json({ processed: false, reason: "queue_empty" });
 
-  for (const candidate of candidates) {
+  // Prefer work that can still be retried. Exhausted stale leases are maintenance
+  // work and are handled one per invocation so they cannot consume the 48-second
+  // processing window before a document gets a chance to run.
+  const orderedCandidates = [...candidates].sort((left, right) => {
+    const leftNeedsTerminalization = left.status === "running"
+      && !isBackgroundJobRetryEligible(left.attempt_count, left.max_attempts);
+    const rightNeedsTerminalization = right.status === "running"
+      && !isBackgroundJobRetryEligible(right.attempt_count, right.max_attempts);
+    return Number(leftNeedsTerminalization) - Number(rightNeedsTerminalization);
+  });
+
+  for (const candidate of orderedCandidates) {
     if (!isBackgroundJobClaimable({ status: candidate.status, startedAt: candidate.started_at })) continue;
     if (!isBackgroundJobRetryEligible(candidate.attempt_count, candidate.max_attempts)) {
       if (candidate.status === "running") {
         try {
-          const { error: terminalizationError } = await supabase.rpc("terminalize_exhausted_stale_document_job", {
+          const { data: terminalized, error: terminalizationError } = await supabase.rpc("terminalize_exhausted_stale_document_job", {
             p_document_id: candidate.document_id,
             p_owner_id: candidate.owner_id,
             p_job_id: candidate.id,
             p_expected_started_at: candidate.started_at,
           });
           if (terminalizationError) throw terminalizationError;
+
+          // A false result means the observed lease changed before the atomic
+          // terminalization. Re-read on a later invocation rather than scanning
+          // and mutating more stale jobs in this request.
+          return Response.json({
+            processed: false,
+            reason: terminalized === true ? "stale_job_terminalized" : "stale_job_rechecked",
+          });
         } catch {
           // The recovery transaction may have committed even if its response
           // was lost. Stop this invocation and reconcile from the next queue read.

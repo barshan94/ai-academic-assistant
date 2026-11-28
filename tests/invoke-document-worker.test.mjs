@@ -65,6 +65,14 @@ describe("bounded document worker invocation", () => {
     expect(parseWorkerPayload(JSON.stringify({ processed: false, reason: "no_claimable_job" }))).toEqual({
       processed: false,
     });
+    expect(parseWorkerPayload(JSON.stringify({ processed: false, reason: "stale_job_terminalized" }))).toEqual({
+      processed: false,
+      maintenance: "stale_job_terminalized",
+    });
+    expect(parseWorkerPayload(JSON.stringify({ processed: false, reason: "stale_job_rechecked" }))).toEqual({
+      processed: false,
+      maintenance: "stale_job_rechecked",
+    });
     expect(() =>
       parseWorkerPayload(JSON.stringify({ processed: false, reason: "queue_empty", error: "unexpected" })),
     ).toThrow("did not complete");
